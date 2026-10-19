@@ -41,6 +41,7 @@ class UpdateTroopersRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
+            'roster_complete' => ['required', 'accepted'],
             'troopers.*.status' => ['nullable', EventTrooperStatus::toValidator()],
             'troopers.*.event_shift_station_id' => ['nullable', 'integer', 'exists:tt_event_shift_stations,id'],
             'troopers.*.costume_id' => ['nullable', 'integer', 'exists:tt_costumes,id'],
@@ -51,5 +52,18 @@ class UpdateTroopersRequest extends FormRequest
         ];
 
         return $rules;
+    }
+
+    /**
+     * PHP silently drops input past max_input_vars; the trailing sentinel goes missing first.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'roster_complete.*' => 'The roster form was too large to submit in full, so no '
+                .'changes were saved. Edit fewer rows and try again.',
+        ];
     }
 }

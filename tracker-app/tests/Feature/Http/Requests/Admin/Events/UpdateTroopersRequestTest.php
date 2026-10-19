@@ -14,6 +14,7 @@ use App\Models\TrooperAssignment;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
+use Mockery;
 use Tests\TestCase;
 
 class UpdateTroopersRequestTest extends TestCase
@@ -51,20 +52,20 @@ class UpdateTroopersRequestTest extends TestCase
      */
     private function setupMockedRoute(UpdateTroopersRequest $request, ?Event $event): void
     {
-        $mock_route = \Mockery::mock();
+        $mock_route = Mockery::mock();
         $mock_route->shouldReceive('parameter')
             ->with('event')
             ->andReturn($event);
         $mock_route->shouldReceive('parameter')
-            ->with('event', \Mockery::any())
+            ->with('event', Mockery::any())
             ->andReturn($event);
-        $request->setRouteResolver(fn() => $mock_route);
+        $request->setRouteResolver(fn () => $mock_route);
     }
 
     public function test_authorize_returns_true_for_moderator(): void
     {
         $subject = new UpdateTroopersRequest;
-        $subject->setUserResolver(fn() => $this->moderator);
+        $subject->setUserResolver(fn () => $this->moderator);
         $this->setupMockedRoute($subject, $this->event);
 
         $this->assertTrue($subject->authorize());
@@ -76,10 +77,22 @@ class UpdateTroopersRequestTest extends TestCase
         $this->expectExceptionMessage('Event not found or unauthorized.');
 
         $subject = new UpdateTroopersRequest;
-        $subject->setUserResolver(fn() => $this->moderator);
+        $subject->setUserResolver(fn () => $this->moderator);
         $this->setupMockedRoute($subject, null);
 
         $subject->authorize();
+    }
+
+    public function test_rules_require_roster_complete(): void
+    {
+        $subject = new UpdateTroopersRequest;
+        $this->setupMockedRoute($subject, $this->event);
+
+        $missing = Validator::make(['troopers' => []], $subject->rules());
+        $present = Validator::make(['roster_complete' => '1', 'troopers' => []], $subject->rules());
+
+        $this->assertTrue($missing->fails());
+        $this->assertFalse($present->fails());
     }
 
     public function test_rules_validates_trooper_status_is_nullable(): void
@@ -99,6 +112,7 @@ class UpdateTroopersRequestTest extends TestCase
 
         $validator = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['status' => 'invalid-status'],
                 ],
@@ -116,6 +130,7 @@ class UpdateTroopersRequestTest extends TestCase
 
         $validator = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['status' => EventTrooperStatus::GOING->value],
                 ],
@@ -133,6 +148,7 @@ class UpdateTroopersRequestTest extends TestCase
 
         $validator = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['status' => EventTrooperStatus::PENDING->value],
                 ],
@@ -150,6 +166,7 @@ class UpdateTroopersRequestTest extends TestCase
 
         $validator = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['status' => EventTrooperStatus::CANCELLED->value],
                 ],
@@ -167,6 +184,7 @@ class UpdateTroopersRequestTest extends TestCase
 
         $validator = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['status' => null],
                 ],
@@ -184,6 +202,7 @@ class UpdateTroopersRequestTest extends TestCase
 
         $validator = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['status' => EventTrooperStatus::GOING->value],
                     ['status' => EventTrooperStatus::PENDING->value],
@@ -204,6 +223,7 @@ class UpdateTroopersRequestTest extends TestCase
 
         $validator = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['costume_id' => $costume->id],
                     ['costume_id' => null],
@@ -222,6 +242,7 @@ class UpdateTroopersRequestTest extends TestCase
 
         $validator = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['costume_id' => 999999],
                 ],
@@ -239,6 +260,7 @@ class UpdateTroopersRequestTest extends TestCase
 
         $valid = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['organization_selection' => '1'],
                 ],
@@ -247,6 +269,7 @@ class UpdateTroopersRequestTest extends TestCase
         );
         $invalid = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['organization_selection' => 'definitely'],
                 ],
@@ -265,6 +288,7 @@ class UpdateTroopersRequestTest extends TestCase
 
         $valid = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['organization_ids' => [1, 2]],
                 ],
@@ -273,6 +297,7 @@ class UpdateTroopersRequestTest extends TestCase
         );
         $invalid_list = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['organization_ids' => '1'],
                 ],
@@ -281,6 +306,7 @@ class UpdateTroopersRequestTest extends TestCase
         );
         $invalid_item = Validator::make(
             [
+                'roster_complete' => '1',
                 'troopers' => [
                     ['organization_ids' => ['abc']],
                 ],
