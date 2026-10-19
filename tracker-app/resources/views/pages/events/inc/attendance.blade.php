@@ -4,7 +4,7 @@
         Expected Attendees
         <span class="float-end">
             <x-number-format :value="$event->expected_attendees"
-                             :nulldisplay="'alot'" />
+                             :nulldisplay="'a lot'" />
         </span>
     </li>
     <li class="list-group-item bg-transparent border-bottom">
@@ -18,14 +18,14 @@
         Troopers Allowed
         <span class="float-end">
             <x-number-format :value="$event->troopers_allowed"
-                             :nulldisplay="'alot'" />
+                             :nulldisplay="'a lot'" />
         </span>
     </li>
     <li class="list-group-item bg-transparent border-bottom">
         Handlers Allowed
         <span class="float-end">
             <x-number-format :value="$event->handlers_allowed"
-                             :nulldisplay="'alot'" />
+                             :nulldisplay="'a lot'" />
         </span>
     </li>
 </ul>
