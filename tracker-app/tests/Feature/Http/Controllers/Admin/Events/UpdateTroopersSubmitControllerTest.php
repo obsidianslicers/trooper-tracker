@@ -30,10 +30,47 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $event = Event::factory()->create();
 
         $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [],
         ]);
 
         $response->assertRedirect(route('admin.events.troopers', ['event' => $event->id]));
+    }
+
+    public function test_invoke_rejects_truncated_submission_without_saving(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $event_trooper = EventTrooper::factory()->forEventShift($event_shift)->asGoing()->create();
+
+        $response = $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => ['status' => EventTrooperStatus::CANCELLED->value],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors('roster_complete');
+        $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
+    }
+
+    public function test_invoke_updates_only_submitted_rows(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $edited = EventTrooper::factory()->forEventShift($event_shift)->asGoing()->create();
+        $untouched = EventTrooper::factory()->forEventShift($event_shift)->asGoing()->create();
+
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
+            'troopers' => [
+                $edited->id => ['status' => EventTrooperStatus::CANCELLED->value],
+            ],
+        ]);
+
+        $this->assertSame(EventTrooperStatus::CANCELLED, $edited->fresh()->status);
+        $this->assertSame(EventTrooperStatus::GOING, $untouched->fresh()->status);
     }
 
     public function test_invoke_requires_authentication(): void
@@ -78,6 +115,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create([EventTrooper::COSTUME_ID => null]);
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -110,6 +148,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ]);
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -142,6 +181,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ]);
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -171,6 +211,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create();
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -200,6 +241,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create([EventTrooper::STATUS => EventTrooperStatus::STAND_BY]);
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => EventTrooperStatus::GOING->value,
@@ -224,6 +266,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create();
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => EventTrooperStatus::GOING->value,
@@ -252,6 +295,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create();
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -290,6 +334,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create([EventTrooper::COSTUME_ID => $costume->id]);
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -329,6 +374,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create([EventTrooper::COSTUME_ID => $costume->id]);
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -373,6 +419,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create([EventTrooper::COSTUME_ID => null]);
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -412,6 +459,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create([EventTrooper::COSTUME_ID => null]);
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -451,6 +499,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create([EventTrooper::COSTUME_ID => null]);
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -485,6 +534,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ]);
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -527,6 +577,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ]);
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -575,6 +626,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create([EventTrooper::COSTUME_ID => null]);
 
         $this->actingAs($moderator)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -609,6 +661,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create([EventTrooper::COSTUME_ID => null]);
 
         $this->actingAs($moderator)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -642,6 +695,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create([EventTrooper::COSTUME_ID => null]);
 
         $this->actingAs($moderator)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -681,6 +735,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create();
 
         $this->actingAs($moderator)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -712,6 +767,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $original_updated_id = $event_trooper->updated_id;
 
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -755,6 +811,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         // UpdateTroopersControllerTest::test_invoke_preserves_stale_credited_org_no_longer_a_member),
         // while the admin only intends to change the other trooper's status.
         $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $stale_event_trooper->id => [
                     'status' => 'attended',
@@ -816,6 +873,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             ->create();
 
         $this->actingAs($moderator)->post('/admin/events/'.$event->id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'going',
@@ -866,6 +924,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $event_id = $event_trooper->event_shift->event_id;
 
         $this->actingAs($admin)->post('/admin/events/'.$event_id.'/troopers', [
+            'roster_complete' => '1',
             'troopers' => [
                 $event_trooper->id => [
                     'status' => 'attended',

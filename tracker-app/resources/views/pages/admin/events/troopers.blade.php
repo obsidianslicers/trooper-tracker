@@ -12,7 +12,13 @@
 
         <x-card>
             <form method="POST"
-                  novalidate="novalidate">
+                  novalidate="novalidate"
+                  x-data
+                  @change="$event.target.closest('[data-roster-row]')
+                      ?.setAttribute('data-dirty', '1')"
+                  @submit="$el
+                      .querySelectorAll('[data-roster-row]:not([data-dirty]) :is(input, select)')
+                      .forEach(el => el.disabled = true)">
                 @csrf
 
                 <x-input-container>
@@ -77,7 +83,7 @@
                             </td>
                         </tr>
                         @forelse($event_shift->event_troopers as $event_trooper)
-                            <tr>
+                            <tr data-roster-row>
                                 <td class="ps-4">
                                     <a href="{{ route('admin.troopers.profile', ['trooper' => $event_trooper->trooper_id]) }}">
                                         {{ $event_trooper->trooper->display_name }}
@@ -177,7 +183,7 @@
                             </tr>
                         @endif
                         @foreach($event_shift->event_guests as $event_guest)
-                            <tr>
+                            <tr data-roster-row>
                                 <td class="ps-4">
                                     {{ $event_guest->name }}
                                     @if($event_guest->added_by_trooper)
@@ -254,6 +260,11 @@
                 </x-table>
 
                 <x-modal-picker :id="'modal-trooper'" :label="'Find a Trooper'" />
+
+                {{-- Must stay the last named field: PHP drops input past max_input_vars. --}}
+                <input type="hidden"
+                       name="roster_complete"
+                       value="1">
 
                 <x-submit-container>
                     @if(Auth::user()->is_administrator || Auth::user()->isModeratorForOrganization($event->organization))
