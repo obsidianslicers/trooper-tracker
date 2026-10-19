@@ -14,8 +14,11 @@
             <form method="POST"
                   novalidate="novalidate"
                   x-data
-                  @change="$event.target.closest('[data-roster-row]')?.setAttribute('data-dirty', '1')"
-                  @submit="$el.querySelectorAll('[data-roster-row]:not([data-dirty]) :is(input, select)').forEach(el => el.disabled = true)">
+                  @change="$event.target.closest('[data-roster-row]')
+                      ?.setAttribute('data-dirty', '1')"
+                  @submit="$el
+                      .querySelectorAll('[data-roster-row]:not([data-dirty]) :is(input, select)')
+                      .forEach(el => el.disabled = true)">
                 @csrf
 
                 <x-input-container>
