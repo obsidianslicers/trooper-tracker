@@ -32,8 +32,8 @@ final class FcmChannel
      * Sends a Firebase notification to all registered device tokens.
      *
      * Push delivery is best-effort: transient backend errors are retried a few
-     * times, and any failure is logged and swallowed so it never fails the
-     * surrounding (non-idempotent) notification job.
+     * times, and any failure is reported (so admins get the exception email) and
+     * swallowed so it never fails the surrounding (non-idempotent) notification job.
      *
      * @param  object  $notifiable  Trooper-like notifiable entity with id and unread notifications.
      */
@@ -98,6 +98,8 @@ final class FcmChannel
                         'exception' => $exception->getMessage(),
                     ]);
 
+                    report($exception);
+
                     return null;
                 }
 
@@ -109,6 +111,8 @@ final class FcmChannel
                     'trooper_id' => $notifiable->id,
                     'exception' => $exception->getMessage(),
                 ]);
+
+                report($exception);
 
                 return null;
             }

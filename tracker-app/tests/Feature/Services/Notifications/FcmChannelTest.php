@@ -9,6 +9,7 @@ use App\Models\MobileDevice;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Exceptions;
 use Kreait\Firebase\Contract\Messaging;
 use Kreait\Firebase\Exception\Messaging\MessagingError;
 use Kreait\Firebase\Exception\Messaging\ServerUnavailable;
@@ -143,6 +144,8 @@ class FcmChannelTest extends TestCase
 
     public function test_swallows_persistent_transient_errors_without_throwing(): void
     {
+        Exceptions::fake();
+
         $trooper = Trooper::factory()->create();
         MobileDevice::factory()->create([MobileDevice::TROOPER_ID => $trooper->id, MobileDevice::FCM_TOKEN => 'token-a']);
 
@@ -153,11 +156,13 @@ class FcmChannelTest extends TestCase
 
         (new FcmChannel($messaging))->send($trooper, $this->makeNotification());
 
-        $this->assertTrue(true);
+        Exceptions::assertReported(ServerUnavailable::class);
     }
 
     public function test_swallows_permanent_errors_without_retrying(): void
     {
+        Exceptions::fake();
+
         $trooper = Trooper::factory()->create();
         MobileDevice::factory()->create([MobileDevice::TROOPER_ID => $trooper->id, MobileDevice::FCM_TOKEN => 'token-a']);
 
@@ -168,7 +173,7 @@ class FcmChannelTest extends TestCase
 
         (new FcmChannel($messaging))->send($trooper, $this->makeNotification());
 
-        $this->assertTrue(true);
+        Exceptions::assertReported(MessagingError::class);
     }
 
     public function test_does_not_delete_valid_tokens_on_success(): void
