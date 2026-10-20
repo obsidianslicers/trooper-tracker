@@ -12,6 +12,7 @@ use App\Features\Events\Queries\GetTroopersForEventCancelledQuery;
 use App\Models\Event;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Sends cancellation notifications to troopers who signed up for a cancelled event.
@@ -48,17 +49,33 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
             return;
         }
 
+        // Resolve recipients before mutating statuses: the query selects troopers
+        // whose EventTrooper status is still GOING.
         $troopers_query = new GetTroopersForEventCancelledQuery($this->event);
 
         $troopers = $bus->send($troopers_query);
 
-        foreach ($troopers as $trooper)
+        // Notifications queue after commit, so the marker, the status changes and
+        // the fan-out are atomic: a failure rolls everything back with nobody
+        // notified, and a retry re-runs cleanly instead of skipping at the guard.
+        DB::transaction(function () use ($bus, $troopers): void
         {
-            $send_notification_command = new SendEventCancelledNotificationCommand($this->event, $trooper);
+            $this->cancelShifts();
 
-            $bus->send($send_notification_command);
-        }
+            $this->event->cancel_notifications_sent_at = now();
+            $this->event->save();
 
+            foreach ($troopers as $trooper)
+            {
+                $send_notification_command = new SendEventCancelledNotificationCommand($this->event, $trooper);
+
+                $bus->send($send_notification_command);
+            }
+        });
+    }
+
+    private function cancelShifts(): void
+    {
         foreach ($this->event->event_shifts as $shift)
         {
             $shift->status = EventStatus::CANCELLED;
@@ -75,8 +92,5 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
                 $event_trooper->save();
             }
         }
-
-        $this->event->cancel_notifications_sent_at = now();
-        $this->event->save();
     }
 }

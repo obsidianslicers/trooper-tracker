@@ -22,6 +22,11 @@ enum TrooperNotifications: string
     case EVENT_CANCELLED = 'event_cancelled';
 
     /**
+     * Sent when an existing event's details change.
+     */
+    case EVENT_UPDATED = 'event_updated';
+
+    /**
      * Sent when a trooper signs up for an event.
      */
     case TROOPER_SIGNED_UP = 'trooper_signed_up';
@@ -35,4 +40,9 @@ enum TrooperNotifications: string
      * Sent when a new post is made in the event's forum thread.
      */
     case EVENT_FORUM_POST = 'event_forum_post';
+
+    /**
+     * Sent to troopers watching an event when someone signs up, re-signs up, or cancels.
+     */
+    case EVENT_ROSTER_ACTIVITY = 'event_roster_activity';
 }

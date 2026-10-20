@@ -10,7 +10,6 @@ use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Models\Trooper;
 use App\Notifications\Admin\TrooperRegisteredNotification;
 use App\Policies\TrooperPolicy;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -32,8 +31,6 @@ class SendTrooperRegisteredNotificationsJob implements ShouldQueue
 
     public function handle(MagicBus $bus): void
     {
-        event(new Registered($this->trooper));
-
         $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
 
         foreach ($admins as $admin)

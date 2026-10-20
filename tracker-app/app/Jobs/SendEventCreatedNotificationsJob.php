@@ -14,6 +14,7 @@ use App\Services\Forums\XenforoService;
 use App\Services\Notifications\DiscordNotifier;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Creates event notifications for active troopers when a new event is posted.
@@ -54,18 +55,9 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
         ForumThreadMessageService $forumThreadMessageService,
         XenforoService $xenforo
     ): void {
-        // Trooper notifications: only send if not already sent
         if ($this->event->create_notifications_sent_at === null)
         {
-            $troopers_query = new GetTroopersForEventCreatedQuery($this->event);
-            $troopers = $bus->send($troopers_query);
-            foreach ($troopers as $trooper)
-            {
-                $send_notification_command = new SendEventCreatedNotificationCommand($this->event, $trooper);
-                $bus->send($send_notification_command);
-            }
-            $this->event->create_notifications_sent_at = now();
-            $this->event->save();
+            $this->sendTrooperNotifications($bus);
         }
 
         // Forum posting / notifications
@@ -124,5 +116,27 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
                 ]);
             }
         }
+    }
+
+    /**
+     * Notifications queue after commit, so the marker and the fan-out are atomic:
+     * a failure rolls back the marker with nobody notified, and a retry re-runs
+     * cleanly instead of skipping every trooper.
+     */
+    private function sendTrooperNotifications(MagicBus $bus): void
+    {
+        DB::transaction(function () use ($bus): void
+        {
+            $this->event->create_notifications_sent_at = now();
+            $this->event->save();
+
+            $troopers_query = new GetTroopersForEventCreatedQuery($this->event);
+            $troopers = $bus->send($troopers_query);
+            foreach ($troopers as $trooper)
+            {
+                $send_notification_command = new SendEventCreatedNotificationCommand($this->event, $trooper);
+                $bus->send($send_notification_command);
+            }
+        });
     }
 }
