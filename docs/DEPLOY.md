@@ -494,18 +494,20 @@ sudo systemctl restart troop-tracker-queue
 php artisan up
 ```
 
-## GitHub Actions Deployment (Bitnami Lightsail)
+## GitHub Actions Deployment
 
-Automated deployment from GitHub to a Bitnami AWS Lightsail Laravel server on every push to `main`.
+Automated deployment from GitHub to the Laravel server on every push to `main`.
 
 **Environment:**
 - Repo: `obsidianslicers/trooper-tracker`
-- Server OS: Bitnami Lightsail (Apache)
-- Laravel app path: `/home/bitnami/trooper-tracker/tracker-app`
-- Repo root on server: `/home/bitnami/trooper-tracker`
-- PHP binary: `/opt/bitnami/php/bin/php`
-- Composer binary: `/opt/bitnami/php/bin/composer`
+- Server OS: Debian/Ubuntu (Apache), SSH user `admin`
+- Laravel app path: `/home/admin/trooper-tracker/tracker-app`
+- Repo root on server: `/home/admin/trooper-tracker`
+- PHP binary: `/usr/bin/php` (confirm with `command -v php`)
+- Composer binary: `/usr/local/bin/composer` (confirm with `command -v composer`)
 - Domain: `tracker.fl501st.com`
+
+> `deploy.sh` resolves `php`, `composer`, and `npm` from `PATH`. Override with the `PHP`, `COMPOSER`, or `NPM` environment variables if they live elsewhere.
 
 > **Note:** Deploy keys are disabled by GitHub organization policy. The server uses HTTPS + GitHub PAT for `git pull`. GitHub Actions connects to the server via SSH only.
 
@@ -529,10 +531,10 @@ The PAT needs **repo read access** only. After the first authenticated pull, cre
 
 ### 2. Deploy Script
 
-The deploy script lives at `/home/bitnami/trooper-tracker/tracker-app/deploy.sh`. Make it executable:
+The deploy script lives at `/home/admin/trooper-tracker/tracker-app/deploy.sh`. Make it executable:
 
 ```bash
-chmod +x /home/bitnami/trooper-tracker/tracker-app/deploy.sh
+chmod +x /home/admin/trooper-tracker/tracker-app/deploy.sh
 ```
 
 ### 3. SSH Key for GitHub Actions
@@ -560,7 +562,7 @@ chmod 600 ~/.ssh/authorized_keys
 Test SSH access from your local machine before wiring up Actions:
 
 ```bash
-ssh bitnami@SERVER_IP
+ssh admin@SERVER_IP
 ```
 
 ### 4. GitHub Actions Secrets
@@ -570,7 +572,7 @@ Add these secrets in **GitHub → Repository → Settings → Secrets and variab
 | Secret | Value |
 |---|---|
 | `LIGHTSAIL_HOST` | Server public/static IP |
-| `LIGHTSAIL_USER` | `bitnami` |
+| `LIGHTSAIL_USER` | `admin` |
 | `LIGHTSAIL_SSH_KEY` | Full private key content including `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----` |
 
 ### 5. GitHub Actions Workflow
@@ -601,40 +603,46 @@ jobs:
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
           script: |
-            /home/bitnami/trooper-tracker/tracker-app/deploy.sh
+            /home/admin/trooper-tracker/tracker-app/deploy.sh
 ```
 
 ### 6. Apache Vhost
 
-Ensure the Apache vhost exists at `/opt/bitnami/apache/conf/vhosts/test-fl501st.conf`:
+Ensure the Apache vhost exists at `/etc/apache2/sites-available/tracker-fl501st.conf`:
 
 ```apache
 <VirtualHost *:80>
     ServerName tracker.fl501st.com
-    DocumentRoot "/home/bitnami/trooper-tracker/tracker-app/public"
+    DocumentRoot "/home/admin/trooper-tracker/tracker-app/public"
 
-    <Directory "/home/bitnami/trooper-tracker/tracker-app/public">
+    <Directory "/home/admin/trooper-tracker/tracker-app/public">
         AllowOverride All
         Require all granted
     </Directory>
 
-    ErrorLog "logs/test-fl501st-error_log"
-    CustomLog "logs/test-fl501st-access_log" common
+    ErrorLog ${APACHE_LOG_DIR}/tracker-fl501st-error.log
+    CustomLog ${APACHE_LOG_DIR}/tracker-fl501st-access.log combined
 </VirtualHost>
 ```
 
-Restart Apache:
+Enable the site and `mod_rewrite`, then restart Apache:
 
 ```bash
-sudo /opt/bitnami/ctlscript.sh restart apache
+sudo a2enmod rewrite
+sudo a2ensite tracker-fl501st
+sudo systemctl restart apache2
 ```
+
+The Apache user (`www-data`) needs to traverse `/home/admin` and write to `storage/` and
+`bootstrap/cache/`.
 
 ### 7. SSL
 
-Once HTTP works, run the Bitnami SSL tool:
+Once HTTP works, issue a certificate with Certbot:
 
 ```bash
-sudo /opt/bitnami/bncert-tool
+sudo apt-get install -y certbot python3-certbot-apache
+sudo certbot --apache -d tracker.fl501st.com
 ```
 
 Use only `tracker.fl501st.com` — do **not** include `www.tracker.fl501st.com`.
@@ -649,13 +657,14 @@ Push a commit to `main` and confirm:
 - Laravel app reflects the latest code
 - `tracker.fl501st.com` loads correctly
 
-### 9. Troubleshooting (Bitnami)
+### 9. Troubleshooting
 
 | Symptom | Fix |
 |---|---|
 | `Permission denied (publickey)` | SSH key not in `authorized_keys`, or wrong key in secret |
-| `php: command not found` | Use `/opt/bitnami/php/bin/php` — not the system `php` |
-| `composer: command not found` | Use `/opt/bitnami/php/bin/composer` |
+| `php: command not found` | Install PHP, or set `PHP=/full/path/to/php` for `deploy.sh` |
+| `composer: command not found` | Install Composer to `/usr/local/bin/composer`, or set `COMPOSER=` |
+| HTTP 403 / storage write errors | `www-data` can't read `/home/admin` or write `storage/` |
 | Git auth fails | PAT not stored; re-run `git pull` and authenticate interactively |
 | HTTP 404 | Apache vhost path or `DocumentRoot` incorrect |
 | SSL fails | Domain DNS not pointing to server IP |

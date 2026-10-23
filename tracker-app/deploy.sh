@@ -1,10 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-APP_DIR="/home/bitnami/trooper-tracker/tracker-app"
-PHP="/opt/bitnami/php/bin/php"
-COMPOSER="/opt/bitnami/php/bin/composer"
-NPM="/usr/bin/npm"
+APP_DIR="/home/admin/trooper-tracker/tracker-app"
+PHP="${PHP:-$(command -v php)}"
+COMPOSER="${COMPOSER:-$(command -v composer)}"
+NPM="${NPM:-$(command -v npm)}"
 
 cd "$APP_DIR"
 
