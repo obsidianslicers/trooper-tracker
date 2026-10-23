@@ -408,90 +408,79 @@ sudo certbot renew --dry-run
 
 ## Updates & Deployments
 
-### Zero-Downtime Deployment Script
+### Deployment Script
 
-Create `deploy.sh` in repository root:
+Production deploys run [`tracker-app/deploy.sh`](../tracker-app/deploy.sh), triggered by GitHub
+Actions on every push to `main` (see [GitHub Actions Deployment](#github-actions-deployment)).
+The full script is mirrored in [CHEAT_SHEET.md](CHEAT_SHEET.md#deployment-to-production).
+
+The script runs with `set -euo pipefail`, so any failing step aborts the deploy. In order, it:
+
+1. `cd`s into `/home/admin/trooper-tracker/tracker-app` and resolves `php`, `composer`, and `npm`
+   from `PATH` (override with the `PHP`, `COMPOSER`, or `NPM` environment variables)
+2. Syncs code with `git fetch origin` + `git reset --hard origin/main` — **any uncommitted
+   changes on the server are discarded**
+3. Installs PHP dependencies: `composer install --no-interaction --prefer-dist
+   --optimize-autoloader --no-dev`
+4. Builds frontend assets with `npm install` + `npm run build`
+   (`NODE_OPTIONS=--max-old-space-size=2048` to avoid OOM during the build)
+5. Enters maintenance mode: `php artisan down --refresh=15` (failure is ignored)
+6. Clears the `cache`, `route`, `config`, and `view` caches
+7. Runs `php artisan migrate --force`
+8. Writes `APP_VERSION="build-<short-hash>-<yymmdd>"` to `.env` (from the HEAD commit hash and
+   commit date), adding the key if it's missing
+9. Rebuilds the `config`, `route`, and `view` caches
+10. Exits maintenance mode: `php artisan up`
+11. Signals queue workers to restart: `php artisan queue:restart`
+
+Dependencies and assets are built *before* entering maintenance mode, so the app is only offline
+for the cache, migration, and versioning steps.
+
+> `php artisan code:models` is **not** run on deploy — base models are generated in development
+> and committed.
+
+Make the script executable on the server:
 
 ```bash
-#!/bin/bash
-set -e
-
-echo "🚀 Starting deployment..."
-
-# Navigate to app directory
-cd /var/www/troop-tracker/tracker-app
-
-# Enable maintenance mode
-php artisan down --retry=60
-
-# Pull latest code
-git pull origin main
-
-# Install/update dependencies
-composer install --no-dev --optimize-autoloader
-npm ci
-npm run build
-
-# Run migrations
-php artisan migrate --force
-
-# Regenerate base models if schema changed
-php artisan code:models
-
-# Clear and rebuild caches
-php artisan config:clear
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan event:cache
-
-# Restart queue workers
-sudo systemctl restart troop-tracker-queue
-
-# Disable maintenance mode
-php artisan up
-
-echo "✅ Deployment complete!"
-```
-
-Make executable:
-```bash
-chmod +x deploy.sh
+chmod +x /home/admin/trooper-tracker/tracker-app/deploy.sh
 ```
 
 ### Manual Deployment Steps
 
+If you need to deploy by hand, mirror the script from `tracker-app/`:
+
 ```bash
-# 1. Enter maintenance mode
-php artisan down
+# 1. Sync code (discards local server changes)
+git fetch origin
+git reset --hard origin/main
 
-# 2. Pull latest code
-git pull origin main
+# 2. Install dependencies and build assets
+composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+NODE_OPTIONS="--max-old-space-size=2048" npm install
+NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
-# 3. Update dependencies
-composer install --no-dev --optimize-autoloader
-npm ci && npm run build
+# 3. Enter maintenance mode
+php artisan down --refresh=15
 
-# 4. Run migrations (IMPORTANT: regenerate models after)
-php artisan migrate --force
-php artisan code:models
-
-# 5. Clear caches
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
+# 4. Clear caches
 php artisan cache:clear
+php artisan route:clear
+php artisan config:clear
+php artisan view:clear
 
-# 6. Rebuild caches
+# 5. Run migrations
+php artisan migrate --force
+
+# 6. Update APP_VERSION in .env to build-<short-hash>-<yymmdd>
+
+# 7. Rebuild caches
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# 7. Restart queue workers
-sudo systemctl restart troop-tracker-queue
-
-# 8. Exit maintenance mode
+# 8. Exit maintenance mode and restart queue workers
 php artisan up
+php artisan queue:restart
 ```
 
 ## GitHub Actions Deployment
@@ -531,7 +520,8 @@ The PAT needs **repo read access** only. After the first authenticated pull, cre
 
 ### 2. Deploy Script
 
-The deploy script lives at `/home/admin/trooper-tracker/tracker-app/deploy.sh`. Make it executable:
+The deploy script lives at `/home/admin/trooper-tracker/tracker-app/deploy.sh` (see
+[Deployment Script](#deployment-script) for what it does). Make it executable:
 
 ```bash
 chmod +x /home/admin/trooper-tracker/tracker-app/deploy.sh
@@ -577,7 +567,8 @@ Add these secrets in **GitHub → Repository → Settings → Secrets and variab
 
 ### 5. GitHub Actions Workflow
 
-Create `.github/workflows/deploy.yml`:
+The workflow lives at `.github/workflows/deploy.yml`. It SSHes into the server and runs
+`deploy.sh` on every push to `main`:
 
 ```yaml
 name: Deploy to Lightsail
@@ -586,10 +577,6 @@ on:
   push:
     branches:
       - main
-
-concurrency:
-  group: production-deploy
-  cancel-in-progress: true
 
 jobs:
   deploy:

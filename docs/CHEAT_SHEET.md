@@ -76,44 +76,89 @@ Use these commands to run your PHPUnit test suite.
 
 **See [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) for production `.env` configuration.**
 
-These commands are typically run on your production server:
+Production deploys run automatically via GitHub Actions on every push to `main`
+(`.github/workflows/deploy.yml` SSHes into the server and runs `tracker-app/deploy.sh`).
+See [DEPLOY.md](DEPLOY.md#updates--deployments) for details.
 
+To deploy by hand, run the script on the server:
+
+```bash
+/home/admin/trooper-tracker/tracker-app/deploy.sh
 ```
+
+Current contents of `tracker-app/deploy.sh`:
+
+```bash
 #!/bin/bash
-set -e
+set -euo pipefail
 
-echo "🚧 Putting application into maintenance mode..."
-php artisan down --render="errors::503" --retry=60
+APP_DIR="/home/admin/trooper-tracker/tracker-app"
+PHP="${PHP:-$(command -v php)}"
+COMPOSER="${COMPOSER:-$(command -v composer)}"
+NPM="${NPM:-$(command -v npm)}"
 
-echo "📦 Pulling latest code..."
-git pull origin main
+cd "$APP_DIR"
 
-echo "📦 Installing PHP dependencies..."
-composer install --no-dev --optimize-autoloader
+echo "Current dir: $(pwd)"
+echo "PHP: $PHP"
+echo "Composer: $COMPOSER"
+echo "NPM: $NPM"
 
-echo "🎨 Building front-end assets..."
-npm ci
-npm run build
+echo "🚀 Starting Deployment..."
+
+echo "📥 Syncing code with GitHub..."
+git fetch origin
+git reset --hard origin/main
+
+echo "📦 Installing Composer dependencies..."
+$PHP $COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+echo "📦 Building Laravel Assets..."
+# Raise Node memory limit for build steps
+export NODE_OPTIONS="--max-old-space-size=2048"
+$NPM install
+$NPM run build
+
+echo "🚧 Taking application offline..."
+$PHP artisan down --refresh=15 || true
+
+echo "🧹 Clearing caches..."
+$PHP artisan cache:clear
+$PHP artisan route:clear
+$PHP artisan config:clear
+$PHP artisan view:clear
 
 echo "🗄️ Running database migrations..."
-php artisan migrate --force
+$PHP artisan migrate --force
 
-echo "⚡ Clearing and caching config/routes/views..."
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-php artisan event:clear
+# --- VERSION SYSTEM ---
+echo "📝 Updating APP_VERSION in .env..."
+COMMIT_HASH=$(git rev-parse --short HEAD)
+COMMIT_DATE=$(git log -1 --format="%cd" --date=format:"%y%m%d")
+APP_VERSION="build-${COMMIT_HASH}-${COMMIT_DATE}"
 
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan event:cache
+if grep -q "^APP_VERSION=" .env; then
+    sed -i "s|^APP_VERSION=.*|APP_VERSION=\"$APP_VERSION\"|" .env
+else
+    echo "APP_VERSION=\"$APP_VERSION\"" >> .env
+fi
+echo "🔹 Application version set to: $APP_VERSION"
+# -----------------------------
 
-echo "🔄 Restarting queue workers..."
-php artisan queue:restart
+echo "⚡ Optimizing..."
+$PHP artisan config:cache
+$PHP artisan route:cache
+$PHP artisan view:cache
 
-echo "✅ Bringing application back online..."
-php artisan up
+echo "✅ Bringing application online..."
+$PHP artisan up
 
-echo "🎉 Deployment complete!"
+echo "✅ Restarting queues..."
+$PHP artisan queue:restart
+
+# Not needed right now
+# echo "💰 Recalculating trooper achievements and donation totals..."
+# $PHP artisan tracker:calculate-trooper-achievements
+
+echo "🌟 Deployment Complete!"
 ```
