@@ -10,11 +10,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Run deploy script on Lightsail
+      - name: Deploy to Lightsail
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          command_timeout: 15m
           script: |
-            /home/admin/trooper-tracker/tracker-app/deploy.sh
+            echo "===== DEPLOYMENT DEBUG ====="
+
+            echo "User:"
+            whoami
+
+            echo "Home:"
+            echo "$HOME"
+
+            echo "Working directory:"
+            pwd
+
+            echo "Loading NVM..."
+            export NVM_DIR="$HOME/.nvm"
+            if [ -s "$NVM_DIR/nvm.sh" ]; then
+              . "$NVM_DIR/nvm.sh"
+            fi
+
+            echo "Checking dependencies..."
+            command -v php || true
+            command -v composer || true
+            command -v node || true
+            command -v npm || true
+
+            echo "Checking deployment script..."
+            ls -l /home/admin/trooper-tracker/tracker-app/deploy.sh
+
+            echo "===== START DEPLOYMENT ====="
+
+            bash -x /home/admin/trooper-tracker/tracker-app/deploy.sh
