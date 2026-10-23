@@ -75,6 +75,11 @@ final class LookupMembershipPageData extends Message
 
     private function findExistingTrooperMembership(): ?array
     {
+        if (empty($this->trooper_request->identifier))
+        {
+            return null;
+        }
+
         $existing_trooper = FindExistingTrooperMembership::call(
             identifier: $this->trooper_request->identifier,
             primary_organization: $this->trooper_request->primary_organization,

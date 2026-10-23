@@ -17,4 +17,4 @@ jobs:
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
           script: |
-            /home/bitnami/trooper-tracker/tracker-app/deploy.sh
+            /home/admin/trooper-tracker/tracker-app/deploy.sh

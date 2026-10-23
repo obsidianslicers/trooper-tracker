@@ -307,7 +307,7 @@ Mobile push notifications are delivered via Firebase Cloud Messaging (FCM). This
 Place the JSON file inside `tracker-app/` (same directory as `.env`):
 
 ```bash
-scp your-firebase-adminsdk-key.json bitnami@your-server:/home/bitnami/trooper-tracker/tracker-app/
+scp your-firebase-adminsdk-key.json admin@your-server:/home/admin/trooper-tracker/tracker-app/
 ```
 
 ### 10.4 Set the env variable
@@ -478,18 +478,17 @@ Use this order when standing up the Florida Garrison instance:
 
 ---
 
-## 15. Laravel Queue Worker and SES SMTP on Bitnami AWS
+## 15. Laravel Queue Worker and SES SMTP on AWS
 
 ### 14.1 Set up Laravel queue worker with Supervisor
 
 1. **Find the PHP binary**
 
    ```bash
-   which php
-   ls -l /opt/bitnami/php/bin/php
+   command -v php
    ```
 
-   If this exists, use `/opt/bitnami/php/bin/php`.
+   The examples below assume `/usr/bin/php`. Substitute the path printed above if it differs.
 
 2. **Install Supervisor if needed**
 
@@ -504,16 +503,16 @@ Use this order when standing up the Florida Garrison instance:
    sudo tee /etc/supervisor/conf.d/laravel-worker.conf > /dev/null <<'EOF'
    [program:laravel-worker]
    process_name=%(program_name)s_%(process_num)02d
-   command=/opt/bitnami/php/bin/php /home/bitnami/trooper-tracker/tracker-app/artisan queue:work --sleep=3 --tries=3 --timeout=90 --max-jobs=100
-   directory=/home/bitnami/trooper-tracker/tracker-app
+   command=/usr/bin/php /home/admin/trooper-tracker/tracker-app/artisan queue:work --sleep=3 --tries=3 --timeout=90 --max-jobs=100
+   directory=/home/admin/trooper-tracker/tracker-app
    autostart=true
    autorestart=true
    startsecs=5
    startretries=3
-   user=bitnami
+   user=admin
    numprocs=1
    redirect_stderr=true
-   stdout_logfile=/home/bitnami/laravel-worker.log
+   stdout_logfile=/home/admin/laravel-worker.log
    stopwaitsecs=3600
    environment=APP_ENV="production"
    EOF
@@ -542,23 +541,23 @@ Use this order when standing up the Florida Garrison instance:
 6. **Watch the worker log**
 
    ```bash
-   tail -f /home/bitnami/laravel-worker.log
+   tail -f /home/admin/laravel-worker.log
    ```
 
 7. **Restart the worker after deploys or .env changes**
 
    ```bash
-   cd /home/bitnami/trooper-tracker/tracker-app
-   /opt/bitnami/php/bin/php artisan queue:restart
+   cd /home/admin/trooper-tracker/tracker-app
+   php artisan queue:restart
    ```
 
 8. **Make sure Laravel queue tables exist**
 
    ```bash
-   cd /home/bitnami/trooper-tracker/tracker-app
-   /opt/bitnami/php/bin/php artisan queue:table
-   /opt/bitnami/php/bin/php artisan queue:failed-table
-   /opt/bitnami/php/bin/php artisan migrate --force
+   cd /home/admin/trooper-tracker/tracker-app
+   php artisan queue:table
+   php artisan queue:failed-table
+   php artisan migrate --force
    ```
 
 9. **Make sure .env uses a real queue driver**
@@ -572,28 +571,28 @@ Use this order when standing up the Florida Garrison instance:
 10. **Check queued and failed jobs**
 
     ```bash
-    cd /home/bitnami/trooper-tracker/tracker-app
-    /opt/bitnami/php/bin/php artisan queue:failed
+    cd /home/admin/trooper-tracker/tracker-app
+    php artisan queue:failed
     ```
 
     Retry failed jobs:
 
     ```bash
-    /opt/bitnami/php/bin/php artisan queue:retry all
+    php artisan queue:retry all
     ```
 
     Flush failed jobs:
 
     ```bash
-    /opt/bitnami/php/bin/php artisan queue:flush
+    php artisan queue:flush
     ```
 
 ### 14.2 Set up the Laravel scheduler cron
 
-Add this to the `bitnami` user's crontab:
+Add this to the `admin` user's crontab (`crontab -e`):
 
 ```cron
-* * * * * cd /home/bitnami/trooper-tracker/tracker-app && /opt/bitnami/php/bin/php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /home/admin/trooper-tracker/tracker-app && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
 
 ### 14.3 Common mail setup note for SES SMTP
@@ -614,16 +613,17 @@ MAIL_FROM_NAME="Troop Tracker"
 Then clear config and restart the worker:
 
 ```bash
-cd /home/bitnami/trooper-tracker/tracker-app
-/opt/bitnami/php/bin/php artisan config:clear
-/opt/bitnami/php/bin/php artisan cache:clear
-/opt/bitnami/php/bin/php artisan queue:restart
+cd /home/admin/trooper-tracker/tracker-app
+php artisan config:clear
+php artisan cache:clear
+php artisan queue:restart
 ```
 
 ### 14.4 If Supervisor says "can't find command 'php'"
 
-That means you must use the full PHP path in the `command` line of the Supervisor program:
+That means you must use the full PHP path (from `command -v php`) in the `command` line of the
+Supervisor program:
 
 ```ini
-command=/opt/bitnami/php/bin/php ...
+command=/usr/bin/php ...
 ```
