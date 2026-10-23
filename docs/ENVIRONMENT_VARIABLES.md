@@ -47,6 +47,12 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **Generation**: Run `php artisan key:generate`
 - **Security**: Never commit this value to version control
 
+### APP_VERSION
+- **Purpose**: Build identifier shown in the site footer
+- **Required**: No (footer hides the version when unset)
+- **Format**: `build-<short-commit-hash>-<yymmdd>`
+- **When to change**: Don't set manually in production — `deploy.sh` writes it on every deploy
+
 ---
 
 ## Localization
