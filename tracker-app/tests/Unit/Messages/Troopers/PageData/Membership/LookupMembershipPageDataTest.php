@@ -52,6 +52,27 @@ class LookupMembershipPageDataTest extends TestCase
         ], $subject->handle($resolver));
     }
 
+    public function test_handle_returns_null_membership_when_identifier_is_missing(): void
+    {
+        $organization = Organization::factory()->asOrganization()->create();
+        $trooper_request = TrooperRequest::factory()
+            ->forPrimaryOrganization($organization)
+            ->create([TrooperRequest::IDENTIFIER => null]);
+        /** @var MockInterface&MemberLookupResolver $resolver */
+        $resolver = Mockery::mock(MemberLookupResolver::class);
+        $resolver->shouldReceive('resolve')
+            ->once()
+            ->andReturn(new LookupMembershipServiceStub);
+
+        $subject = new LookupMembershipPageData($trooper_request);
+
+        $result = $subject->handle($resolver);
+
+        $this->assertNull($result['identifier']);
+        $this->assertNull($result['existing_trooper_membership']);
+        $this->assertNull($result['member']);
+    }
+
     #[RunInSeparateProcess]
     public function test_handle_returns_existing_membership_and_service_name(): void
     {
