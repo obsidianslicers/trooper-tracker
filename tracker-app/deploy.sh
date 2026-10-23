@@ -2,9 +2,41 @@
 set -Eeuo pipefail
 
 APP_DIR="/home/admin/trooper-tracker/tracker-app"
-PHP="${PHP:-$(command -v php)}"
-COMPOSER="${COMPOSER:-$(command -v composer)}"
-NPM="${NPM:-$(command -v npm)}"
+
+# Load NVM for GitHub Actions SSH deployments
+export NVM_DIR="$HOME/.nvm"
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+    . "$NVM_DIR/nvm.sh"
+fi
+
+# Show errors and restore application if deployment fails
+on_error() {
+    local exit_code=$?
+    local line_number="$1"
+
+    echo "❌ Deployment failed at line $line_number (exit $exit_code)"
+
+    if [ "${MAINTENANCE_STARTED:-false}" = true ]; then
+        echo "🔄 Attempting to restore application..."
+        "$PHP" artisan up || true
+    fi
+
+    exit "$exit_code"
+}
+
+trap 'on_error "$LINENO"' ERR
+
+# Verify required dependencies
+for cmd in php composer node npm git; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo "❌ Missing required command: $cmd"
+        exit 1
+    fi
+done
+
+PHP="$(command -v php)"
+COMPOSER="$(command -v composer)"
+NPM="$(command -v npm)"
 
 cd "$APP_DIR"
 
