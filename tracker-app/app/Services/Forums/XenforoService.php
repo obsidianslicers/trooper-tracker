@@ -254,7 +254,9 @@ class XenforoService
                 break;
             }
 
-            if (count($posts) < $per_page)
+            // XenForo ignores per_page and uses the forum's own page size (often 20),
+            // so a short page does not mean it is the last one.
+            if ($lastPage === null && $posts === [])
             {
                 break;
             }

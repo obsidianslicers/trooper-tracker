@@ -11,6 +11,7 @@ use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -430,6 +431,78 @@ class XenforoServiceTest extends TestCase
 
         $this->assertSame(0, $result['status']);
         Http::assertNothingSent();
+    }
+
+    public function test_get_thread_posts_fetches_every_page_when_forum_page_size_is_smaller(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-5',
+            'services.xenforo.api_user' => '42',
+        ]);
+
+        Cache::put('xenforo_smilies', [], 60);
+
+        Http::fake([
+            'https://xf.test/api/threads/46922/posts?page=1*' => Http::response([
+                'posts' => $this->threadPosts(1, 20),
+                'pagination' => ['current_page' => 1, 'last_page' => 2, 'per_page' => 20],
+            ], 200),
+            'https://xf.test/api/threads/46922/posts?page=2*' => Http::response([
+                'posts' => $this->threadPosts(21, 6),
+                'pagination' => ['current_page' => 2, 'last_page' => 2, 'per_page' => 20],
+            ], 200),
+        ]);
+
+        $subject = new XenforoService;
+        $result = $subject->get_thread_posts(46922, exclude_post_id: 1, per_page: 50, max_pages: 20);
+
+        $this->assertCount(25, $result);
+        $this->assertSame(26, $result[0]['post_id']);
+        Http::assertSentCount(2);
+    }
+
+    public function test_get_thread_posts_stops_on_empty_page_without_pagination(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-6',
+        ]);
+
+        Cache::put('xenforo_smilies', [], 60);
+
+        Http::fake([
+            'https://xf.test/api/threads/9/posts?page=1*' => Http::response([
+                'posts' => $this->threadPosts(1, 3),
+            ], 200),
+            'https://xf.test/api/threads/9/posts?page=2*' => Http::response(['posts' => []], 200),
+        ]);
+
+        $subject = new XenforoService;
+        $result = $subject->get_thread_posts(9, max_pages: 5);
+
+        $this->assertCount(3, $result);
+        Http::assertSentCount(2);
+    }
+
+    /**
+     * @return array<int, array{post_id:int,message:string,post_date:int,User:array{username:string}}>
+     */
+    private function threadPosts(int $first_id, int $count): array
+    {
+        $posts = [];
+
+        for ($post_id = $first_id; $post_id < $first_id + $count; $post_id++)
+        {
+            $posts[] = [
+                'post_id' => $post_id,
+                'message' => 'Post '.$post_id,
+                'post_date' => 1_700_000_000 + $post_id,
+                'User' => ['username' => 'trooper'.$post_id],
+            ];
+        }
+
+        return $posts;
     }
 
     /**
