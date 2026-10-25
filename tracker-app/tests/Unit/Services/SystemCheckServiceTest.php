@@ -79,10 +79,78 @@ class SystemCheckServiceTest extends TestCase
         $this->assertSame(SystemCheckStatus::FAIL, $result->status);
     }
 
+    public function test_scheduler_check_fails_when_cron_has_never_run(): void
+    {
+        $result = $this->invokeCheck('checkSchedulerHeartbeat');
+
+        $this->assertSame(SystemCheckStatus::FAIL, $result->status);
+    }
+
+    public function test_scheduler_check_passes_after_recent_heartbeat(): void
+    {
+        app(QueueWorkerHeartbeatService::class)->recordSchedulerHeartbeat();
+
+        $result = $this->invokeCheck('checkSchedulerHeartbeat');
+
+        $this->assertSame(SystemCheckStatus::PASS, $result->status);
+    }
+
+    public function test_legacy_path_check_fails_when_a_path_uses_the_old_prefix(): void
+    {
+        config(['logging.channels.single.path' => '/home/bitnami/htdocs/storage/logs/laravel.log']);
+
+        $result = $this->invokeCheck('checkLegacyPaths');
+
+        $this->assertSame(SystemCheckStatus::FAIL, $result->status);
+        $this->assertStringContainsString('/home/bitnami/htdocs', (string) $result->detail);
+    }
+
+    public function test_legacy_path_check_passes_on_a_clean_install(): void
+    {
+        $result = $this->invokeCheck('checkLegacyPaths');
+
+        $this->assertSame(SystemCheckStatus::PASS, $result->status);
+    }
+
+    public function test_xenforo_group_is_hidden_when_xenforo_is_not_configured(): void
+    {
+        config([
+            'services.xenforo.client_id' => null,
+            'services.xenforo.base_url' => '',
+            'services.xenforo.api_key' => null,
+        ]);
+
+        $groups = app(SystemCheckService::class)->run();
+
+        $this->assertFalse($groups->has('XenForo'));
+        $labels = $groups->flatten()->map(fn (SystemCheckResult $result): string => $result->label);
+        $this->assertFalse($labels->contains(fn (string $label): bool => str_contains($label, 'XenForo')));
+    }
+
+    public function test_xenforo_group_is_shown_when_xenforo_oauth_is_configured(): void
+    {
+        config([
+            'services.xenforo.client_id' => 'id',
+            'services.xenforo.client_secret' => 'secret',
+            'services.xenforo.redirect' => 'https://tracker.test/callback',
+            'services.xenforo.base_url' => '',
+            'services.xenforo.api_key' => null,
+        ]);
+
+        $groups = app(SystemCheckService::class)->run();
+
+        $this->assertTrue($groups->has('XenForo'));
+    }
+
     private function checkQueueWorkerHeartbeat(): SystemCheckResult
     {
+        return $this->invokeCheck('checkQueueWorkerHeartbeat');
+    }
+
+    private function invokeCheck(string $method_name): SystemCheckResult
+    {
         $subject = app(SystemCheckService::class);
-        $method = new ReflectionMethod($subject, 'checkQueueWorkerHeartbeat');
+        $method = new ReflectionMethod($subject, $method_name);
 
         return $method->invoke($subject);
     }

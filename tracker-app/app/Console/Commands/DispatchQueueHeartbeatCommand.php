@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Jobs\QueueWorkerHeartbeatJob;
+use App\Services\QueueWorkerHeartbeatService;
 use Illuminate\Console\Command;
 
 /**
@@ -12,7 +13,9 @@ use Illuminate\Console\Command;
  *
  * When a queue worker (kept alive by Supervisor) picks the job up, it stamps
  * a cache timestamp. If that timestamp goes stale, the queue worker process
- * has stopped consuming jobs.
+ * has stopped consuming jobs. The command also stamps its own timestamp so a
+ * missing cron entry (scheduler not running) can be told apart from a stopped
+ * worker.
  */
 class DispatchQueueHeartbeatCommand extends Command
 {
@@ -20,8 +23,9 @@ class DispatchQueueHeartbeatCommand extends Command
 
     protected $description = 'Dispatch a heartbeat job onto the queue to verify a worker is consuming jobs';
 
-    public function handle(): int
+    public function handle(QueueWorkerHeartbeatService $heartbeat): int
     {
+        $heartbeat->recordSchedulerHeartbeat();
         QueueWorkerHeartbeatJob::dispatch();
 
         return Command::SUCCESS;

@@ -118,4 +118,29 @@ return [
         'renotify_after_minutes' => (int) env('TRACKER_SUPERVISOR_RENOTIFY_MINUTES', 60),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | System Check
+    |--------------------------------------------------------------------------
+    |
+    | Targets used by the admin System Check page. php.ini values below these
+    | targets are reported as warnings for both this app and the XenForo forum.
+    |
+    */
+
+    'system_check' => [
+        'php_ini' => [
+            'upload_max_filesize' => '100M',
+            'post_max_size' => '256M',
+            'memory_limit' => '512M',
+            'max_execution_time' => '300',
+            'max_input_time' => '300',
+            'max_file_uploads' => '30',
+        ],
+        'ssl_warn_days' => 14,
+        'disk_warn_percent' => 10,
+        'disk_warn_bytes' => 2 * 1024 * 1024 * 1024,
+        'legacy_path_prefix' => '/home/bitnami',
+    ],
+
 ];

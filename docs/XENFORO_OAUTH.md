@@ -122,6 +122,21 @@ Benefit:
 - Troop Tracker profile pages automatically reflect XenForo group presentation
 - no duplicate banner rules inside Troop Tracker
 
+#### System Health API
+
+Endpoint:
+
+- `GET /index.php?api/system-health` (add-on **1.3.0 or later**)
+
+Custom API scope:
+
+- `system:read`
+
+Why Troop Tracker needs it:
+
+- The admin **System Check** page (`/admin/system-check`) uses it to check the forum server even when the forum is on a different host. It reports pending XenForo/add-on upgrades, the forum's PHP extensions and php.ini limits, write access for `internal_data/`, `data/`, `js/`, `src/addons/` and `styles/` (and flags 777 directories), the attachment image library, disk space, PayPal/payment provider errors from the last 30 days, and errors that mention the `provider_data` column.
+- If the add-on is older than 1.3.0, System Check shows a warning and skips the forum-side checks.
+
 #### View Attachment (mobile)
 
 What it does:
@@ -321,6 +336,7 @@ The key must be able to access:
 - XenForo posts endpoints
 - custom scope `upgrades:read`
 - custom scope `usergroups:read`
+- custom scope `system:read` (System Check forum health)
 
 If your XenForo setup limits API scopes aggressively, confirm the API key can read users and create/update threads and posts in addition to the two custom scopes.
 
@@ -481,6 +497,12 @@ After setup, verify each layer:
 - confirm `GET /index.php?api/user-groups&user_id={id}` returns JSON
 - confirm service-record pages show XenForo banners for linked users
 - confirm `GET /index.php?api/user-groups` (without `user_id`) returns the full group list for the permission request tool
+
+### System Check
+
+- open `/admin/system-check` as an administrator
+- the **XenForo** section appears only when XenForo OAuth or the API integration is configured
+- confirm `GET /index.php?api/system-health` returns JSON and every XenForo row passes
 
 ### User synchronization
 

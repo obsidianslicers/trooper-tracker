@@ -13,6 +13,8 @@ class QueueWorkerHeartbeatService
 
     public const DOWN_NOTIFIED_CACHE_KEY = 'tracker:queue_worker_down_notified_at';
 
+    public const SCHEDULER_CACHE_KEY = 'tracker:scheduler_heartbeat';
+
     private const CACHE_TTL_SECONDS = 86400;
 
     public function recordHeartbeat(): void
@@ -29,9 +31,24 @@ class QueueWorkerHeartbeatService
 
     public function minutesSinceLastHeartbeat(): ?int
     {
-        $last_heartbeat_at = $this->lastHeartbeatAt();
+        return $this->minutesSince($this->lastHeartbeatAt());
+    }
 
-        return $last_heartbeat_at === null ? null : (int) $last_heartbeat_at->diffInMinutes(CarbonImmutable::now());
+    public function recordSchedulerHeartbeat(): void
+    {
+        Cache::put(self::SCHEDULER_CACHE_KEY, CarbonImmutable::now(), self::CACHE_TTL_SECONDS);
+    }
+
+    public function minutesSinceSchedulerHeartbeat(): ?int
+    {
+        $value = Cache::get(self::SCHEDULER_CACHE_KEY);
+
+        return $this->minutesSince($value instanceof CarbonImmutable ? $value : null);
+    }
+
+    private function minutesSince(?CarbonImmutable $moment): ?int
+    {
+        return $moment === null ? null : (int) $moment->diffInMinutes(CarbonImmutable::now());
     }
 
     public function markDownNotified(): void

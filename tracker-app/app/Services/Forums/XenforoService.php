@@ -752,6 +752,55 @@ class XenforoService
     }
 
     /**
+     * Fetch the XenForo API index (version and the API key's scopes).
+     *
+     * @return array<string,mixed>|null
+     */
+    public function getApiIndex(): ?array
+    {
+        return $this->fetchDiagnosticJson('/index.php?api/');
+    }
+
+    /**
+     * Fetch forum server health from the add-on's system-health endpoint (1.3.0+).
+     *
+     * @return array<string,mixed>|null
+     */
+    public function getSystemHealth(): ?array
+    {
+        return $this->fetchDiagnosticJson('/index.php?api/system-health');
+    }
+
+    /**
+     * @return array<string,mixed>|null
+     */
+    private function fetchDiagnosticJson(string $path): ?array
+    {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return null;
+        }
+
+        try
+        {
+            $response = Http::withHeaders($this->buildApiHeaders())
+                ->acceptJson()
+                ->timeout(5)
+                ->get($this->base_url.$path);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo diagnostics', ['path' => $path, 'message' => $e->getMessage()]);
+
+            return null;
+        }
+
+        $data = $response->successful() ? $response->json() : null;
+
+        return is_array($data) ? $data : null;
+    }
+
+    /**
      * Group IDs granted by XenForo user upgrades (each upgrade's extra_group_ids).
      * Returns null when the upgrade stats cannot be read.
      *
