@@ -22,8 +22,7 @@ final class SetupTrooper extends Message
         private readonly string $legal_name,
         private readonly TrooperTheme $theme,
         private readonly NotificationFrequency $notification_frequency,
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the command to set up trooper profile.
