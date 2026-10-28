@@ -158,7 +158,8 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
             EventTrooper::ADDED_BY_TROOPER_ID => $added_by->id,
         ]);
 
-        Bus::assertDispatched(CreateTrooperFriendshipJob::class, function (CreateTrooperFriendshipJob $job) use ($trooper, $added_by): bool {
+        Bus::assertDispatched(CreateTrooperFriendshipJob::class, function (CreateTrooperFriendshipJob $job) use ($trooper, $added_by): bool
+        {
             return $job->trooper_id === $added_by->{Trooper::ID}
                 && $job->friend_id === $trooper->{Trooper::ID};
         });
@@ -640,6 +641,75 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
             EventTrooper::TROOPER_ID => $trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
         ]);
+    }
+
+    public function test_invoke_restores_soft_deleted_signup_instead_of_inserting(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $old_costume = Costume::factory()->create();
+        $removed = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($old_costume)
+            ->withBackupCostume($old_costume)
+            ->asAttended()
+            ->create();
+        $removed->delete();
+
+        $command = new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            is_handler: true,
+        );
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertSame(1, EventTrooper::withTrashed()
+            ->where(EventTrooper::EVENT_SHIFT_ID, $event_shift->id)
+            ->where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->count());
+
+        $restored = EventTrooper::find($removed->id);
+        $this->assertNotNull($restored);
+        $this->assertNull($restored->deleted_id);
+        $this->assertSame(EventTrooperStatus::GOING, $restored->status);
+        $this->assertNull($restored->costume_id);
+        $this->assertNull($restored->backup_costume_id);
+        $this->assertTrue($restored->is_handler);
+        Notification::assertSentTo($trooper, TrooperSignedUpNotification::class);
+    }
+
+    public function test_invoke_does_nothing_when_trooper_already_signed_up(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $existing = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $command = new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+        );
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertSame(1, EventTrooper::where(EventTrooper::EVENT_SHIFT_ID, $event_shift->id)
+            ->where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->count());
+        $this->assertSame(EventTrooperStatus::GOING, $existing->fresh()->status);
+        Notification::assertNothingSent();
     }
 
     public function test_handler_uses_should_be_transactional_trait(): void
