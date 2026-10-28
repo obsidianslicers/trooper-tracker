@@ -259,6 +259,30 @@ class AddEventTrooperControllerTest extends TestCase
         $this->assertDatabaseCount('tt_event_troopers', 1);
     }
 
+    public function test_invoke_re_adds_trooper_previously_removed_from_shift(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $removed = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->create();
+        $removed->delete();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id]
+        );
+
+        $response->assertNoContent();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $removed->id,
+            EventTrooper::DELETED_AT => null,
+        ]);
+    }
+
     public function test_invoke_returns_404_if_shift_not_in_event(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();

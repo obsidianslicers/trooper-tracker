@@ -38,6 +38,11 @@ class EventTrooperObserver
         $this->queueForumThreadSync($event_trooper);
     }
 
+    public function restored(EventTrooper $event_trooper): void
+    {
+        $this->queueForumThreadSync($event_trooper);
+    }
+
     private function queueForumThreadSync(EventTrooper $event_trooper): void
     {
         if (! TroopTrackerFacade::isXenforoIntegrationConfigured())

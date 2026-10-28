@@ -130,10 +130,10 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
 
     public function test_invoke_falls_back_to_loose_search_when_full_search_finds_nothing(): void
     {
-        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Matthew Drennan')->create();
-        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Other Trooper')->create();
+        $this->createMemberNamed('Matthew Drennan');
+        $this->createMemberNamed('Other Trooper');
 
-        $trooper = Trooper::factory()->asMember()->create();
+        $trooper = $this->createMemberNamed('Picker Actor');
         $filter = new TrooperFilter(new Request(['search_term' => 'Matthew Smith']));
 
         $subject = new GetTroopersForPickerQueryHandler;
@@ -377,5 +377,16 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
             ['AA Goodall', 'TK Goodall'],
             $result->pluck(Trooper::DISPLAY_NAME)->all()
         );
+    }
+
+    private function createMemberNamed(string $name): Trooper
+    {
+        return Trooper::factory()
+            ->asMember()
+            ->withSetupCompleted()
+            ->withDisplayName($name)
+            ->withLegalName($name)
+            ->withEmail(str_replace(' ', '.', strtolower($name)).'@example.com')
+            ->create();
     }
 }

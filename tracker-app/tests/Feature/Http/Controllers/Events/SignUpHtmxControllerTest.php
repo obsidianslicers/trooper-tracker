@@ -35,6 +35,27 @@ class SignUpHtmxControllerTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_invoke_signs_up_trooper_previously_removed_from_shift(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $removed = EventTrooper::factory()->forEventShift($event_shift)->forTrooper($trooper)->create();
+        $removed->delete();
+
+        $response = $this->actingAs($trooper)->post(route('events.signup-htmx', ['event_shift' => $event_shift->id]));
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $removed->id,
+            EventTrooper::DELETED_AT => null,
+        ]);
+    }
+
     public function test_invoke_saves_organization_id_from_request(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();

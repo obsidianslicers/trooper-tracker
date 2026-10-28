@@ -12,6 +12,8 @@ use Database\Factories\Base\EventShiftFactory as BaseEventShiftFactory;
 
 class EventShiftFactory extends BaseEventShiftFactory
 {
+    private static int $sequence = 0;
+
     /**
      * Define the model's default state.
      *
@@ -21,7 +23,7 @@ class EventShiftFactory extends BaseEventShiftFactory
     {
         return array_merge(parent::definition(), [
             EventShift::STATUS => EventStatus::OPEN,
-            EventShift::SHIFT_STARTS_AT => $this->faker->dateTimeBetween('now', '+1 hour'),
+            EventShift::SHIFT_STARTS_AT => $this->uniqueStartTime(),
             EventShift::SHIFT_ENDS_AT => $this->faker->dateTimeBetween('+2 hours', '+3 hours'),
             EventShift::CHARITY_DIRECT_FUNDS => 0,
             EventShift::CHARITY_INDIRECT_FUNDS => 0,
@@ -29,6 +31,17 @@ class EventShiftFactory extends BaseEventShiftFactory
             EventShift::CHARITY_HOURS => null,
             EventShift::CHARITY_NOTES => null,
         ]);
+    }
+
+    /**
+     * (event_id, shift_starts_at) is unique, so a random start time can collide when a
+     * test creates several shifts for one event. Step a counter instead, kept within the hour.
+     */
+    private function uniqueStartTime(): Carbon
+    {
+        self::$sequence = (self::$sequence + 1) % 3600;
+
+        return Carbon::now()->addSeconds(self::$sequence);
     }
 
     public function forEvent(Event $event): static

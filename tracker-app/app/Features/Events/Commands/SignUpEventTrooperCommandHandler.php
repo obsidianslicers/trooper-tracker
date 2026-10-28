@@ -38,7 +38,12 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
     {
         $message->event_shift->loadMissing('event_shift_stations');
 
-        $event_trooper = new EventTrooper;
+        $event_trooper = $this->findOrNewEventTrooper($message);
+
+        if ($event_trooper === null)
+        {
+            return null;
+        }
 
         $costume = $message->costume_id !== null ? Costume::find($message->costume_id) : null;
 
@@ -86,7 +91,14 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
 
         $event_trooper->status = $status;
 
-        $event_trooper->save();
+        if ($event_trooper->trashed())
+        {
+            $event_trooper->restore();
+        }
+        else
+        {
+            $event_trooper->save();
+        }
 
         if ($event_trooper->added_by_trooper_id !== null)
         {
@@ -105,5 +117,37 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
         dispatch(new SendEventRosterActivityNotificationsJob($event_trooper, RosterAction::SIGNED_UP));
 
         return null;
+    }
+
+    /**
+     * The (event_shift_id, trooper_id) unique index ignores soft deletes, so a trooper who
+     * was removed from a shift must have their old row restored rather than a new one inserted.
+     * Returns null when the trooper already has an active row (e.g. a double-submitted signup).
+     */
+    private function findOrNewEventTrooper(SignUpEventTrooperCommand $message): ?EventTrooper
+    {
+        $existing = EventTrooper::withTrashed()
+            ->where(EventTrooper::EVENT_SHIFT_ID, $message->event_shift->id)
+            ->where(EventTrooper::TROOPER_ID, $message->trooper->id)
+            ->lockForUpdate()
+            ->first();
+
+        if ($existing === null)
+        {
+            return new EventTrooper;
+        }
+
+        if (!$existing->trashed())
+        {
+            return null;
+        }
+
+        $existing->costume_id = null;
+        $existing->costume_organization_ids = null;
+        $existing->backup_costume_id = null;
+        $existing->backup_costume_organization_ids = null;
+        $existing->is_attending_without_costume = false;
+
+        return $existing;
     }
 }
