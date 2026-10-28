@@ -45,9 +45,9 @@ class HasTrooperScopesTest extends TestCase
 
         $result = Trooper::query()->friendsOf($trooper)->get();
 
-        $this->assertTrue($result->contains(fn(Trooper $candidate): bool => $candidate->is($friend_alpha)));
-        $this->assertTrue($result->contains(fn(Trooper $candidate): bool => $candidate->is($friend_bravo)));
-        $this->assertFalse($result->contains(fn(Trooper $candidate): bool => $candidate->is($non_friend)));
+        $this->assertTrue($result->contains(fn (Trooper $candidate): bool => $candidate->is($friend_alpha)));
+        $this->assertTrue($result->contains(fn (Trooper $candidate): bool => $candidate->is($friend_bravo)));
+        $this->assertFalse($result->contains(fn (Trooper $candidate): bool => $candidate->is($non_friend)));
     }
 
     public function test_search_for_wraps_term_with_wildcards(): void
@@ -63,7 +63,7 @@ class HasTrooperScopesTest extends TestCase
 
     public function test_search_for_matches_any_token_order_in_same_field(): void
     {
-        Trooper::factory()->withDisplayName('Matthew Drennan')->create();
+        $this->createTrooperNamed('Matthew Drennan');
 
         $this->assertTrue(Trooper::query()->searchFor('drennan matthew')->exists());
         $this->assertTrue(Trooper::query()->searchFor('matthew drennan')->exists());
@@ -72,7 +72,7 @@ class HasTrooperScopesTest extends TestCase
 
     public function test_search_for_any_matches_when_only_one_token_is_present(): void
     {
-        Trooper::factory()->withDisplayName('Matthew Drennan')->create();
+        $this->createTrooperNamed('Matthew Drennan');
 
         $this->assertTrue(Trooper::query()->searchForAny('matthew smith')->exists());
         $this->assertFalse(Trooper::query()->searchForAny('luke smith')->exists());
@@ -142,5 +142,14 @@ class HasTrooperScopesTest extends TestCase
         $this->assertStringContainsString('"membership_status" = ?', $query->toBase()->toSql());
         $this->assertStringContainsString('order by "display_name" asc', $query->toBase()->toSql());
         $this->assertSame([MembershipStatus::PENDING->value], $query->getBindings());
+    }
+
+    private function createTrooperNamed(string $name): Trooper
+    {
+        return Trooper::factory()
+            ->withDisplayName($name)
+            ->withLegalName($name)
+            ->withEmail(str_replace(' ', '.', strtolower($name)).'@example.com')
+            ->create();
     }
 }
