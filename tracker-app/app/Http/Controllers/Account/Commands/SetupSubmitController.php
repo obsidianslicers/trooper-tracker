@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Account;
+namespace App\Http\Controllers\Account\Commands;
 
-use App\Features\Troopers\Commands\UpdateTrooperCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Account\SetupRequest;
+use App\Messages\Troopers\Commands\SetupTrooper;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -28,7 +28,13 @@ class SetupSubmitController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $this->bus->send(new UpdateTrooperCommand($trooper, $request->validated(), true));
+        SetupTrooper::call(
+            trooper: $trooper,
+            legal_name: $request->validated('legal_name'),
+            theme: $request->validated('theme'),
+            email: $request->validated('email'),
+            notification_frequency: $request->validated('notification_frequency')
+        );
 
         return redirect()->route('account.index');
     }

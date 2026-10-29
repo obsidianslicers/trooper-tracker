@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Account;
+namespace App\Http\Controllers\Account\Pages;
 
-use App\Features\Troopers\Queries\GetTrooperAssignmentsQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\Controller;
+use App\Messages\Account\PageData\SetupPageData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * and renders the setup page where troopers can configure their organization
  * memberships and select which regions/units they belong to.
  */
-class SetupController extends MagicBusController
+class SetupController extends Controller
 {
     /**
      * Handle the incoming request to display the organization setup page.
@@ -26,15 +26,7 @@ class SetupController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
-        $trooper = $request->user();
-
-        $assignments_query = new GetTrooperAssignmentsQuery($trooper);
-
-        //  just hard code out 'GA' for folks migrating from TT1.x
-        $organization_memberships = $this->bus->send(message: $assignments_query)
-            ->reject(fn ($org) => $org->name === 'Galactic Academy');
-
-        $data = compact('trooper', 'organization_memberships');
+        $data = SetupPageData::call($request);
 
         return view('pages.account.setup', $data);
     }
