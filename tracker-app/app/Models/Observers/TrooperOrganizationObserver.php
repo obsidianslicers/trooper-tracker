@@ -30,8 +30,8 @@ class TrooperOrganizationObserver
      * Handle the TrooperOrganization "saved" event.
      *
      * Reconciles global trooper membership_status whenever the org-level status changes:
-     * - Demote: globally ACTIVE + no remaining active orgs + has retired org → RETIRED
-     * - Promote: globally RETIRED + now has an active org → ACTIVE
+     * - Demote: globally ACTIVE + no remaining active/reserve orgs + has retired org → RETIRED
+     * - Promote: globally RETIRED + now has an active/reserve org → ACTIVE
      * PENDING/DENIED are never touched; terminal statuses (INVALID/DEPARTED) are skipped.
      */
     public function saved(TrooperOrganization $trooper_organization): void
@@ -57,7 +57,10 @@ class TrooperOrganizationObserver
 
         $has_active_org = TrooperOrganization::query()
             ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
-            ->where(TrooperOrganization::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
+            ->whereIn(TrooperOrganization::MEMBERSHIP_STATUS, [
+                MembershipStatus::ACTIVE,
+                MembershipStatus::RESERVE,
+            ])
             ->exists();
 
         if ($has_active_org && $trooper->membership_status === MembershipStatus::RETIRED)
