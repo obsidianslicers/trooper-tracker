@@ -121,7 +121,7 @@ class OauthCallbackController extends MagicBusController
                 return redirect()->route('account.denied');
             }
 
-            if (!$trooper->is_active)
+            if (!$trooper->membership_status?->canLogIn())
             {
                 return redirect()->route('auth.inactive');
             }
@@ -186,7 +186,7 @@ class OauthCallbackController extends MagicBusController
             return redirect()->route('account.denied');
         }
 
-        if (!$trooper->is_active)
+        if (!$trooper->membership_status?->canLogIn())
         {
             return redirect()->route('auth.inactive');
         }

@@ -129,6 +129,47 @@ class TrooperOrganizationObserverTest extends TestCase
         $this->assertSame(MembershipStatus::ACTIVE, $trooper->fresh()->membership_status);
     }
 
+    public function test_saved_preserves_global_active_when_pivot_changes_to_retired_but_reserve_org_remains(): void
+    {
+        $organization = Organization::factory()->create();
+        $other_organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        $pivot = TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $other_organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::RESERVE,
+        ]);
+
+        $pivot->membership_status = MembershipStatus::RETIRED;
+        $pivot->save();
+
+        $this->assertSame(MembershipStatus::ACTIVE, $trooper->fresh()->membership_status);
+    }
+
+    public function test_saved_promotes_global_to_active_when_retired_trooper_gets_reserve_org(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asRetired()->create();
+
+        $pivot = TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::RETIRED,
+        ]);
+
+        $pivot->membership_status = MembershipStatus::RESERVE;
+        $pivot->save();
+
+        $this->assertSame(MembershipStatus::ACTIVE, $trooper->fresh()->membership_status);
+    }
+
     public function test_saved_promotes_global_to_active_when_retired_trooper_gets_active_org(): void
     {
         $organization = Organization::factory()->create();

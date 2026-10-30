@@ -61,4 +61,12 @@ enum MembershipStatus: string
      * Member has passed away — service record shows a memorial tribute; cannot log in.
      */
     case DEPARTED = 'departed';
+
+    /**
+     * Whether a trooper with this account status may sign in and use the tracker.
+     */
+    public function canLogIn(): bool
+    {
+        return $this === self::ACTIVE || $this === self::RESERVE;
+    }
 }
