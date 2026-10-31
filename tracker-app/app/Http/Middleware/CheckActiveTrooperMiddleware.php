@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Enums\MembershipStatus;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,9 +13,9 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 /**
  * Middleware to verify that the authenticated trooper has an active membership.
  *
- * This middleware ensures the authenticated user has an active membership status.
- * Returns a 401 Unauthorized response if the user is not authenticated or does
- * not have active membership status.
+ * This middleware ensures the authenticated user has an active or reserve membership
+ * status. Returns a 401 Unauthorized response if the user is not authenticated or
+ * has any other membership status.
  */
 class CheckActiveTrooperMiddleware
 {
@@ -36,7 +35,7 @@ class CheckActiveTrooperMiddleware
     {
         $user = Auth::user();
 
-        if (!$user || $user->membership_status !== MembershipStatus::ACTIVE)
+        if (!$user || !$user->membership_status?->canLogIn())
         {
             abort(401, 'Unauthorized.');
         }

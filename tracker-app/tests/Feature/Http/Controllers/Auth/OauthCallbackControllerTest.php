@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Auth;
 
+use App\Enums\MembershipStatus;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,6 +22,33 @@ class OauthCallbackControllerTest extends TestCase
     public function test_invoke_authenticates_trooper_with_existing_oauth_account(): void
     {
         $trooper = Trooper::factory()->asActive()->create();
+
+        $oauth_login = OauthLogin::factory()
+            ->forTrooper($trooper)
+            ->forProvider('google')
+            ->create();
+
+        $socialite_user = Mockery::mock(SocialiteUser::class);
+        $socialite_user->shouldReceive('getId')->andReturn($oauth_login->provider_id);
+        $socialite_user->shouldReceive('getEmail')->andReturn($trooper->email);
+
+        Socialite::shouldReceive('driver')
+            ->with('google')
+            ->andReturn(Mockery::self())
+            ->shouldReceive('user')
+            ->andReturn($socialite_user);
+
+        $response = $this->get(route('auth.oauth-callback', ['provider' => 'google']));
+
+        $response->assertRedirect('/');
+        $this->assertAuthenticatedAs($trooper);
+    }
+
+    public function test_invoke_authenticates_reserve_trooper(): void
+    {
+        $trooper = Trooper::factory()->create([
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::RESERVE,
+        ]);
 
         $oauth_login = OauthLogin::factory()
             ->forTrooper($trooper)
