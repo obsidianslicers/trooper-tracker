@@ -142,4 +142,17 @@ class TroopTracker
 
         return $is_discord_integration_configured;
     }
+
+    /**
+     * Determine if the monthly support goal widget should be shown.
+     *
+     * Garrisons that don't take donations through the tracker leave
+     * TRACKER_SUPPORT_GOAL empty (or zero) to hide it.
+     *
+     * @return bool True if a positive support goal is configured, false otherwise
+     */
+    public function isSupportGoalEnabled(): bool
+    {
+        return (float) config('tracker.support.goal', 0) > 0;
+    }
 }

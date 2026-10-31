@@ -38,6 +38,19 @@ class ListControllerTest extends TestCase
         $response->assertSee("\"{$unit->id}\":\"{$region->id}\"", false);
     }
 
+    public function test_invoke_shows_support_widget_only_when_a_goal_is_set(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+
+        config(['tracker.support.goal' => '300']);
+        $this->actingAs($trooper)->get(route('events.list'))
+            ->assertSee(route('widgets.support-htmx'), false);
+
+        config(['tracker.support.goal' => null]);
+        $this->actingAs($trooper)->get(route('events.list'))
+            ->assertDontSee(route('widgets.support-htmx'), false);
+    }
+
     public function test_invoke_requires_authentication(): void
     {
         $response = $this->get(route('events.list'));

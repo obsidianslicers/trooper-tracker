@@ -13,13 +13,15 @@
         </div>
     </div>
 
-    <x-card :label="'Support'">
-        <div hx-get="{{ route('widgets.support-htmx') }}"
-             hx-trigger="load"
-             hx-swap="outerHTML">
-            <x-loading />
-        </div>
-    </x-card>
+    @if(TroopTracker::isSupportGoalEnabled())
+        <x-card :label="'Support'">
+            <div hx-get="{{ route('widgets.support-htmx') }}"
+                 hx-trigger="load"
+                 hx-swap="outerHTML">
+                <x-loading />
+            </div>
+        </x-card>
+    @endif
 
     <div x-data="Events.Search.eventSelector()">
         @php $show_allowed_orgs = true @endphp
