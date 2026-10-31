@@ -10,8 +10,8 @@
          x-on:click="window.location = $el.dataset.route">
         <div class="card-header {{ $bg }} d-flex align-items-center">
             <a href="{{ route('events.display', compact('event')) }}"
-               class="d-block w-100">
-                <span class="p-2">
+               class="d-flex align-items-center w-100">
+                <span class="flex-shrink-0 p-2">
                     @if($event->at_risk)
                         <i class="fa fa-fw fa-warning fa-2x pe-2 text-white"></i>
                     @else
@@ -37,14 +37,14 @@
                style="z-index: 2;">
                 <a href="https://www.google.com/maps/search/?api=1&query={{ $event->venue_address }}"
                    target="_blank"
-                   class="text-decoration-none">
-                    <i class="fa fa-fw fa-location-dot me-2"></i>
-                    {{ $event->venue_address }}
+                   class="d-flex align-items-baseline text-decoration-none">
+                    <i class="fa fa-fw fa-location-dot flex-shrink-0 me-2"></i>
+                    <span>{{ $event->venue_address }}</span>
                 </a>
             </p>
-            <p class="card-text">
-                <i class="fa fa-fw fa-calendar-day me-2"></i>
-                {{ $event->event_start->format('D M d, Y') }}
+            <p class="card-text d-flex align-items-baseline">
+                <i class="fa fa-fw fa-calendar-day flex-shrink-0 me-2"></i>
+                <span>{{ $event->event_start->format('D M d, Y') }}</span>
             </p>
             <ul class="list-group list-group-flush">
                 @php($shifts_count = $event->event_shifts->count())
