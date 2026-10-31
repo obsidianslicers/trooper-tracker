@@ -72,8 +72,8 @@ return [
             ? Driver::class
             : Intervention\Image\Drivers\Gd\Driver::class
         ),
-        'max_upload_kb' => (int) env('TRACKER_IMAGE_MAX_UPLOAD_KB', 12288),
-        'large_photo_kb' => (int) env('TRACKER_IMAGE_LARGE_PHOTO_KB', 20480),
+        'max_upload_kb' => (int) env('TRACKER_IMAGE_MAX_UPLOAD_KB', 51200),
+        'large_photo_kb' => (int) env('TRACKER_IMAGE_LARGE_PHOTO_KB', 51200),
     ],
 
     /*

@@ -103,7 +103,7 @@ class ImageUploadSystemCheckService
         $upload_limit = $this->ini->bytes('upload_max_filesize');
         $post_limit = $this->ini->bytes('post_max_size');
         $effective = $this->effectivePhotoBytes();
-        $large_photo = (int) config('tracker.image.large_photo_kb', 20480) * 1024;
+        $large_photo = (int) config('tracker.image.large_photo_kb', 51200) * 1024;
 
         $detail = sprintf(
             'Troopers can upload photos up to %s each (app limit %s, upload_max_filesize %s, '
@@ -181,7 +181,7 @@ class ImageUploadSystemCheckService
 
     private function appLimitBytes(): int
     {
-        return (int) config('tracker.image.max_upload_kb', 12288) * 1024;
+        return (int) config('tracker.image.max_upload_kb', 51200) * 1024;
     }
 
     private function effectivePhotoBytes(): int

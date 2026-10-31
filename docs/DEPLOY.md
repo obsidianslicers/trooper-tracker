@@ -35,19 +35,24 @@ Required extensions:
 ### PHP Upload Limits
 
 Event photo uploads are validated by the app up to `TRACKER_IMAGE_MAX_UPLOAD_KB`
-(12MB per image by default), but PHP's own
+(50MB per image by default, enough for full-resolution 48-200MP phone photos), but PHP's own
 defaults (`upload_max_filesize=2M`, `post_max_size=8M`) are smaller than that and
 will silently reject files before the app ever sees them, regardless of the
 `client_max_body_size` set in nginx below. Set these in `/etc/php/8.2/fpm/php.ini`
 to match or exceed the app's limit, then restart PHP-FPM:
 
 ```ini
-upload_max_filesize = 15M
-post_max_size = 60M
+upload_max_filesize = 50M
+post_max_size = 256M
+max_input_time = 300
 ```
 
 `post_max_size` must cover the whole request (all images in one upload), not just
-a single file, so it should be sized well above `upload_max_filesize`.
+a single file, so it should be sized well above `upload_max_filesize` (256M fits
+about five full-size photos per upload). `max_input_time` gives slow mobile
+connections time to finish sending large photos. Use the Imagick image driver:
+GD holds the whole decoded photo in PHP memory and needs several GB for a
+200MP photo.
 
 ```bash
 sudo systemctl restart php8.2-fpm
@@ -275,7 +280,7 @@ server {
     error_log /var/log/nginx/troop-tracker-error.log;
 
     # Increase upload size for event photos
-    client_max_body_size 50M;
+    client_max_body_size 256M;
 
     location / {
         try_files $uri $uri/ /index.php?$query_string;

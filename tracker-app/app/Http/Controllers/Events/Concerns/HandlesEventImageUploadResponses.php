@@ -22,7 +22,7 @@ trait HandlesEventImageUploadResponses
 
     private function eventImageMaxUploadKb(): int
     {
-        return (int) config('tracker.image.max_upload_kb', 12288);
+        return (int) config('tracker.image.max_upload_kb', 51200);
     }
 
     private function eventImageMaxUploadLabel(): string
