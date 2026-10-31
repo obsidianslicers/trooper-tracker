@@ -38,6 +38,8 @@ class UploadImageController extends MagicBusController
      */
     public function __invoke(Request $request, Event $event)
     {
+        $this->authorize('update', $event);
+
         $trooper_id = $request->user()->id;
 
         try
