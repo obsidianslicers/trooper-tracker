@@ -34,7 +34,8 @@ Required extensions:
 
 ### PHP Upload Limits
 
-Event photo uploads are validated by the app up to 12MB per image, but PHP's own
+Event photo uploads are validated by the app up to `TRACKER_IMAGE_MAX_UPLOAD_KB`
+(12MB per image by default), but PHP's own
 defaults (`upload_max_filesize=2M`, `post_max_size=8M`) are smaller than that and
 will silently reject files before the app ever sees them, regardless of the
 `client_max_body_size` set in nginx below. Set these in `/etc/php/8.2/fpm/php.ini`
@@ -51,6 +52,11 @@ a single file, so it should be sized well above `upload_max_filesize`.
 ```bash
 sudo systemctl restart php8.2-fpm
 ```
+
+The admin **System Check** page has an *Image Uploads* section that reports the
+effective max photo size a trooper can upload, how many full-size photos fit in
+one request, whether the photo storage and PHP temp directories are writable,
+and whether `memory_limit` is enough for large photos when using the GD driver.
 
 ## Pre-Deployment Setup
 
