@@ -82,6 +82,7 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **Default**: None
 - **Example**: `300`
 - **When to change**: Set to your organization's funding target
+- **Note**: Leave empty (or `0`) to hide the support widget
 
 ### TRACKER_SUPPORT_URL
 - **Purpose**: Link to donation/support page

@@ -126,6 +126,23 @@ class TroopTrackerTest extends TestCase
         $this->assertFalse($subject->isDiscordIntegrationConfigured());
     }
 
+    public function test_is_support_goal_enabled_requires_a_positive_goal(): void
+    {
+        $subject = new TroopTracker;
+
+        config(['tracker.support.goal' => '300']);
+        $this->assertTrue($subject->isSupportGoalEnabled());
+
+        config(['tracker.support.goal' => null]);
+        $this->assertFalse($subject->isSupportGoalEnabled());
+
+        config(['tracker.support.goal' => '']);
+        $this->assertFalse($subject->isSupportGoalEnabled());
+
+        config(['tracker.support.goal' => '0']);
+        $this->assertFalse($subject->isSupportGoalEnabled());
+    }
+
     public function test_is_google_sync_configured_matches_credentials_file_readability(): void
     {
         $subject = new TroopTracker;
