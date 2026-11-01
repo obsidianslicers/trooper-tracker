@@ -28,7 +28,7 @@ class UploadImageController extends MagicBusController
     /**
      * Handle the incoming image upload request
      *
-     * Validates uploaded images (max 12MB, PNG/JPG/JPEG/WEBP), normalizes them
+     * Validates uploaded images (max tracker.image.max_upload_kb, PNG/JPG/JPEG/WEBP/HEIC), normalizes them
      * to square transparent canvases, generates thumbnails (128x128), and stores
      * both versions. Creates EventUpload records linked to the trooper and event.
      *

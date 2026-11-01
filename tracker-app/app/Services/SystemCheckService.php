@@ -22,7 +22,8 @@ class SystemCheckService
 
     public function __construct(
         private readonly TroopTracker $troop_tracker,
-        private readonly QueueWorkerHeartbeatService $queue_worker_heartbeat) {}
+        private readonly QueueWorkerHeartbeatService $queue_worker_heartbeat,
+        private readonly ImageUploadSystemCheckService $image_uploads) {}
 
     /**
      * @return Collection<string, Collection<int, SystemCheckResult>>
@@ -34,6 +35,7 @@ class SystemCheckService
             'Environment' => $this->checkEnvironment(),
             'Database & Cache' => $this->checkDatabaseAndCache(),
             'Storage & Assets' => $this->checkStorageAndAssets(),
+            'Image Uploads' => $this->image_uploads->run(),
             'Integrations' => $this->checkIntegrations(),
         ]);
     }

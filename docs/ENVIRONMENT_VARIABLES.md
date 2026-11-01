@@ -101,6 +101,17 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **Values**: `Intervention\Image\Drivers\Gd\Driver` or `Intervention\Image\Drivers\Imagick\Driver`
 - **When to change**: Use Imagick for better performance if available on server
 
+### TRACKER_IMAGE_MAX_UPLOAD_KB
+- **Purpose**: Largest event photo (per file, in KB) the app accepts from troopers
+- **Required**: No
+- **Default**: `51200` (50MB, covers full-resolution phone photos)
+- **When to change**: Lower only if the server can't accept large uploads; PHP's `upload_max_filesize`/`post_max_size` and the web server body limit must be raised to match (see `DEPLOY.md`)
+
+### TRACKER_IMAGE_LARGE_PHOTO_KB
+- **Purpose**: Photo size (in KB) the System Check page expects troopers to be able to upload; it shows a WARN when the effective upload limit is below this
+- **Required**: No
+- **Default**: `51200` (50MB)
+
 ### TRACKER_EXCEPTION_EMAIL_ENABLED
 - **Purpose**: Enable or disable admin exception notification emails for unhandled 5xx errors
 - **Required**: No

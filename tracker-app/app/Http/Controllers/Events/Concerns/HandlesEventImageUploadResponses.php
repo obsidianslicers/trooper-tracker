@@ -16,8 +16,20 @@ trait HandlesEventImageUploadResponses
     {
         return [
             'images' => ['required', 'array', 'min:1'],
-            'images.*' => ['required', 'mimes:png,jpg,jpeg,webp,heic,heif', 'max:12288'],
+            'images.*' => ['required', 'mimes:png,jpg,jpeg,webp,heic,heif', 'max:'.$this->eventImageMaxUploadKb()],
         ];
+    }
+
+    private function eventImageMaxUploadKb(): int
+    {
+        return (int) config('tracker.image.max_upload_kb', 51200);
+    }
+
+    private function eventImageMaxUploadLabel(): string
+    {
+        $megabytes = round($this->eventImageMaxUploadKb() / 1024, 1);
+
+        return rtrim(rtrim(number_format($megabytes, 1, '.', ''), '0'), '.').'MB';
     }
 
     /**
@@ -30,7 +42,7 @@ trait HandlesEventImageUploadResponses
             'images.array' => 'Please choose at least one image to upload.',
             'images.min' => 'Please choose at least one image to upload.',
             'images.*.mimes' => 'Only JPG, PNG, WEBP, and HEIC images can be uploaded.',
-            'images.*.max' => 'Each image must be 12MB or smaller.',
+            'images.*.max' => "Each image must be {$this->eventImageMaxUploadLabel()} or smaller.",
             'images.*.uploaded' => 'That image failed to upload. Please try a smaller photo or check your connection.',
         ];
     }
@@ -39,14 +51,16 @@ trait HandlesEventImageUploadResponses
     {
         $messages = $e->validator->errors()->all();
 
-        return $messages[0] ?? 'Please upload JPG, PNG, WEBP, or HEIC images that are 12MB or smaller.';
+        return $messages[0]
+            ?? "Please upload JPG, PNG, WEBP, or HEIC images that are {$this->eventImageMaxUploadLabel()} or smaller.";
     }
 
     private function eventImageUploadSuccessMessage(EventImageUploadResult $result): string
     {
         if (! $result->hasUploads())
         {
-            return 'No images were uploaded. Please try JPG, PNG, WEBP, or HEIC images that are 12MB or smaller.';
+            return 'No images were uploaded. Please try JPG, PNG, WEBP, or HEIC images that are '
+                ."{$this->eventImageMaxUploadLabel()} or smaller.";
         }
 
         $uploaded = $result->uploads === 1 ? '1 image uploaded' : "{$result->uploads} images uploaded";

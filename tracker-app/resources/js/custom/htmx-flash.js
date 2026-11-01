@@ -84,7 +84,7 @@ function showHtmxErrorFallback(event) {
 
     if (event.detail.xhr.status === 413) {
         appendFlashMessage({
-            message: 'That upload is too large for the server. Please upload JPG, PNG, or WEBP images that are 12MB or smaller.',
+            message: 'That upload is too large for the server. Please upload JPG, PNG, or WEBP images that are 50MB or smaller.',
             type: 'danger',
             fadeOut: 5000,
         }, resolveFlashContainer(event));
