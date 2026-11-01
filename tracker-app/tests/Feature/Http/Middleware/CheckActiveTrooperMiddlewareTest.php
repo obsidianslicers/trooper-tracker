@@ -25,6 +25,19 @@ class CheckActiveTrooperMiddlewareTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_passes_through_reserve_trooper(): void
+    {
+        $trooper = Trooper::factory()
+            ->create([
+                Trooper::MEMBERSHIP_STATUS => MembershipStatus::RESERVE,
+                Trooper::EMAIL_VERIFIED_AT => now(),
+            ]);
+
+        $response = $this->actingAs($trooper)->get(route('events.list'));
+
+        $response->assertOk();
+    }
+
     public function test_rejects_non_active_trooper(): void
     {
         $trooper = Trooper::factory()

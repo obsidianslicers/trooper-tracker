@@ -121,4 +121,56 @@ class ForumBBCodeRendererTest extends TestCase
 
         $this->assertStringContainsString('<hr>', $html);
     }
+
+    public function test_renders_full_attachment_as_image(): void
+    {
+        $html = ForumBBCodeRenderer::toHtml(
+            'Cannot make it.[ATTACH type="full" size="619x721"]7398[/ATTACH]',
+            [7398 => ['url' => 'https://tracker.test/a/7398', 'filename' => 'photo.jpg', 'is_image' => true]]
+        );
+
+        $this->assertStringContainsString('Cannot make it.', $html);
+        $this->assertStringContainsString('<img src="https://tracker.test/a/7398" alt="photo.jpg"', $html);
+        $this->assertStringContainsString('style="max-width:100%;"', $html);
+        $this->assertStringNotContainsString('[ATTACH', $html);
+    }
+
+    public function test_renders_thumbnail_attachment_with_limited_height(): void
+    {
+        $html = ForumBBCodeRenderer::toHtml(
+            '[ATTACH]7[/ATTACH]',
+            [7 => ['url' => 'https://tracker.test/a/7', 'filename' => 'a.png', 'is_image' => true]]
+        );
+
+        $this->assertStringContainsString('max-height:250px;', $html);
+    }
+
+    public function test_renders_non_image_attachment_as_link(): void
+    {
+        $html = ForumBBCodeRenderer::toHtml(
+            '[ATTACH=full]9[/ATTACH]',
+            [9 => ['url' => 'https://tracker.test/a/9', 'filename' => 'flyer.pdf', 'is_image' => false]]
+        );
+
+        $this->assertStringContainsString('<a href="https://tracker.test/a/9"', $html);
+        $this->assertStringContainsString('flyer.pdf</a>', $html);
+        $this->assertStringNotContainsString('<img', $html);
+    }
+
+    public function test_drops_attachment_tags_without_a_known_attachment(): void
+    {
+        $html = ForumBBCodeRenderer::toHtml('See this[ATTACH type="full"]7398[/ATTACH]');
+
+        $this->assertSame('See this', $html);
+    }
+
+    public function test_escapes_attachment_filename(): void
+    {
+        $html = ForumBBCodeRenderer::toHtml(
+            '[ATTACH]1[/ATTACH]',
+            [1 => ['url' => 'https://tracker.test/a/1', 'filename' => '"><script>.png', 'is_image' => true]]
+        );
+
+        $this->assertStringNotContainsString('<script>', $html);
+    }
 }

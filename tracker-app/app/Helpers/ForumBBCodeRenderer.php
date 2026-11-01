@@ -14,8 +14,13 @@ final class ForumBBCodeRenderer
      *
      * This intentionally escapes all non-tag content and only emits a small
      * allowlisted set of HTML elements to avoid XSS.
+     *
+     * Attachments are keyed by attachment id and resolve [ATTACH] tags; tags
+     * without a matching attachment are dropped rather than shown raw.
+     *
+     * @param  array<int, array{url:string,filename:string,is_image:bool}>  $attachments
      */
-    public static function toHtml(string $bbcode): string
+    public static function toHtml(string $bbcode, array $attachments = []): string
     {
         $bbcode = str_replace(["\r\n", "\r"], "\n", $bbcode);
 
@@ -197,6 +202,16 @@ final class ForumBBCodeRenderer
             $html
         ) ?? $html;
 
+        // Attachments, e.g. [ATTACH type="full" size="619x721"]7398[/ATTACH].
+        $html = preg_replace_callback(
+            '~\[attach((?:=|\s)[^\]]*)?\]\s*(\d+)\s*\[/attach\]~i',
+            static fn (array $matches): string => self::renderAttachment(
+                $attachments[(int) $matches[2]] ?? null,
+                $matches[1]
+            ),
+            $html
+        ) ?? $html;
+
         // Convert newlines after tag replacement.
         $html = nl2br($html, false);
 
@@ -210,6 +225,33 @@ final class ForumBBCodeRenderer
         $html = preg_replace('~(<br\s*/?>\s*){3,}~i', '<br><br>', $html) ?? $html;
 
         return $html;
+    }
+
+    /**
+     * @param  array{url:string,filename:string,is_image:bool}|null  $attachment
+     */
+    private static function renderAttachment(?array $attachment, string $options): string
+    {
+        if ($attachment === null)
+        {
+            return '';
+        }
+
+        $url = e($attachment['url']);
+        $filename = e($attachment['filename']);
+
+        if (! $attachment['is_image'])
+        {
+            return '<a href="'.$url.'" target="_blank" rel="noopener noreferrer">'
+                .'<i class="fa fa-fw fa-paperclip"></i> '.$filename.'</a>';
+        }
+
+        $is_full = (bool) preg_match('~^(?:=full\b|.*\btype=(?:&quot;|&\#039;)?full\b)~i', trim($options));
+        $style = $is_full ? 'max-width:100%;' : 'max-width:100%;max-height:250px;';
+
+        return '<a href="'.$url.'" target="_blank" rel="noopener noreferrer">'
+            .'<img src="'.$url.'" alt="'.$filename.'" class="img-fluid" style="'.$style.'" loading="lazy">'
+            .'</a>';
     }
 
     private static function resolveUserMentionHref(?int $trooper_id, string $xenforo_id): ?string

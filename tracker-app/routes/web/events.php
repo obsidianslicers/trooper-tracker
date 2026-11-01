@@ -20,6 +20,7 @@ use App\Http\Controllers\Events\MissionBriefAcknowledgeController;
 use App\Http\Controllers\Events\ShareRosterHtmxController;
 use App\Http\Controllers\Events\ShiftCompleteClubController;
 use App\Http\Controllers\Events\ShiftCompleteController;
+use App\Http\Controllers\Events\ShowForumAttachmentController;
 use App\Http\Controllers\Events\SignUpHtmxController;
 use App\Http\Controllers\Events\SignUpUpdateHtmxController;
 use App\Http\Controllers\Events\ToggleEventUploadTagController;
@@ -48,6 +49,10 @@ Route::prefix('events')
         Route::post('/upload/{event}', UploadImageController::class)->name('upload-image');
         Route::post('/uploads/{event_upload}/toggle-tag', ToggleEventUploadTagController::class)->name('toggle-upload-tag');
         Route::post('/forum-reply/{event}', ForumReplyController::class)->name('forum-reply-htmx');
+        Route::get('/forum-attachments/{attachment_id}', ShowForumAttachmentController::class)
+            ->whereNumber('attachment_id')
+            ->middleware('signed')
+            ->name('forum-attachment');
         Route::post('/share-roster/{event}', ShareRosterHtmxController::class)->name('share-roster-htmx');
         Route::post('/broadcast-message/{event}', BroadcastMessageHtmxController::class)->name('broadcast-message-htmx');
         Route::get('/signup/{event_shift}/add-trooper-org-picker', AddTrooperOrgPickerHtmxController::class)->name('add-trooper-org-picker');

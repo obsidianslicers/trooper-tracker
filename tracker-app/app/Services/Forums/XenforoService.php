@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -222,9 +223,10 @@ class XenforoService
                 $message_bbcode = trim($raw_message);
 
                 // Fallback preview for list rendering/search.
-                $message_plain = trim(preg_replace('/\s+/', ' ', preg_replace('~\[[^\]]+\]~', '', $message_bbcode) ?? '') ?? '');
+                $message_plain = preg_replace('~\[attach[^\]]*\].*?\[/attach\]~si', '', $message_bbcode) ?? '';
+                $message_plain = trim(preg_replace('/\s+/', ' ', preg_replace('~\[[^\]]+\]~', '', $message_plain) ?? '') ?? '');
                 $message_html = SmiliesRenderer::render(
-                    ForumBBCodeRenderer::toHtml($message_bbcode),
+                    ForumBBCodeRenderer::toHtml($message_bbcode, $this->map_post_attachments($post)),
                     $this->get_smilies()
                 );
 
@@ -286,6 +288,88 @@ class XenforoService
         });
 
         return $normalized;
+    }
+
+    /**
+     * Fetch the raw file for a XenForo attachment.
+     *
+     * @return array{content:string,content_type:string,filename:?string}|null
+     */
+    public function get_attachment_data(int $attachment_id): ?array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $attachment_id <= 0)
+        {
+            return null;
+        }
+
+        $url = $this->base_url.'/api/attachments/'.$attachment_id.'/data';
+
+        try
+        {
+            $response = Http::withHeaders($this->buildApiHeaders())
+                ->timeout(10)
+                ->get($url);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo attachment', [
+                'attachment_id' => $attachment_id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (!$response->successful())
+        {
+            return null;
+        }
+
+        preg_match('~filename="?([^";]+)"?~i', $response->header('Content-Disposition'), $matches);
+
+        return [
+            'content' => $response->body(),
+            'content_type' => $response->header('Content-Type') ?: 'application/octet-stream',
+            'filename' => isset($matches[1]) ? basename($matches[1]) : null,
+        ];
+    }
+
+    /**
+     * Map a post's attachments by id to URLs served through the tracker, so
+     * viewers don't need forum permissions to see them.
+     *
+     * @param  array<string, mixed>  $post
+     * @return array<int, array{url:string,filename:string,is_image:bool}>
+     */
+    private function map_post_attachments(array $post): array
+    {
+        $attachments = $post['Attachments'] ?? [];
+        if (!is_array($attachments))
+        {
+            return [];
+        }
+
+        $mapped = [];
+
+        foreach ($attachments as $attachment)
+        {
+            if (!is_array($attachment) || (int) ($attachment['attachment_id'] ?? 0) <= 0)
+            {
+                continue;
+            }
+
+            $attachment_id = (int) $attachment['attachment_id'];
+
+            $is_media = !empty($attachment['is_video']) || !empty($attachment['is_audio']);
+
+            $mapped[$attachment_id] = [
+                'url' => URL::signedRoute('events.forum-attachment', ['attachment_id' => $attachment_id]),
+                'filename' => (string) ($attachment['filename'] ?? 'Attachment '.$attachment_id),
+                'is_image' => !$is_media && (int) ($attachment['height'] ?? 0) > 0,
+            ];
+        }
+
+        return $mapped;
     }
 
     /**

@@ -53,7 +53,7 @@ class UploadImageControllerTest extends TestCase
 
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $event = Event::factory()->create();
-        $file = UploadedFile::fake()->image('too-large.jpg')->size(12289);
+        $file = UploadedFile::fake()->image('too-large.jpg')->size(51201);
 
         $response = $this->actingAs($trooper)
             ->withSession(['_token' => 'test-token'])
@@ -65,7 +65,7 @@ class UploadImageControllerTest extends TestCase
 
         $response->assertUnprocessable();
         $response->assertHeader('X-Flash-Message');
-        $this->assertStringContainsString('12MB', (string) $response->headers->get('X-Flash-Message'));
+        $this->assertStringContainsString('50MB', (string) $response->headers->get('X-Flash-Message'));
         $this->assertSame(0, EventUpload::query()->count());
     }
 

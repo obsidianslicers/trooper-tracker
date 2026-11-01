@@ -59,6 +59,10 @@ return [
     | Intervention Image library for handling image uploads and manipulation.
     | Supported drivers include GD (default) and Imagick.
     |
+    | "max_upload_kb" is the largest event photo (per file) the app accepts.
+    | "large_photo_kb" is the size the System Check expects troopers to be
+    | able to upload; it warns when PHP or app limits fall below it.
+    |
     */
 
     'image' => [
@@ -68,6 +72,8 @@ return [
             ? Driver::class
             : Intervention\Image\Drivers\Gd\Driver::class
         ),
+        'max_upload_kb' => (int) env('TRACKER_IMAGE_MAX_UPLOAD_KB', 51200),
+        'large_photo_kb' => (int) env('TRACKER_IMAGE_LARGE_PHOTO_KB', 51200),
     ],
 
     /*

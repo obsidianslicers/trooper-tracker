@@ -485,6 +485,79 @@ class XenforoServiceTest extends TestCase
         Http::assertSentCount(2);
     }
 
+    public function test_get_thread_posts_renders_attachments_through_signed_tracker_urls(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-7',
+        ]);
+
+        Cache::put('xenforo_smilies', [], 60);
+
+        Http::fake([
+            'https://xf.test/api/threads/9/posts?page=1*' => Http::response([
+                'posts' => [[
+                    'post_id' => 5,
+                    'message' => 'Cannot make it.[ATTACH type="full" size="619x721"]7398[/ATTACH]',
+                    'post_date' => 1_700_000_000,
+                    'User' => ['username' => 'trooper'],
+                    'Attachments' => [[
+                        'attachment_id' => 7398,
+                        'filename' => 'photo.jpg',
+                        'height' => 721,
+                        'width' => 619,
+                    ]],
+                ]],
+                'pagination' => ['current_page' => 1, 'last_page' => 1],
+            ], 200),
+        ]);
+
+        $subject = new XenforoService;
+        $result = $subject->get_thread_posts(9);
+
+        $this->assertSame('Cannot make it.', $result[0]['message']);
+        $this->assertStringContainsString('alt="photo.jpg"', $result[0]['message_html']);
+        $this->assertStringContainsString('/events/forum-attachments/7398?signature=', $result[0]['message_html']);
+    }
+
+    public function test_get_attachment_data_returns_file_contents(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-8',
+        ]);
+
+        Http::fake([
+            'https://xf.test/api/attachments/7398/data' => Http::response('png-bytes', 200, [
+                'Content-Type' => 'image/png',
+                'Content-Disposition' => 'inline; filename="photo.png"',
+            ]),
+        ]);
+
+        $subject = new XenforoService;
+
+        $this->assertSame(
+            ['content' => 'png-bytes', 'content_type' => 'image/png', 'filename' => 'photo.png'],
+            $subject->get_attachment_data(7398)
+        );
+    }
+
+    public function test_get_attachment_data_returns_null_on_failure(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-9',
+        ]);
+
+        Http::fake([
+            'https://xf.test/api/attachments/1/data' => Http::response(null, 404),
+        ]);
+
+        $subject = new XenforoService;
+
+        $this->assertNull($subject->get_attachment_data(1));
+    }
+
     /**
      * @return array<int, array{post_id:int,message:string,post_date:int,User:array{username:string}}>
      */
