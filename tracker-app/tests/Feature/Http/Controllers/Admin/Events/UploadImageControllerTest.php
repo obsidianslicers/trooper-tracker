@@ -6,7 +6,9 @@ namespace Tests\Feature\Http\Controllers\Admin\Events;
 
 use App\Models\Event;
 use App\Models\EventUpload;
+use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -43,6 +45,27 @@ class UploadImageControllerTest extends TestCase
         $this->assertSame($admin->id, $upload->trooper_id);
         Storage::disk('public')->assertExists($upload->image_path_lg);
         Storage::disk('public')->assertExists($upload->image_path_sm);
+    }
+
+    public function test_moderator_cannot_upload_to_an_event_outside_their_scope(): void
+    {
+        Storage::fake('public');
+
+        $moderator = Trooper::factory()->asModerator()->withVerifiedEmail()->create();
+        $scope = Organization::factory()->withNodePath('1:2:')->create();
+        $outside = Organization::factory()->withNodePath('1:4:')->create();
+
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($scope)->asModerator()->create();
+
+        $event = Event::factory()->withOrganization($outside)->create();
+
+        $this->actingAs($moderator)
+            ->post(route('admin.events.upload-image', $event), [
+                'images' => [UploadedFile::fake()->image('photo.jpg', 800, 600)],
+            ])
+            ->assertForbidden();
+
+        $this->assertSame(0, EventUpload::query()->count());
     }
 
     public function test_invoke_requires_authentication(): void
