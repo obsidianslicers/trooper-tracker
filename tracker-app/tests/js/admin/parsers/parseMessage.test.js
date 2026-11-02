@@ -21,3 +21,12 @@ describe('parseMessage', () => {
         expect(parseMessage('Hello there\nEvent Name: Movie Night')).toEqual({ 'Event Name': 'Movie Night' });
     });
 });
+
+describe('parseMessage with colons in values', () => {
+    it('splits at the first colon only', () => {
+        expect(parseMessage('Event Start: 12/13/2025 - 15:00\nEvent Website: https://example.com/a?b=c:d')).toEqual({
+            'Event Start': '12/13/2025 - 15:00',
+            'Event Website': 'https://example.com/a?b=c:d',
+        });
+    });
+});

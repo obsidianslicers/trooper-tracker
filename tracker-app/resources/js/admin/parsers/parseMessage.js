@@ -9,9 +9,10 @@ export function parseMessage(message) {
         }
 
         if (line.includes(':')) {
-            const [key, value] = line.split(':', 2).map(s => s.trim());
-            currentKey = key;
-            parsed[currentKey] = value;
+            // split at the first colon only; values like times and URLs have their own
+            const colon = line.indexOf(':');
+            currentKey = line.slice(0, colon).trim();
+            parsed[currentKey] = line.slice(colon + 1).trim();
         }
         else {
             if (currentKey !== null) {

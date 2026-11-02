@@ -36,3 +36,16 @@ describe('mandalorianMercsParser', () => {
         });
     });
 });
+
+describe('mandalorianMercsParser with colons in values', () => {
+    it('reads start and end times and full website URLs', () => {
+        const parsed = mandalorianMercsParser(`Event Date(s): 12/13/2025 to 12/14/2025
+Start time: 10:00
+End time: 16:30
+Website: https://example.com/festival`);
+
+        expect(parsed.event_start).toEqual(new Date(2025, 11, 13, 10, 0));
+        expect(parsed.event_end).toEqual(new Date(2025, 11, 14, 16, 30));
+        expect(parsed.event_website).toBe('https://example.com/festival');
+    });
+});
