@@ -407,13 +407,13 @@ How these combine for a Florida Garrison squad member:
 Group sync is run with:
 
 ```bash
-php artisan tracker:synchronize-xenforo-users
+php artisan xenforo:sync-users
 ```
 
 For a single trooper:
 
 ```bash
-php artisan tracker:synchronize-xenforo-user {trooper_id}
+php artisan xenforo:sync-user {trooper_id}
 ```
 
 See [XENFORO_OAUTH.md](XENFORO_OAUTH.md) section 9 for full details on how group sync works.
@@ -450,7 +450,7 @@ After setup or migration, verify all of the following:
 - broken image icons do not appear in the public UI
 - a XenForo forum thread is created when a new event is saved (`tt_events.thread_id` is populated)
 - a Discord notification includes the correct squad role mention
-- `tracker:synchronize-xenforo-users` applies the expected secondary group IDs to a test trooper (1415 + squad group + 18)
+- `xenforo:sync-users` applies the expected secondary group IDs to a test trooper (1415 + squad group + 18)
 - posting a reply in an event's forum thread causes event watchers to receive an **Event Forum Post** in-app notification
 
 If new uploads are broken but legacy images work, the most likely issue is that `php artisan storage:link` was not run or the symlink is missing on the server.

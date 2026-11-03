@@ -7,6 +7,7 @@ namespace App\Plugins;
 use Closure;
 use Hyperdrive\Events\MessageHandled;
 use Hyperdrive\Events\MessageHandling;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -145,6 +146,16 @@ abstract class PluginServiceProvider extends ServiceProvider
     protected function addSystemCheck(string $label, Closure $check): void
     {
         $this->app->make(PluginSystemChecks::class)->add($label, $check);
+    }
+
+    /**
+     * Add scheduled tasks, such as an hourly sync. They run only while the plugin is enabled.
+     *
+     * @param  Closure(Schedule): void  $callback
+     */
+    protected function schedule(Closure $callback): void
+    {
+        $this->callAfterResolving(Schedule::class, $callback);
     }
 
     private function mergeConfigIfPresent(): void

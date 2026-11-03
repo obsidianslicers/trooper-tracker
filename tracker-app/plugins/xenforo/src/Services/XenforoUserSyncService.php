@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Forums;
+namespace TroopTracker\Plugins\Xenforo\Services;
 
 use App\Enums\MembershipStatus;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
+use App\Services\Forums\XenforoService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 

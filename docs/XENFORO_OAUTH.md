@@ -242,8 +242,8 @@ Benefit:
 
 Commands:
 
-- `php artisan tracker:synchronize-xenforo-user {trooper}`
-- `php artisan tracker:synchronize-xenforo-users`
+- `php artisan xenforo:sync-user {trooper}`
+- `php artisan xenforo:sync-users`
 
 ### Support Total Integration
 
@@ -410,13 +410,13 @@ These mappings are used by the XenForo user sync service.
 To push Troop Tracker data to XenForo after setup:
 
 ```bash
-php artisan tracker:synchronize-xenforo-users
+php artisan xenforo:sync-users
 ```
 
 For a single user:
 
 ```bash
-php artisan tracker:synchronize-xenforo-user 644
+php artisan xenforo:sync-user 644
 ```
 
 ## Forum Post Notifications (Webhook)

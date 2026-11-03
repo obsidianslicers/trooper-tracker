@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Services\Forums;
+namespace Tests\Feature\Plugins\Xenforo;
 
 use App\Enums\MembershipStatus;
 use App\Enums\OrganizationType;
@@ -10,15 +10,16 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Services\Forums\XenforoService;
-use App\Services\Forums\XenforoUserSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
+use TroopTracker\Plugins\Xenforo\Services\XenforoUserSyncService;
 
 class XenforoUserSyncServiceTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesXenforoPlugin;
 
     private MockInterface $xenforo;
 
@@ -28,6 +29,7 @@ class XenforoUserSyncServiceTest extends TestCase
     {
         parent::setUp();
 
+        $this->enableXenforo();
         $this->xenforo = Mockery::mock(XenforoService::class);
         // Email sync reads the user separately; these tests only care about groups.
         $this->xenforo->shouldReceive('get_user')
@@ -66,7 +68,8 @@ class XenforoUserSyncServiceTest extends TestCase
         $this->xenforo->shouldReceive('getUserSecondaryGroupIds')->andReturn([10, 99]);
         $this->xenforo->shouldReceive('update_user')
             ->once()
-            ->with(999, Mockery::on(function (array $payload) {
+            ->with(999, Mockery::on(function (array $payload)
+            {
                 $sent = $payload['secondary_group_ids'] ?? null;
 
                 return is_array($sent)
@@ -89,7 +92,8 @@ class XenforoUserSyncServiceTest extends TestCase
         $this->xenforo->shouldReceive('getUserSecondaryGroupIds')->andReturn(null);
         $this->xenforo->shouldReceive('update_user')
             ->once()
-            ->with(999, Mockery::on(function (array $payload) {
+            ->with(999, Mockery::on(function (array $payload)
+            {
                 return ! array_key_exists('secondary_group_ids', $payload);
             }))
             ->andReturn(['status' => 200, 'body' => []]);
@@ -108,7 +112,8 @@ class XenforoUserSyncServiceTest extends TestCase
         $this->xenforo->shouldReceive('getUserSecondaryGroupIds')->andReturn([10]);
         $this->xenforo->shouldReceive('update_user')
             ->once()
-            ->with(999, Mockery::on(function (array $payload) {
+            ->with(999, Mockery::on(function (array $payload)
+            {
                 return ! array_key_exists('secondary_group_ids', $payload);
             }))
             ->andReturn(['status' => 200, 'body' => []]);
@@ -128,7 +133,8 @@ class XenforoUserSyncServiceTest extends TestCase
         $this->xenforo->shouldReceive('getUserSecondaryGroupIds')->andReturn([99]);
         $this->xenforo->shouldReceive('update_user')
             ->once()
-            ->with(999, Mockery::on(function (array $payload) {
+            ->with(999, Mockery::on(function (array $payload)
+            {
                 $sent = $payload['secondary_group_ids'] ?? null;
 
                 return is_array($sent)

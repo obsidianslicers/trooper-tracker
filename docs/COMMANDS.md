@@ -14,7 +14,7 @@ These commands run automatically via the scheduler defined in `routes/console.ph
 
 | Command | Schedule |
 |---|---|
-| `tracker:synchronize-xenforo-users` | Every hour |
+| `xenforo:sync-users` (XenForo plugin, while enabled) | Every hour |
 | `tracker:close-event-shifts` | Every hour |
 | `tracker:close-events` | Daily at 1:00 AM |
 | `tracker:calculate-trooper-achievements` | Daily at 2:00 AM |
@@ -295,31 +295,32 @@ php artisan tracker:synchronize-organizations
 
 ---
 
-### `tracker:synchronize-xenforo-user`
+### `xenforo:sync-user` (XenForo plugin)
 
-Syncs a single trooper's data to XenForo.
+Syncs a single trooper's data to XenForo. Replaces `tracker:synchronize-xenforo-user`. Available while the XenForo plugin is enabled.
 
 ```bash
-php artisan tracker:synchronize-xenforo-user {trooper_id}
+php artisan xenforo:sync-user {trooper_id} [--dry-run]
 ```
 
-| Argument | Required | Description |
+| Argument / option | Required | Description |
 |---|---|---|
 | `trooper_id` | Yes | ID of the trooper to sync |
+| `--dry-run` | No | Show the group changes without writing to XenForo |
 
 **Example:**
 ```bash
-php artisan tracker:synchronize-xenforo-user 42
+php artisan xenforo:sync-user 42
 ```
 
 ---
 
-### `tracker:synchronize-xenforo-users`
+### `xenforo:sync-users` (XenForo plugin)
 
-Syncs all troopers to XenForo, processed in chunks to avoid memory issues.
+Syncs all troopers to XenForo, processed in chunks to avoid memory issues. Replaces `tracker:synchronize-xenforo-users`, and runs hourly while the XenForo plugin is enabled.
 
 ```bash
-php artisan tracker:synchronize-xenforo-users [--chunk=<size>]
+php artisan xenforo:sync-users [--chunk=<size>]
 ```
 
 | Option | Default | Description |
@@ -328,7 +329,7 @@ php artisan tracker:synchronize-xenforo-users [--chunk=<size>]
 
 **Example:**
 ```bash
-php artisan tracker:synchronize-xenforo-users --chunk=50
+php artisan xenforo:sync-users --chunk=50
 ```
 
 ---

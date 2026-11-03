@@ -227,6 +227,8 @@ Plugins are off until enabled. If the site posts events to Discord, enable the D
 php artisan plugins:enable discord
 ```
 
+If the site uses XenForo, enable the XenForo plugin too, or the hourly forum user sync stops (it moved out of core): `php artisan plugins:enable xenforo`. Its settings page takes over from the `XENFORO_*` values in `.env` once saved.
+
 Set the webhook under Command Staff > Plugins > Discord > Settings, or keep `DISCORD_WEBHOOK_URL` in `.env`. See [PLUGINS.md](PLUGINS.md).
 
 Installing plugins by uploading a zip under Command Staff > Plugins is off by default. To allow it, set `TRACKER_PLUGINS_ALLOW_UPLOADS=true` in `.env` and make sure the PHP user can write to `storage/app/plugins` (or `TRACKER_PLUGINS_UPLOADS_PATH`). Uploaded plugins live outside the git checkout, so deploys leave them in place. The web server's upload limit (`upload_max_filesize`, `post_max_size`, nginx `client_max_body_size`) must be at least `TRACKER_PLUGINS_MAX_UPLOAD_KB`.

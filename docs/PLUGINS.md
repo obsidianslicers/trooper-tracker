@@ -253,6 +253,16 @@ Forms that support this are listed as constants on `App\Plugins\PluginForms`. To
 
 `$this->addSystemCheck('Hello API key', fn () => filled($this->setting('api_key')))` adds a row to Command Staff > System Check under "Plugins". Return `true` (pass), `false` (warn) or a `SystemCheckResult`. The Plugins group also shows a failure for any enabled plugin that did not load.
 
+### Scheduled tasks
+
+```php
+$this->schedule(function (Schedule $schedule): void {
+    $schedule->command(SyncUsersCommand::class)->hourly();
+});
+```
+
+adds tasks to Laravel's scheduler. They run only while the plugin is enabled.
+
 ### Settings
 
 Each entry in `settings` becomes a field on the plugin's Settings page. Types: `text`, `url`, `email`, `number`, `boolean`, `secret`. Values are validated by type, and stored encrypted in `tt_plugins.settings`. A `secret` is never shown back; leaving it empty keeps the saved value. Read settings with `$this->setting('key')` in the provider, or `app(PluginManager::class)->setting('slug', 'key')` elsewhere.
@@ -293,6 +303,23 @@ A fresh database seeded with the Florida Garrison data no longer gets mentions f
 php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\FloridaGarrisonMentionSeeder"
 ```
 
+
+---
+
+## The XenForo plugin
+
+`tracker-app/plugins/xenforo` is moving the XenForo forum integration out of core in phases (see the plan doc). Phase 1 holds:
+
+- the settings page: forum URL and name, API key and user, OAuth client, webhook secret, and **Require a linked forum account**
+- the user sync (`xenforo:sync-users`, hourly, and `xenforo:sync-user`)
+
+Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. The rest of XenForo (login, account link and bans, event threads, forum groups, donations) is still core and reads the same config, so the settings page applies to it too while the plugin is enabled.
+
+Sites that use XenForo must enable the plugin after deploying, or the hourly user sync stops:
+
+```bash
+php artisan plugins:enable xenforo
+```
 
 ---
 
