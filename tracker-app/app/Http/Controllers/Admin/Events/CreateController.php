@@ -7,8 +7,8 @@ namespace App\Http\Controllers\Admin\Events;
 use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Facades\TroopTrackerFacade;
-use App\Features\Organizations\Queries\GetOrganizationHierarchyQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Organizations\Queries\GetOrganizationTree;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\Organization;
@@ -52,9 +52,7 @@ class CreateController extends MagicBusController
 
         $trooper = $request->user();
 
-        $organization_hierarchy_query = new GetOrganizationHierarchyQuery;
-
-        $organization_hierarchy = $this->bus->send($organization_hierarchy_query)->map(fn (array $org) => (object) $org);
+        $organization_hierarchy = GetOrganizationTree::call()->map(fn (array $org) => (object) $org);
 
         $event = new Event;
 

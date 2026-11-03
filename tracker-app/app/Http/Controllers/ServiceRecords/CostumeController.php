@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\ServiceRecords;
 
-use App\Features\Reports\Queries\GetCostumeTrooperLeaderboardQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Reports\Queries\GetCostumeTrooperLeaderboard;
 use App\Models\Costume;
 use App\Models\Organization;
 use Illuminate\Contracts\View\View;
@@ -38,8 +38,11 @@ class CostumeController extends MagicBusController
             $organization_id = null;
         }
 
-        $result = $this->bus->send(
-            new GetCostumeTrooperLeaderboardQuery($costume, $days, $organization, 30)
+        $result = GetCostumeTrooperLeaderboard::call(
+            costume: $costume,
+            lookback: $days,
+            organization: $organization,
+            limit: 30,
         );
 
         $top_troopers = $result['top_troopers'];

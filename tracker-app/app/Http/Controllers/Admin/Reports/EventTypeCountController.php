@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Features\Reports\Queries\GetEventTypeCountQuery;
+use App\Messages\Reports\Queries\GetEventTypeCount;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -32,9 +32,7 @@ class EventTypeCountController extends BaseReportsController
 
         $lookback = 30;
 
-        $event_types_query = new GetEventTypeCountQuery($trooper, $lookback);
-
-        $event_types = $this->bus->send($event_types_query);
+        $event_types = GetEventTypeCount::call(moderator: $trooper, lookback: $lookback);
 
         $data = compact('event_types', 'lookback');
 

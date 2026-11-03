@@ -31,7 +31,7 @@ class GetOrganizationsTest extends TestCase
             ->withName('Squad')
             ->create();
 
-        $subject = new GetOrganizations();
+        $subject = new GetOrganizations;
 
         $result = $subject->handle();
 
@@ -40,5 +40,20 @@ class GetOrganizationsTest extends TestCase
             [$organization->{Organization::ID}],
             $result->modelKeys(),
         );
+    }
+
+    public function test_handle_returns_only_organization_type_sorted_by_name(): void
+    {
+        Organization::factory()->asOrganization()->withName('Zeta Organization')->create();
+        Organization::factory()->asOrganization()->withName('Alpha Organization')->create();
+        Organization::factory()->asRegion()->withName('Ignored Region')->create();
+
+        $result = (new GetOrganizations)->handle();
+
+        $this->assertSame(
+            ['Alpha Organization', 'Zeta Organization'],
+            $result->pluck(Organization::NAME)->all()
+        );
+        $this->assertCount(2, $result);
     }
 }

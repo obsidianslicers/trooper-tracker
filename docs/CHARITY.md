@@ -63,7 +63,7 @@ Same sum, used when backfilling achievement records from legacy data.
 
 ### Dashboard metrics
 
-`app/Features/Reports/Queries/GetDashboardMetricsQueryHandler.php`
+`app/Messages/Reports/Queries/GetDashboardMetrics.php`
 
 Loads `shift_starts_at`, `shift_ends_at`, and `charity_hours` then calls
 `$shifts->sum('effective_charity_hours')` to report total volunteer hours across all closed
@@ -71,7 +71,7 @@ events within a lookback window.
 
 ### Donation event summary report
 
-`app/Features/Reports/Queries/GetDonationEventSummaryQueryHandler.php`
+`app/Messages/Reports/Queries/GetDonationEventSummary.php`
 
 Raw SQL subquery that uses `COALESCE` to fall back to shift duration when no override is set:
 

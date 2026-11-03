@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Pickers;
 
-use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use Exception;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -42,9 +42,7 @@ class OrganizationPickerController extends MagicBusController
             throw new Exception('Missing property parameter');
         }
 
-        $query = new GetOrganizationsForPickerQuery($trooper, $request->query());
-
-        $organizations = $this->bus->send($query);
+        $organizations = GetOrganizationsForPicker::call(trooper: $trooper, data: $request->query());
 
         $data = compact('organizations', 'property');
 

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Features\Events\Queries\GetEventsForDisplayQuery;
-use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
-use App\Features\Organizations\Queries\GetOrganizationsQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Organizations\Queries\GetOrganizations;
+use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -39,9 +39,9 @@ class CalendarController extends MagicBusController
 
         $events = $this->bus->send($events_query)->groupBy(fn ($event) => $event->event_start->toDateString());
 
-        $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
+        $costume_organizations = GetOrganizations::call();
 
-        $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery($trooper, []));
+        $hosting_organizations = GetOrganizationsForPicker::call(trooper: $trooper, data: []);
 
         $months = [];
 

@@ -25,7 +25,7 @@ final class GetOrganizations extends Message
      */
     public function handle(): Collection
     {
-        $getter = fn () => Organization::query()->ofTypeOrganizations()->get();
+        $getter = fn () => Organization::query()->ofTypeOrganizations()->orderBy(Organization::NAME)->get();
 
         $organizations = once($getter);
 
