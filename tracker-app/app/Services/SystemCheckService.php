@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\SystemCheckStatus;
 use App\Facades\TroopTracker;
+use App\Plugins\PluginSystemChecks;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,8 @@ class SystemCheckService
     public function __construct(
         private readonly TroopTracker $troop_tracker,
         private readonly QueueWorkerHeartbeatService $queue_worker_heartbeat,
-        private readonly ImageUploadSystemCheckService $image_uploads) {}
+        private readonly ImageUploadSystemCheckService $image_uploads,
+        private readonly PluginSystemChecks $plugin_checks) {}
 
     /**
      * @return Collection<string, Collection<int, SystemCheckResult>>
@@ -37,7 +39,8 @@ class SystemCheckService
             'Storage & Assets' => $this->checkStorageAndAssets(),
             'Image Uploads' => $this->image_uploads->run(),
             'Integrations' => $this->checkIntegrations(),
-        ]);
+            'Plugins' => $this->plugin_checks->run(),
+        ])->filter(fn (Collection $results): bool => $results->isNotEmpty());
     }
 
     private function checkPhp(): Collection
@@ -233,7 +236,6 @@ class SystemCheckService
             $this->toResult('Google Maps API key', !empty(config('services.google.maps_api_key'))),
             $this->toResult('XenForo OAuth', $this->troop_tracker->isXenforoOAuthConfigured()),
             $this->toResult('XenForo integration', $this->troop_tracker->isXenforoIntegrationConfigured()),
-            $this->toResult('Discord webhook', $this->troop_tracker->isDiscordIntegrationConfigured()),
             new SystemCheckResult(
                 "Mail transport ({$mail_mailer})",
                 $mail_warn ? SystemCheckStatus::WARN : SystemCheckStatus::PASS,

@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Plugins;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\Controller;
 use App\Plugins\PluginManager;
+use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 
 /**
  * Shows the settings form a plugin declares in its plugin.json.
  */
-class UpdateSettingsController extends MagicBusController
+class UpdateSettingsController extends Controller
 {
-    protected function initialized(): void
+    public function __construct(private readonly BreadCrumbService $crumbs)
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Plugins', 'admin.plugins.list');

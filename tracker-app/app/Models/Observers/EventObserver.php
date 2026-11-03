@@ -19,7 +19,7 @@ use Throwable;
  * Handles lifecycle events for the Event model.
  *
  * Observes Event model changes and performs related actions such as geocoding,
- * and Discord notifications when events are created or updated.
+ * forum thread sync, and update notifications.
  */
 class EventObserver
 {

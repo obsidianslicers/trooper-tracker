@@ -6,8 +6,10 @@ namespace App\Providers;
 
 use App\Plugins\PluginAutoloader;
 use App\Plugins\PluginDiscovery;
+use App\Plugins\PluginForms;
 use App\Plugins\PluginManager;
 use App\Plugins\PluginSlots;
+use App\Plugins\PluginSystemChecks;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,6 +24,8 @@ class PluginsServiceProvider extends ServiceProvider
     {
         $this->app->singleton(PluginAutoloader::class);
         $this->app->singleton(PluginSlots::class);
+        $this->app->singleton(PluginForms::class);
+        $this->app->singleton(PluginSystemChecks::class);
 
         $this->app->singleton(PluginDiscovery::class, fn (): PluginDiscovery => new PluginDiscovery(
             (string) config('plugins.path', base_path('plugins'))

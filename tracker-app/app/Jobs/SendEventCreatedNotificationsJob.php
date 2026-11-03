@@ -44,7 +44,7 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
      * Processes all active troopers and creates event notifications based on their
      * notification preferences. Troopers with instant notifications receive emails
      * immediately, while others have notifications queued for later batch processing.
-     * Then fires EventPosted so plugins (such as Discord) can announce the event.
+     * Then fires EventPosted so plugins can announce the event.
      *
      * @param  MagicBus  $bus  The message bus for sending queries and commands.
      */

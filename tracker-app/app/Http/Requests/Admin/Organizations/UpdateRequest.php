@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Organizations;
 
 use App\Models\Organization;
+use App\Plugins\PluginForms;
 use App\Rules\Admin\Organizations\UniqueNameRule;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
@@ -64,11 +65,6 @@ class UpdateRequest extends FormRequest
                 'string',
                 'max:128',
             ],
-            Organization::DISCORD_MENTION => [
-                'nullable',
-                'string',
-                'max:128',
-            ],
             Organization::RELATED_FORUM => [
                 'nullable',
                 'integer',
@@ -91,6 +87,6 @@ class UpdateRequest extends FormRequest
             ],
         ];
 
-        return $rules;
+        return [...$rules, ...app(PluginForms::class)->rules(PluginForms::ORGANIZATION_UPDATE)];
     }
 }

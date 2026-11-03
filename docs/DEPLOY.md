@@ -219,6 +219,17 @@ php artisan fabricator:generate-factories
 php artisan db:seed --force
 ```
 
+#### Plugins
+
+Plugins are off until enabled. If the site posts events to Discord, enable the Discord plugin once (it moved out of core) and confirm its data copy:
+
+```bash
+php artisan plugins:enable discord
+php artisan discord:verify-mentions
+```
+
+Set the webhook under Command Staff > Plugins > Discord > Settings, or keep `DISCORD_WEBHOOK_URL` in `.env`. See [PLUGINS.md](PLUGINS.md).
+
 ### 6. Optimize Application
 
 ```bash

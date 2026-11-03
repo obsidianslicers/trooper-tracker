@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 use TroopTracker\Plugins\Discord\DiscordNotifier;
+use TroopTracker\Plugins\Discord\Models\DiscordOrganizationMention;
 
 class DiscordNotifierTest extends TestCase
 {
@@ -20,18 +21,36 @@ class DiscordNotifierTest extends TestCase
         parent::setUp();
 
         $plugins = app(PluginManager::class);
+        $plugins->enable('discord');
         $plugins->load($plugins->findOrFail('discord'));
     }
 
-    public function test_get_squad_mention_returns_organization_discord_mention(): void
+    public function test_get_squad_mention_returns_the_organization_mention(): void
     {
-        $organization = Organization::factory()->create([
-            Organization::DISCORD_MENTION => '<@&12345>',
-        ]);
+        $organization = $this->organizationWithMention('Garrison', '<@&12345>');
 
         $subject = new DiscordNotifier;
 
         $this->assertSame('<@&12345>', $subject->getSquadMention($organization));
+        $this->assertSame('<@&12345>', $subject->getSquadMention($organization->id));
+    }
+
+    public function test_get_squad_mention_matches_organization_names(): void
+    {
+        $this->organizationWithMention('501st', '<@&501>');
+
+        $subject = new DiscordNotifier;
+
+        $this->assertSame('<@&501>', $subject->getSquadMention('501ST'));
+        $this->assertSame('<@&501>', $subject->getSquadMention('501st Legion'));
+    }
+
+    public function test_get_squad_mention_ignores_a_cleared_mention(): void
+    {
+        $organization = $this->organizationWithMention('Garrison', '<@&12345>');
+        DiscordOrganizationMention::store($organization->id, '');
+
+        $this->assertNull((new DiscordNotifier)->getSquadMention($organization));
     }
 
     public function test_get_squad_mention_accepts_preformatted_mention_string(): void
@@ -46,6 +65,7 @@ class DiscordNotifierTest extends TestCase
         $subject = new DiscordNotifier;
 
         $this->assertNull($subject->getSquadMention('unknown-squad'));
+        $this->assertNull($subject->getSquadMention(null));
     }
 
     public function test_send_event_notification_returns_false_without_webhook(): void
@@ -59,9 +79,7 @@ class DiscordNotifierTest extends TestCase
     {
         Http::fake();
 
-        $organization = Organization::factory()->create([
-            Organization::DISCORD_MENTION => '<@&12345>',
-        ]);
+        $organization = $this->organizationWithMention('Garrison', '<@&12345>');
 
         $subject = new DiscordNotifier(webhook_url: 'https://discord.test/webhook');
 
@@ -77,5 +95,13 @@ class DiscordNotifierTest extends TestCase
                 && str_contains((string) ($data['content'] ?? ''), '<@&12345>')
                 && ($data['embeds'][0]['url'] ?? null) === route('events.display', ['event' => 5]);
         });
+    }
+
+    private function organizationWithMention(string $name, string $mention): Organization
+    {
+        $organization = Organization::factory()->create([Organization::NAME => $name]);
+        DiscordOrganizationMention::store($organization->id, $mention);
+
+        return $organization;
     }
 }

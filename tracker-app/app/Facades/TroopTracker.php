@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Facades;
 
-use App\Plugins\PluginManager;
-
 /**
  * TroopTracker application facade for configuration-based feature toggles.
  *
@@ -128,28 +126,6 @@ class TroopTracker
     public function isEmailPasswordAuthEnabled(): bool
     {
         return !$this->isXenforoOAuthRequired();
-    }
-
-    /**
-     * Determine if Discord integration is properly configured.
-     *
-     * True when the Discord plugin is enabled and has a webhook URL, either saved
-     * on the Admin > Plugins page or set as DISCORD_WEBHOOK_URL.
-     *
-     * @return bool True if Discord webhook is configured, false otherwise
-     */
-    public function isDiscordIntegrationConfigured(): bool
-    {
-        $plugins = app(PluginManager::class);
-
-        if (!$plugins->isEnabled('discord'))
-        {
-            return false;
-        }
-
-        $webhook_url = $plugins->setting('discord', 'webhook_url') ?: config('plugins.discord.webhook_url');
-
-        return !empty($webhook_url);
     }
 
     /**

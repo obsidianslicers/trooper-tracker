@@ -6,6 +6,7 @@ namespace TroopTracker\Plugins\Discord;
 
 use App\Models\Organization;
 use Illuminate\Support\Facades\Http;
+use TroopTracker\Plugins\Discord\Models\DiscordOrganizationMention;
 
 /**
  * Simple Discord notifier service.
@@ -23,76 +24,67 @@ final class DiscordNotifier
     }
 
     /**
-     * Resolve a Discord role mention for a squad or organization.
+     * Resolve the Discord role mention for an organization.
      *
-     * Attempts to resolve a role mention by looking up the squad/organization in the
-     * configured squad_roles mapping. First tries exact key matches (case-insensitive),
-     * then attempts partial substring matches. Falls back to the default mention if no
-     * match is found or if the squad parameter is null/empty.
+     * Accepts an Organization, its ID, a ready-made mention such as "<@&123>", or an
+     * organization name. Names match exactly (case-insensitive) first, then by either
+     * name containing the other (so "501st Legion" finds "501st").
      *
-     * @param  Organization|int|string|null  $squad  The Organization instance, squad ID (int), organization name (string), or null.
-     * @return string|null The Discord role mention string (e.g., "<@&123456>"), or null if no mention is configured.
+     * @param  Organization|int|string|null  $squad  The organization, its ID, a mention, or a name.
+     * @return string|null The Discord mention (e.g. "<@&123456>"), or null when none is set.
      */
     public function getSquadMention(Organization|int|string|null $squad): ?string
     {
         if ($squad instanceof Organization)
         {
-            return ! empty($squad->discord_mention) ? (string) $squad->discord_mention : null;
+            return DiscordOrganizationMention::forOrganization($squad->id);
         }
-
-        // If caller already provided a mention string like <@&123>, return it unchanged.
-        if (is_string($squad) && preg_match('/^<@&\d+>$/', trim($squad)))
-        {
-            return trim($squad);
-        }
-
-        // Prefer DB-driven discord_mention on Organization records.
-        $org = null;
 
         if (is_int($squad))
         {
-            $org = Organization::find($squad);
+            return DiscordOrganizationMention::forOrganization($squad);
         }
-        elseif (is_string($squad) && $squad !== '')
+
+        if (!is_string($squad) || trim($squad) === '')
         {
-            $search = trim($squad);
-
-            // exact (case-insensitive) match — prefer most recently created org
-            $org = Organization::whereRaw('LOWER(name) = ?', [strtolower($search)])->orderBy('id', 'desc')->first();
-
-            // fallback to partial match: try to find orgs where the org name
-            // appears inside the provided search string (e.g. "501st Legion"
-            // should match org name "501st") or where the search contains the
-            // org name. Load candidates and check in-PHP to keep compatibility
-            // across DB drivers.
-            if (! $org)
-            {
-                $candidates = Organization::whereNotNull('discord_mention')->orderBy('id', 'desc')->get();
-
-                foreach ($candidates as $candidate)
-                {
-                    $candidateName = strtolower($candidate->name);
-                    if ($candidateName === '')
-                    {
-                        continue;
-                    }
-
-                    if (str_contains(strtolower($search), $candidateName) || str_contains($candidateName, strtolower($search)))
-                    {
-                        $org = $candidate;
-                        break;
-                    }
-                }
-            }
+            return null;
         }
 
-        if ($org && ! empty($org->discord_mention))
+        $search = trim($squad);
+
+        if (preg_match('/^<@&\d+>$/', $search))
         {
-            return $org->discord_mention;
+            return $search;
         }
 
-        // No DB mention found — do not fall back to config-based mappings anymore.
-        return null;
+        $organization = $this->findOrganizationByName($search);
+
+        return $organization === null ? null : DiscordOrganizationMention::forOrganization($organization->id);
+    }
+
+    private function findOrganizationByName(string $search): ?Organization
+    {
+        $exact = Organization::whereRaw('LOWER(name) = ?', [strtolower($search)])->orderBy('id', 'desc')->first();
+
+        if ($exact !== null)
+        {
+            return $exact;
+        }
+
+        // Matched in PHP rather than SQL to stay portable across database drivers.
+        $candidates = Organization::query()
+            ->whereIn('id', DiscordOrganizationMention::query()->where('mention', '!=', '')->select('organization_id'))
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $needle = strtolower($search);
+
+        return $candidates->first(function (Organization $candidate) use ($needle): bool
+        {
+            $name = strtolower($candidate->name);
+
+            return $name !== '' && (str_contains($needle, $name) || str_contains($name, $needle));
+        });
     }
 
     /**

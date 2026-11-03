@@ -8,7 +8,9 @@ use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Organizations\UpdateRequest;
 use App\Models\Organization;
+use App\Plugins\PluginForms;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class UpdateSubmitController
@@ -27,18 +29,16 @@ class UpdateSubmitController extends MagicBusController
      * @param  Organization  $organization  The organization to be updated
      * @return RedirectResponse A redirect response to the organization list
      */
-    public function __invoke(UpdateRequest $request, Organization $organization): RedirectResponse
-    {
+    public function __invoke(
+        UpdateRequest $request,
+        Organization $organization,
+        PluginForms $plugin_forms,
+    ): RedirectResponse {
         $organization->name = $request->validated('name');
 
         if ($request->has('sync_sheet_id'))
         {
             $organization->sync_sheet_id = $request->validated('sync_sheet_id');
-        }
-
-        if ($request->has('discord_mention'))
-        {
-            $organization->discord_mention = $request->validated('discord_mention');
         }
 
         if ($request->has(Organization::RELATED_FORUM))
@@ -66,7 +66,11 @@ class UpdateSubmitController extends MagicBusController
             $organization->xenforo_group_retired_id = $request->validated(Organization::XENFORO_GROUP_RETIRED_ID);
         }
 
-        $organization->save();
+        DB::transaction(function () use ($organization, $request, $plugin_forms): void
+        {
+            $organization->save();
+            $plugin_forms->saved(PluginForms::ORGANIZATION_UPDATE, $organization, $request->validated());
+        });
 
         FlashType::updated($organization);
 

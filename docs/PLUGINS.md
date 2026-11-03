@@ -168,6 +168,7 @@ $this->addToSlot(
 | `navbar.links` | Main navbar, before Help. Render `<x-nav-link>` items. | |
 | `admin.dashboard.cards` | Command Staff dashboard. Render `<x-dashboard-card>` items. | |
 | `events.display.sections` | Event page, below the shifts. | `$event` |
+| `admin.organizations.update.fields` | Organization edit form, inside the `<form>`. Pair with `extendForm`. | `$organization` |
 
 Svelte pages have slots too. Their names are listed in `App\Plugins\PluginSlots::SVELTE_SLOTS`; the server renders them to HTML on every Inertia request and the page shows them with `<PluginSlot name="..." />` (`resources/svelte/lib/components/PluginSlot.svelte`). The views get `$request` and `$actor` (the signed-in trooper) instead of page variables. The markup is inserted as plain HTML, so `<script>` tags in it do not run; use links and forms.
 
@@ -183,6 +184,27 @@ A slot view that throws is logged and left out of the page.
 
 Views can also check whether a plugin is on: `@pluginEnabled('discord') ... @endpluginEnabled`.
 
+### Form fields
+
+To add an input to a core form, render it through the form's slot and register its rules and save step with `extendForm()`. Core merges the rules into its form request, and calls `saved` right after it saves, in the same database transaction, so a failure rolls both back.
+
+```php
+$this->addToSlot('admin.organizations.update.fields', 'hello::org-field', fn (array $c) => [
+    'value' => HelloSetting::for($c['organization']->id),
+]);
+
+$this->extendForm(PluginForms::ORGANIZATION_UPDATE,
+    rules: ['hello_value' => ['nullable', 'string', 'max:64']],
+    saved: fn (Organization $organization, array $validated) => HelloSetting::store($organization->id, $validated['hello_value'] ?? null),
+);
+```
+
+Forms that support this are listed as constants on `App\Plugins\PluginForms`. Today that is the organization edit form.
+
+### System Check rows
+
+`$this->addSystemCheck('Hello API key', fn () => filled($this->setting('api_key')))` adds a row to Command Staff > System Check under "Plugins". Return `true` (pass), `false` (warn) or a `SystemCheckResult`. The Plugins group also shows a failure for any enabled plugin that did not load.
+
 ### Settings
 
 Each entry in `settings` becomes a field on the plugin's Settings page. Types: `text`, `url`, `email`, `number`, `boolean`, `secret`. Values are validated by type, and stored encrypted in `tt_plugins.settings`. A `secret` is never shown back; leaving it empty keeps the saved value. Read settings with `$this->setting('key')` in the provider, or `app(PluginManager::class)->setting('slug', 'key')` elsewhere.
@@ -191,9 +213,30 @@ Each entry in `settings` becomes a field on the plugin's Settings page. Types: `
 
 ## Example: the Discord plugin
 
-`tracker-app/plugins/discord` announces newly posted events in Discord. It used to be core code. It shows the full pattern: a `secret` setting with a fallback to `DISCORD_WEBHOOK_URL` in `config/config.php`, a bound service (`DiscordNotifier`), and a listener on `EventPosted`.
+`tracker-app/plugins/discord` announces newly posted events in Discord. It used to be core code; core no longer knows Discord exists. It shows the full pattern:
 
-Sites that already had `DISCORD_WEBHOOK_URL` set get the plugin enabled automatically by the `enable_discord_plugin_for_existing_webhooks` migration.
+- a `secret` setting with a fallback to `DISCORD_WEBHOOK_URL` in `config/config.php`
+- a bound service (`DiscordNotifier`) and a listener on `EventPosted`
+- its own table (`tt_discord_organization_mentions`), created by a plugin migration
+- a field on the organization edit form (`admin.organizations.update.fields` slot + `extendForm`)
+- a System Check row (`addSystemCheck`) and an Artisan command
+
+### Turning Discord on
+
+Discord is off until you enable it. Sites that used Discord before it became a plugin must do this once after deploying:
+
+```bash
+php artisan plugins:enable discord
+php artisan discord:verify-mentions
+```
+
+or use **Command Staff > Plugins > Enable**, then run the verify command.
+
+### The organization mentions move
+
+Each organization's Discord mention used to live in `tt_organizations.discord_mention`. Enabling the plugin runs its migration, which **copies** every non-empty value into `tt_discord_organization_mentions`. The old column is left untouched, and core no longer reads or writes it.
+
+`php artisan discord:verify-mentions` compares the two. It fails, and says not to drop the column, if any value is missing or was copied wrong. Rows an admin edited or cleared after the copy are listed as expected changes. Once it passes on production, a later core migration can drop `tt_organizations.discord_mention` (then regenerate the base models). That drop is deliberately not part of this change.
 
 ---
 

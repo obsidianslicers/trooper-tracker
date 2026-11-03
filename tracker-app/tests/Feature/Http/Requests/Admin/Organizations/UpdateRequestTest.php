@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Requests\Admin\Organizations;
 use App\Http\Requests\Admin\Organizations\UpdateRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Plugins\PluginForms;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
@@ -127,31 +128,16 @@ class UpdateRequestTest extends TestCase
         $this->assertArrayHasKey(Organization::SYNC_SHEET_ID, $validator->errors()->toArray());
     }
 
-    public function test_rules_discord_mention_is_nullable(): void
+    public function test_rules_include_plugin_form_rules(): void
     {
+        app(PluginForms::class)->add(PluginForms::ORGANIZATION_UPDATE, ['plugin_field' => ['nullable', 'max:5']]);
         $subject = new UpdateRequest;
         $this->setupMockedRoute($subject, $this->organization);
+
         $rules = $subject->rules();
 
-        $this->assertArrayHasKey(Organization::DISCORD_MENTION, $rules);
-        $this->assertContains('nullable', $rules[Organization::DISCORD_MENTION]);
-    }
-
-    public function test_rules_validates_discord_mention_max_length(): void
-    {
-        $subject = new UpdateRequest;
-        $this->setupMockedRoute($subject, $this->organization);
-
-        $validator = Validator::make(
-            [
-                Organization::NAME => 'Test Organization',
-                Organization::DISCORD_MENTION => str_repeat('a', 129), // max is 128
-            ],
-            $subject->rules()
-        );
-
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey(Organization::DISCORD_MENTION, $validator->errors()->toArray());
+        $this->assertSame(['nullable', 'max:5'], $rules['plugin_field']);
+        $this->assertArrayNotHasKey('discord_mention', $rules);
     }
 
     public function test_rules_related_forum_is_nullable(): void
@@ -201,7 +187,6 @@ class UpdateRequestTest extends TestCase
             [
                 Organization::NAME => 'Updated Organization',
                 Organization::SYNC_SHEET_ID => 'sheet-123',
-                Organization::DISCORD_MENTION => '@role',
                 Organization::RELATED_FORUM => 42,
                 Organization::RELATED_FORUM_ARCHIVE => 84,
             ],

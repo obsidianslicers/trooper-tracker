@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Plugins\Discord;
 
+use App\Enums\SystemCheckStatus;
 use App\Events\EventPosted;
-use App\Facades\TroopTracker;
 use App\Models\Event;
 use App\Models\Organization;
+use App\Models\Trooper;
 use App\Plugins\PluginManager;
+use App\Plugins\PluginSystemChecks;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 use TroopTracker\Plugins\Discord\DiscordNotifier;
+use TroopTracker\Plugins\Discord\Models\DiscordOrganizationMention;
 
 class DiscordPluginTest extends TestCase
 {
@@ -34,7 +37,8 @@ class DiscordPluginTest extends TestCase
         $this->enableDiscord();
         $this->plugins->updateSettings('discord', ['webhook_url' => 'https://discord.test/saved']);
 
-        $organization = Organization::factory()->create([Organization::DISCORD_MENTION => '<@&777>']);
+        $organization = Organization::factory()->create();
+        DiscordOrganizationMention::store($organization->id, '<@&777>');
         $event = Event::factory()->create([Event::ORGANIZATION_ID => $organization->id]);
 
         EventPosted::dispatch($event);
@@ -50,7 +54,6 @@ class DiscordPluginTest extends TestCase
         $this->enableDiscord();
 
         $this->assertTrue(app(DiscordNotifier::class)->isConfigured());
-        $this->assertTrue((new TroopTracker)->isDiscordIntegrationConfigured());
     }
 
     public function test_a_discord_outage_does_not_break_event_posting(): void
@@ -72,7 +75,60 @@ class DiscordPluginTest extends TestCase
         EventPosted::dispatch(Event::factory()->create());
 
         Http::assertNothingSent();
-        $this->assertFalse((new TroopTracker)->isDiscordIntegrationConfigured());
+    }
+
+    public function test_system_check_reports_the_webhook(): void
+    {
+        $this->enableDiscord();
+
+        $results = app(PluginSystemChecks::class)->run()->keyBy('label');
+
+        $this->assertSame(SystemCheckStatus::PASS, $results['Discord plugin loaded']->status);
+        $this->assertSame(SystemCheckStatus::WARN, $results['Discord webhook']->status);
+    }
+
+    public function test_organization_form_shows_and_saves_the_mention(): void
+    {
+        $this->enableDiscord();
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $organization = Organization::factory()->create();
+        DiscordOrganizationMention::store($organization->id, '<@&111>');
+
+        $this->actingAs($admin)
+            ->get(route('admin.organizations.update', ['organization' => $organization]))
+            ->assertOk()
+            ->assertSee('Discord Mention:')
+            ->assertSee('&lt;@&amp;111&gt;', false);
+
+        $this->actingAs($admin)->post(route('admin.organizations.update', ['organization' => $organization]), [
+            Organization::NAME => $organization->name,
+            'discord_mention' => '<@&222>',
+        ])->assertRedirect(route('admin.organizations.list'));
+
+        $this->assertSame('<@&222>', DiscordOrganizationMention::forOrganization($organization->id));
+    }
+
+    public function test_organization_form_validates_the_mention_length(): void
+    {
+        $this->enableDiscord();
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $organization = Organization::factory()->create();
+
+        $this->actingAs($admin)->post(route('admin.organizations.update', ['organization' => $organization]), [
+            Organization::NAME => $organization->name,
+            'discord_mention' => str_repeat('a', 129),
+        ])->assertSessionHasErrors('discord_mention');
+    }
+
+    public function test_organization_form_has_no_discord_field_while_disabled(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $organization = Organization::factory()->create();
+
+        $this->actingAs($admin)
+            ->get(route('admin.organizations.update', ['organization' => $organization]))
+            ->assertOk()
+            ->assertDontSee('Discord Mention:');
     }
 
     private function enableDiscord(): void

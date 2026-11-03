@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Facades;
 
 use App\Facades\TroopTracker;
-use App\Plugins\PluginManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -102,21 +101,6 @@ class TroopTrackerTest extends TestCase
         config(['services.xenforo.api_key' => null]);
 
         $this->assertFalse($subject->isXenforoIntegrationConfigured());
-    }
-
-    public function test_is_discord_integration_configured_requires_the_enabled_discord_plugin(): void
-    {
-        $subject = new TroopTracker;
-        $plugins = app(PluginManager::class);
-
-        config(['plugins.discord.webhook_url' => 'https://discord.example/webhook']);
-        $this->assertFalse($subject->isDiscordIntegrationConfigured());
-
-        $plugins->enable('discord');
-        $this->assertTrue($subject->isDiscordIntegrationConfigured());
-
-        config(['plugins.discord.webhook_url' => null]);
-        $this->assertFalse($subject->isDiscordIntegrationConfigured());
     }
 
     public function test_is_support_goal_enabled_requires_a_positive_goal(): void

@@ -118,6 +118,29 @@ abstract class PluginServiceProvider extends ServiceProvider
         $this->app->make(PluginSlots::class)->add($slot, $view, $data, $when, $order);
     }
 
+    /**
+     * Add validation rules and a save callback to a core form, such as
+     * PluginForms::ORGANIZATION_UPDATE. Render the inputs through the form's slot.
+     *
+     * @param  array<string, mixed>  $rules
+     * @param  Closure(\Illuminate\Database\Eloquent\Model, array): void|null  $saved
+     */
+    protected function extendForm(string $form, array $rules = [], ?Closure $saved = null): void
+    {
+        $this->app->make(PluginForms::class)->add($form, $rules, $saved);
+    }
+
+    /**
+     * Add a row to the Admin > System Check page. Return true to pass, false to warn,
+     * or a SystemCheckResult for full control.
+     *
+     * @param  Closure(): (bool|\App\Services\SystemCheckResult)  $check
+     */
+    protected function addSystemCheck(string $label, Closure $check): void
+    {
+        $this->app->make(PluginSystemChecks::class)->add($label, $check);
+    }
+
     private function mergeConfigIfPresent(): void
     {
         $path = $this->plugin->path.'/config/config.php';
