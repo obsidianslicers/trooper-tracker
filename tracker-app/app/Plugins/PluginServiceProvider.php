@@ -1,0 +1,170 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Plugins;
+
+use Closure;
+use Hyperdrive\Events\MessageHandled;
+use Hyperdrive\Events\MessageHandling;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+use Throwable;
+
+/**
+ * Base class for every plugin's service provider.
+ *
+ * Override registerPlugin() and bootPlugin() instead of register() and boot().
+ * Before bootPlugin() runs, the plugin's conventional folders are loaded:
+ *
+ * - config/config.php        merged into config("plugins.<slug>")
+ * - routes/web.php           under /plugins/<slug>, named "plugins.<slug>."
+ * - resources/views          as the "<slug>::" view namespace
+ * - database/migrations      included in "php artisan migrate"
+ */
+abstract class PluginServiceProvider extends ServiceProvider
+{
+    public function __construct(Application $app, protected readonly PluginManifest $plugin)
+    {
+        parent::__construct($app);
+    }
+
+    final public function register(): void
+    {
+        $this->guard('register', function (): void
+        {
+            $this->mergeConfigIfPresent();
+            $this->registerPlugin();
+        });
+    }
+
+    final public function boot(): void
+    {
+        $this->guard('boot', function (): void
+        {
+            $this->loadConventionalResources();
+            $this->app->call([$this, 'bootPlugin']);
+        });
+    }
+
+    protected function registerPlugin(): void {}
+
+    public function bootPlugin(): void {}
+
+    /**
+     * Read one of this plugin's admin-editable settings.
+     */
+    protected function setting(string $key, mixed $default = null): mixed
+    {
+        return $this->app->make(PluginManager::class)->setting($this->plugin->slug, $key, $default);
+    }
+
+    /**
+     * Listen for an application event, such as App\Events\EventPosted.
+     */
+    protected function listen(string $event, Closure|string|array $listener): void
+    {
+        Event::listen($event, $listener);
+    }
+
+    /**
+     * Run a callback before a Hyperdrive message of the given class is handled.
+     *
+     * @param  Closure(\Hyperdrive\Message): void  $callback
+     */
+    protected function beforeMessage(string $message_class, Closure $callback): void
+    {
+        Event::listen(MessageHandling::class, function (MessageHandling $event) use ($message_class, $callback): void
+        {
+            if ($event->message instanceof $message_class)
+            {
+                $callback($event->message);
+            }
+        });
+    }
+
+    /**
+     * Run a callback after a Hyperdrive message of the given class is handled.
+     *
+     * @param  Closure(\Hyperdrive\Message, mixed): void  $callback
+     */
+    protected function afterMessage(string $message_class, Closure $callback): void
+    {
+        Event::listen(MessageHandled::class, function (MessageHandled $event) use ($message_class, $callback): void
+        {
+            if ($event->message instanceof $message_class)
+            {
+                $callback($event->message, $event->result);
+            }
+        });
+    }
+
+    /**
+     * Add a view to a UI slot, such as "navbar.links" or "admin.dashboard.cards".
+     *
+     * @param  array<string, mixed>|Closure(array): array  $data
+     * @param  Closure(array): bool|null  $when
+     */
+    protected function addToSlot(
+        string $slot,
+        string $view,
+        array|Closure $data = [],
+        ?Closure $when = null,
+        int $order = 100,
+    ): void {
+        $this->app->make(PluginSlots::class)->add($slot, $view, $data, $when, $order);
+    }
+
+    private function mergeConfigIfPresent(): void
+    {
+        $path = $this->plugin->path.'/config/config.php';
+
+        if (is_file($path))
+        {
+            $this->mergeConfigFrom($path, "plugins.{$this->plugin->slug}");
+        }
+    }
+
+    private function loadConventionalResources(): void
+    {
+        $slug = $this->plugin->slug;
+        $path = $this->plugin->path;
+
+        if (is_dir($path.'/resources/views'))
+        {
+            $this->loadViewsFrom($path.'/resources/views', $slug);
+        }
+
+        if (is_dir($path.'/database/migrations'))
+        {
+            $this->loadMigrationsFrom($path.'/database/migrations');
+        }
+
+        if (is_file($path.'/routes/web.php') && !$this->app->routesAreCached())
+        {
+            Route::middleware('web')
+                ->prefix("plugins/{$slug}")
+                ->name("plugins.{$slug}.")
+                ->group($path.'/routes/web.php');
+        }
+    }
+
+    private function guard(string $stage, Closure $callback): void
+    {
+        try
+        {
+            $callback();
+        }
+        catch (Throwable $e)
+        {
+            Log::error("Plugin [{$this->plugin->slug}] failed to {$stage}: {$e->getMessage()}", [
+                'exception' => $e,
+            ]);
+
+            report($e);
+        }
+    }
+}

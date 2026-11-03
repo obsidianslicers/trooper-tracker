@@ -188,6 +188,8 @@
                         </div>
                     </div>
 
+                    @pluginSlot('events.display.sections')
+
                     @if ($event->event_uploads->where('is_administrative', true)->isNotEmpty())
                         <div class="mt-5">
                             <x-section-title>Instructional Uploads</x-section-title>

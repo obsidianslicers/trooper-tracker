@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Facades;
 
+use App\Plugins\PluginManager;
+
 /**
  * TroopTracker application facade for configuration-based feature toggles.
  *
@@ -131,16 +133,23 @@ class TroopTracker
     /**
      * Determine if Discord integration is properly configured.
      *
-     * Checks that a Discord webhook URL is configured in either the
-     * discord.webhooks.default or discord.webhook_url configuration.
+     * True when the Discord plugin is enabled and has a webhook URL, either saved
+     * on the Admin > Plugins page or set as DISCORD_WEBHOOK_URL.
      *
      * @return bool True if Discord webhook is configured, false otherwise
      */
     public function isDiscordIntegrationConfigured(): bool
     {
-        $is_discord_integration_configured = !empty(config('discord.webhooks.default') ?? config('discord.webhook_url'));
+        $plugins = app(PluginManager::class);
 
-        return $is_discord_integration_configured;
+        if (!$plugins->isEnabled('discord'))
+        {
+            return false;
+        }
+
+        $webhook_url = $plugins->setting('discord', 'webhook_url') ?: config('plugins.discord.webhook_url');
+
+        return !empty($webhook_url);
     }
 
     /**

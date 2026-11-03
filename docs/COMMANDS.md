@@ -355,3 +355,15 @@ php artisan xenforo:test-thread {node_id} {title} {message} [--user_id=] [--pref
 php artisan xenforo:test-thread 5 "Test Thread" "Hello world" --user_id=1 --prefix_id=3
 php artisan xenforo:test-thread 5 "Test" "Body" --extra=field1:val1 --extra=field2:val2
 ```
+
+---
+
+### `plugins:list` / `plugins:enable {slug}` / `plugins:disable {slug}`
+
+List the plugins found in `tracker-app/plugins/` and in Composer packages, or turn one on or off for the whole site. Enabling runs the plugin's migrations. Disabling keeps its data and settings. See [PLUGINS.md](PLUGINS.md).
+
+```bash
+php artisan plugins:list
+php artisan plugins:enable discord
+php artisan plugins:disable discord
+```

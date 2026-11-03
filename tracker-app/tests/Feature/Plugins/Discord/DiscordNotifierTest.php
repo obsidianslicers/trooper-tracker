@@ -2,17 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Services\Notifications;
+namespace Tests\Feature\Plugins\Discord;
 
 use App\Models\Organization;
-use App\Services\Notifications\DiscordNotifier;
+use App\Plugins\PluginManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
+use TroopTracker\Plugins\Discord\DiscordNotifier;
 
 class DiscordNotifierTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $plugins = app(PluginManager::class);
+        $plugins->load($plugins->findOrFail('discord'));
+    }
 
     public function test_get_squad_mention_returns_organization_discord_mention(): void
     {
@@ -41,24 +50,20 @@ class DiscordNotifierTest extends TestCase
 
     public function test_send_event_notification_returns_false_without_webhook(): void
     {
-        config(['discord.webhooks.default' => null, 'discord.webhook_url' => null]);
-
-        $subject = new DiscordNotifier;
+        $subject = new DiscordNotifier(webhook_url: null);
 
         $this->assertFalse($subject->sendEventNotification(1, 'Event Title'));
     }
 
     public function test_send_event_notification_posts_payload_to_webhook(): void
     {
-        config(['discord.webhooks.default' => 'https://discord.test/webhook']);
-
         Http::fake();
 
         $organization = Organization::factory()->create([
             Organization::DISCORD_MENTION => '<@&12345>',
         ]);
 
-        $subject = new DiscordNotifier;
+        $subject = new DiscordNotifier(webhook_url: 'https://discord.test/webhook');
 
         $result = $subject->sendEventNotification(5, 'Troop Alpha', 'Desc', $organization);
 

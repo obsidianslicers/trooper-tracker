@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Observers;
 
+use App\Events\EventDetailsChanged;
 use App\Facades\TroopTrackerFacade;
 use App\Jobs\DeleteEventForumThreadJob;
 use App\Jobs\SendEventUpdatedNotificationsJob;
@@ -94,6 +95,8 @@ class EventObserver
         {
             $changed = array_values(array_intersect($watch_fields, array_keys($event->getChanges())));
             dispatch(new SendEventUpdatedNotificationsJob($event, $changed));
+
+            EventDetailsChanged::dispatch($event, $changed);
         }
     }
 

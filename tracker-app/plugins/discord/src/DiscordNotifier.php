@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Notifications;
+namespace TroopTracker\Plugins\Discord;
 
 use App\Models\Organization;
 use Illuminate\Support\Facades\Http;
@@ -10,12 +10,18 @@ use Illuminate\Support\Facades\Http;
 /**
  * Simple Discord notifier service.
  *
- * Responsible for composing and sending webhook messages. Kept small and
- * configuration-driven so other developers can easily modify mentions or
- * channel targets via `config/discord.php` or environment variables.
+ * Responsible for composing and sending webhook messages. The webhook comes
+ * from the plugin's settings, falling back to DISCORD_WEBHOOK_URL.
  */
 final class DiscordNotifier
 {
+    public function __construct(private readonly ?string $webhook_url = null) {}
+
+    public function isConfigured(): bool
+    {
+        return !empty($this->webhook_url);
+    }
+
     /**
      * Resolve a Discord role mention for a squad or organization.
      *
@@ -105,9 +111,7 @@ final class DiscordNotifier
      */
     public function sendEventNotification(int $event_id, string $title, ?string $description = null, Organization|int|string|null $squad = null): bool
     {
-        $webhook = config('discord.webhooks.default') ?? config('discord.webhook_url');
-
-        if (empty($webhook))
+        if (!$this->isConfigured())
         {
             return false;
         }
@@ -133,7 +137,7 @@ final class DiscordNotifier
         ];
 
         Http::withHeaders(['Content-Type' => 'application/json'])
-            ->post($webhook, $payload);
+            ->post($this->webhook_url, $payload);
 
         return true;
     }

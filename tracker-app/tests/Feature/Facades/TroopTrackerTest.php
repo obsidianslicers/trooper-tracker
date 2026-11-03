@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Facades;
 
 use App\Facades\TroopTracker;
+use App\Plugins\PluginManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -103,26 +104,18 @@ class TroopTrackerTest extends TestCase
         $this->assertFalse($subject->isXenforoIntegrationConfigured());
     }
 
-    public function test_is_discord_integration_configured_supports_both_configuration_locations(): void
+    public function test_is_discord_integration_configured_requires_the_enabled_discord_plugin(): void
     {
         $subject = new TroopTracker;
+        $plugins = app(PluginManager::class);
 
-        config([
-            'discord.webhooks.default' => 'https://discord.example/webhook-1',
-            'discord.webhook_url' => null,
-        ]);
+        config(['plugins.discord.webhook_url' => 'https://discord.example/webhook']);
+        $this->assertFalse($subject->isDiscordIntegrationConfigured());
+
+        $plugins->enable('discord');
         $this->assertTrue($subject->isDiscordIntegrationConfigured());
 
-        config([
-            'discord.webhooks.default' => null,
-            'discord.webhook_url' => 'https://discord.example/webhook-2',
-        ]);
-        $this->assertTrue($subject->isDiscordIntegrationConfigured());
-
-        config([
-            'discord.webhooks.default' => null,
-            'discord.webhook_url' => null,
-        ]);
+        config(['plugins.discord.webhook_url' => null]);
         $this->assertFalse($subject->isDiscordIntegrationConfigured());
     }
 

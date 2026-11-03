@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             __DIR__ . '/../routes/web/admin-events.php',
             __DIR__ . '/../routes/web/admin-troopers.php',
             __DIR__ . '/../routes/web/admin-faq.php',
+            __DIR__ . '/../routes/web/admin-plugins.php',
             __DIR__ . '/../routes/web/admin-reports.php',
             __DIR__ . '/../routes/web/admin-service-records.php',
             __DIR__ . '/../routes/web/service-records.php',

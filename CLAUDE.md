@@ -373,3 +373,4 @@ Available policies: `AwardPolicy`, `EventPolicy`, `NoticePolicy`, `OrganizationP
 | Authentication flow | `docs/AUTHENTICATION.md` |
 | Console commands reference | `docs/COMMANDS.md` |
 | Deployment | `docs/DEPLOY.md` |
+| Plugins (hooks, slots, settings) | `docs/PLUGINS.md` |

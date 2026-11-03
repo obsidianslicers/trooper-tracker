@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Bus\MagicBus;
+use App\Events\EventPosted;
 use App\Facades\TroopTrackerFacade;
 use App\Features\Events\Commands\SendEventCreatedNotificationCommand;
 use App\Features\Events\Queries\GetTroopersForEventCreatedQuery;
 use App\Models\Event;
 use App\Services\Forums\ForumThreadMessageService;
 use App\Services\Forums\XenforoService;
-use App\Services\Notifications\DiscordNotifier;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
@@ -44,14 +44,12 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
      * Processes all active troopers and creates event notifications based on their
      * notification preferences. Troopers with instant notifications receive emails
      * immediately, while others have notifications queued for later batch processing.
-     * Also notifies Discord about the new event with the organization name.
+     * Then fires EventPosted so plugins (such as Discord) can announce the event.
      *
      * @param  MagicBus  $bus  The message bus for sending queries and commands.
-     * @param  DiscordNotifier  $notifier  The Discord notification service.
      */
     public function handle(
         MagicBus $bus,
-        DiscordNotifier $notifier,
         ForumThreadMessageService $forumThreadMessageService,
         XenforoService $xenforo
     ): void {
@@ -63,8 +61,7 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
         // Forum posting / notifications
         $organization = $this->event->organization;
 
-        // Discord notification: always run
-        $notifier->sendEventNotification($this->event->id, $this->event->name, $this->event->comments ?? null, $organization);
+        EventPosted::dispatch($this->event);
 
         // XenForo thread creation: only if related forum is configured, the event
         // is configured to create a forum thread, and a thread has not already

@@ -214,6 +214,10 @@ final class SendNotification extends Message
 
 ---
 
+## Plugins
+
+Optional features can ship as plugins in `tracker-app/plugins/` or as Composer packages. `App\Plugins\PluginManager` loads the enabled ones; they hook in through app events (`app/Events`), Hyperdrive message events, and `@pluginSlot` UI slots. See [PLUGINS.md](PLUGINS.md).
+
 ## Testing Strategy
 
 ### Test Types by Component

@@ -55,6 +55,7 @@
                 @else
                 @include('partials.inc.navbar-auth')
                 @endauth
+                @pluginSlot('navbar.links')
                 <x-nav-link :url="route('faq')"
                             :active="request()->routeIs('faq')">
                     Help

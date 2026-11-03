@@ -6,11 +6,14 @@ use BackedEnum;
 use Exception;
 use Hyperdrive\Concerns\ShouldBeTransactional;
 use Hyperdrive\Contracts\Actor;
+use Hyperdrive\Events\MessageHandled;
+use Hyperdrive\Events\MessageHandling;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use ReflectionClass;
@@ -76,12 +79,15 @@ final class MessageDispatcher
 
             $execute = fn (): mixed => app()->call([$message, 'handle']);
 
-            if (in_array(ShouldBeTransactional::class, class_uses_recursive($message_class), true))
-            {
-                return DB::transaction($execute);
-            }
+            Event::dispatch(new MessageHandling($message));
 
-            return $execute();
+            $result = in_array(ShouldBeTransactional::class, class_uses_recursive($message_class), true)
+                ? DB::transaction($execute)
+                : $execute();
+
+            Event::dispatch(new MessageHandled($message, $result));
+
+            return $result;
         }
         catch (ValidationException $e)
         {
