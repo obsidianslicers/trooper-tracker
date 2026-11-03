@@ -6,13 +6,13 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\FlashType;
-use App\Features\Events\Commands\UpdateEventCommand;
-use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateRequest;
 use App\Jobs\ReconcileEventRosterJob;
 use App\Jobs\SendEventCancelledNotificationsJob;
 use App\Jobs\SendEventCreatedNotificationsJob;
+use App\Messages\Events\Commands\UpdateEvent;
+use App\Messages\Events\Commands\UpdateEventOrganizations;
 use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -44,8 +44,11 @@ class UpdateSubmitController extends MagicBusController
         $current_status = $event->status;
         $updated_status = EventStatus::from($request->validated('status'));
 
-        $this->bus->send(new UpdateEventCommand($event, $request->validated()));
-        $this->bus->send(new UpdateEventOrganizationsCommand($event, $request->validated('organizations') ?? []));
+        UpdateEvent::call(event: $event, data: $request->validated());
+        UpdateEventOrganizations::call(
+            event: $event,
+            data: $request->validated('organizations') ?? [],
+        );
 
         dispatch(new ReconcileEventRosterJob($event, Auth::user()));
 

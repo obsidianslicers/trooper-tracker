@@ -6,11 +6,11 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\FlashType;
-use App\Features\Events\Commands\UpdateEventCommand;
-use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\CreateRequest;
 use App\Jobs\SendEventCreatedNotificationsJob;
+use App\Messages\Events\Commands\UpdateEvent;
+use App\Messages\Events\Commands\UpdateEventOrganizations;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\Organization;
@@ -46,7 +46,7 @@ class CreateSubmitController extends MagicBusController
 
         $event->organization_id = $organization->id;
 
-        $this->bus->send(new UpdateEventCommand($event, $request->validated()));
+        UpdateEvent::call(event: $event, data: $request->validated());
 
         if (
             $event->status == EventStatus::OPEN
@@ -63,7 +63,10 @@ class CreateSubmitController extends MagicBusController
         $event_shift->status = $event->status;
         $event_shift->save();
 
-        $this->bus->send(new UpdateEventOrganizationsCommand($event, $request->validated('organizations') ?? []));
+        UpdateEventOrganizations::call(
+            event: $event,
+            data: $request->validated('organizations') ?? [],
+        );
 
         FlashType::created($event);
 

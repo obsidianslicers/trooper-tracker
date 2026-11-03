@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Console\Commands;
 
-use App\Bus\MagicBus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Features\Events\Queries\GetEventShiftsToCloseQuery;
+use App\Messages\Events\Queries\GetEventShiftsToClose;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
@@ -15,7 +14,7 @@ use App\Notifications\Events\EventShiftCompletedNotification;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
-use Mockery\MockInterface;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 /**
@@ -27,6 +26,7 @@ use Tests\TestCase;
  */
 class CloseEventShiftsCommandTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     /**
@@ -39,18 +39,16 @@ class CloseEventShiftsCommandTest extends TestCase
         $shift2 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN, EventShift::SHIFT_ENDS_AT => Carbon::now()->subHour()]);
         $shifts = collect([$shift1, $shift2]);
 
-        // Mock MagicBus to return shifts to close
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($shifts)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
-                ->andReturn($shifts);
-        });
+        // Fake the query to return shifts to close
+        $messages = $this->fakeMessages([
+            GetEventShiftsToClose::class => $shifts,
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:close-event-shifts')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetEventShiftsToClose::class);
 
         // Assert: Verify shifts are closed
         $shift1->refresh();
@@ -92,18 +90,16 @@ class CloseEventShiftsCommandTest extends TestCase
             collect([$event_trooper_going, $event_trooper_cancelled])
         );
 
-        // Mock MagicBus
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
-                ->andReturn(collect([$shift]));
-        });
+        // Fake the messages
+        $messages = $this->fakeMessages([
+            GetEventShiftsToClose::class => collect([$shift]),
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:close-event-shifts')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetEventShiftsToClose::class);
     }
 
     /**
@@ -139,18 +135,16 @@ class CloseEventShiftsCommandTest extends TestCase
             collect([$event_trooper_tentative, $event_trooper_cancelled])
         );
 
-        // Mock MagicBus
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
-                ->andReturn(collect([$shift]));
-        });
+        // Fake the messages
+        $messages = $this->fakeMessages([
+            GetEventShiftsToClose::class => collect([$shift]),
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:close-event-shifts')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetEventShiftsToClose::class);
     }
 
     /**
@@ -179,18 +173,16 @@ class CloseEventShiftsCommandTest extends TestCase
 
         $shift->setRelation('event_troopers', collect([$event_trooper1, $event_trooper2]));
 
-        // Mock MagicBus
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
-                ->andReturn(collect([$shift]));
-        });
+        // Fake the messages
+        $messages = $this->fakeMessages([
+            GetEventShiftsToClose::class => collect([$shift]),
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:close-event-shifts')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetEventShiftsToClose::class);
     }
 
     /**
@@ -199,17 +191,15 @@ class CloseEventShiftsCommandTest extends TestCase
     public function test_command_handles_no_shifts_to_close(): void
     {
         // Arrange
-        $this->mock(MagicBus::class, function (MockInterface $mock)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
-                ->andReturn(collect([]));
-        });
+        $messages = $this->fakeMessages([
+            GetEventShiftsToClose::class => collect([]),
+        ]);
 
         // Act & Assert: Command should complete successfully
         $this->artisan('tracker:close-event-shifts')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetEventShiftsToClose::class);
     }
 
     /**
@@ -258,18 +248,16 @@ class CloseEventShiftsCommandTest extends TestCase
             collect([$event_trooper1, $event_trooper2, $event_trooper3])
         );
 
-        // Mock MagicBus
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
-                ->andReturn(collect([$shift]));
-        });
+        // Fake the messages
+        $messages = $this->fakeMessages([
+            GetEventShiftsToClose::class => collect([$shift]),
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:close-event-shifts')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetEventShiftsToClose::class);
     }
 
     /**
@@ -305,18 +293,16 @@ class CloseEventShiftsCommandTest extends TestCase
         $event_trooper2->setRelation('trooper', $trooper2);
         $shift2->setRelation('event_troopers', collect([$event_trooper2]));
 
-        // Mock MagicBus
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift1, $shift2)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
-                ->andReturn(collect([$shift1, $shift2]));
-        });
+        // Fake the messages
+        $messages = $this->fakeMessages([
+            GetEventShiftsToClose::class => collect([$shift1, $shift2]),
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:close-event-shifts')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetEventShiftsToClose::class);
 
         // Assert: Both shifts closed and both troopers emailed
         $shift1->refresh();

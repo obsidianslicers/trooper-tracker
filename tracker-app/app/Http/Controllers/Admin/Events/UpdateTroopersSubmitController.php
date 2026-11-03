@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
-use App\Features\Events\Commands\UpdateEventRosterCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
+use App\Messages\Events\Commands\UpdateEventRoster;
 use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 
@@ -17,13 +17,13 @@ class UpdateTroopersSubmitController extends MagicBusController
     {
         $this->authorize('update', $event);
 
-        $this->bus->send(new UpdateEventRosterCommand(
+        UpdateEventRoster::call(
             event: $event,
             auth_trooper: $request->user(),
             validated_troopers: $request->validated('troopers', []),
             validated_guests: $request->validated('guests', []),
             allowed_org_ids: $request->user()->resolveModeratorOrgIds(),
-        ));
+        );
 
         FlashType::updated($event);
 

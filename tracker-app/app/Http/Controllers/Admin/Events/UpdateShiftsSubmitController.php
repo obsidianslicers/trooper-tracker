@@ -6,10 +6,10 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\FlashType;
-use App\Features\Events\Commands\UpdateEventShiftStationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
 use App\Jobs\ReconcileEventRosterJob;
+use App\Messages\Events\Commands\UpdateEventShiftStations;
 use App\Models\Event;
 use App\Models\EventShift;
 use Carbon\Carbon;
@@ -70,10 +70,10 @@ class UpdateShiftsSubmitController extends MagicBusController
 
             $shift->save();
 
-            $this->bus->send(new UpdateEventShiftStationsCommand(
-                $shift,
-                $input['stations'] ?? [],
-            ));
+            UpdateEventShiftStations::call(
+                event_shift: $shift,
+                stations: $input['stations'] ?? [],
+            );
         }
 
         if (collect($shifts)->contains(fn (array $input) => !empty($input['stations'])))

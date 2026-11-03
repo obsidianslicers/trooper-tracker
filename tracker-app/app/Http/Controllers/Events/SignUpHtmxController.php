@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Features\Events\Commands\SignUpEventTrooperCommand;
-use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Events\Commands\SignUpEventTrooper;
+use App\Messages\Events\Queries\GetEventShiftDisplay;
 use App\Models\EventShift;
 use App\Models\Trooper;
 use Illuminate\Http\Request;
@@ -83,16 +83,14 @@ class SignUpHtmxController extends MagicBusController
 
             $is_handler = (bool) $request->input('is_handler', $trooper->is_handler ? 1 : 0);
 
-            $event_trooper_cmd = new SignUpEventTrooperCommand(
-                $event_shift,
-                $trooper,
-                $auth_trooper,
-                $organization_id,
-                $is_handler,
+            SignUpEventTrooper::call(
+                event_shift: $event_shift,
+                trooper: $trooper,
+                added_by_trooper: $auth_trooper,
+                organization_id: $organization_id,
+                is_handler: $is_handler,
                 event_shift_station_id: $event_shift_station_id,
             );
-
-            $this->bus->send($event_trooper_cmd);
 
             $signed_up = true;
         }
@@ -102,8 +100,7 @@ class SignUpHtmxController extends MagicBusController
 
     private function shiftContainerResponse(EventShift $event_shift, Trooper $auth_trooper, Trooper $trooper, bool $can_moderate, bool $signed_up = true): Response
     {
-        $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $auth_trooper);
-        $event_shift = $this->bus->send($event_shift_query);
+        $event_shift = GetEventShiftDisplay::call(event_shift: $event_shift, trooper: $auth_trooper);
 
         $event = $event_shift->event;
 

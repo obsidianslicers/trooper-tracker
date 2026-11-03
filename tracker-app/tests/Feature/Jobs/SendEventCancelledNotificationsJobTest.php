@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Jobs;
 
-use App\Bus\MagicBus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Features\Events\Commands\SendEventCancelledNotificationCommand;
-use App\Features\Events\Queries\GetTroopersForEventCancelledQuery;
 use App\Jobs\SendEventCancelledNotificationsJob;
+use App\Messages\Events\Commands\SendEventCancelledNotification;
+use App\Messages\Events\Queries\GetTroopersForEventCancelled;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class SendEventCancelledNotificationsJobTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_handle_sends_commands_and_sets_cancelled_notification_timestamp(): void
@@ -48,32 +48,27 @@ class SendEventCancelledNotificationsJobTest extends TestCase
         $trooper_one = Trooper::factory()->create();
         $trooper_two = Trooper::factory()->create();
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersForEventCancelledQuery)
-            ->andReturn(collect([$trooper_one, $trooper_two]));
-
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(function (object $command) use ($event, $trooper_one): bool
+        $messages = $this->fakeMessages([
+            GetTroopersForEventCancelled::class => collect([$trooper_one, $trooper_two]),
+            SendEventCancelledNotification::class => fn (array $params): mixed => match (true)
             {
-                return $command instanceof SendEventCancelledNotificationCommand
-                    && $command->event->id === $event->id
-                    && $command->trooper->id === $trooper_one->id;
-            });
-
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(function (object $command) use ($event, $trooper_two): bool
-            {
-                return $command instanceof SendEventCancelledNotificationCommand
-                    && $command->event->id === $event->id
-                    && $command->trooper->id === $trooper_two->id;
-            });
+                $params['event']->id === $event->id && $params['trooper']->id === $trooper_one->id => null,
+                $params['event']->id === $event->id && $params['trooper']->id === $trooper_two->id => null,
+            },
+        ]);
 
         $subject = new SendEventCancelledNotificationsJob($event);
-        $subject->handle($bus);
+        $subject->handle();
+
+        $messages->assertCalled(GetTroopersForEventCancelled::class);
+        $messages->assertCalled(
+            SendEventCancelledNotification::class,
+            fn (array $params): bool => $params['event']->id === $event->id && $params['trooper']->id === $trooper_one->id
+        );
+        $messages->assertCalled(
+            SendEventCancelledNotification::class,
+            fn (array $params): bool => $params['event']->id === $event->id && $params['trooper']->id === $trooper_two->id
+        );
 
         $this->assertNotNull($event->fresh()->cancel_notifications_sent_at);
         $this->assertSame(EventStatus::CANCELLED, $shift_one->fresh()->status);
@@ -97,22 +92,14 @@ class SendEventCancelledNotificationsJobTest extends TestCase
         $trooper_one = Trooper::factory()->create();
         $trooper_two = Trooper::factory()->create();
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersForEventCancelledQuery)
-            ->andReturn(collect([$trooper_one, $trooper_two]));
-
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $command): bool => $command instanceof SendEventCancelledNotificationCommand
-                && $command->trooper->id === $trooper_one->id);
-
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $command): bool => $command instanceof SendEventCancelledNotificationCommand
-                && $command->trooper->id === $trooper_two->id)
-            ->andThrow(new Exception('dispatch failed'));
+        $messages = $this->fakeMessages([
+            GetTroopersForEventCancelled::class => collect([$trooper_one, $trooper_two]),
+            SendEventCancelledNotification::class => fn (array $params): mixed => match (true)
+            {
+                $params['trooper']->id === $trooper_one->id => null,
+                $params['trooper']->id === $trooper_two->id => throw new Exception('dispatch failed'),
+            },
+        ]);
 
         $subject = new SendEventCancelledNotificationsJob($event);
 
@@ -120,7 +107,7 @@ class SendEventCancelledNotificationsJobTest extends TestCase
 
         try
         {
-            $subject->handle($bus);
+            $subject->handle();
         }
         finally
         {
@@ -142,11 +129,13 @@ class SendEventCancelledNotificationsJobTest extends TestCase
             ->asGoing()
             ->create();
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldNotReceive('send');
+        $messages = $this->fakeMessages([]);
 
         $subject = new SendEventCancelledNotificationsJob($event);
-        $subject->handle($bus);
+        $subject->handle();
+
+        $messages->assertNotCalled(GetTroopersForEventCancelled::class);
+        $messages->assertNotCalled(SendEventCancelledNotification::class);
 
         $this->assertNotNull($event->fresh()->cancel_notifications_sent_at);
         $this->assertSame(EventStatus::OPEN, $shift->fresh()->status);

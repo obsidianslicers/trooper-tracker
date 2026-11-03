@@ -1,0 +1,59 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Messages\Events\Queries;
+
+use App\Enums\NotificationFrequency;
+use App\Models\Event;
+use App\Models\Trooper;
+use App\Models\TrooperAssignment;
+use Hyperdrive\Message;
+use Illuminate\Support\Collection;
+
+/**
+ * Query to retrieve troopers eligible for event creation notifications.
+ *
+ * Returns all active troopers who have opted in to receive notifications
+ * for the organization hosting the event. Filters by:
+ * - Active membership status
+ * - Notification frequency not set to NEVER
+ * - should_notify flag enabled for the event's organization
+ *
+ * @method static Collection<int, Trooper> call(Event $event)
+ */
+final class GetTroopersForEventCreated extends Message
+{
+    /**
+     * Create a new query instance.
+     *
+     * @param  Event  $event  The event for which to retrieve troopers
+     */
+    public function __construct(private readonly Event $event) {}
+
+    /**
+     * Execute the query to retrieve eligible troopers for event notifications.
+     *
+     * Process:
+     * 1. Filter active troopers
+     * 2. Exclude troopers with notification_frequency = NEVER
+     * 3. Filter by trooper_assignments where should_notify = true
+     * 4. Match organization_id to the event's organization
+     * 5. Return collection of Trooper models
+     *
+     * @return Collection<int, Trooper> Active troopers eligible for notifications
+     */
+    public function handle(): Collection
+    {
+        $organization_id = $this->event->organization_id;
+
+        return Trooper::active()
+            ->where(Trooper::NOTIFICATION_FREQUENCY, '!=', NotificationFrequency::NEVER)
+            ->whereHas('trooper_assignments', function ($q) use ($organization_id)
+            {
+                $q->where(TrooperAssignment::SHOULD_NOTIFY, true)
+                    ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id);
+            })
+            ->get();
+    }
+}

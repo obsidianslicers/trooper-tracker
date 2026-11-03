@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Features\Events\Queries\GetEventsForModeratorQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Events\Queries\GetEventsForModerator;
 use App\Models\Filters\EventFilter;
 use App\Models\Organization;
 use Illuminate\Contracts\View\View;
@@ -60,9 +60,7 @@ class ListController extends MagicBusController
 
         $organization = $this->getOrganization($request);
 
-        $get_events_query = new GetEventsForModeratorQuery($filter, $trooper);
-
-        $events = $this->bus->send($get_events_query);
+        $events = GetEventsForModerator::call(filter: $filter, moderator: $trooper);
 
         $status_options = EventStatus::toArray();
 

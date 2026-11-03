@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Facades\TroopTrackerFacade;
-use App\Features\Events\Queries\GetEventDisplayQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Events\Queries\GetEventDisplay;
 use App\Models\Event;
 use App\Models\EventWatch;
 use App\Services\Forums\XenforoService;
@@ -46,9 +46,7 @@ class EventDisplayController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $event_query = new GetEventDisplayQuery($event, $trooper);
-
-        $event = $this->bus->send($event_query);
+        $event = GetEventDisplay::call(event: $event, trooper: $trooper);
 
         $can_moderate = $trooper->isModeratorForOrganization($event->organization);
 

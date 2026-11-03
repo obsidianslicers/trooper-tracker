@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Features\Events\Queries\GetEventsForDisplayQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Events\Queries\GetEventsForDisplay;
 use App\Messages\Organizations\Queries\GetOrganizations;
 use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use Illuminate\Contracts\View\View;
@@ -34,9 +34,7 @@ class ListController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $events_query = new GetEventsForDisplayQuery;
-
-        $events = $this->bus->send($events_query);
+        $events = GetEventsForDisplay::call();
 
         $costume_organizations = GetOrganizations::call();
 

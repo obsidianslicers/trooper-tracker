@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Console\Commands;
 
-use App\Bus\MagicBus;
-use App\Features\Events\Commands\SendEventDailyNotificationCommand;
-use App\Features\Events\Queries\GetTroopersForDailyEventNotificationsQuery;
+use App\Messages\Events\Commands\SendEventDailyNotification;
+use App\Messages\Events\Queries\GetTroopersForDailyEventNotifications;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
-use Mockery\MockInterface;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 /**
@@ -22,6 +20,7 @@ use Tests\TestCase;
  */
 class SendDailyEventNotificationsTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     /**
@@ -34,37 +33,29 @@ class SendDailyEventNotificationsTest extends TestCase
         $trooper2 = Trooper::factory()->create();
         $troopers = collect([$trooper1, $trooper2]);
 
-        // Mock MagicBus
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($troopers, $trooper1, $trooper2)
-        {
-            // First call: get troopers query
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetTroopersForDailyEventNotificationsQuery::class))
-                ->andReturn($troopers);
-
-            // Second call: send notification for trooper1
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (SendEventDailyNotificationCommand $command) use ($trooper1)
-                {
-                    return $command->trooper->id === $trooper1->id;
-                })
-                ->andReturn(null);
-
-            // Third call: send notification for trooper2
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (SendEventDailyNotificationCommand $command) use ($trooper2)
-                {
-                    return $command->trooper->id === $trooper2->id;
-                })
-                ->andReturn(null);
-        });
+        // Fake the messages
+        $messages = $this->fakeMessages([
+            GetTroopersForDailyEventNotifications::class => $troopers,
+            SendEventDailyNotification::class => fn (array $params): mixed => match (true)
+            {
+                $params['trooper']->id === $trooper1->id => null,
+                $params['trooper']->id === $trooper2->id => null,
+            },
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:send-daily-event-notifications')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetTroopersForDailyEventNotifications::class);
+        $messages->assertCalled(
+            SendEventDailyNotification::class,
+            fn (array $params): bool => $params['trooper']->id === $trooper1->id
+        );
+        $messages->assertCalled(
+            SendEventDailyNotification::class,
+            fn (array $params): bool => $params['trooper']->id === $trooper2->id
+        );
     }
 
     /**
@@ -72,18 +63,16 @@ class SendDailyEventNotificationsTest extends TestCase
      */
     public function test_command_handles_no_troopers_to_notify(): void
     {
-        // Arrange: Mock MagicBus to return empty collection
-        $this->mock(MagicBus::class, function (MockInterface $mock)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetTroopersForDailyEventNotificationsQuery::class))
-                ->andReturn(collect([]));
-        });
+        // Arrange: Fake the query to return empty collection
+        $messages = $this->fakeMessages([
+            GetTroopersForDailyEventNotifications::class => collect([]),
+        ]);
 
         // Act & Assert: Command should complete successfully without sending notifications
         $this->artisan('tracker:send-daily-event-notifications')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetTroopersForDailyEventNotifications::class);
     }
 
     /**
@@ -97,25 +86,18 @@ class SendDailyEventNotificationsTest extends TestCase
         $trooper3 = Trooper::factory()->create();
         $troopers = collect([$trooper1, $trooper2, $trooper3]);
 
-        // Mock MagicBus
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($troopers)
-        {
-            // Get troopers query
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetTroopersForDailyEventNotificationsQuery::class))
-                ->andReturn($troopers);
-
-            // Verify notification command sent for each trooper
-            $mock->shouldReceive('send')
-                ->times(3)
-                ->with(Mockery::type(SendEventDailyNotificationCommand::class))
-                ->andReturn(null);
-        });
+        // Fake the messages
+        $messages = $this->fakeMessages([
+            GetTroopersForDailyEventNotifications::class => $troopers,
+            SendEventDailyNotification::class => null,
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:send-daily-event-notifications')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetTroopersForDailyEventNotifications::class);
+        $messages->assertCalled(SendEventDailyNotification::class, null, times: 3);
     }
 
     /**
@@ -124,20 +106,15 @@ class SendDailyEventNotificationsTest extends TestCase
     public function test_command_dispatches_get_troopers_for_daily_notifications_query(): void
     {
         // Arrange & Assert: Verify correct query is sent
-        $this->mock(MagicBus::class, function (MockInterface $mock)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function ($query)
-                {
-                    return $query instanceof GetTroopersForDailyEventNotificationsQuery;
-                })
-                ->andReturn(collect([]));
-        });
+        $messages = $this->fakeMessages([
+            GetTroopersForDailyEventNotifications::class => collect([]),
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:send-daily-event-notifications')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetTroopersForDailyEventNotifications::class);
     }
 
     /**
@@ -164,34 +141,30 @@ class SendDailyEventNotificationsTest extends TestCase
 
         $notification_order = [];
 
-        // Mock MagicBus
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($troopers, &$notification_order)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetTroopersForDailyEventNotificationsQuery::class))
-                ->andReturn($troopers);
+        // Fake the messages
+        $messages = $this->fakeMessages([
+            GetTroopersForDailyEventNotifications::class => $troopers,
+            SendEventDailyNotification::class => function (array $params) use (&$notification_order): null
+            {
+                $notification_order[] = $params['trooper']->email;
 
-            $mock->shouldReceive('send')
-                ->twice()
-                ->with(Mockery::type(SendEventDailyNotificationCommand::class))
-                ->andReturnUsing(function ($command) use (&$notification_order)
-                {
-                    $notification_order[] = $command->trooper->email;
-                    return null;
-                });
-        });
+                return null;
+            },
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:send-daily-event-notifications')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetTroopersForDailyEventNotifications::class);
+        $messages->assertCalled(SendEventDailyNotification::class, null, times: 2);
 
         // Assert: Notifications sent in order
         $this->assertEquals(['first@example.com', 'second@example.com'], $notification_order);
     }
 
     /**
-     * Test that the command creates SendEventDailyNotificationCommand with correct trooper.
+     * Test that the command creates SendEventDailyNotification with correct trooper.
      */
     public function test_command_creates_notification_command_with_correct_trooper(): void
     {
@@ -202,27 +175,20 @@ class SendDailyEventNotificationsTest extends TestCase
         ]);
         $troopers = collect([$trooper]);
 
-        // Mock MagicBus and capture the command
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($troopers, $trooper)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetTroopersForDailyEventNotificationsQuery::class))
-                ->andReturn($troopers);
-
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (SendEventDailyNotificationCommand $command) use ($trooper)
-                {
-                    return $command->trooper->id === $trooper->id &&
-                        $command->trooper->email === $trooper->email &&
-                        $command->trooper->display_name === $trooper->display_name;
-                })
-                ->andReturn(null);
-        });
+        // Fake the messages and capture the call
+        $messages = $this->fakeMessages([
+            GetTroopersForDailyEventNotifications::class => $troopers,
+            SendEventDailyNotification::class => null,
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:send-daily-event-notifications')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetTroopersForDailyEventNotifications::class);
+        $messages->assertCalled(
+            SendEventDailyNotification::class,
+            fn (array $params): bool => $params['trooper']->id === $trooper->id && $params['trooper']->email === $trooper->email && $params['trooper']->display_name === $trooper->display_name
+        );
     }
 }

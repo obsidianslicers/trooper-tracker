@@ -7,7 +7,7 @@ namespace App\Messages\Troopers\Queries;
 use App\Enums\AchievementType;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Features\Events\Queries\HasEventDisplayAssembler;
+use App\Messages\Concerns\HasEventDisplayAssembler;
 use App\Messages\Concerns\HasOrgCreditAnnotation;
 use App\Models\AwardTrooper;
 use App\Models\Costume;

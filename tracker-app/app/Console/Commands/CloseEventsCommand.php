@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Bus\MagicBus;
 use App\Enums\EventStatus;
-use App\Features\Events\Queries\GetEventsToCloseQuery;
+use App\Messages\Events\Queries\GetEventsToClose;
 use App\Services\Forums\XenforoService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -41,12 +40,11 @@ class CloseEventsCommand extends Command
      * 1. Dispatching GetEventsToCloseQuery to retrieve active events that have ended
      * 2. Updating each event's status to CLOSED
      *
-     * @param  MagicBus  $bus  The message bus for dispatching queries
      * @param  XenforoService  $xenforo  The XenForo API service for moving threads
      */
-    public function handle(MagicBus $bus, XenforoService $xenforo): void
+    public function handle(XenforoService $xenforo): void
     {
-        $events = $bus->send(new GetEventsToCloseQuery);
+        $events = GetEventsToClose::call();
 
         foreach ($events as $event)
         {

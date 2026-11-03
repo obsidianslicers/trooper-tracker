@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Bus\MagicBus;
 use App\Facades\TroopTrackerFacade;
-use App\Features\Events\Commands\SendEventCreatedNotificationCommand;
-use App\Features\Events\Queries\GetTroopersForEventCreatedQuery;
+use App\Messages\Events\Commands\SendEventCreatedNotification;
+use App\Messages\Events\Queries\GetTroopersForEventCreated;
 use App\Models\Event;
 use App\Services\Forums\ForumThreadMessageService;
 use App\Services\Forums\XenforoService;
@@ -46,18 +45,16 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
      * immediately, while others have notifications queued for later batch processing.
      * Also notifies Discord about the new event with the organization name.
      *
-     * @param  MagicBus  $bus  The message bus for sending queries and commands.
      * @param  DiscordNotifier  $notifier  The Discord notification service.
      */
     public function handle(
-        MagicBus $bus,
         DiscordNotifier $notifier,
         ForumThreadMessageService $forumThreadMessageService,
         XenforoService $xenforo
     ): void {
         if ($this->event->create_notifications_sent_at === null)
         {
-            $this->sendTrooperNotifications($bus);
+            $this->sendTrooperNotifications();
         }
 
         // Forum posting / notifications
@@ -123,19 +120,17 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
      * a failure rolls back the marker with nobody notified, and a retry re-runs
      * cleanly instead of skipping every trooper.
      */
-    private function sendTrooperNotifications(MagicBus $bus): void
+    private function sendTrooperNotifications(): void
     {
-        DB::transaction(function () use ($bus): void
+        DB::transaction(function (): void
         {
             $this->event->create_notifications_sent_at = now();
             $this->event->save();
 
-            $troopers_query = new GetTroopersForEventCreatedQuery($this->event);
-            $troopers = $bus->send($troopers_query);
+            $troopers = GetTroopersForEventCreated::call(event: $this->event);
             foreach ($troopers as $trooper)
             {
-                $send_notification_command = new SendEventCreatedNotificationCommand($this->event, $trooper);
-                $bus->send($send_notification_command);
+                SendEventCreatedNotification::call(event: $this->event, trooper: $trooper);
             }
         });
     }

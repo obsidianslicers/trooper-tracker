@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shares;
 
-use App\Features\Events\Queries\GetSharedEventRosterQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Events\Queries\GetSharedEventRoster;
 use App\Models\EventShare;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -36,9 +36,7 @@ class ShareEventRosterController extends MagicBusController
     {
         $share->increment('view_count');
 
-        $query = new GetSharedEventRosterQuery($share);
-
-        $event = $this->bus->send($query);
+        $event = GetSharedEventRoster::call(event_share: $share);
 
         $data = compact('share', 'event');
 
