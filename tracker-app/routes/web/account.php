@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Enums\OauthProvider;
 use App\Http\Controllers\Account\Commands\AddCostumeController;
 use App\Http\Controllers\Account\Commands\AddTrooperRequestController;
 use App\Http\Controllers\Account\Commands\CancelDeletionController;
@@ -26,7 +25,6 @@ use App\Http\Controllers\Account\Pages\SetupController;
 use App\Http\Controllers\Account\PushNotificationClearController;
 use App\Http\Controllers\Account\PushNotificationInboxController;
 use App\Http\Controllers\Account\PushNotificationReadController;
-use App\Models\OauthLogin;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -73,29 +71,4 @@ Route::prefix('account')
 
         Route::get('/setup', SetupController::class)->name('setup');
         Route::post('/setup', SetupSubmitController::class)->name('setup-submit');
-
-        // XenForo linking required page
-        Route::get('/xenforo/required', function (): View
-        {
-            $user = Auth::user();
-
-            return view('pages.account.xenforo-required', [
-                'user' => $user,
-            ]);
-        })->name('xenforo.required');
-
-        // Optional: show current XenForo link status
-        Route::get('/xenforo', function (): View
-        {
-            $user = Auth::user();
-
-            $xenforo_login = OauthLogin::where(OauthLogin::TROOPER_ID, $user->id)
-                ->where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
-                ->first();
-
-            return view('pages.account.xenforo', [
-                'user' => $user,
-                'xenforo_login' => $xenforo_login,
-            ]);
-        })->name('xenforo.index');
     });

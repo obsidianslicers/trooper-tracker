@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Middleware;
+namespace TroopTracker\Plugins\Xenforo\Http\Middleware;
 
 use App\Enums\OauthProvider;
 use App\Models\OauthLogin;
@@ -25,7 +25,6 @@ class EnsureXenforoLinked
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Allow this behaviour to be toggled via configuration / .env.
         if (!config('tracker.auth.require_xenforo', false))
         {
             return $next($request);
@@ -45,7 +44,8 @@ class EnsureXenforoLinked
             $request->routeIs('account.denied', 'account.denied.resubmit', 'account.pending') ||
             $request->routeIs('account.xenforo.*') ||
             $request->routeIs('auth.oauth-*') ||
-            $request->routeIs('auth.logout')
+            $request->routeIs('auth.logout') ||
+            $request->routeIs('webhooks.*')
         ) {
             return $next($request);
         }

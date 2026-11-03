@@ -6,8 +6,13 @@ namespace TroopTracker\Plugins\Xenforo;
 
 use App\Plugins\PluginServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Route;
 use TroopTracker\Plugins\Xenforo\Console\SyncUserCommand;
 use TroopTracker\Plugins\Xenforo\Console\SyncUsersCommand;
+use TroopTracker\Plugins\Xenforo\Http\Controllers\AccountLinkController;
+use TroopTracker\Plugins\Xenforo\Http\Controllers\AccountLinkRequiredController;
+use TroopTracker\Plugins\Xenforo\Http\Middleware\CheckXenforoBan;
+use TroopTracker\Plugins\Xenforo\Http\Middleware\EnsureXenforoLinked;
 
 class XenforoServiceProvider extends PluginServiceProvider
 {
@@ -23,7 +28,7 @@ class XenforoServiceProvider extends PluginServiceProvider
         'client_secret' => 'services.xenforo.client_secret',
         'redirect' => 'services.xenforo.redirect',
         'webhook_secret' => 'services.xenforo.webhook_secret',
-        'require_xenforo' => 'tracker.require_xenforo',
+        'require_xenforo' => 'tracker.auth.require_xenforo',
     ];
 
     protected function registerPlugin(): void
@@ -35,6 +40,10 @@ class XenforoServiceProvider extends PluginServiceProvider
     {
         $this->commands([SyncUserCommand::class, SyncUsersCommand::class]);
 
+        $this->addWebMiddleware(EnsureXenforoLinked::class);
+        $this->addWebMiddleware(CheckXenforoBan::class);
+        $this->registerAccountRoutes();
+
         $this->schedule(function (Schedule $schedule): void
         {
             $schedule->command(SyncUsersCommand::class)->hourly();
@@ -45,6 +54,22 @@ class XenforoServiceProvider extends PluginServiceProvider
             fn (): bool => filled(config('services.xenforo.base_url'))
                 && filled(config('services.xenforo.api_key')),
         );
+    }
+
+    /**
+     * Kept at their old /account/xenforo addresses and account.xenforo.* names,
+     * which core's login and setup flow still link to.
+     */
+    private function registerAccountRoutes(): void
+    {
+        Route::middleware(['web', 'auth', 'redirect.denied', 'redirect.pending'])
+            ->prefix('account/xenforo')
+            ->name('account.xenforo.')
+            ->group(function (): void
+            {
+                Route::get('/', AccountLinkController::class)->name('index');
+                Route::get('/required', AccountLinkRequiredController::class)->name('required');
+            });
     }
 
     private function applySettingsToConfig(): void

@@ -149,6 +149,14 @@ abstract class PluginServiceProvider extends ServiceProvider
     }
 
     /**
+     * Run a middleware on every web request, after core's own web middleware.
+     */
+    protected function addWebMiddleware(string $middleware_class): void
+    {
+        $this->app['router']->pushMiddlewareToGroup('web', $middleware_class);
+    }
+
+    /**
      * Add scheduled tasks, such as an hourly sync. They run only while the plugin is enabled.
      *
      * @param  Closure(Schedule): void  $callback

@@ -21,7 +21,7 @@ class XenforoPluginTest extends TestCase
         config([
             'services.xenforo.base_url' => 'https://env.example.com',
             'services.xenforo.api_key' => 'env-key',
-            'tracker.require_xenforo' => true,
+            'tracker.auth.require_xenforo' => true,
         ]);
         $plugins = $this->app->make(\App\Plugins\PluginManager::class);
         $plugins->enable('xenforo');
@@ -34,17 +34,17 @@ class XenforoPluginTest extends TestCase
 
         $this->assertSame('https://forum.example.com', config('services.xenforo.base_url'));
         $this->assertSame('env-key', config('services.xenforo.api_key'));
-        $this->assertFalse(config('tracker.require_xenforo'));
+        $this->assertFalse(config('tracker.auth.require_xenforo'));
     }
 
     public function test_env_config_is_kept_until_settings_are_saved(): void
     {
-        config(['services.xenforo.base_url' => 'https://env.example.com', 'tracker.require_xenforo' => true]);
+        config(['services.xenforo.base_url' => 'https://env.example.com', 'tracker.auth.require_xenforo' => true]);
 
         $this->enableXenforo();
 
         $this->assertSame('https://env.example.com', config('services.xenforo.base_url'));
-        $this->assertTrue(config('tracker.require_xenforo'));
+        $this->assertTrue(config('tracker.auth.require_xenforo'));
     }
 
     public function test_user_sync_is_scheduled_hourly_while_enabled(): void

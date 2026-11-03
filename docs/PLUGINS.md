@@ -253,6 +253,10 @@ Forms that support this are listed as constants on `App\Plugins\PluginForms`. To
 
 `$this->addSystemCheck('Hello API key', fn () => filled($this->setting('api_key')))` adds a row to Command Staff > System Check under "Plugins". Return `true` (pass), `false` (warn) or a `SystemCheckResult`. The Plugins group also shows a failure for any enabled plugin that did not load.
 
+### Web middleware
+
+`$this->addWebMiddleware(EnsureSomething::class)` runs a middleware on every web request, after core's own. Skip routes that must stay open (login, logout, webhooks) inside the middleware.
+
 ### Scheduled tasks
 
 ```php
@@ -308,14 +312,17 @@ php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\Flori
 
 ## The XenForo plugin
 
-`tracker-app/plugins/xenforo` is moving the XenForo forum integration out of core in phases (see the plan doc). Phase 1 holds:
+`tracker-app/plugins/xenforo` is moving the XenForo forum integration out of core in phases (see the plan doc). So far it holds:
 
 - the settings page: forum URL and name, API key and user, OAuth client, webhook secret, and **Require a linked forum account**
 - the user sync (`xenforo:sync-users`, hourly, and `xenforo:sync-user`)
+- the account link pages (`/account/xenforo`, `/account/xenforo/required`) and the two checks that run on every request while a linked account is required: send unlinked troopers to the link page, and log out banned forum users
+
+**Require a linked forum account** only applies while the plugin is enabled. With the plugin off, the site runs without XenForo: email and Google login work and nobody is sent to the link page.
 
 Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. The rest of XenForo (login, account link and bans, event threads, forum groups, donations) is still core and reads the same config, so the settings page applies to it too while the plugin is enabled.
 
-Sites that use XenForo must enable the plugin after deploying, or the hourly user sync stops:
+Sites that use XenForo must enable the plugin right after deploying. Until then the user sync stops and a linked forum account is not required:
 
 ```bash
 php artisan plugins:enable xenforo

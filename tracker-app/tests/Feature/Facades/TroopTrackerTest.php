@@ -6,11 +6,20 @@ namespace Tests\Feature\Facades;
 
 use App\Facades\TroopTracker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
 use Tests\TestCase;
 
 class TroopTrackerTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesXenforoPlugin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->enableXenforo();
+    }
 
     public function test_is_xenforo_oauth_configured_returns_true_when_all_values_exist(): void
     {
@@ -40,6 +49,19 @@ class TroopTrackerTest extends TestCase
 
         config(['tracker.auth.require_xenforo' => false]);
         $this->assertFalse($subject->isXenforoOAuthRequired());
+    }
+
+    public function test_is_xenforo_oauth_required_is_off_while_the_plugin_is_disabled(): void
+    {
+        config([
+            'tracker.auth.require_xenforo' => true,
+            'services.xenforo.client_id' => 'client-id',
+            'services.xenforo.client_secret' => 'secret',
+            'services.xenforo.redirect' => 'https://example.com/callback',
+        ]);
+        $this->app->make(\App\Plugins\PluginManager::class)->disable('xenforo');
+
+        $this->assertFalse((new TroopTracker)->isXenforoOAuthRequired());
     }
 
     public function test_is_google_oauth_enabled_requires_google_configuration_and_no_required_xenforo(): void

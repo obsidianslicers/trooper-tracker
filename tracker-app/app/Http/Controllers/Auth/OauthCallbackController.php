@@ -14,6 +14,7 @@ use App\Services\Forums\XenforoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
@@ -145,8 +146,10 @@ class OauthCallbackController extends MagicBusController
                 $message .= ' Or log in with email/password.';
             }
 
+            $route = Route::has('account.xenforo.required') ? 'account.xenforo.required' : 'auth.login';
+
             return redirect()
-                ->route('account.xenforo.required')
+                ->route($route)
                 ->withErrors([
                     'oauth' => $message,
                 ]);

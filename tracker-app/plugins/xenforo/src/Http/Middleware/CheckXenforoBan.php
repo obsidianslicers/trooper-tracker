@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Middleware;
+namespace TroopTracker\Plugins\Xenforo\Http\Middleware;
 
 use App\Services\Forums\XenforoService;
 use Closure;
@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
  * The result is cached per-user so the XenForo API is only called once
  * every x minutes rather than on every page request.
  */
-class CheckXenforoBanMiddleware
+class CheckXenforoBan
 {
     /**
      * How long (in minutes) a clean (not-banned) check is cached.
@@ -45,7 +45,7 @@ class CheckXenforoBanMiddleware
         }
 
         // Don't check on auth/logout routes — avoids redirect loops.
-        if ($request->routeIs('auth.*'))
+        if ($request->routeIs('auth.*', 'webhooks.*'))
         {
             return $next($request);
         }
@@ -86,8 +86,10 @@ class CheckXenforoBanMiddleware
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('auth.login')
-                ->withErrors(['banned' => 'You are currently banned. Please refer to command staff for additional information.']);
+            return redirect()->route('auth.login')->withErrors([
+                'banned' => 'You are currently banned. '
+                    .'Please refer to command staff for additional information.',
+            ]);
         }
 
         // Cache the clean result — no API call needed for the next x minutes.

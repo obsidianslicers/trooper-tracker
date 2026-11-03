@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Facades;
 
+use App\Plugins\PluginManager;
+
 /**
  * TroopTracker application facade for configuration-based feature toggles.
  *
@@ -32,7 +34,9 @@ class TroopTracker
      */
     public function isXenforoOAuthRequired(): bool
     {
-        $require_xenforo = (bool) config('tracker.auth.require_xenforo', false);
+        // The requirement is a XenForo plugin setting, so it only applies while that plugin is on.
+        $require_xenforo = (bool) config('tracker.auth.require_xenforo', false)
+            && app(PluginManager::class)->isEnabled('xenforo');
 
         return $require_xenforo && $this->isXenforoOAuthConfigured();
     }

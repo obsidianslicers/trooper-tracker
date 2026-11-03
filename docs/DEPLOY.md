@@ -227,7 +227,7 @@ Plugins are off until enabled. If the site posts events to Discord, enable the D
 php artisan plugins:enable discord
 ```
 
-If the site uses XenForo, enable the XenForo plugin too, or the hourly forum user sync stops (it moved out of core): `php artisan plugins:enable xenforo`. Its settings page takes over from the `XENFORO_*` values in `.env` once saved.
+If the site uses XenForo, enable the XenForo plugin right after deploying: `php artisan plugins:enable xenforo`. Until it is enabled, the hourly forum user sync stops and "require a linked forum account" is off, so troopers can sign in without XenForo. Its settings page takes over from the `XENFORO_*` values in `.env` once saved.
 
 Set the webhook under Command Staff > Plugins > Discord > Settings, or keep `DISCORD_WEBHOOK_URL` in `.env`. See [PLUGINS.md](PLUGINS.md).
 
