@@ -6,6 +6,7 @@ namespace Tests\Feature\Plugins\Discord;
 
 use App\Models\Organization;
 use App\Plugins\PluginManager;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -15,6 +16,17 @@ use TroopTracker\Plugins\Discord\Models\DiscordOrganizationMention;
 class MentionMigrationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Core has dropped the old column; put it back to test sites that still have it.
+        Schema::table('tt_organizations', function (Blueprint $table): void
+        {
+            $table->string('discord_mention', 128)->nullable();
+        });
+    }
 
     public function test_enabling_copies_mentions_and_leaves_the_core_column_alone(): void
     {
