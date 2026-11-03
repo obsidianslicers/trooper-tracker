@@ -2,17 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Services\Socialite;
+namespace Tests\Feature\Plugins\Xenforo;
 
-use App\Services\Socialite\XenforoProvider;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Two\User;
 use Tests\TestCase;
 
 class XenforoProviderTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
+    use UsesXenforoPlugin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->enableXenforo();
+
+        // Extends a plugin class, so it can only load once the plugin is loaded.
+        require_once __DIR__.'/TestableXenforoProvider.php';
+    }
 
     public function test_get_auth_url_builds_authorize_url_with_state_and_scope(): void
     {
@@ -95,34 +105,5 @@ class XenforoProviderTest extends TestCase
 
         $this->assertSame('authorization_code', $fields['grant_type']);
         $this->assertSame('code-1', $fields['code']);
-    }
-}
-
-class TestableXenforoProvider extends XenforoProvider
-{
-    public function publicGetAuthUrl(string $state): string
-    {
-        return $this->getAuthUrl($state);
-    }
-
-    public function publicGetTokenUrl(): string
-    {
-        return $this->getTokenUrl();
-    }
-
-    /**
-     * @param  array<string, mixed>  $user
-     */
-    public function publicMapUserToObject(array $user): User
-    {
-        return $this->mapUserToObject($user);
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public function publicGetTokenFields(string $code): array
-    {
-        return $this->getTokenFields($code);
     }
 }

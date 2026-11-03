@@ -47,6 +47,14 @@ class OauthRedirectController extends MagicBusController
             return redirect()->route('auth.login');
         }
 
+        if ($provider === OauthProvider::XENFORO->value
+            && !$this->troop_tracker->isXenforoOAuthConfigured())
+        {
+            FlashType::warning('XenForo login is not available.');
+
+            return redirect()->route('auth.login');
+        }
+
         return Socialite::driver($provider)->redirect();
     }
 }

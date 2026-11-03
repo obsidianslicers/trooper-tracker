@@ -12,12 +12,37 @@ use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
+use Illuminate\Support\Facades\Route;
 use Mockery;
+use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
 use Tests\TestCase;
 
 class OauthCallbackControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesXenforoPlugin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'services.xenforo.client_id' => 'client-id',
+            'services.xenforo.client_secret' => 'secret',
+            'services.xenforo.redirect' => 'https://example.com/callback',
+        ]);
+        $this->enableXenforo();
+        Route::getRoutes()->refreshNameLookups();
+    }
+
+    public function test_invoke_refuses_xenforo_while_the_plugin_is_disabled(): void
+    {
+        $this->app->make(\App\Plugins\PluginManager::class)->disable('xenforo');
+        Socialite::shouldReceive('driver')->never();
+
+        $this->get(route('auth.oauth-callback', ['provider' => 'xenforo']))
+            ->assertRedirect(route('auth.login'));
+    }
 
     public function test_invoke_authenticates_trooper_with_existing_oauth_account(): void
     {

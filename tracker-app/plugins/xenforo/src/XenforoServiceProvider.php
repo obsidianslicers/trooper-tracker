@@ -7,12 +7,14 @@ namespace TroopTracker\Plugins\Xenforo;
 use App\Plugins\PluginServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Route;
+use Laravel\Socialite\Facades\Socialite;
 use TroopTracker\Plugins\Xenforo\Console\SyncUserCommand;
 use TroopTracker\Plugins\Xenforo\Console\SyncUsersCommand;
 use TroopTracker\Plugins\Xenforo\Http\Controllers\AccountLinkController;
 use TroopTracker\Plugins\Xenforo\Http\Controllers\AccountLinkRequiredController;
 use TroopTracker\Plugins\Xenforo\Http\Middleware\CheckXenforoBan;
 use TroopTracker\Plugins\Xenforo\Http\Middleware\EnsureXenforoLinked;
+use TroopTracker\Plugins\Xenforo\Socialite\XenforoProvider;
 
 class XenforoServiceProvider extends PluginServiceProvider
 {
@@ -39,6 +41,11 @@ class XenforoServiceProvider extends PluginServiceProvider
     public function bootPlugin(): void
     {
         $this->commands([SyncUserCommand::class, SyncUsersCommand::class]);
+
+        Socialite::extend('xenforo', fn (): XenforoProvider => Socialite::buildProvider(
+            XenforoProvider::class,
+            config('services.xenforo'),
+        ));
 
         $this->addWebMiddleware(EnsureXenforoLinked::class);
         $this->addWebMiddleware(CheckXenforoBan::class);

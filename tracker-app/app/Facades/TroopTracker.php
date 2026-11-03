@@ -34,9 +34,7 @@ class TroopTracker
      */
     public function isXenforoOAuthRequired(): bool
     {
-        // The requirement is a XenForo plugin setting, so it only applies while that plugin is on.
-        $require_xenforo = (bool) config('tracker.auth.require_xenforo', false)
-            && app(PluginManager::class)->isEnabled('xenforo');
+        $require_xenforo = (bool) config('tracker.auth.require_xenforo', false);
 
         return $require_xenforo && $this->isXenforoOAuthConfigured();
     }
@@ -45,13 +43,15 @@ class TroopTracker
      * Determine if XenForo OAuth is properly configured.
      *
      * Checks that all required XenForo OAuth credentials (client ID, client secret,
-     * and redirect URL) are present in the application configuration.
+     * and redirect URL) are present, and that the XenForo plugin, which provides the
+     * login driver, is enabled.
      *
      * @return bool True if XenForo OAuth is configured, false otherwise
      */
     public function isXenforoOAuthConfigured(): bool
     {
-        $xenforo_oauth_configured = !empty(config('services.xenforo.client_id'))
+        $xenforo_oauth_configured = app(PluginManager::class)->isEnabled('xenforo')
+            && !empty(config('services.xenforo.client_id'))
             && !empty(config('services.xenforo.client_secret'))
             && !empty(config('services.xenforo.redirect'));
 

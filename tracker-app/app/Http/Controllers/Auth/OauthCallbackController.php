@@ -63,6 +63,14 @@ class OauthCallbackController extends MagicBusController
             return redirect()->route('auth.login');
         }
 
+        if ($provider === OauthProvider::XENFORO->value
+            && !$this->troop_tracker->isXenforoOAuthConfigured())
+        {
+            FlashType::warning('XenForo login is not available.');
+
+            return redirect()->route('auth.login');
+        }
+
         if ($request->has('error'))
         {
             FlashType::warning('Login was cancelled or access was denied.');

@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Socialite;
+namespace TroopTracker\Plugins\Xenforo\Socialite;
 
 use Laravel\Socialite\Two\AbstractProvider;
 use Laravel\Socialite\Two\ProviderInterface;

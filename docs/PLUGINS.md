@@ -317,8 +317,11 @@ php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\Flori
 - the settings page: forum URL and name, API key and user, OAuth client, webhook secret, and **Require a linked forum account**
 - the user sync (`xenforo:sync-users`, hourly, and `xenforo:sync-user`)
 - the account link pages (`/account/xenforo`, `/account/xenforo/required`) and the two checks that run on every request while a linked account is required: send unlinked troopers to the link page, and log out banned forum users
+- the XenForo login driver (the Socialite provider behind "Sign in with XenForo")
 
-**Require a linked forum account** only applies while the plugin is enabled. With the plugin off, the site runs without XenForo: email and Google login work and nobody is sent to the link page.
+**Require a linked forum account** only applies while the plugin is enabled. With the plugin off, the site runs without XenForo: the XenForo login button is hidden, email and Google login work, and nobody is sent to the link page.
+
+Core's login flow still knows the name "xenforo" (the provider value stored on `oauth_logins`, the login and sign-up buttons, and the OAuth callback's XenForo-only steps). Making login providers fully pluggable is a separate, larger change.
 
 Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. The rest of XenForo (login, account link and bans, event threads, forum groups, donations) is still core and reads the same config, so the settings page applies to it too while the plugin is enabled.
 
