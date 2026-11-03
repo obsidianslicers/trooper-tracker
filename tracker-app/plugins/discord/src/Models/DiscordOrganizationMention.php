@@ -37,18 +37,16 @@ class DiscordOrganizationMention extends Model
     }
 
     /**
-     * Save the mention for an organization. A cleared mention is kept as an empty
-     * row rather than deleted, so discord:verify-mentions can tell "cleared by an
-     * admin" apart from "never copied".
+     * Save the mention for an organization. An empty mention removes it.
      */
     public static function store(int $organization_id, ?string $mention): void
     {
         $mention = trim((string) $mention);
 
-        $exists = static::query()->where(self::ORGANIZATION_ID, $organization_id)->exists();
-
-        if ($mention === '' && !$exists)
+        if ($mention === '')
         {
+            static::query()->where(self::ORGANIZATION_ID, $organization_id)->delete();
+
             return;
         }
 

@@ -221,11 +221,10 @@ php artisan db:seed --force
 
 #### Plugins
 
-Plugins are off until enabled. If the site posts events to Discord, enable the Discord plugin once (it moved out of core) and confirm its data copy:
+Plugins are off until enabled. If the site posts events to Discord, enable the Discord plugin once (it moved out of core). Enabling copies each organization's Discord mention into the plugin, checks every copy, and only then drops the old `tt_organizations.discord_mention` column. If a copy does not match, it stops and keeps the column:
 
 ```bash
 php artisan plugins:enable discord
-php artisan discord:verify-mentions
 ```
 
 Set the webhook under Command Staff > Plugins > Discord > Settings, or keep `DISCORD_WEBHOOK_URL` in `.env`. See [PLUGINS.md](PLUGINS.md).

@@ -6,10 +6,10 @@ namespace Tests\Feature\Plugins\Discord;
 
 use App\Models\Organization;
 use App\Plugins\PluginManager;
-use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 use Tests\TestCase;
 use TroopTracker\Plugins\Discord\Models\DiscordOrganizationMention;
 
@@ -17,81 +17,89 @@ class MentionMigrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_enabling_the_plugin_copies_existing_mentions_and_keeps_the_old_column(): void
+    public function test_enabling_copies_every_mention_then_drops_the_old_column(): void
     {
-        $with_mention = Organization::factory()->create([Organization::DISCORD_MENTION => ' <@&501> ']);
-        $empty = Organization::factory()->create([Organization::DISCORD_MENTION => '']);
-        $without = Organization::factory()->create([Organization::DISCORD_MENTION => null]);
+        $with_mention = $this->organizationWithOldMention(' <@&501> ');
+        $empty = $this->organizationWithOldMention('');
+        $without = $this->organizationWithOldMention(null);
 
-        $this->enableDiscord();
+        app(PluginManager::class)->enable('discord');
 
         $this->assertSame('<@&501>', DiscordOrganizationMention::forOrganization($with_mention->id));
         $this->assertNull(DiscordOrganizationMention::forOrganization($empty->id));
         $this->assertNull(DiscordOrganizationMention::forOrganization($without->id));
         $this->assertSame(1, DiscordOrganizationMention::query()->count());
+        $this->assertFalse(Schema::hasColumn('tt_organizations', 'discord_mention'));
+    }
+
+    public function test_enabling_keeps_the_old_column_when_a_copy_does_not_match(): void
+    {
+        $organization = $this->organizationWithOldMention('<@&501>');
+        $plugins = app(PluginManager::class);
+        $migrations = $plugins->findOrFail('discord')->migrationsPath();
+        $this->artisan('migrate', [
+            '--path' => $migrations.'/2026_11_03_000001_create_discord_organization_mentions_table.php',
+            '--realpath' => true,
+        ]);
+        DB::table('tt_discord_organization_mentions')->update(['mention' => '<@&999>']);
+
+        try
+        {
+            $plugins->enable('discord');
+            $this->fail('Enabling should stop when a copy does not match.');
+        }
+        catch (RuntimeException $e)
+        {
+            $this->assertStringContainsString((string) $organization->id, $e->getMessage());
+        }
+
         $this->assertTrue(Schema::hasColumn('tt_organizations', 'discord_mention'));
-        $this->assertSame(' <@&501> ', $with_mention->fresh()->discord_mention);
+        $this->assertSame('<@&501>', $this->oldMention($organization));
+        $this->assertFalse($plugins->isEnabled('discord'));
     }
 
-    public function test_verify_passes_when_every_mention_was_copied(): void
+    public function test_uninstalling_puts_the_mentions_back_in_the_old_column(): void
     {
-        Organization::factory()->create([Organization::DISCORD_MENTION => '<@&501>']);
-        $this->enableDiscord();
-
-        $this->artisan('discord:verify-mentions')
-            ->expectsOutput('Checked 1 organizations with a Discord mention in the old column.')
-            ->expectsOutput('Every mention is in the Discord plugin. The old column can be dropped safely.')
-            ->assertSuccessful();
-    }
-
-    public function test_verify_treats_later_admin_edits_as_expected(): void
-    {
-        $organization = Organization::factory()->create([Organization::DISCORD_MENTION => '<@&501>']);
-        $this->enableDiscord();
-        $this->travel(1)->minutes();
-
-        DiscordOrganizationMention::store($organization->id, '');
-
-        $this->artisan('discord:verify-mentions')->assertSuccessful();
-    }
-
-    public function test_verify_fails_when_a_mention_is_missing_or_wrong(): void
-    {
-        $missing = Organization::factory()->create([Organization::DISCORD_MENTION => '<@&501>']);
-        $wrong = Organization::factory()->create([Organization::DISCORD_MENTION => '<@&502>']);
-        $this->enableDiscord();
-
-        DiscordOrganizationMention::query()->where('organization_id', $missing->id)->delete();
-        DB::table('tt_discord_organization_mentions')
-            ->where('organization_id', $wrong->id)
-            ->update(['mention' => '<@&999>']);
-
-        $this->artisan('discord:verify-mentions')
-            ->expectsOutput('1 are missing from the Discord plugin.')
-            ->expectsOutput('1 were copied with a different value.')
-            ->expectsOutput('Do not drop tt_organizations.discord_mention yet.')
-            ->assertFailed();
-    }
-
-    public function test_uninstalling_drops_the_plugin_table_but_keeps_the_old_column(): void
-    {
-        $organization = Organization::factory()->create([Organization::DISCORD_MENTION => '<@&501>']);
-        $this->enableDiscord();
-
-        app(PluginManager::class)->uninstall('discord');
-
-        $this->assertFalse(Schema::hasTable('tt_discord_organization_mentions'));
-        $this->assertSame('<@&501>', $organization->fresh()->discord_mention);
-    }
-
-    private function enableDiscord(): void
-    {
+        $organization = $this->organizationWithOldMention('<@&501>');
+        $edited = $this->organizationWithOldMention('<@&502>');
         $plugins = app(PluginManager::class);
         $plugins->enable('discord');
-        $plugins->load($plugins->findOrFail('discord'));
+        DiscordOrganizationMention::store($edited->id, '<@&777>');
 
-        // Artisan was already started by the migration, so rebuild it to pick up
-        // the plugin's command, as a fresh "php artisan" process would.
-        $this->app->make(Kernel::class)->setArtisan(null);
+        $plugins->uninstall('discord');
+
+        $this->assertFalse(Schema::hasTable('tt_discord_organization_mentions'));
+        $this->assertSame('<@&501>', $this->oldMention($organization));
+        $this->assertSame('<@&777>', $this->oldMention($edited));
+    }
+
+    public function test_enabling_again_after_uninstall_moves_the_mentions_back(): void
+    {
+        $organization = $this->organizationWithOldMention('<@&501>');
+        $plugins = app(PluginManager::class);
+        $plugins->enable('discord');
+        $plugins->uninstall('discord');
+
+        $plugins->enable('discord');
+
+        $this->assertSame('<@&501>', DiscordOrganizationMention::forOrganization($organization->id));
+        $this->assertFalse(Schema::hasColumn('tt_organizations', 'discord_mention'));
+    }
+
+    private function organizationWithOldMention(?string $mention): Organization
+    {
+        $organization = Organization::factory()->create();
+        DB::table('tt_organizations')
+            ->where('id', $organization->id)
+            ->update(['discord_mention' => $mention]);
+
+        return $organization;
+    }
+
+    private function oldMention(Organization $organization): ?string
+    {
+        return DB::table('tt_organizations')
+            ->where('id', $organization->id)
+            ->value('discord_mention');
     }
 }

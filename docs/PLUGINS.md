@@ -259,7 +259,8 @@ Each entry in `settings` becomes a field on the plugin's Settings page. Types: `
 - a bound service (`DiscordNotifier`) and a listener on `EventPosted`
 - its own table (`tt_discord_organization_mentions`), created by a plugin migration
 - a field on the organization edit form (`admin.organizations.update.fields` slot + `extendForm`)
-- a System Check row (`addSystemCheck`) and an Artisan command
+- a System Check row (`addSystemCheck`)
+- plugin migrations that move data out of a core column safely
 
 ### Turning Discord on
 
@@ -267,16 +268,20 @@ Discord is off until you enable it. Sites that used Discord before it became a p
 
 ```bash
 php artisan plugins:enable discord
-php artisan discord:verify-mentions
 ```
 
-or use **Command Staff > Plugins > Enable**, then run the verify command.
+or use **Command Staff > Plugins > Enable**.
 
 ### The organization mentions move
 
-Each organization's Discord mention used to live in `tt_organizations.discord_mention`. Enabling the plugin runs its migration, which **copies** every non-empty value into `tt_discord_organization_mentions`. The old column is left untouched, and core no longer reads or writes it.
+Each organization's Discord mention used to live in core's `tt_organizations.discord_mention`. Enabling the plugin runs two plugin migrations:
 
-Uninstalling the Discord plugin drops its table, so mentions edited after the copy are lost; the old column is never touched, and enabling again copies from it.
+1. The first creates `tt_discord_organization_mentions` and **copies** every non-empty value into it.
+2. The second compares every old value with its copy. Only if all of them match does it drop `tt_organizations.discord_mention`. If any is missing or different, it stops with the organization IDs, the column stays, and the plugin is not enabled.
+
+Uninstalling the plugin rolls these back in reverse: the column is added back and filled from the plugin's table (including later edits), then the plugin's table is dropped. Enabling again moves them over once more, so a mention is never lost.
+
+After the column is dropped on production, regenerate the base models (`php artisan code:models`) so `Organization` stops listing `discord_mention`.
 
 A fresh database seeded with the Florida Garrison data no longer gets mentions from the core seeder. With the plugin enabled, seed them from the plugin:
 
@@ -284,7 +289,6 @@ A fresh database seeded with the Florida Garrison data no longer gets mentions f
 php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\FloridaGarrisonMentionSeeder"
 ```
 
-`php artisan discord:verify-mentions` compares the two. It fails, and says not to drop the column, if any value is missing or was copied wrong. Rows an admin edited or cleared after the copy are listed as expected changes. Once it passes on production, a later core migration can drop `tt_organizations.discord_mention` (then regenerate the base models). That drop is deliberately not part of this change.
 
 ---
 

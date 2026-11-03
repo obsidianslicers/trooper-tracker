@@ -368,10 +368,6 @@ php artisan plugins:enable discord
 php artisan plugins:disable discord
 ```
 
-### `discord:verify-mentions` (Discord plugin)
-
-Checks that every organization's old `tt_organizations.discord_mention` value was copied into the Discord plugin's table. Fails if any are missing or wrong; only drop the old column after this passes. Available while the Discord plugin is enabled.
-
 ### `make:plugin {name} [--namespace=] [--composer]`
 
 Creates a starter plugin in `tracker-app/plugins/<slug>` from the templates in `tracker-app/stubs/plugin`. `--composer` also writes a `composer.json` so the plugin can be shared as a package.

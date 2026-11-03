@@ -8,7 +8,6 @@ use App\Events\EventPosted;
 use App\Models\Organization;
 use App\Plugins\PluginForms;
 use App\Plugins\PluginServiceProvider;
-use TroopTracker\Plugins\Discord\Console\VerifyMentionsCommand;
 use TroopTracker\Plugins\Discord\Listeners\AnnounceEventOnDiscord;
 use TroopTracker\Plugins\Discord\Models\DiscordOrganizationMention;
 
@@ -31,8 +30,6 @@ class DiscordServiceProvider extends PluginServiceProvider
             'Discord webhook',
             fn (): bool => $this->app->make(DiscordNotifier::class)->isConfigured(),
         );
-
-        $this->commands([VerifyMentionsCommand::class]);
     }
 
     private function addOrganizationMentionField(): void

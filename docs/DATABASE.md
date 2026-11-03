@@ -446,7 +446,7 @@ Purpose: Hierarchical organization nodes.
 | image_path_sm | varchar(128) | yes |  |
 | service_class | varchar(128) | yes |  |
 | sync_sheet_id | varchar(128) | yes |  |
-| discord_mention | varchar(128) | yes |  |
+| discord_mention | varchar(128) | yes | Legacy. Moved to the Discord plugin, which drops this column when enabled. |
 | related_forum | bigint unsigned | yes |  |
 | related_forum_archive | bigint unsigned | yes |  |
 | xenforo_group_active_id | bigint unsigned | yes |  |

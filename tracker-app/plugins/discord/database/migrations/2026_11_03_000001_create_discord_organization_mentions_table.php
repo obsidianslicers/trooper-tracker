@@ -12,9 +12,8 @@ use Illuminate\Support\Facades\Schema;
  * Moves each organization's Discord mention out of core's tt_organizations table
  * into a table the Discord plugin owns.
  *
- * The values are copied, not moved: tt_organizations.discord_mention is left in
- * place so nothing is lost. Run "php artisan discord:verify-mentions" to confirm
- * every value arrived before a later core migration drops that column.
+ * Every non-empty value is copied here. The next migration checks each copy and
+ * only then drops the old tt_organizations.discord_mention column.
  */
 return new class extends Migration {
     public function up(): void

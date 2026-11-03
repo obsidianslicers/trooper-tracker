@@ -373,7 +373,7 @@ php artisan tracker:xenforo-test-thread {node_id}
 
 When Troop Tracker sends a Discord event notification, it includes a `discord_mention` string to ping the relevant squad role.
 
-Requires `DISCORD_WEBHOOK_URL` in `.env`. The following mention strings are seeded automatically:
+Mentions belong to the Discord plugin. Enable it (`php artisan plugins:enable discord`), set its webhook under Command Staff > Plugins > Discord > Settings (or `DISCORD_WEBHOOK_URL` in `.env`), then seed these mention strings with `php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\FloridaGarrisonMentionSeeder"`:
 
 | Squad              | Discord Mention              |
 |--------------------|------------------------------|
