@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Features\Troopers\Commands\UpdateTrooperIdentifiersCommand;
-use App\Features\Troopers\Commands\UpdateTrooperMembershipsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Troopers\MembershipRequest;
+use App\Messages\Troopers\Commands\UpdateTrooperIdentifiers;
+use App\Messages\Troopers\Commands\UpdateTrooperMemberships;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Http\RedirectResponse;
@@ -16,7 +16,7 @@ use Illuminate\Http\RedirectResponse;
  * Handles the submission of trooper membership updates.
  *
  * Processes form submissions to update a trooper's organization memberships
- * and identifiers via UpdateTrooperIdentifiersCommand and UpdateTrooperMembershipsCommand.
+ * and identifiers via UpdateTrooperIdentifiers and UpdateTrooperMemberships.
  * Moderators are restricted to organizations within their moderation scope.
  */
 class MembershipSubmitController extends MagicBusController
@@ -25,7 +25,7 @@ class MembershipSubmitController extends MagicBusController
      * Handle the incoming request to update a trooper's organization memberships
      *
      * This method authorizes the user, validates the membership data, dispatches
-     * UpdateTrooperIdentifiersCommand and UpdateTrooperMembershipsCommand, and
+     * UpdateTrooperIdentifiers and UpdateTrooperMemberships, and
      * redirects back to the membership page.
      *
      * @param  MembershipRequest  $request  The incoming HTTP request
@@ -46,13 +46,9 @@ class MembershipSubmitController extends MagicBusController
 
         $organizations = array_intersect_key($organizations, array_flip($allowed_org_ids));
 
-        $identifier_cmd = new UpdateTrooperIdentifiersCommand($trooper, $organizations);
+        UpdateTrooperIdentifiers::call(trooper: $trooper, valid_data: $organizations);
 
-        $this->bus->send($identifier_cmd);
-
-        $membership_cmd = new UpdateTrooperMembershipsCommand($trooper, $organizations);
-
-        $this->bus->send($membership_cmd);
+        UpdateTrooperMemberships::call(trooper: $trooper, valid_data: $organizations);
 
         $data = compact('trooper');
 

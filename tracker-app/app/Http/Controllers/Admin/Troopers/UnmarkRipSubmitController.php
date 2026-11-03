@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\FlashType;
-use App\Features\Troopers\Commands\UnmarkTrooperRipCommand;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Troopers\Commands\UnmarkTrooperRip;
 use App\Models\Trooper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,7 +17,7 @@ class UnmarkRipSubmitController extends MagicBusController
     {
         $this->authorize('unmarkRip', $trooper);
 
-        $this->bus->send(new UnmarkTrooperRipCommand($trooper));
+        UnmarkTrooperRip::call(trooper: $trooper);
 
         FlashType::success("{$trooper->display_name} has been restored to pending status.");
 

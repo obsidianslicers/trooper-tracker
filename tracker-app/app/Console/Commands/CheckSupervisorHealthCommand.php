@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
-use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Mail\Admin\System\SupervisorDown;
 use App\Mail\Admin\System\SupervisorRecovered;
+use App\Messages\Troopers\Queries\GetTroopersByRole;
 use App\Services\QueueWorkerHeartbeatService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
@@ -29,7 +28,7 @@ class CheckSupervisorHealthCommand extends Command
 
     protected $description = 'Check queue worker heartbeat staleness and email admins if it is down or recovered';
 
-    public function handle(MagicBus $bus, QueueWorkerHeartbeatService $heartbeat): int
+    public function handle(QueueWorkerHeartbeatService $heartbeat): int
     {
         if (!(bool) config('tracker.supervisor_check.email_enabled', false))
         {
@@ -43,25 +42,25 @@ class CheckSupervisorHealthCommand extends Command
 
         if ($heartbeat->shouldSendDownAlert())
         {
-            $this->notifyDown($bus, $heartbeat);
+            $this->notifyDown($heartbeat);
 
             return Command::SUCCESS;
         }
 
         if ($heartbeat->shouldSendRecoveryAlert())
         {
-            $this->notifyRecovered($bus, $heartbeat);
+            $this->notifyRecovered($heartbeat);
         }
 
         return Command::SUCCESS;
     }
 
-    private function notifyDown(MagicBus $bus, QueueWorkerHeartbeatService $heartbeat): void
+    private function notifyDown(QueueWorkerHeartbeatService $heartbeat): void
     {
         $down_threshold = (int) config('tracker.supervisor_check.heartbeat_down_minutes', 10);
         $minutes_since_last_heartbeat = $heartbeat->minutesSinceLastHeartbeat() ?? $down_threshold;
 
-        foreach ($this->getAdmins($bus) as $admin)
+        foreach ($this->getAdmins() as $admin)
         {
             Mail::to($admin->email)->send(new SupervisorDown($admin, $minutes_since_last_heartbeat));
         }
@@ -71,9 +70,9 @@ class CheckSupervisorHealthCommand extends Command
         $this->warn("Notified admins: queue worker heartbeat stale for {$minutes_since_last_heartbeat} minute(s).");
     }
 
-    private function notifyRecovered(MagicBus $bus, QueueWorkerHeartbeatService $heartbeat): void
+    private function notifyRecovered(QueueWorkerHeartbeatService $heartbeat): void
     {
-        foreach ($this->getAdmins($bus) as $admin)
+        foreach ($this->getAdmins() as $admin)
         {
             Mail::to($admin->email)->send(new SupervisorRecovered($admin));
         }
@@ -83,8 +82,8 @@ class CheckSupervisorHealthCommand extends Command
         $this->info('Notified admins: queue worker heartbeat has recovered.');
     }
 
-    private function getAdmins(MagicBus $bus): Collection
+    private function getAdmins(): Collection
     {
-        return $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
+        return GetTroopersByRole::call(membership_role: MembershipRole::ADMINISTRATOR);
     }
 }

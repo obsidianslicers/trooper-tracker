@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\ServiceRecords;
 
-use App\Bus\MagicBus;
-use App\Features\Troopers\Queries\GetTrooperAwardsQuery;
+use App\Messages\Troopers\Queries\GetTrooperAwards;
 use App\Models\AwardTrooper;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
-use Mockery\MockInterface;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class AwardsControllerTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_invoke_requires_authentication(): void
@@ -30,18 +30,16 @@ class AwardsControllerTest extends TestCase
 
         $award_troopers = collect([AwardTrooper::factory()->make()]);
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($award_troopers): void
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetTrooperAwardsQuery $query): bool
-                {
-                    return $query->lookback === 30;
-                })
-                ->andReturn($award_troopers);
-        });
+        $messages = $this->fakeMessages([
+            GetTrooperAwards::class => $award_troopers,
+        ]);
 
         $response = $this->actingAs($trooper)->get(route('service-records.awards'));
+
+        $messages->assertCalled(
+            GetTrooperAwards::class,
+            fn (array $params): bool => $params['lookback'] === 30
+        );
 
         $response->assertOk();
         $response->assertViewIs('pages.service-records.awards');
@@ -56,19 +54,17 @@ class AwardsControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
-        $this->mock(MagicBus::class, function (MockInterface $mock): void
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetTrooperAwardsQuery $query): bool
-                {
-                    return $query->lookback === 120;
-                })
-                ->andReturn(collect());
-        });
+        $messages = $this->fakeMessages([
+            GetTrooperAwards::class => collect(),
+        ]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.awards', ['days' => 120]));
+
+        $messages->assertCalled(
+            GetTrooperAwards::class,
+            fn (array $params): bool => $params['lookback'] === 120
+        );
 
         $response->assertOk();
         $response->assertViewHas('days', 120);

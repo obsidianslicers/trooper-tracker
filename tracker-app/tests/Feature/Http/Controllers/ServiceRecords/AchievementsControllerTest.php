@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\ServiceRecords;
 
-use App\Bus\MagicBus;
-use App\Features\Troopers\Queries\GetTrooperAchievementsQuery;
+use App\Messages\Troopers\Queries\GetTrooperAchievements;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
-use Mockery\MockInterface;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class AchievementsControllerTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_invoke_requires_authentication(): void
@@ -37,18 +37,16 @@ class AchievementsControllerTest extends TestCase
                 ->create(),
         ]);
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($trooper_achievements): void
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetTrooperAchievementsQuery $query): bool
-                {
-                    return $query->lookback === 30;
-                })
-                ->andReturn($trooper_achievements);
-        });
+        $messages = $this->fakeMessages([
+            GetTrooperAchievements::class => $trooper_achievements,
+        ]);
 
         $response = $this->actingAs($trooper)->get(route('service-records.achievements'));
+
+        $messages->assertCalled(
+            GetTrooperAchievements::class,
+            fn (array $params): bool => $params['lookback'] === 30
+        );
 
         $response->assertOk();
         $response->assertViewIs('pages.service-records.achievements');
@@ -63,19 +61,17 @@ class AchievementsControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
-        $this->mock(MagicBus::class, function (MockInterface $mock): void
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetTrooperAchievementsQuery $query): bool
-                {
-                    return $query->lookback === 60;
-                })
-                ->andReturn(collect());
-        });
+        $messages = $this->fakeMessages([
+            GetTrooperAchievements::class => collect(),
+        ]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.achievements', ['days' => 60]));
+
+        $messages->assertCalled(
+            GetTrooperAchievements::class,
+            fn (array $params): bool => $params['lookback'] === 60
+        );
 
         $response->assertOk();
         $response->assertViewHas('days', 60);

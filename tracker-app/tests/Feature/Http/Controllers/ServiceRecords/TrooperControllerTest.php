@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\ServiceRecords;
 
-use App\Bus\MagicBus;
-use App\Features\Troopers\Queries\GetEventTroopersMissingCreditQuery;
-use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
-use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
+use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForDisplay;
+use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
+use App\Messages\Troopers\Queries\GetTrooperServiceRecord;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
@@ -18,10 +17,12 @@ use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Mockery\MockInterface;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class TrooperControllerTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_invoke_requires_authentication(): void
@@ -46,27 +47,22 @@ class TrooperControllerTest extends TestCase
             Costume::factory()->withName(Costume::HANDLER)->make(),
         ]);
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($data, $trooper_costumes, $target_trooper)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($target_trooper): bool
-                {
-                    return $query->trooper_id === $target_trooper->id;
-                })
-                ->andReturn($data);
-
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetTrooperCostumesQuery $query) use ($target_trooper): bool
-                {
-                    return $query->trooper->id === $target_trooper->id;
-                })
-                ->andReturn($trooper_costumes);
-        });
+        $messages = $this->fakeMessages([
+            GetTrooperServiceRecord::class => $data,
+            GetTrooperCostumesForDisplay::class => $trooper_costumes,
+        ]);
 
         $response = $this->actingAs($auth_trooper)
             ->get(route('service-records.trooper', ['trooper' => $target_trooper]));
+
+        $messages->assertCalled(
+            GetTrooperServiceRecord::class,
+            fn (array $params): bool => $params['trooper_id'] === $target_trooper->id
+        );
+        $messages->assertCalled(
+            GetTrooperCostumesForDisplay::class,
+            fn (array $params): bool => $params['trooper']->id === $target_trooper->id
+        );
 
         $response->assertOk();
         $response->assertViewIs('pages.service-records.trooper');
@@ -89,27 +85,22 @@ class TrooperControllerTest extends TestCase
                 ->with('Profile', 'account.index');
         });
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($trooper): void
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($trooper): bool
-                {
-                    return $query->trooper_id === $trooper->id;
-                })
-                ->andReturn($this->makeServiceRecordData($trooper));
-
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetTrooperCostumesQuery $query) use ($trooper): bool
-                {
-                    return $query->trooper->id === $trooper->id;
-                })
-                ->andReturn(collect());
-        });
+        $messages = $this->fakeMessages([
+            GetTrooperServiceRecord::class => $this->makeServiceRecordData($trooper),
+            GetTrooperCostumesForDisplay::class => collect(),
+        ]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.trooper', ['trooper' => $trooper]));
+
+        $messages->assertCalled(
+            GetTrooperServiceRecord::class,
+            fn (array $params): bool => $params['trooper_id'] === $trooper->id
+        );
+        $messages->assertCalled(
+            GetTrooperCostumesForDisplay::class,
+            fn (array $params): bool => $params['trooper']->id === $trooper->id
+        );
 
         $response->assertOk();
     }
@@ -124,24 +115,10 @@ class TrooperControllerTest extends TestCase
         $auth_trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $target_trooper = Trooper::factory()->asMember()->create();
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($target_trooper): void
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($target_trooper): bool
-                {
-                    return $query->trooper_id === $target_trooper->id;
-                })
-                ->andReturn($this->makeServiceRecordData($target_trooper));
-
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetTrooperCostumesQuery $query) use ($target_trooper): bool
-                {
-                    return $query->trooper->id === $target_trooper->id;
-                })
-                ->andReturn(collect());
-        });
+        $messages = $this->fakeMessages([
+            GetTrooperServiceRecord::class => $this->makeServiceRecordData($target_trooper),
+            GetTrooperCostumesForDisplay::class => collect(),
+        ]);
 
         $this->mock(XenforoService::class, function (MockInterface $mock) use ($target_trooper): void
         {
@@ -187,6 +164,15 @@ class TrooperControllerTest extends TestCase
 
         $response = $this->actingAs($auth_trooper)
             ->get(route('service-records.trooper', ['trooper' => $target_trooper]));
+
+        $messages->assertCalled(
+            GetTrooperServiceRecord::class,
+            fn (array $params): bool => $params['trooper_id'] === $target_trooper->id
+        );
+        $messages->assertCalled(
+            GetTrooperCostumesForDisplay::class,
+            fn (array $params): bool => $params['trooper']->id === $target_trooper->id
+        );
 
         $response->assertOk();
         $response->assertViewHas('xenforo_group_banners', function (Collection $banners): bool
@@ -290,32 +276,29 @@ class TrooperControllerTest extends TestCase
 
     private function mockServiceRecordQueries(Trooper $trooper): void
     {
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($trooper): void
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($trooper): bool
-                {
-                    return $query->trooper_id === $trooper->id;
-                })
-                ->andReturn($this->makeServiceRecordData($trooper));
+        $data = $this->makeServiceRecordData($trooper);
 
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetTrooperCostumesQuery $query) use ($trooper): bool
-                {
-                    return $query->trooper->id === $trooper->id;
-                })
-                ->andReturn(collect());
+        $this->fakeMessages([
+            GetTrooperServiceRecord::class => function (array $params) use ($trooper, $data): array
+            {
+                $this->assertSame($trooper->id, $params['trooper_id']);
 
+                return $data;
+            },
+            GetTrooperCostumesForDisplay::class => function (array $params) use ($trooper): Collection
+            {
+                $this->assertSame($trooper->id, $params['trooper']->id);
+
+                return collect();
+            },
             // Only sent when the authenticated actor can update the target trooper (see
-            // TrooperController::__invoke's has_missing_credit flag) — any call count is fine here.
-            $mock->shouldReceive('send')
-                ->withArgs(function (GetEventTroopersMissingCreditQuery $query) use ($trooper): bool
-                {
-                    return $query->trooper_id === $trooper->id;
-                })
-                ->andReturn(['rows' => collect(), 'total' => 0]);
-        });
+            // TrooperController::__invoke's has_missing_credit flag), so any call count is fine.
+            GetEventTroopersMissingCredit::class => function (array $params) use ($trooper): array
+            {
+                $this->assertSame($trooper->id, $params['trooper_id']);
+
+                return ['rows' => collect(), 'total' => 0];
+            },
+        ]);
     }
 }

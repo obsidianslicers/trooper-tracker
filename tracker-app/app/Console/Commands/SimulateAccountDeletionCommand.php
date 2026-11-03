@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Bus\MagicBus;
 use App\Enums\AchievementType;
 use App\Enums\EventTrooperStatus;
-use App\Features\Troopers\Commands\ExecuteAccountDeletionCommand;
-use App\Features\Troopers\Commands\RequestAccountDeletionCommand;
+use App\Messages\Troopers\Commands\ExecuteAccountDeletion;
+use App\Messages\Troopers\Commands\RequestTrooperDeletion;
 use App\Models\Event;
 use App\Models\EventMissionAck;
 use App\Models\EventNotification;
@@ -39,7 +38,7 @@ class SimulateAccountDeletionCommand extends Command
 
     protected $description = 'Create a dummy trooper with event history and simulate account deletion. Dev use only.';
 
-    public function handle(MagicBus $bus): int
+    public function handle(): int
     {
         $this->newLine();
         $this->line('<fg=yellow;options=bold>⚠  Dev use only — this creates real database records.</>');
@@ -70,15 +69,15 @@ class SimulateAccountDeletionCommand extends Command
 
         if (!$this->option('execute'))
         {
-            return $this->runPreviewMode($bus, $trooper, $event_trooper_count);
+            return $this->runPreviewMode($trooper, $event_trooper_count);
         }
 
-        return $this->runExecuteMode($bus, $trooper, $event_trooper_count);
+        return $this->runExecuteMode($trooper, $event_trooper_count);
     }
 
-    private function runPreviewMode(MagicBus $bus, Trooper $trooper, int $event_trooper_count): int
+    private function runPreviewMode(Trooper $trooper, int $event_trooper_count): int
     {
-        $bus->send(new RequestAccountDeletionCommand($trooper));
+        RequestTrooperDeletion::call(trooper: $trooper);
 
         $trooper->refresh();
 
@@ -111,7 +110,7 @@ class SimulateAccountDeletionCommand extends Command
         return self::SUCCESS;
     }
 
-    private function runExecuteMode(MagicBus $bus, Trooper $trooper, int $event_trooper_count): int
+    private function runExecuteMode(Trooper $trooper, int $event_trooper_count): int
     {
         $id = $trooper->id;
         $event = Event::inRandomOrder()->first();
@@ -158,7 +157,7 @@ class SimulateAccountDeletionCommand extends Command
             ]
         );
 
-        $bus->send(new ExecuteAccountDeletionCommand($trooper));
+        ExecuteAccountDeletion::call(trooper: $trooper);
 
         $fresh = Trooper::withTrashed()->find($id);
 
