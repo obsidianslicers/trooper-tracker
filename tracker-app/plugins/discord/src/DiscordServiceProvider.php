@@ -41,7 +41,9 @@ class DiscordServiceProvider extends PluginServiceProvider
             'admin.organizations.update.fields',
             'discord::organization-mention-field',
             fn (array $context): array => [
-                'discord_mention' => DiscordOrganizationMention::forOrganization($context['organization']->id),
+                'discord_mention' => DiscordOrganizationMention::forOrganization(
+                    $context['organization']->id
+                ),
             ],
         );
 
@@ -52,7 +54,10 @@ class DiscordServiceProvider extends PluginServiceProvider
             {
                 if (array_key_exists('discord_mention', $validated))
                 {
-                    DiscordOrganizationMention::store($organization->id, $validated['discord_mention']);
+                    DiscordOrganizationMention::store(
+                        $organization->id,
+                        $validated['discord_mention'],
+                    );
                 }
             },
         );

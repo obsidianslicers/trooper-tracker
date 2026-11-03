@@ -35,7 +35,9 @@ class AnnounceEventOnDiscord
         }
         catch (Throwable $e)
         {
-            Log::warning("Discord announcement failed for event [{$event->id}]: {$e->getMessage()}");
+            Log::warning(
+                "Discord announcement failed for event [{$event->id}]: {$e->getMessage()}"
+            );
         }
     }
 }

@@ -28,7 +28,8 @@ class PluginsServiceProvider extends ServiceProvider
         $this->app->singleton(PluginSystemChecks::class);
 
         $this->app->singleton(PluginDiscovery::class, fn (): PluginDiscovery => new PluginDiscovery(
-            (string) config('plugins.path', base_path('plugins'))
+            (string) config('plugins.path', base_path('plugins')),
+            (string) config('plugins.uploads.path', storage_path('app/plugins')),
         ));
 
         $this->app->singleton(PluginManager::class);

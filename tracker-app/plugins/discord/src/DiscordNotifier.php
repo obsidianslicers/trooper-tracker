@@ -45,26 +45,31 @@ final class DiscordNotifier
             return DiscordOrganizationMention::forOrganization($squad);
         }
 
-        if (!is_string($squad) || trim($squad) === '')
-        {
-            return null;
-        }
+        return is_string($squad) ? $this->mentionForText(trim($squad)) : null;
+    }
 
-        $search = trim($squad);
-
-        if (preg_match('/^<@&\d+>$/', $search))
+    private function mentionForText(string $search): ?string
+    {
+        if ($search === '' || preg_match('/^<@&\d+>$/', $search))
         {
-            return $search;
+            return $search === '' ? null : $search;
         }
 
         $organization = $this->findOrganizationByName($search);
 
-        return $organization === null ? null : DiscordOrganizationMention::forOrganization($organization->id);
+        if ($organization === null)
+        {
+            return null;
+        }
+
+        return DiscordOrganizationMention::forOrganization($organization->id);
     }
 
     private function findOrganizationByName(string $search): ?Organization
     {
-        $exact = Organization::whereRaw('LOWER(name) = ?', [strtolower($search)])->orderBy('id', 'desc')->first();
+        $exact = Organization::whereRaw('LOWER(name) = ?', [strtolower($search)])
+            ->orderBy(Organization::ID, 'desc')
+            ->first();
 
         if ($exact !== null)
         {
@@ -72,9 +77,13 @@ final class DiscordNotifier
         }
 
         // Matched in PHP rather than SQL to stay portable across database drivers.
+        $with_mention = DiscordOrganizationMention::query()
+            ->where(DiscordOrganizationMention::MENTION, '!=', '')
+            ->select(DiscordOrganizationMention::ORGANIZATION_ID);
+
         $candidates = Organization::query()
-            ->whereIn('id', DiscordOrganizationMention::query()->where('mention', '!=', '')->select('organization_id'))
-            ->orderBy('id', 'desc')
+            ->whereIn(Organization::ID, $with_mention)
+            ->orderBy(Organization::ID, 'desc')
             ->get();
 
         $needle = strtolower($search);
@@ -98,39 +107,46 @@ final class DiscordNotifier
      * @param  int  $event_id  The ID of the event being notified about.
      * @param  string  $title  The event title to display in the Discord message.
      * @param  string|null  $description  Optional event description displayed in the embed.
-     * @param  Organization|int|string|null  $squad  Organization instance (preferred), squad ID, or org name for mention resolution.
-     * @return bool True if the webhook was posted successfully, false if no webhook is configured.
+     * @param  Organization|int|string|null  $squad  The organization (preferred), its ID, or a name.
+     * @return bool True when the webhook was posted, false when no webhook is configured.
      */
-    public function sendEventNotification(int $event_id, string $title, ?string $description = null, Organization|int|string|null $squad = null): bool
-    {
+    public function sendEventNotification(
+        int $event_id,
+        string $title,
+        ?string $description = null,
+        Organization|int|string|null $squad = null,
+    ): bool {
         if (!$this->isConfigured())
         {
             return false;
         }
 
         $mention = $this->getSquadMention($squad);
-
         $content = trim(($mention ? $mention.' ' : '')."$title has been posted.");
 
-        $payload = [
-            'content' => $content,
-            'username' => config('app.name').' Bot',
-            'tts' => false,
-            'embeds' => [
-                [
-                    'title' => $title,
-                    'type' => 'rich',
-                    'description' => $description,
-                    'url' => route('events.display', ['event' => $event_id]),
-                    'timestamp' => now()->toIso8601String(),
-                    'color' => hexdec('3366ff'),
-                ],
-            ],
-        ];
-
         Http::withHeaders(['Content-Type' => 'application/json'])
-            ->post($this->webhook_url, $payload);
+            ->post($this->webhook_url, [
+                'content' => $content,
+                'username' => config('app.name').' Bot',
+                'tts' => false,
+                'embeds' => [$this->eventEmbed($event_id, $title, $description)],
+            ]);
 
         return true;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function eventEmbed(int $event_id, string $title, ?string $description): array
+    {
+        return [
+            'title' => $title,
+            'type' => 'rich',
+            'description' => $description,
+            'url' => route('events.display', ['event' => $event_id]),
+            'timestamp' => now()->toIso8601String(),
+            'color' => hexdec('3366ff'),
+        ];
     }
 }

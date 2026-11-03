@@ -35,13 +35,20 @@ class PluginSystemChecks
      */
     public function run(): Collection
     {
-        $loaded = collect($this->plugins->enabled())->map(fn (PluginManifest $manifest): SystemCheckResult => new SystemCheckResult(
-            "{$manifest->name} plugin loaded",
-            $this->plugins->isLoaded($manifest->slug) ? SystemCheckStatus::PASS : SystemCheckStatus::FAIL,
-            $this->plugins->isLoaded($manifest->slug) ? null : 'Enabled but failed to load. Check the logs.',
-        ));
+        $loaded = collect($this->plugins->enabled())->map($this->loadedCheck(...));
 
         return $loaded->values()->merge(array_map($this->runCheck(...), $this->checks));
+    }
+
+    private function loadedCheck(PluginManifest $manifest): SystemCheckResult
+    {
+        $is_loaded = $this->plugins->isLoaded($manifest->slug);
+
+        return new SystemCheckResult(
+            "{$manifest->name} plugin loaded",
+            $is_loaded ? SystemCheckStatus::PASS : SystemCheckStatus::FAIL,
+            $is_loaded ? null : 'Enabled but failed to load. Check the logs.',
+        );
     }
 
     private function runCheck(array $check): SystemCheckResult
@@ -52,7 +59,11 @@ class PluginSystemChecks
         }
         catch (Throwable $e)
         {
-            return new SystemCheckResult($check['label'], SystemCheckStatus::FAIL, $e->getMessage());
+            return new SystemCheckResult(
+                $check['label'],
+                SystemCheckStatus::FAIL,
+                $e->getMessage(),
+            );
         }
 
         if ($result instanceof SystemCheckResult)
@@ -60,6 +71,8 @@ class PluginSystemChecks
             return $result;
         }
 
-        return new SystemCheckResult($check['label'], $result ? SystemCheckStatus::PASS : SystemCheckStatus::WARN);
+        $status = $result ? SystemCheckStatus::PASS : SystemCheckStatus::WARN;
+
+        return new SystemCheckResult($check['label'], $status);
     }
 }

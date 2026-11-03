@@ -11,13 +11,15 @@ class VerifyMentionsCommand extends Command
 {
     protected $signature = 'discord:verify-mentions';
 
-    protected $description = 'Check that every organization Discord mention was copied into the Discord plugin.';
+    protected $description = 'Check that every Discord mention was copied into the plugin.';
 
     public function handle(): int
     {
         $report = VerifyMentionMigration::call();
 
-        $this->info("Checked {$report['checked']} organizations with a Discord mention in the old column.");
+        $this->info(
+            "Checked {$report['checked']} organizations with a Discord mention in the old column."
+        );
 
         if ($report['changed'] !== [])
         {
@@ -32,7 +34,9 @@ class VerifyMentionsCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info('Every mention is in the Discord plugin. The old column can be dropped safely.');
+        $this->info(
+            'Every mention is in the Discord plugin. The old column can be dropped safely.'
+        );
 
         return self::SUCCESS;
     }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Messages\Plugins\PageData\ListPluginsPageData;
+use App\Messages\Plugins\Queries\GetPlugins;
 use Illuminate\Console\Command;
 
 class ListPluginsCommand extends Command
@@ -19,9 +19,9 @@ class ListPluginsCommand extends Command
             $plugin['manifest']->slug,
             $plugin['manifest']->name,
             $plugin['manifest']->version,
-            $plugin['manifest']->is_composer_package ? 'composer' : 'local',
+            $plugin['source'],
             $plugin['is_enabled'] ? 'yes' : 'no',
-        ], ListPluginsPageData::call());
+        ], GetPlugins::call());
 
         if ($rows === [])
         {

@@ -28,7 +28,9 @@ class PluginSlots
     ];
 
     /**
-     * @var array<string, array<int, array{view: string, data: array|Closure, when: ?Closure, order: int}>>
+     * @var array<string, array<int, array{
+     *     view: string, data: array|Closure, when: ?Closure, order: int
+     * }>>
      */
     private array $entries = [];
 
@@ -104,9 +106,10 @@ class PluginSlots
         }
         catch (Throwable $e)
         {
-            Log::error("Plugin view [{$entry['view']}] in slot [{$slot}] failed: {$e->getMessage()}", [
-                'exception' => $e,
-            ]);
+            Log::error(
+                "Plugin view [{$entry['view']}] in slot [{$slot}] failed: {$e->getMessage()}",
+                ['exception' => $e],
+            );
 
             report($e);
 

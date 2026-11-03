@@ -36,24 +36,14 @@ final readonly class PluginManifest
      */
     public static function fromArray(array $data, string $path, bool $is_composer_package): self
     {
-        $slug = (string) ($data['slug'] ?? '');
-
-        if (preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $slug) !== 1)
-        {
-            throw new InvalidArgumentException("Plugin at [{$path}] needs a kebab-case \"slug\".");
-        }
+        $slug = self::slug($data, $path);
 
         if (empty($data['provider']) || !is_string($data['provider']))
         {
             throw new InvalidArgumentException("Plugin [{$slug}] needs a \"provider\" class.");
         }
 
-        $namespace = isset($data['namespace']) ? trim((string) $data['namespace'], '\\').'\\' : null;
-
-        if (!$is_composer_package && $namespace === null)
-        {
-            throw new InvalidArgumentException("Plugin [{$slug}] needs a \"namespace\" to autoload.");
-        }
+        $namespace = self::namespace($data, $slug, $is_composer_package);
 
         return new self(
             slug: $slug,
@@ -71,6 +61,34 @@ final readonly class PluginManifest
                 array_values($data['settings'] ?? []),
             ),
         );
+    }
+
+    private static function slug(array $data, string $path): string
+    {
+        $slug = (string) ($data['slug'] ?? '');
+
+        if (preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $slug) !== 1)
+        {
+            throw new InvalidArgumentException("Plugin at [{$path}] needs a kebab-case \"slug\".");
+        }
+
+        return $slug;
+    }
+
+    private static function namespace(array $data, string $slug, bool $is_composer_package): ?string
+    {
+        $namespace = isset($data['namespace'])
+            ? trim((string) $data['namespace'], '\\').'\\'
+            : null;
+
+        if (!$is_composer_package && $namespace === null)
+        {
+            throw new InvalidArgumentException(
+                "Plugin [{$slug}] needs a \"namespace\" to autoload."
+            );
+        }
+
+        return $namespace;
     }
 
     public function hasSettings(): bool

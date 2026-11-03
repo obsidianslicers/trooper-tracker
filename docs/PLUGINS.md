@@ -2,7 +2,7 @@
 
 Plugins add features to TroopTracker without changing core code. A plugin can listen for app events, run code before or after Hyperdrive messages, add markup to the UI, and ship its own routes, views, migrations, config, settings and Artisan commands.
 
-Plugins are full PHP code that runs with the same access as the app, so only install plugins you trust. They are installed by deploying them (git or Composer), never uploaded through the browser.
+Plugins are full PHP code that runs with the same access as the app, so only install plugins you trust. They are installed by deploying them (git or Composer) or, when the server allows it, by uploading a zip under Command Staff > Plugins.
 
 Every plugin is **off** until an administrator enables it. Enabling is site-wide.
 
@@ -20,14 +20,15 @@ php artisan plugins:disable <slug>     # keeps the plugin's data and settings
 php artisan plugins:uninstall <slug>   # disables it and deletes its data (asks first)
 ```
 
-**Disable** keeps everything, so re-enabling picks up where it left off. **Uninstall** rolls back the plugin's migrations (its `down()` methods drop its tables) and deletes its settings; this cannot be undone. Neither touches the plugin's files.
+**Disable** keeps everything, so re-enabling picks up where it left off. **Uninstall** rolls back the plugin's migrations (its `down()` methods drop its tables) and deletes its settings; this cannot be undone. Uninstall deletes the files of a plugin that was uploaded from the app. It leaves the files of a deployed plugin alone, because the next deploy would bring them back.
 
 ### Adding and removing plugin files
 
-Plugins are code, so they reach the server the same way the app does, through a deploy. Nothing is uploaded through the browser.
+There are three ways to put a plugin on the server:
 
 - **In this repo:** add the folder under `tracker-app/plugins/` (see `make:plugin`), commit, deploy.
 - **As a Composer package:** `composer require vendor/plugin`, commit `composer.json`/`composer.lock`, deploy.
+- **Upload a zip** under Command Staff > Plugins > Install a plugin. This is off unless the server sets `TRACKER_PLUGINS_ALLOW_UPLOADS=true` (see below).
 
 The plugin then appears on the Plugins page as Disabled. To remove one for good, uninstall it first, then delete the folder (or `composer remove`) and deploy.
 
@@ -35,14 +36,41 @@ Enabling or disabling a plugin rebuilds the config and route caches if they are 
 
 A plugin that throws while loading or booting is logged and skipped. It cannot take the site down. It shows as "Failed to load" on the Plugins page.
 
+### Installing from the app
+
+An uploaded plugin can run any PHP on the server once it is enabled, so this is turned off by default. Turn it on only if you trust every administrator with server access:
+
+```dotenv
+TRACKER_PLUGINS_ALLOW_UPLOADS=true
+# Optional:
+TRACKER_PLUGINS_UPLOADS_PATH=/path/outside/the/checkout   # default: storage/app/plugins
+TRACKER_PLUGINS_MAX_UPLOAD_KB=10240
+TRACKER_PLUGINS_MAX_UNZIPPED_KB=51200
+TRACKER_PLUGINS_MAX_UPLOAD_FILES=2000
+```
+
+The zip holds the plugin folder: `plugin.json` either at the top of the zip or inside one top folder (`greeter/plugin.json`). A local plugin's `namespace` is required, as for any local plugin. Composer dependencies cannot be installed from the browser, so a plugin that needs other packages has to be installed with Composer.
+
+Before anything is written, the upload is refused if it:
+
+- is not a zip, or is bigger than the size limit, before or after unzipping, or holds too many files
+- has an absolute path, a `..` segment, a backslash or a symbolic link
+- has no valid `plugin.json`, or has files outside the plugin folder
+- uses a slug that is already installed (uninstall the old one first)
+
+Files are unpacked into a temporary folder and moved into place only once every file is written. The plugin is installed **disabled**, so none of its code runs until an administrator enables it. Each upload is written to the log with the administrator's trooper ID.
+
+Uploaded plugins go to `storage/app/plugins`, outside the git checkout, so a deploy (`git reset --hard`) never removes or overwrites them. The Plugins page lists them with the source "Uploaded". To update one, uninstall it and upload the new version; uninstalling deletes its data.
+
 ---
 
 ## Where plugins come from
 
 1. **Local folder.** Any folder in `tracker-app/plugins/` that holds a `plugin.json`. Set `TRACKER_PLUGINS_PATH` to use another folder.
-2. **Composer packages** of type `trooptracker-plugin` with a `plugin.json` at the package root. Composer autoloads them, so they can live in their own repository and be shared with other garrisons.
+2. **Uploaded folder.** Plugins installed from the app, in `storage/app/plugins` (`TRACKER_PLUGINS_UPLOADS_PATH`).
+3. **Composer packages** of type `trooptracker-plugin` with a `plugin.json` at the package root. Composer autoloads them, so they can live in their own repository and be shared with other garrisons.
 
-If two plugins use the same slug, the Composer package wins and the other is skipped with a log warning.
+If two plugins use the same slug, the Composer package wins, then the local folder, and the other is skipped with a log warning.
 
 ---
 
@@ -249,6 +277,12 @@ or use **Command Staff > Plugins > Enable**, then run the verify command.
 Each organization's Discord mention used to live in `tt_organizations.discord_mention`. Enabling the plugin runs its migration, which **copies** every non-empty value into `tt_discord_organization_mentions`. The old column is left untouched, and core no longer reads or writes it.
 
 Uninstalling the Discord plugin drops its table, so mentions edited after the copy are lost; the old column is never touched, and enabling again copies from it.
+
+A fresh database seeded with the Florida Garrison data no longer gets mentions from the core seeder. With the plugin enabled, seed them from the plugin:
+
+```bash
+php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\FloridaGarrisonMentionSeeder"
+```
 
 `php artisan discord:verify-mentions` compares the two. It fails, and says not to drop the column, if any value is missing or was copied wrong. Rows an admin edited or cleared after the copy are listed as expected changes. Once it passes on production, a later core migration can drop `tt_organizations.discord_mention` (then regenerate the base models). That drop is deliberately not part of this change.
 

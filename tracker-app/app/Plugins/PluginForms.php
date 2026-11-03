@@ -26,7 +26,7 @@ class PluginForms
 
     /**
      * @param  array<string, mixed>  $rules  Validation rules for the plugin's own inputs.
-     * @param  Closure(Model, array): void|null  $saved  Receives the saved model and validated input.
+     * @param  Closure(Model, array): void|null  $saved  Gets the saved model and validated input.
      */
     public function add(string $form, array $rules = [], ?Closure $saved = null): void
     {

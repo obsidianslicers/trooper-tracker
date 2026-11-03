@@ -77,13 +77,16 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function beforeMessage(string $message_class, Closure $callback): void
     {
-        Event::listen(MessageHandling::class, function (MessageHandling $event) use ($message_class, $callback): void
-        {
-            if ($event->message instanceof $message_class)
+        Event::listen(
+            MessageHandling::class,
+            function (MessageHandling $event) use ($message_class, $callback): void
             {
-                $callback($event->message);
-            }
-        });
+                if ($event->message instanceof $message_class)
+                {
+                    $callback($event->message);
+                }
+            },
+        );
     }
 
     /**
@@ -93,13 +96,16 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function afterMessage(string $message_class, Closure $callback): void
     {
-        Event::listen(MessageHandled::class, function (MessageHandled $event) use ($message_class, $callback): void
-        {
-            if ($event->message instanceof $message_class)
+        Event::listen(
+            MessageHandled::class,
+            function (MessageHandled $event) use ($message_class, $callback): void
             {
-                $callback($event->message, $event->result);
-            }
-        });
+                if ($event->message instanceof $message_class)
+                {
+                    $callback($event->message, $event->result);
+                }
+            },
+        );
     }
 
     /**

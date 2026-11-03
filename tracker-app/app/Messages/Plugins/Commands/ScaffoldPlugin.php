@@ -38,26 +38,41 @@ final class ScaffoldPlugin extends Message
     public function handle(Filesystem $files): string
     {
         $tokens = $this->tokens();
-        $path = rtrim((string) config('plugins.path', base_path('plugins')), '/').'/'.$tokens['{{ slug }}'];
+        $plugins_path = rtrim((string) config('plugins.path', base_path('plugins')), '/');
+        $path = $plugins_path.'/'.$tokens['{{ slug }}'];
 
         if ($files->exists($path))
         {
             throw new InvalidArgumentException("A plugin already exists at [{$path}].");
         }
 
-        $stubs = self::FILES + ($this->with_composer ? ['composer.json.stub' => 'composer.json'] : []);
+        $composer_stub = $this->with_composer ? ['composer.json.stub' => 'composer.json'] : [];
+        $stubs = self::FILES + $composer_stub;
 
         foreach ($stubs as $stub => $target)
         {
             $destination = $path.'/'.strtr($target, $tokens);
             $files->ensureDirectoryExists(dirname($destination));
-            $files->put($destination, strtr($files->get(base_path('stubs/plugin/'.$stub)), $tokens));
+            $contents = $files->get(base_path('stubs/plugin/'.$stub));
+            $files->put($destination, strtr($contents, $tokens));
         }
 
         $files->ensureDirectoryExists($path.'/database/migrations');
         $files->put($path.'/database/migrations/.gitkeep', '');
 
         return $path;
+    }
+
+    private function namespace(string $class): string
+    {
+        $namespace = trim($this->namespace ?? 'TroopTracker\\Plugins\\'.$class, '\\');
+
+        if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*(\\\\[A-Za-z_][A-Za-z0-9_]*)*$/', $namespace) !== 1)
+        {
+            throw new InvalidArgumentException("[{$namespace}] is not a valid PHP namespace.");
+        }
+
+        return $namespace;
     }
 
     /**
@@ -69,21 +84,19 @@ final class ScaffoldPlugin extends Message
 
         if ($slug === '')
         {
-            throw new InvalidArgumentException('The plugin name needs at least one letter or number.');
+            throw new InvalidArgumentException(
+                'The plugin name needs at least one letter or number.'
+            );
         }
 
         $class = Str::studly($slug);
-        $namespace = trim($this->namespace ?? 'TroopTracker\\Plugins\\'.$class, '\\');
-
-        if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*(\\\\[A-Za-z_][A-Za-z0-9_]*)*$/', $namespace) !== 1)
-        {
-            throw new InvalidArgumentException("[{$namespace}] is not a valid PHP namespace.");
-        }
+        $namespace = $this->namespace($class);
+        $name = trim($this->name);
 
         return [
             '{{ slug }}' => $slug,
-            '{{ name }}' => trim($this->name),
-            '{{ name_json }}' => substr((string) json_encode(trim($this->name), JSON_UNESCAPED_UNICODE), 1, -1),
+            '{{ name }}' => $name,
+            '{{ name_json }}' => substr((string) json_encode($name, JSON_UNESCAPED_UNICODE), 1, -1),
             '{{ class }}' => $class,
             '{{ namespace }}' => $namespace,
             '{{ namespace_json }}' => str_replace('\\', '\\\\', $namespace),

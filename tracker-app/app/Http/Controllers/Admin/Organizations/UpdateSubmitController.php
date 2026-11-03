@@ -69,7 +69,11 @@ class UpdateSubmitController extends MagicBusController
         DB::transaction(function () use ($organization, $request, $plugin_forms): void
         {
             $organization->save();
-            $plugin_forms->saved(PluginForms::ORGANIZATION_UPDATE, $organization, $request->validated());
+            $plugin_forms->saved(
+                PluginForms::ORGANIZATION_UPDATE,
+                $organization,
+                $request->validated(),
+            );
         });
 
         FlashType::updated($organization);

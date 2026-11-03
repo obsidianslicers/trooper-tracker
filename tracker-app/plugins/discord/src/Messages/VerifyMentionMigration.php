@@ -7,6 +7,7 @@ namespace TroopTracker\Plugins\Discord\Messages;
 use Hyperdrive\Message;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\LazyCollection;
 use TroopTracker\Plugins\Discord\Models\DiscordOrganizationMention;
 
 /**
@@ -23,7 +24,12 @@ use TroopTracker\Plugins\Discord\Models\DiscordOrganizationMention;
 final class VerifyMentionMigration extends Message
 {
     /**
-     * @return array{checked: int, missing: array<int, array>, mismatched: array<int, array>, changed: array<int, array>}
+     * @return array{
+     *     checked: int,
+     *     missing: array<int, array>,
+     *     mismatched: array<int, array>,
+     *     changed: array<int, array>
+     * }
      */
     public function handle(): array
     {
@@ -34,29 +40,45 @@ final class VerifyMentionMigration extends Message
             return $report;
         }
 
-        $mentions = DiscordOrganizationMention::query()->get()->keyBy(DiscordOrganizationMention::ORGANIZATION_ID);
+        $mentions = DiscordOrganizationMention::query()
+            ->get()
+            ->keyBy(DiscordOrganizationMention::ORGANIZATION_ID);
 
         foreach ($this->oldValues() as $organization)
         {
             $report['checked']++;
-            $copy = $mentions->get($organization->id);
-            $row = ['id' => $organization->id, 'name' => $organization->name, 'old' => $organization->discord_mention];
-
-            if ($copy === null)
-            {
-                $report['missing'][] = $row;
-            }
-            elseif ($copy->mention !== trim((string) $organization->discord_mention))
-            {
-                $edited = $copy->updated_at?->greaterThan($copy->created_at) ?? false;
-                $report[$edited ? 'changed' : 'mismatched'][] = [...$row, 'new' => $copy->mention];
-            }
+            $this->compare($report, $organization, $mentions->get($organization->id));
         }
 
         return $report;
     }
 
-    private function oldValues(): iterable
+    private function compare(
+        array &$report,
+        object $organization,
+        ?DiscordOrganizationMention $copy,
+    ): void {
+        $row = [
+            'id' => $organization->id,
+            'name' => $organization->name,
+            'old' => $organization->discord_mention,
+        ];
+
+        if ($copy === null)
+        {
+            $report['missing'][] = $row;
+
+            return;
+        }
+
+        if ($copy->mention !== trim((string) $organization->discord_mention))
+        {
+            $edited = $copy->updated_at?->greaterThan($copy->created_at) ?? false;
+            $report[$edited ? 'changed' : 'mismatched'][] = [...$row, 'new' => $copy->mention];
+        }
+    }
+
+    private function oldValues(): LazyCollection
     {
         return DB::table('tt_organizations')
             ->select(['id', 'name', 'discord_mention'])

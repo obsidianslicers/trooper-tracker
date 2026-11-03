@@ -29,7 +29,9 @@ class DiscordOrganizationMention extends Model
 
     public static function forOrganization(int $organization_id): ?string
     {
-        $mention = static::query()->where(self::ORGANIZATION_ID, $organization_id)->value(self::MENTION);
+        $mention = static::query()
+            ->where(self::ORGANIZATION_ID, $organization_id)
+            ->value(self::MENTION);
 
         return $mention === null || $mention === '' ? null : $mention;
     }
@@ -43,7 +45,9 @@ class DiscordOrganizationMention extends Model
     {
         $mention = trim((string) $mention);
 
-        if ($mention === '' && !static::query()->where(self::ORGANIZATION_ID, $organization_id)->exists())
+        $exists = static::query()->where(self::ORGANIZATION_ID, $organization_id)->exists();
+
+        if ($mention === '' && !$exists)
         {
             return;
         }

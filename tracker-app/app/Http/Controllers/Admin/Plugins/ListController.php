@@ -21,8 +21,6 @@ class ListController extends Controller
 
     public function __invoke(): View
     {
-        return view('pages.admin.plugins.list', [
-            'plugins' => ListPluginsPageData::call(),
-        ]);
+        return view('pages.admin.plugins.list', ListPluginsPageData::call());
     }
 }

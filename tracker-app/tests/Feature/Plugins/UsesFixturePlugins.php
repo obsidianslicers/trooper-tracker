@@ -13,14 +13,17 @@ trait UsesFixturePlugins
     /**
      * Point the plugin manager at tests/Fixtures/plugins instead of the real plugins folder.
      */
-    protected function useFixturePlugins(): PluginManager
+    protected function useFixturePlugins(?string $uploads_path = null): PluginManager
     {
+        $discovery = new PluginDiscovery(base_path('tests/Fixtures/plugins'), $uploads_path);
+
         $manager = new PluginManager(
             $this->app,
-            new PluginDiscovery(base_path('tests/Fixtures/plugins')),
+            $discovery,
             $this->app->make(PluginAutoloader::class),
         );
 
+        $this->app->instance(PluginDiscovery::class, $discovery);
         $this->app->instance(PluginManager::class, $manager);
 
         return $manager;

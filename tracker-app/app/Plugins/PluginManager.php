@@ -56,6 +56,15 @@ class PluginManager
         return $this->manifests ??= $this->discovery->discover();
     }
 
+    /**
+     * Forget the discovered plugins so the next lookup scans the folders again,
+     * for example after a plugin is uploaded or removed.
+     */
+    public function forgetManifests(): void
+    {
+        $this->manifests = null;
+    }
+
     public function find(string $slug): ?PluginManifest
     {
         return $this->all()[$slug] ?? null;
@@ -63,12 +72,18 @@ class PluginManager
 
     public function findOrFail(string $slug): PluginManifest
     {
-        return $this->find($slug) ?? throw new InvalidArgumentException("Unknown plugin [{$slug}].");
+        return $this->find($slug)
+            ?? throw new InvalidArgumentException("Unknown plugin [{$slug}].");
     }
 
     public function isEnabled(string $slug): bool
     {
-        return $this->find($slug) !== null && (bool) ($this->rows()[$slug][Plugin::IS_ENABLED] ?? false);
+        if ($this->find($slug) === null)
+        {
+            return false;
+        }
+
+        return (bool) ($this->rows()[$slug][Plugin::IS_ENABLED] ?? false);
     }
 
     public function isLoaded(string $slug): bool
@@ -88,7 +103,10 @@ class PluginManager
      */
     public function enabled(): array
     {
-        return array_filter($this->all(), fn (PluginManifest $manifest): bool => $this->isEnabled($manifest->slug));
+        return array_filter(
+            $this->all(),
+            fn (PluginManifest $manifest): bool => $this->isEnabled($manifest->slug),
+        );
     }
 
     public function loadEnabledPlugins(): void
@@ -120,7 +138,10 @@ class PluginManager
         }
         catch (Throwable $e)
         {
-            Log::error("Plugin [{$manifest->slug}] failed to load: {$e->getMessage()}", ['exception' => $e]);
+            Log::error(
+                "Plugin [{$manifest->slug}] failed to load: {$e->getMessage()}",
+                ['exception' => $e],
+            );
 
             return false;
         }

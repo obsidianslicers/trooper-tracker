@@ -24,7 +24,9 @@
     </thead>
     <tbody>
         @forelse($plugins as $plugin)
-            @php($manifest = $plugin['manifest'])
+            @php
+                $manifest = $plugin['manifest'];
+            @endphp
             <tr>
                 <td>
                     <strong>{{ $manifest->name }}</strong>
@@ -40,14 +42,16 @@
                     {{ $manifest->version }}
                 </td>
                 <td>
-                    {{ $manifest->is_composer_package ? 'Composer' : 'Local' }}
+                    {{ ucfirst($plugin['source']) }}
                 </td>
                 <td>
                     @if($plugin['is_enabled'] && $plugin['is_loaded'])
                         <span class="badge text-bg-success">Enabled</span>
                     @elseif($plugin['is_enabled'])
                         <span class="badge text-bg-danger"
-                              title="Enabled, but it failed to load. Check the logs.">Failed to load</span>
+                              title="Enabled, but it failed to load. Check the logs.">
+                            Failed to load
+                        </span>
                     @else
                         <span class="badge text-bg-secondary">Disabled</span>
                     @endif
@@ -60,9 +64,14 @@
                             Settings
                         </a>
                     @endif
+                    @php
+                        $toggle_route = $plugin['is_enabled']
+                            ? 'admin.plugins.disable'
+                            : 'admin.plugins.enable';
+                    @endphp
                     <form method="POST"
                           class="d-inline"
-                          action="{{ route($plugin['is_enabled'] ? 'admin.plugins.disable' : 'admin.plugins.enable', ['slug' => $manifest->slug]) }}">
+                          action="{{ route($toggle_route, ['slug' => $manifest->slug]) }}">
                         @csrf
                         @if($plugin['is_enabled'])
                             <button type="submit"
@@ -79,11 +88,12 @@
                     @if($plugin['is_installed'])
                         <form method="POST"
                               class="d-inline"
-                              action="{{ route('admin.plugins.uninstall', ['slug' => $manifest->slug]) }}">
+                              action="{{ route('admin.plugins.uninstall', ['slug' => $manifest->slug]) }}"
+                              data-confirm="Uninstall {{ $manifest->name }}? This deletes its data and settings."
+                              onsubmit="return confirm(this.dataset.confirm);">
                             @csrf
                             <button type="submit"
-                                    class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Uninstall {{ addslashes($manifest->name) }}? Its data and settings will be deleted. This cannot be undone.');">
+                                    class="btn btn-sm btn-danger">
                                 Uninstall
                             </button>
                         </form>
@@ -97,5 +107,38 @@
         @endforelse
     </tbody>
 </x-table>
+
+<x-card :label="'Install a plugin'">
+    @if($uploads['is_enabled'])
+        <form method="POST"
+              action="{{ route('admin.plugins.install') }}"
+              enctype="multipart/form-data">
+            @csrf
+            <p class="text-muted small">
+                Upload a plugin as a .zip file (up to {{ number_format($uploads['max_kilobytes'] / 1024, 1) }} MB)
+                with its plugin.json at the top. It is installed disabled.
+                A plugin runs code on the server once enabled, so only install plugins you trust.
+            </p>
+            <div class="input-group">
+                <input type="file"
+                       name="archive"
+                       class="form-control"
+                       accept=".zip,application/zip"
+                       required>
+                <button type="submit"
+                        class="btn btn-primary">
+                    Install
+                </button>
+            </div>
+            <x-input-error :property="'archive'" />
+        </form>
+    @else
+        <p class="text-muted small mb-0">
+            Installing plugins from here is turned off.
+            Set TRACKER_PLUGINS_ALLOW_UPLOADS=true on the server to allow it,
+            or add plugins with a deploy (plugins folder or Composer).
+        </p>
+    @endif
+</x-card>
 
 @endsection

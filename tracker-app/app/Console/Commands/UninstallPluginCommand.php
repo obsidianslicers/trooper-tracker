@@ -14,7 +14,7 @@ class UninstallPluginCommand extends Command
         {slug : The plugin slug from plugins:list}
         {--force : Skip the confirmation prompt}';
 
-    protected $description = 'Disable a plugin and delete its data (rolls back its migrations, removes its settings).';
+    protected $description = 'Disable a plugin and delete its tables and settings.';
 
     public function handle(PluginManager $plugins): int
     {
@@ -27,7 +27,8 @@ class UninstallPluginCommand extends Command
             return self::FAILURE;
         }
 
-        $question = "Uninstall [{$slug}]? This deletes its tables and settings and cannot be undone.";
+        $question = "Uninstall [{$slug}]? "
+            .'This deletes its tables and settings and cannot be undone.';
 
         if (!$this->option('force') && !$this->confirm($question))
         {

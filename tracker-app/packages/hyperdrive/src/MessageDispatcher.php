@@ -81,7 +81,8 @@ final class MessageDispatcher
 
             Event::dispatch(new MessageHandling($message));
 
-            $result = in_array(ShouldBeTransactional::class, class_uses_recursive($message_class), true)
+            $traits = class_uses_recursive($message_class);
+            $result = in_array(ShouldBeTransactional::class, $traits, true)
                 ? DB::transaction($execute)
                 : $execute();
 

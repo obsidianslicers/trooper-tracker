@@ -4,29 +4,31 @@ declare(strict_types=1);
 
 namespace App\Messages\Plugins\PageData;
 
-use App\Plugins\PluginManager;
-use App\Plugins\PluginManifest;
+use App\Messages\Plugins\Queries\GetPlugins;
 use Hyperdrive\Message;
 
 /**
- * Every discovered plugin with its enabled state, for the Admin > Plugins page.
+ * Everything the Admin > Plugins page shows: each plugin and whether
+ * administrators may upload new ones.
  *
  * @method static array call()
  */
 final class ListPluginsPageData extends Message
 {
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array{
+     *     plugins: array<int, array<string, mixed>>,
+     *     uploads: array{is_enabled: bool, max_kilobytes: int}
+     * }
      */
-    public function handle(PluginManager $plugins): array
+    public function handle(): array
     {
-        return array_values(array_map(fn (PluginManifest $manifest): array => [
-            'manifest' => $manifest,
-            'is_enabled' => $plugins->isEnabled($manifest->slug),
-            'is_installed' => $plugins->isInstalled($manifest->slug),
-            'is_loaded' => $plugins->isLoaded($manifest->slug),
-            'settings' => $plugins->settings($manifest->slug),
-            'enabled_at' => $plugins->record($manifest->slug)?->enabled_at,
-        ], $plugins->all()));
+        return [
+            'plugins' => GetPlugins::call(),
+            'uploads' => [
+                'is_enabled' => (bool) config('plugins.uploads.enabled', false),
+                'max_kilobytes' => (int) config('plugins.uploads.max_kilobytes', 10240),
+            ],
+        ];
     }
 }

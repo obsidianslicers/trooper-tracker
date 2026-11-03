@@ -60,10 +60,12 @@ class EventTrooperObserver
 
         $previous = $event_trooper->getOriginal(EventTrooper::STATUS);
 
-        TrooperSignupStatusChanged::dispatch(
-            $event_trooper,
-            $previous instanceof EventTrooperStatus ? $previous : EventTrooperStatus::tryFrom((string) $previous),
-        );
+        if (!$previous instanceof EventTrooperStatus)
+        {
+            $previous = EventTrooperStatus::tryFrom((string) $previous);
+        }
+
+        TrooperSignupStatusChanged::dispatch($event_trooper, $previous);
     }
 
     private function queueForumThreadSync(EventTrooper $event_trooper): void

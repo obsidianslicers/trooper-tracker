@@ -81,11 +81,11 @@ class OrganizationSeeder extends Seeder
     private function loadUnits()
     {
         $units = [
-            ['region' => 'Florida Garrison', 'name' => 'Everglades Squad', 'related_forum' => 9,   'related_forum_archive' => 107, 'discord_mention' => '<@&914344158678900766>', 'xenforo_group_active_id' => 44],
-            ['region' => 'Florida Garrison', 'name' => 'Makaze Squad',     'related_forum' => 8,   'related_forum_archive' => 109, 'discord_mention' => '<@&914343663474200597>', 'xenforo_group_active_id' => 45],
-            ['region' => 'Florida Garrison', 'name' => 'Tampa Bay Squad',  'related_forum' => 73,  'related_forum_archive' => 115, 'discord_mention' => '<@&914344438472527912>', 'xenforo_group_active_id' => 43],
-            ['region' => 'Florida Garrison', 'name' => 'Squad 7',          'related_forum' => 7,   'related_forum_archive' => 113, 'discord_mention' => '<@&914344334776737822>', 'xenforo_group_active_id' => 683],
-            ['region' => 'Florida Garrison', 'name' => 'Parjai Squad',     'related_forum' => 186, 'related_forum_archive' => 111, 'discord_mention' => '<@&914344264253718568>', 'xenforo_group_active_id' => 250],
+            ['region' => 'Florida Garrison', 'name' => 'Everglades Squad', 'related_forum' => 9,   'related_forum_archive' => 107, 'xenforo_group_active_id' => 44],
+            ['region' => 'Florida Garrison', 'name' => 'Makaze Squad',     'related_forum' => 8,   'related_forum_archive' => 109, 'xenforo_group_active_id' => 45],
+            ['region' => 'Florida Garrison', 'name' => 'Tampa Bay Squad',  'related_forum' => 73,  'related_forum_archive' => 115, 'xenforo_group_active_id' => 43],
+            ['region' => 'Florida Garrison', 'name' => 'Squad 7',          'related_forum' => 7,   'related_forum_archive' => 113, 'xenforo_group_active_id' => 683],
+            ['region' => 'Florida Garrison', 'name' => 'Parjai Squad',     'related_forum' => 186, 'related_forum_archive' => 111, 'xenforo_group_active_id' => 250],
             ['region' => 'House Buurenaar Verda', 'name' => 'Aiwha Riders Clan'],
             ['region' => 'House Buurenaar Verda', 'name' => 'Batuu Clan'],
             ['region' => 'House Buurenaar Verda', 'name' => 'Drexl Clan'],
@@ -116,7 +116,6 @@ class OrganizationSeeder extends Seeder
 
                 if (isset($data['related_forum']))           { $unit->related_forum           = $data['related_forum']; }
                 if (isset($data['related_forum_archive']))   { $unit->related_forum_archive   = $data['related_forum_archive']; }
-                if (isset($data['discord_mention']))         { $unit->discord_mention         = $data['discord_mention']; }
                 if (isset($data['xenforo_group_active_id'])) { $unit->xenforo_group_active_id = $data['xenforo_group_active_id']; }
 
                 $unit->save();

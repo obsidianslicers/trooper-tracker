@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class Plugin
- * 
+ *
  * @property int $id
  * @property string $slug
  * @property bool $is_enabled
@@ -23,22 +23,31 @@ use Illuminate\Database\Eloquent\Model;
  * @property int|null $created_id
  * @property int|null $updated_id
  * @property int|null $deleted_id
- *
- * @package App\Models\Base
  */
 class Plugin extends Model
 {
     const ID = 'id';
+
     const SLUG = 'slug';
+
     const IS_ENABLED = 'is_enabled';
+
     const INSTALLED_VERSION = 'installed_version';
+
     const SETTINGS = 'settings';
+
     const ENABLED_AT = 'enabled_at';
+
     const CREATED_AT = 'created_at';
+
     const UPDATED_AT = 'updated_at';
+
     const CREATED_ID = 'created_id';
+
     const UPDATED_ID = 'updated_id';
+
     const DELETED_ID = 'deleted_id';
+
     protected $table = 'tt_plugins';
 
     protected $casts = [
@@ -49,7 +58,7 @@ class Plugin extends Model
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
         self::UPDATED_ID => 'int',
-        self::DELETED_ID => 'int'
+        self::DELETED_ID => 'int',
     ];
 
     protected $fillable = [
@@ -57,6 +66,6 @@ class Plugin extends Model
         self::IS_ENABLED,
         self::INSTALLED_VERSION,
         self::SETTINGS,
-        self::ENABLED_AT
+        self::ENABLED_AT,
     ];
 }

@@ -20,7 +20,25 @@ class PluginDiscovery
 
     public const MANIFEST_FILE = 'plugin.json';
 
-    public function __construct(private readonly string $local_path) {}
+    public function __construct(
+        private readonly string $local_path,
+        private readonly ?string $uploads_path = null,
+    ) {}
+
+    public function uploadsPath(): ?string
+    {
+        return $this->uploads_path;
+    }
+
+    public function isUploaded(PluginManifest $manifest): bool
+    {
+        if ($this->uploads_path === null || $manifest->is_composer_package)
+        {
+            return false;
+        }
+
+        return dirname($manifest->path) === rtrim($this->uploads_path, '/');
+    }
 
     /**
      * @return array<string, PluginManifest> Manifests keyed by slug.
@@ -49,7 +67,14 @@ class PluginDiscovery
      */
     private function localPaths(): array
     {
-        $files = glob($this->local_path.'/*/'.self::MANIFEST_FILE) ?: [];
+        $folders = array_filter([$this->local_path, $this->uploads_path]);
+        $files = [];
+
+        foreach ($folders as $folder)
+        {
+            $found = glob(rtrim($folder, '/').'/*/'.self::MANIFEST_FILE) ?: [];
+            $files = [...$files, ...$found];
+        }
 
         return array_map('dirname', $files);
     }
@@ -98,7 +123,9 @@ class PluginDiscovery
 
         if (isset($manifests[$manifest->slug]))
         {
-            Log::warning("Skipping plugin at [{$path}]: slug [{$manifest->slug}] is already taken.");
+            Log::warning(
+                "Skipping plugin at [{$path}]: slug [{$manifest->slug}] is already taken."
+            );
 
             return;
         }

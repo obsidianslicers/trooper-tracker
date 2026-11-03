@@ -33,7 +33,9 @@ final readonly class PluginSetting
 
         if (!in_array($type, self::TYPES, true))
         {
-            throw new InvalidArgumentException("Plugin setting [{$key}] has unknown type [{$type}].");
+            throw new InvalidArgumentException(
+                "Plugin setting [{$key}] has unknown type [{$type}]."
+            );
         }
 
         return new self(
