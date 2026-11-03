@@ -48,4 +48,21 @@ class PluginCommandsTest extends TestCase
             ->expectsOutput('No plugin found with slug [nope].')
             ->assertFailed();
     }
+
+    public function test_uninstall_asks_before_deleting_data(): void
+    {
+        $plugins = $this->useFixturePlugins();
+        $plugins->enable('hello');
+
+        $this->artisan('plugins:uninstall', ['slug' => 'hello'])
+            ->expectsConfirmation('Uninstall [hello]? This deletes its tables and settings and cannot be undone.', 'no')
+            ->expectsOutput('Cancelled.')
+            ->assertSuccessful();
+        $this->assertTrue($plugins->isInstalled('hello'));
+
+        $this->artisan('plugins:uninstall', ['slug' => 'hello', '--force' => true])
+            ->expectsOutput('Plugin [hello] uninstalled. Remove its files with your next deploy.')
+            ->assertSuccessful();
+        $this->assertFalse($plugins->isInstalled('hello'));
+    }
 }

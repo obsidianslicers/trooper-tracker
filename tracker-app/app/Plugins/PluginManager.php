@@ -157,6 +157,27 @@ class PluginManager
     }
 
     /**
+     * Turn a plugin off and remove everything it stored: its migrations are rolled
+     * back (dropping its tables) and its settings deleted. The plugin's files stay,
+     * so it can be enabled again; remove them with the next deploy.
+     */
+    public function uninstall(string $slug): void
+    {
+        $manifest = $this->findOrFail($slug);
+
+        $this->rollbackMigrations($manifest);
+
+        Plugin::query()->where(Plugin::SLUG, $slug)->delete();
+
+        $this->stateChanged();
+    }
+
+    public function isInstalled(string $slug): bool
+    {
+        return isset($this->rows()[$slug]);
+    }
+
+    /**
      * The plugin's stored settings, with the manifest defaults filled in.
      *
      * @return array<string, mixed>
@@ -223,6 +244,23 @@ class PluginManager
         }
 
         Artisan::call('migrate', [
+            '--path' => $manifest->migrationsPath(),
+            '--realpath' => true,
+            '--force' => true,
+        ]);
+    }
+
+    /**
+     * Roll back every migration the plugin has run, newest first.
+     */
+    public function rollbackMigrations(PluginManifest $manifest): void
+    {
+        if (!is_dir($manifest->migrationsPath()))
+        {
+            return;
+        }
+
+        Artisan::call('migrate:reset', [
             '--path' => $manifest->migrationsPath(),
             '--realpath' => true,
             '--force' => true,

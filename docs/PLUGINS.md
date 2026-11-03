@@ -10,14 +10,26 @@ Every plugin is **off** until an administrator enables it. Enabling is site-wide
 
 ## Managing plugins
 
-- **Admin > Command Staff > Plugins** (administrators only) lists every plugin found, with Enable / Disable buttons and a Settings page for plugins that declare settings.
+- **Admin > Command Staff > Plugins** (administrators only) lists every plugin found, with Enable / Disable / Uninstall buttons and a Settings page for plugins that declare settings.
 - From the command line:
 
 ```bash
 php artisan plugins:list
-php artisan plugins:enable <slug>    # also runs the plugin's migrations
-php artisan plugins:disable <slug>   # keeps the plugin's data and settings
+php artisan plugins:enable <slug>      # also runs the plugin's migrations
+php artisan plugins:disable <slug>     # keeps the plugin's data and settings
+php artisan plugins:uninstall <slug>   # disables it and deletes its data (asks first)
 ```
+
+**Disable** keeps everything, so re-enabling picks up where it left off. **Uninstall** rolls back the plugin's migrations (its `down()` methods drop its tables) and deletes its settings; this cannot be undone. Neither touches the plugin's files.
+
+### Adding and removing plugin files
+
+Plugins are code, so they reach the server the same way the app does, through a deploy. Nothing is uploaded through the browser.
+
+- **In this repo:** add the folder under `tracker-app/plugins/` (see `make:plugin`), commit, deploy.
+- **As a Composer package:** `composer require vendor/plugin`, commit `composer.json`/`composer.lock`, deploy.
+
+The plugin then appears on the Plugins page as Disabled. To remove one for good, uninstall it first, then delete the folder (or `composer remove`) and deploy.
 
 Enabling or disabling a plugin rebuilds the config and route caches if they are cached, and restarts the queue workers, so the change reaches every request and worker.
 
@@ -235,6 +247,8 @@ or use **Command Staff > Plugins > Enable**, then run the verify command.
 ### The organization mentions move
 
 Each organization's Discord mention used to live in `tt_organizations.discord_mention`. Enabling the plugin runs its migration, which **copies** every non-empty value into `tt_discord_organization_mentions`. The old column is left untouched, and core no longer reads or writes it.
+
+Uninstalling the Discord plugin drops its table, so mentions edited after the copy are lost; the old column is never touched, and enabling again copies from it.
 
 `php artisan discord:verify-mentions` compares the two. It fails, and says not to drop the column, if any value is missing or was copied wrong. Rows an admin edited or cleared after the copy are listed as expected changes. Once it passes on production, a later core migration can drop `tt_organizations.discord_mention` (then regenerate the base models). That drop is deliberately not part of this change.
 

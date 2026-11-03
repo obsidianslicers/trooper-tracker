@@ -153,4 +153,29 @@ class PluginManagerTest extends TestCase
         $this->assertStringNotContainsString('super-secret', (string) $raw);
         $this->assertSame('super-secret', $this->subject->setting('hello', 'api_key'));
     }
+
+    public function test_uninstall_rolls_back_migrations_and_deletes_state(): void
+    {
+        $this->subject->enable('hello');
+        $this->subject->updateSettings('hello', ['greeting' => 'Hi']);
+
+        $this->subject->uninstall('hello');
+
+        $this->assertFalse($this->subject->isEnabled('hello'));
+        $this->assertFalse($this->subject->isInstalled('hello'));
+        $this->assertFalse(Schema::hasTable('tt_hello_greetings'));
+        $this->assertDatabaseMissing('tt_plugins', ['slug' => 'hello']);
+        $this->assertSame('Hello', $this->subject->setting('hello', 'greeting'));
+    }
+
+    public function test_an_uninstalled_plugin_can_be_enabled_again(): void
+    {
+        $this->subject->enable('hello');
+        $this->subject->uninstall('hello');
+
+        $this->subject->enable('hello');
+
+        $this->assertTrue($this->subject->isEnabled('hello'));
+        $this->assertTrue(Schema::hasTable('tt_hello_greetings'));
+    }
 }

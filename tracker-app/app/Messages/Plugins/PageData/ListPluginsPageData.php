@@ -23,6 +23,7 @@ final class ListPluginsPageData extends Message
         return array_values(array_map(fn (PluginManifest $manifest): array => [
             'manifest' => $manifest,
             'is_enabled' => $plugins->isEnabled($manifest->slug),
+            'is_installed' => $plugins->isInstalled($manifest->slug),
             'is_loaded' => $plugins->isLoaded($manifest->slug),
             'settings' => $plugins->settings($manifest->slug),
             'enabled_at' => $plugins->record($manifest->slug)?->enabled_at,

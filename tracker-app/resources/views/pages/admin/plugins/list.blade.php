@@ -76,6 +76,18 @@
                             </button>
                         @endif
                     </form>
+                    @if($plugin['is_installed'])
+                        <form method="POST"
+                              class="d-inline"
+                              action="{{ route('admin.plugins.uninstall', ['slug' => $manifest->slug]) }}">
+                            @csrf
+                            <button type="submit"
+                                    class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Uninstall {{ addslashes($manifest->name) }}? Its data and settings will be deleted. This cannot be undone.');">
+                                Uninstall
+                            </button>
+                        </form>
+                    @endif
                 </td>
             </tr>
         @empty

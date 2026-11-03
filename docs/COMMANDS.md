@@ -358,9 +358,9 @@ php artisan xenforo:test-thread 5 "Test" "Body" --extra=field1:val1 --extra=fiel
 
 ---
 
-### `plugins:list` / `plugins:enable {slug}` / `plugins:disable {slug}`
+### `plugins:list` / `plugins:enable {slug}` / `plugins:disable {slug}` / `plugins:uninstall {slug} [--force]`
 
-List the plugins found in `tracker-app/plugins/` and in Composer packages, or turn one on or off for the whole site. Enabling runs the plugin's migrations. Disabling keeps its data and settings. See [PLUGINS.md](PLUGINS.md).
+List the plugins found in `tracker-app/plugins/` and in Composer packages, or turn one on or off for the whole site. Enabling runs the plugin's migrations. Disabling keeps its data and settings. Uninstalling disables it, rolls back its migrations and deletes its settings, after a confirmation prompt (`--force` skips it). See [PLUGINS.md](PLUGINS.md).
 
 ```bash
 php artisan plugins:list

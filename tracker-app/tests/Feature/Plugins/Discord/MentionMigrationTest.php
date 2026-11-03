@@ -73,6 +73,17 @@ class MentionMigrationTest extends TestCase
             ->assertFailed();
     }
 
+    public function test_uninstalling_drops_the_plugin_table_but_keeps_the_old_column(): void
+    {
+        $organization = Organization::factory()->create([Organization::DISCORD_MENTION => '<@&501>']);
+        $this->enableDiscord();
+
+        app(PluginManager::class)->uninstall('discord');
+
+        $this->assertFalse(Schema::hasTable('tt_discord_organization_mentions'));
+        $this->assertSame('<@&501>', $organization->fresh()->discord_mention);
+    }
+
     private function enableDiscord(): void
     {
         $plugins = app(PluginManager::class);
