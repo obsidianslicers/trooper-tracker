@@ -1,0 +1,8 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+// Served under /plugins/{{ slug }} with the "web" middleware, named plugins.{{ slug }}.*
+Route::get('/', fn () => view('{{ slug }}::event-panel', ['greeting' => 'It works!']))
+    ->middleware('auth')
+    ->name('index');

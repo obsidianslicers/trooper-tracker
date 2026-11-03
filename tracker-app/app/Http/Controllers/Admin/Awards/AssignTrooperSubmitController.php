@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Awards;
 
 use App\Enums\FlashType;
+use App\Events\AwardGranted;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Awards\AssignTrooperRequest;
 use App\Models\Award;
@@ -47,6 +48,8 @@ class AssignTrooperSubmitController extends MagicBusController
         $award_trooper->award_date = $award_date;
 
         $award_trooper->save();
+
+        AwardGranted::dispatch($award_trooper);
 
         FlashType::success('... and the Award goes to '.$trooper->display_name);
 

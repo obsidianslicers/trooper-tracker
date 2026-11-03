@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Features\Events\Commands;
 
 use App\Enums\EventTrooperStatus;
+use App\Events\TrooperSignedUp;
 use App\Features\Events\Commands\SignUpEventTrooperCommand;
 use App\Features\Events\Commands\SignUpEventTrooperCommandHandler;
 use App\Jobs\CreateTrooperFriendshipJob;
@@ -21,6 +22,7 @@ use App\Models\TrooperCostume;
 use App\Notifications\Events\TrooperSignedUpNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Event as EventFacade;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -720,5 +722,23 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
                 class_uses_recursive(SignUpEventTrooperCommandHandler::class)
             )
         );
+    }
+
+    public function test_invoke_fires_trooper_signed_up(): void
+    {
+        Notification::fake();
+        EventFacade::fake([TrooperSignedUp::class]);
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+        $handler(new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: Trooper::factory()->create(),
+        ));
+
+        EventFacade::assertDispatched(TrooperSignedUp::class, fn (TrooperSignedUp $signed_up): bool => $signed_up->signup->trooper_id === $trooper->id
+            && $signed_up->signup->event_shift_id === $event_shift->id);
     }
 }

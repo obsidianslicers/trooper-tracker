@@ -26,6 +26,15 @@ class HelloServiceProvider extends PluginServiceProvider
             'greeting' => $this->setting('greeting'),
         ]);
 
+        $this->addToSlot(
+            'account.profile.sections',
+            'hello::greeting',
+            fn (array $context): array => [
+                'greeting' => 'Welcome back',
+                'name' => $context['actor']?->display_name,
+            ],
+        );
+
         $this->afterMessage(Message::class, function (Message $message): void
         {
             self::$handled[] = $message::class;

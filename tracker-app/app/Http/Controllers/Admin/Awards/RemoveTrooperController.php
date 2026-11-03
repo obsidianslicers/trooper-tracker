@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Awards;
 
 use App\Enums\FlashType;
+use App\Events\AwardRevoked;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Awards\RemoveTrooperRequest;
 use App\Models\Award;
@@ -36,6 +37,8 @@ class RemoveTrooperController extends MagicBusController
             $trooper_name = $award_trooper->trooper?->display_name ?? 'trooper';
 
             $award_trooper->delete();
+
+            AwardRevoked::dispatch($award_trooper);
 
             FlashType::success('Removed award from '.$trooper_name);
         }

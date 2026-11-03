@@ -1,4 +1,5 @@
 <script lang="ts">
+    import PluginSlot from "$lib/components/PluginSlot.svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
     import pageState from "$lib/states/page-state.svelte";
@@ -14,4 +15,5 @@
             email when a decision has been made.
         </div>
     </Alert>
+    <PluginSlot name="account.pending.sections" />
 </SlimView>

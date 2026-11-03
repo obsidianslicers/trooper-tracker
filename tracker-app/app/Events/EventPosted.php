@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Events;
 
 use App\Models\Event;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
@@ -14,7 +15,7 @@ use Illuminate\Queue\SerializesModels;
  * Fired by SendEventCreatedNotificationsJob, both when an event is created open
  * and when a draft event is opened later.
  */
-final class EventPosted
+final class EventPosted implements ShouldDispatchAfterCommit
 {
     use Dispatchable;
     use SerializesModels;

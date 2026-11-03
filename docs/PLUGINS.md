@@ -36,6 +36,16 @@ If two plugins use the same slug, the Composer package wins and the other is ski
 
 ## Writing a plugin
 
+Start from the generator:
+
+```bash
+php artisan make:plugin "Event Weather"                      # plugins/event-weather
+php artisan make:plugin "Event Weather" --namespace="Acme\\Weather"
+php artisan make:plugin "Event Weather" --composer           # also writes composer.json
+```
+
+It writes a working plugin with an example setting, an `EventPosted` listener, a view in the event page slot and a route, then tells you how to enable it. The templates live in `tracker-app/stubs/plugin`. The layout is:
+
 ```
 plugins/hello/
 ├── plugin.json
@@ -123,6 +133,15 @@ Inside a plugin, follow the same conventions as core: Hyperdrive messages for bu
 |-------|-----------|
 | `App\Events\EventPosted` | An event is posted and troopers have been notified (created open, or a draft is opened). |
 | `App\Events\EventDetailsChanged` | An event's name, times, venue, address or comments change. Has `$changed_fields`. |
+| `App\Events\TrooperSignedUp` | A trooper signs up for a shift, or signs back up after being removed. Has `$signup` (an `EventTrooper`). |
+| `App\Events\TrooperSignupStatusChanged` | A signup's status changes afterwards (going, stand-by, cancelled, attended...). Has `$signup` and `$previous_status`. |
+| `App\Events\TrooperMembershipApproved` | Command staff approve a trooper's membership. Has `$trooper`. |
+| `App\Events\TrooperRequestApproved` | Command staff approve a request to join an organization. Has `$trooper_request`. |
+| `App\Events\TrooperPermissionsApproved` | Command staff approve a role or moderator change. Has `$permission_request`. |
+| `App\Events\AwardGranted` | An award is given to a trooper. Has `$award_trooper`. |
+| `App\Events\AwardRevoked` | An award is taken back. Has the soft-deleted `$award_trooper`. |
+
+All of these fire after the database transaction commits, so a listener never sees work that is later rolled back.
 
 Listeners run in the same process as the code that fired the event. Catch and log your own errors (see the Discord plugin's listener) so a failure in your plugin does not break the core flow, or make the listener `ShouldQueue`. More events are easy to add: create the class in `app/Events/` and dispatch it where the thing happens.
 
@@ -150,7 +169,17 @@ $this->addToSlot(
 | `admin.dashboard.cards` | Command Staff dashboard. Render `<x-dashboard-card>` items. | |
 | `events.display.sections` | Event page, below the shifts. | `$event` |
 
-A slot view that throws is logged and left out of the page. Svelte pages do not have slots yet.
+Svelte pages have slots too. Their names are listed in `App\Plugins\PluginSlots::SVELTE_SLOTS`; the server renders them to HTML on every Inertia request and the page shows them with `<PluginSlot name="..." />` (`resources/svelte/lib/components/PluginSlot.svelte`). The views get `$request` and `$actor` (the signed-in trooper) instead of page variables. The markup is inserted as plain HTML, so `<script>` tags in it do not run; use links and forms.
+
+| Svelte slot | Where |
+|-------------|-------|
+| `account.profile.sections` | Account page, Profile tab, below the details. |
+| `account.pending.sections` | Pending Membership page, below the notice. |
+| `admin.troopers.approvals.sections` | Trooper Approvals page, below the requests. |
+
+To add a slot to another Svelte page, add its name to `SVELTE_SLOTS` and drop `<PluginSlot name="..." />` where it should appear.
+
+A slot view that throws is logged and left out of the page.
 
 Views can also check whether a plugin is on: `@pluginEnabled('discord') ... @endpluginEnabled`.
 

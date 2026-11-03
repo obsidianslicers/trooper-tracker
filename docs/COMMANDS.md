@@ -367,3 +367,11 @@ php artisan plugins:list
 php artisan plugins:enable discord
 php artisan plugins:disable discord
 ```
+
+### `make:plugin {name} [--namespace=] [--composer]`
+
+Creates a starter plugin in `tracker-app/plugins/<slug>` from the templates in `tracker-app/stubs/plugin`. `--composer` also writes a `composer.json` so the plugin can be shared as a package.
+
+```bash
+php artisan make:plugin "Event Weather"
+```

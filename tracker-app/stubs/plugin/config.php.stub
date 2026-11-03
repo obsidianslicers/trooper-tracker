@@ -1,0 +1,6 @@
+<?php
+
+// Merged into config('plugins.{{ slug }}').
+return [
+    //
+];

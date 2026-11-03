@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Events;
 
 use App\Models\Event;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
  * An event's name, times, venue or comments changed after it was saved.
  */
-final class EventDetailsChanged
+final class EventDetailsChanged implements ShouldDispatchAfterCommit
 {
     use Dispatchable;
     use SerializesModels;

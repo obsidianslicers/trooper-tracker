@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Messages\App\Queries\GetConfig;
 use App\Models\Trooper;
+use App\Plugins\PluginSlots;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
@@ -60,6 +61,10 @@ class HandleInertiaRequests extends Middleware
             'config' => $config,
             'user' => $actor,
             'results' => fn () => $request->session()->pull('results'),
+            'plugin_slots' => fn (): array => app(PluginSlots::class)->renderMany(
+                PluginSlots::SVELTE_SLOTS,
+                ['request' => $request, 'actor' => $request->user()],
+            ),
             'flash' => function () use ($request)
             {
                 $messages = [];

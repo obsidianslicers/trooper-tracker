@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models\Observers;
 
+use App\Enums\EventTrooperStatus;
+use App\Events\TrooperSignupStatusChanged;
 use App\Facades\TroopTrackerFacade;
 use App\Jobs\UpdateEventForumThreadJob;
 use App\Models\EventTrooper;
@@ -31,6 +33,8 @@ class EventTrooperObserver
         {
             $this->queueForumThreadSync($event_trooper);
         }
+
+        $this->dispatchStatusChange($event_trooper);
     }
 
     public function deleted(EventTrooper $event_trooper): void
@@ -41,6 +45,25 @@ class EventTrooperObserver
     public function restored(EventTrooper $event_trooper): void
     {
         $this->queueForumThreadSync($event_trooper);
+    }
+
+    /**
+     * A restore is a new signup (TrooperSignedUp covers it), not a status change.
+     */
+    private function dispatchStatusChange(EventTrooper $event_trooper): void
+    {
+        if (!$event_trooper->wasChanged(EventTrooper::STATUS)
+            || $event_trooper->wasChanged(EventTrooper::DELETED_AT))
+        {
+            return;
+        }
+
+        $previous = $event_trooper->getOriginal(EventTrooper::STATUS);
+
+        TrooperSignupStatusChanged::dispatch(
+            $event_trooper,
+            $previous instanceof EventTrooperStatus ? $previous : EventTrooperStatus::tryFrom((string) $previous),
+        );
     }
 
     private function queueForumThreadSync(EventTrooper $event_trooper): void

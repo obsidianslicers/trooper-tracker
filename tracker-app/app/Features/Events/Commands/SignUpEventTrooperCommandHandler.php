@@ -10,6 +10,7 @@ use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipRole;
 use App\Enums\RosterAction;
+use App\Events\TrooperSignedUp;
 use App\Jobs\CreateTrooperFriendshipJob;
 use App\Jobs\SendEventRosterActivityNotificationsJob;
 use App\Models\Costume;
@@ -113,6 +114,8 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
         }
 
         $message->trooper->notify(new TrooperSignedUpNotification($event_trooper));
+
+        TrooperSignedUp::dispatch($event_trooper);
 
         dispatch(new SendEventRosterActivityNotificationsJob($event_trooper, RosterAction::SIGNED_UP));
 

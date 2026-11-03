@@ -65,4 +65,15 @@ class PluginSlotsTest extends TestCase
 
         $this->assertStringContainsString('Hey, Cody!', $html);
     }
+
+    public function test_render_many_returns_only_slots_with_output(): void
+    {
+        $this->subject->add('filled', 'slot-test::greeting', ['greeting' => 'Hi']);
+        $this->subject->add('hidden', 'slot-test::greeting', ['greeting' => 'No'], fn (): bool => false);
+
+        $result = $this->subject->renderMany(['filled', 'hidden', 'empty'], ['name' => 'Rex']);
+
+        $this->assertSame(['filled'], array_keys($result));
+        $this->assertStringContainsString('Hi, Rex!', $result['filled']);
+    }
 }

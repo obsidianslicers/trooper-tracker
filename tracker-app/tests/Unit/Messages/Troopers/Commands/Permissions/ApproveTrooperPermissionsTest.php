@@ -7,6 +7,7 @@ namespace Tests\Unit\Messages\Troopers\Commands\Permissions;
 use App\Enums\MembershipRole;
 use App\Enums\OauthProvider;
 use App\Enums\PermissionRequestStatus;
+use App\Events\TrooperPermissionsApproved;
 use App\Exceptions\ForumGroupUpdateException;
 use App\Jobs\SendPermissionRequestReviewedNotificationsJob;
 use App\Messages\Troopers\Commands\Permissions\ApproveTrooperPermissions;
@@ -17,6 +18,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Event as EventFacade;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Tests\TestCase;
@@ -306,5 +308,20 @@ class ApproveTrooperPermissionsTest extends TestCase
         ]);
 
         return $trooper;
+    }
+
+    public function test_handle_fires_trooper_permissions_approved(): void
+    {
+        EventFacade::fake([TrooperPermissionsApproved::class]);
+        $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+        $permission_request = PermissionRequest::factory()
+            ->forTrooper(Trooper::factory()->asMember()->create())
+            ->withRole(MembershipRole::MODERATOR, [$organization->id])
+            ->create();
+
+        $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
+        $subject->handle();
+
+        EventFacade::assertDispatched(TrooperPermissionsApproved::class, fn (TrooperPermissionsApproved $approved): bool => $approved->permission_request->is($permission_request));
     }
 }

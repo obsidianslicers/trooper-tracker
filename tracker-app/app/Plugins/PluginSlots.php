@@ -14,9 +14,19 @@ use Throwable;
  *
  * Core views render a slot with the @pluginSlot('name') Blade directive. Each
  * entry is rendered with the view's own variables plus the entry's data.
+ *
+ * Svelte pages cannot render Blade, so the slots listed in SVELTE_SLOTS are
+ * rendered to HTML on the server and shared with every Inertia page as the
+ * "plugin_slots" prop, which the <PluginSlot name="..."> component displays.
  */
 class PluginSlots
 {
+    public const SVELTE_SLOTS = [
+        'account.profile.sections',
+        'account.pending.sections',
+        'admin.troopers.approvals.sections',
+    ];
+
     /**
      * @var array<string, array<int, array{view: string, data: array|Closure, when: ?Closure, order: int}>>
      */
@@ -53,6 +63,30 @@ class PluginSlots
         return $entries
             ->map(fn (array $entry): string => $this->renderEntry($slot, $entry, $context))
             ->implode('');
+    }
+
+    /**
+     * Render several slots at once, leaving out the empty ones.
+     *
+     * @param  array<int, string>  $slots
+     * @param  array<string, mixed>  $context
+     * @return array<string, string> Rendered HTML keyed by slot name.
+     */
+    public function renderMany(array $slots, array $context = []): array
+    {
+        $rendered = [];
+
+        foreach ($slots as $slot)
+        {
+            $html = $this->has($slot) ? $this->render($slot, $context) : '';
+
+            if ($html !== '')
+            {
+                $rendered[$slot] = $html;
+            }
+        }
+
+        return $rendered;
     }
 
     private function renderEntry(string $slot, array $entry, array $context): string
