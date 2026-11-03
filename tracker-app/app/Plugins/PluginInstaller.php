@@ -30,6 +30,7 @@ final class PluginInstaller
         private readonly PluginManager $plugins,
         private readonly PluginDiscovery $discovery,
         private readonly Filesystem $files,
+        private readonly PluginRequirements $requirements,
     ) {}
 
     public function install(string $archive_path): PluginManifest
@@ -42,6 +43,7 @@ final class PluginInstaller
             $entries = $this->entries($zip);
             $root = $this->root($entries);
             $manifest = $this->manifest($zip, $root, $uploads_path);
+            $this->checkRequirements($zip, $root);
             $this->extract($zip, $entries, $root, $manifest->path);
         }
         finally
@@ -191,6 +193,22 @@ final class PluginInstaller
         }
 
         return $manifest;
+    }
+
+    private function checkRequirements(ZipArchive $zip, string $root): void
+    {
+        $json = $zip->getFromName($root.'composer.json');
+        $composer = $json === false ? null : json_decode($json, true);
+        $required = is_array($composer) ? (array) ($composer['require'] ?? []) : [];
+        $missing = $this->requirements->missing($required);
+
+        if ($missing !== [])
+        {
+            throw new PluginInstallException(
+                'This plugin needs packages the app does not have: '.implode(', ', $missing)
+                .'. Install it with Composer instead of uploading it.'
+            );
+        }
     }
 
     /**

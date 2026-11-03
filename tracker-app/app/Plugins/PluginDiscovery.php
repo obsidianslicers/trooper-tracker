@@ -47,14 +47,21 @@ class PluginDiscovery
     {
         $manifests = [];
 
-        foreach ($this->composerPaths() as $path)
+        $composer_paths = $this->composerPaths();
+
+        foreach ($composer_paths as $path)
         {
             $this->addManifest($manifests, $path, true);
         }
 
         foreach ($this->localPaths() as $path)
         {
-            $this->addManifest($manifests, $path, false);
+            // A local folder required through the "plugins/*" path repository is
+            // already listed as a Composer package.
+            if (!in_array(realpath($path) ?: $path, $composer_paths, true))
+            {
+                $this->addManifest($manifests, $path, false);
+            }
         }
 
         ksort($manifests);

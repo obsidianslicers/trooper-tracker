@@ -8,8 +8,18 @@
         "framework"
     ],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "plugins/*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "require": {
         "php": "^8.2",
+        "composer/semver": "^3.4",
         "google/apiclient": "^2.18",
         "inertiajs/inertia-laravel": "^2.0",
         "intervention/image": "^3.11",

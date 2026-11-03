@@ -49,7 +49,7 @@ TRACKER_PLUGINS_MAX_UNZIPPED_KB=51200
 TRACKER_PLUGINS_MAX_UPLOAD_FILES=2000
 ```
 
-The zip holds the plugin folder: `plugin.json` either at the top of the zip or inside one top folder (`greeter/plugin.json`). A local plugin's `namespace` is required, as for any local plugin. Composer dependencies cannot be installed from the browser, so a plugin that needs other packages has to be installed with Composer.
+The zip holds the plugin folder: `plugin.json` either at the top of the zip or inside one top folder (`greeter/plugin.json`). A local plugin's `namespace` is required, as for any local plugin. An upload cannot install packages (see [Packages a plugin needs](#packages-a-plugin-needs)), so if the zip's `composer.json` requires anything the app doesn't already have, the upload is refused and names what is missing.
 
 Before anything is written, the upload is refused if it:
 
@@ -61,6 +61,14 @@ Before anything is written, the upload is refused if it:
 Files are unpacked into a temporary folder and moved into place only once every file is written. The plugin is installed **disabled**, so none of its code runs until an administrator enables it. Each upload is written to the log with the administrator's trooper ID.
 
 Uploaded plugins go to `storage/app/plugins`, outside the git checkout, so a deploy (`git reset --hard`) never removes or overwrites them. The Plugins page lists them with the source "Uploaded". To update one, uninstall it and upload the new version; uninstalling deletes its data.
+
+### Packages a plugin needs
+
+A plugin lists the packages it needs in its own `composer.json` `require` section, and Composer installs them together with the app's packages. Composer resolves everything as one set, so a plugin can't pull in a version that clashes with the app's.
+
+- **Composer package plugins:** `composer require vendor/plugin` installs the plugin and its packages. Commit `composer.json` and `composer.lock`; the deploy's `composer install` does the rest.
+- **Plugins in this repo:** the app's `composer.json` has a path repository for `plugins/*`. A local plugin with a `composer.json` (`make:plugin --composer` writes one) is installed with `composer require trooptracker/<slug>`, which pulls in its packages and symlinks the folder into `vendor/`. It is then listed once, as a Composer package. Keep a `version` in the plugin's `composer.json` so the lock file does not depend on the branch name. A local plugin with no packages of its own needs none of this.
+- **Uploaded plugins:** these can only use what the app already has. On upload, the plugin's `composer.json` `require` list is checked against the installed packages, PHP extensions and PHP version, and the zip is refused if anything is missing.
 
 ---
 

@@ -112,6 +112,28 @@ class InstallSubmitControllerTest extends TestCase
         $this->postArchive($files)->assertSessionHasErrors('archive');
     }
 
+    public function test_invoke_refuses_a_plugin_that_needs_missing_packages(): void
+    {
+        $files = $this->greeterFiles() + ['greeter/composer.json' => (string) json_encode([
+            'require' => ['php' => '^8.2', 'acme/not-installed' => '^1.0'],
+        ])];
+
+        $this->postArchive($files)
+            ->assertSessionHasErrors(['archive' => 'This plugin needs packages the app does not have: '
+                .'acme/not-installed ^1.0. Install it with Composer instead of uploading it.']);
+
+        $this->assertDirectoryDoesNotExist($this->uploads_path.'/greeter');
+    }
+
+    public function test_invoke_accepts_a_plugin_that_only_needs_packages_the_app_has(): void
+    {
+        $files = $this->greeterFiles() + ['greeter/composer.json' => (string) json_encode([
+            'require' => ['php' => '>=8.2', 'laravel/framework' => '>=11.0', 'ext-json' => '*'],
+        ])];
+
+        $this->postArchive($files)->assertSessionHas('success');
+    }
+
     public function test_invoke_refuses_a_file_that_is_not_a_zip(): void
     {
         $trooper = Trooper::factory()->asAdministrator()->create();
