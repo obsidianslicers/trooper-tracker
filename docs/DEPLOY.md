@@ -221,7 +221,7 @@ php artisan db:seed --force
 
 #### Plugins
 
-Plugins are off until enabled. If the site posts events to Discord, enable the Discord plugin once (it moved out of core). Enabling copies each organization's Discord mention into the plugin, checks every copy, and only then drops the old `tt_organizations.discord_mention` column. If a copy does not match, it stops and keeps the column:
+Plugins are off until enabled. If the site posts events to Discord, enable the Discord plugin once (it moved out of core). Enabling copies each organization's Discord mention into the plugin's own table; the old `tt_organizations.discord_mention` column is left alone until a later release drops it:
 
 ```bash
 php artisan plugins:enable discord

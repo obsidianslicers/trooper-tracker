@@ -268,7 +268,7 @@ Each entry in `settings` becomes a field on the plugin's Settings page. Types: `
 - its own table (`tt_discord_organization_mentions`), created by a plugin migration
 - a field on the organization edit form (`admin.organizations.update.fields` slot + `extendForm`)
 - a System Check row (`addSystemCheck`)
-- plugin migrations that move data out of a core column safely
+- a plugin migration that copies data out of a core column without changing core tables
 
 ### Turning Discord on
 
@@ -282,14 +282,10 @@ or use **Command Staff > Plugins > Enable**.
 
 ### The organization mentions move
 
-Each organization's Discord mention used to live in core's `tt_organizations.discord_mention`. Enabling the plugin runs two plugin migrations:
+Each organization's Discord mention used to live in core's `tt_organizations.discord_mention`. The move happens in two steps, each owned by whoever owns the data:
 
-1. The first creates `tt_discord_organization_mentions` and **copies** every non-empty value into it.
-2. The second compares every old value with its copy. Only if all of them match does it drop `tt_organizations.discord_mention`. If any is missing or different, it stops with the organization IDs, the column stays, and the plugin is not enabled.
-
-Uninstalling the plugin rolls these back in reverse: the column is added back and filled from the plugin's table (including later edits), then the plugin's table is dropped. Enabling again moves them over once more, so a mention is never lost.
-
-After the column is dropped on production, regenerate the base models (`php artisan code:models`) so `Organization` stops listing `discord_mention`.
+1. **The plugin copies.** Enabling it runs its migration, which creates `tt_discord_organization_mentions` and copies every non-empty value into it. The plugin never changes core tables, and core no longer reads or writes the old column. Uninstalling drops only the plugin's table; enabling again copies from the old column once more.
+2. **Core drops the column, in a later release.** Once production has the plugin enabled, one ordinary core migration drops `tt_organizations.discord_mention`, with the regenerated `Organization` model committed alongside it. Before dropping, it copies any value the plugin table is missing. If a site has mentions but never enabled the plugin, it refuses to run rather than lose them.
 
 A fresh database seeded with the Florida Garrison data no longer gets mentions from the core seeder. With the plugin enabled, seed them from the plugin:
 

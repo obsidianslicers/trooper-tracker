@@ -12,8 +12,9 @@ use Illuminate\Support\Facades\Schema;
  * Moves each organization's Discord mention out of core's tt_organizations table
  * into a table the Discord plugin owns.
  *
- * Every non-empty value is copied here. The next migration checks each copy and
- * only then drops the old tt_organizations.discord_mention column.
+ * Every non-empty value is copied here. The plugin never changes core tables:
+ * tt_organizations.discord_mention is left alone and is dropped later by a core
+ * migration.
  */
 return new class extends Migration {
     public function up(): void
