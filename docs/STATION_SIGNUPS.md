@@ -63,7 +63,7 @@ When a station is selected, `EventRosterCapacityService::canGo()` decides the st
 
 If any of those limits is full, the signup becomes `STAND_BY`. A non-handler signup that clears all capacity limits still lands on `PENDING`, not `GOING`, until it has a costume decision — see [Costume Decision Requirement](EVENTS.md#costume-decision-requirement) in `docs/EVENTS.md`.
 
-While a shift is open, signup owners can switch their own station from the event page. The switch is handled by `ChangeEventTrooperStationCommand`: moving into a full station demotes a `GOING` signup to `STAND_BY`, and vacating a full station promotes the earliest standby from that station's queue. Admins can also edit station assignments from the admin roster backend.
+While a shift is open, signup owners can switch their own station from the event page. The switch is handled by `ChangeEventTrooperStation`: moving into a full station demotes a `GOING` signup to `STAND_BY`, and vacating a full station promotes the earliest standby from that station's queue. Admins can also edit station assignments from the admin roster backend.
 
 ---
 
@@ -88,9 +88,9 @@ For a shift with no stations:
 
 Standby promotion is station-scoped when a station is involved.
 
-If a `GOING` trooper leaves a full station, `PromoteNextInLineEventTrooperCommand` promotes the earliest eligible `STAND_BY` trooper assigned to that same station. Candidates are evaluated in `signed_up_at ASC, id ASC` order and promoted only when every applicable limit (event, organization, station) has room.
+If a `GOING` trooper leaves a full station, `PromoteNextInLineEventTrooper` promotes the earliest eligible `STAND_BY` trooper assigned to that same station. Candidates are evaluated in `signed_up_at ASC, id ASC` order and promoted only when every applicable limit (event, organization, station) has room.
 
-Saving the shift form with station changes dispatches `ReconcileEventRosterJob`, which reconciles the whole event roster through `ReconcileEventRosterCommandHandler` — the same path used when event or organization limits change. The reconcile walks each shift in deterministic queue order (`signed_up_at ASC, id ASC`) and re-assigns `GOING` / `STAND_BY` against the current limits:
+Saving the shift form with station changes dispatches `ReconcileEventRosterJob`, which reconciles the whole event roster through `ReconcileEventRoster` — the same path used when event or organization limits change. The reconcile walks each shift in deterministic queue order (`signed_up_at ASC, id ASC`) and re-assigns `GOING` / `STAND_BY` against the current limits:
 
 - Raising a station's requested count promotes the oldest eligible standbys while the station (and every other applicable limit) has room.
 - Lowering a station's requested count below the current `GOING` count demotes the overflow; the newest signups are demoted first so earlier signups keep priority.
@@ -156,7 +156,7 @@ If a shift has no stations, all station behavior is bypassed and legacy signup l
 | Migrations | `database/migrations/2026_07_06_000002_create_event_shift_stations_table.php`, `database/migrations/2026_07_06_000003_add_event_shift_station_id_to_event_troopers_table.php` |
 | Models | `app/Models/EventShiftStation.php`, `app/Models/EventShift.php`, `app/Models/EventTrooper.php` |
 | Capacity decisions | `app/Services/EventRosterCapacityService.php` |
-| Domain commands | `app/Features/Events/Commands/SignUpEventTrooperCommandHandler.php`, `app/Features/Events/Commands/ChangeEventTrooperStationCommandHandler.php`, `app/Features/Events/Commands/PromoteNextInLineEventTrooperCommandHandler.php`, `app/Features/Events/Commands/ReconcileEventRosterCommandHandler.php`, `app/Features/Events/Commands/UpdateEventShiftStationsCommandHandler.php`, `app/Features/Events/Commands/RemoveEventShiftStationCommandHandler.php`, `app/Features/Events/Commands/ReorderEventShiftStationsCommandHandler.php` |
+| Domain commands | `app/Messages/Events/Commands/SignUpEventTrooper.php`, `app/Messages/Events/Commands/ChangeEventTrooperStation.php`, `app/Messages/Events/Commands/PromoteNextInLineEventTrooper.php`, `app/Messages/Events/Commands/ReconcileEventRoster.php`, `app/Messages/Events/Commands/UpdateEventShiftStations.php`, `app/Messages/Events/Commands/RemoveEventShiftStation.php`, `app/Messages/Events/Commands/ReorderEventShiftStations.php` |
 | Admin shift editor | `resources/views/pages/admin/events/shifts.blade.php`, `app/Http/Controllers/Admin/Events/UpdateShiftsSubmitController.php` |
 | Admin roster editor | `resources/views/pages/admin/events/troopers.blade.php`, `app/Http/Controllers/Admin/Events/UpdateTroopersSubmitController.php` |
 | Public signup/update | `app/Http/Controllers/Events/SignUpHtmxController.php`, `app/Http/Controllers/Events/SignUpUpdateHtmxController.php` |

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Events\Queries\GetEventsForDisplay;
 use App\Messages\Organizations\Queries\GetOrganizations;
 use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
@@ -18,7 +18,7 @@ use Illuminate\Http\Request;
  * events with their organizations, shifts, and attendance information. Only
  * events where the user's organization can attend are included.
  */
-class ListController extends MagicBusController
+class ListController extends PageController
 {
     /**
      * Handle the incoming request to display the events list page

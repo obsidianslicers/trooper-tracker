@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\SignUpEventTrooper;
 use App\Models\Costume;
 use App\Models\Event;
@@ -14,7 +14,7 @@ use App\Models\Trooper;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-class AddEventTrooperController extends MagicBusController
+class AddEventTrooperController extends PageController
 {
     public function __invoke(Request $request, Event $event, EventShift $event_shift): Response
     {

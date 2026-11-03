@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Organizations;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Organizations\UpdateRequest;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
@@ -15,7 +15,7 @@ use Illuminate\Http\RedirectResponse;
  *
  * Handles the submission of the form for updating an existing organization.
  */
-class UpdateSubmitController extends MagicBusController
+class UpdateSubmitController extends PageController
 {
     /**
      * Handle the incoming request to update an organization

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Events\Queries\GetEventsForModerator;
 use App\Models\Filters\EventFilter;
 use App\Models\Organization;
@@ -18,7 +18,7 @@ use Illuminate\Http\Request;
  *
  * This controller follows the **Action-Domain-Responder (ADR)** pattern:
  * - **Action (Controller):** Orchestrates the request handling and view rendering
- * - **Domain (Query/Handler):** GetEventsForModeratorQuery retrieves events through MagicBus
+ * - **Domain (Message):** GetEventsForModerator retrieves the events
  * - **Responder:** Blade view renders the event list table
  *
  * Key features:
@@ -34,7 +34,7 @@ use Illuminate\Http\Request;
  * - search_term: Search events by name
  * - page: Pagination page number
  */
-class ListController extends MagicBusController
+class ListController extends PageController
 {
     protected function initialized(): void
     {
@@ -47,7 +47,7 @@ class ListController extends MagicBusController
      * Orchestrates the event retrieval workflow:
      * 1. Authenticates the trooper (via middleware)
      * 2. Retrieves organization filter if provided
-     * 3. Dispatches GetEventsForModeratorQuery via MagicBus for filtered, paginated results
+     * 3. Calls GetEventsForModerator for filtered, paginated results
      * 4. Prepares view data with events, filters, and status options
      *
      * @param  Request  $request  The incoming HTTP request with optional filter parameters

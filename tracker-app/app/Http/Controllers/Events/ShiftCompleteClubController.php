@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\UpdateEventTrooper;
 use App\Models\EventTrooper;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -23,7 +23,7 @@ use ValueError;
  * Accepts one or more parent organization IDs and narrows costume_organization_ids
  * to only the child orgs belonging to the selected parents.
  */
-class ShiftCompleteClubController extends MagicBusController
+class ShiftCompleteClubController extends PageController
 {
     protected function initialized(): void
     {

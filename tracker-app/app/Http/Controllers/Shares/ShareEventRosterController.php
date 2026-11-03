@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shares;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Events\Queries\GetSharedEventRoster;
 use App\Models\EventShare;
 use Illuminate\Contracts\View\View;
@@ -18,13 +18,13 @@ use Illuminate\Http\Request;
  * roster data. The view layer conditionally displays content based on the
  * share's viewability status (revocation and expiry).
  */
-class ShareEventRosterController extends MagicBusController
+class ShareEventRosterController extends PageController
 {
     /**
      * Handle the incoming request and return the roster for a share token.
      *
      * Increments the share's `view_count` and retrieves the event roster data
-     * via `GetSharedEventRosterQuery`. Returns the roster view which will
+     * via `GetSharedEventRoster`. Returns the roster view which will
      * conditionally display content based on the share's viewability (revoked
      * and expiry status are checked in the view layer).
      *

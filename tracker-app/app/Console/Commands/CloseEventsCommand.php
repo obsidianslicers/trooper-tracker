@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
  * Artisan command to close events that have ended.
  *
  * This command orchestrates the process of identifying and closing events
- * whose end date has passed. It delegates the query logic to GetEventsToCloseQuery
+ * whose end date has passed. It delegates the query logic to GetEventsToClose
  * service and updates each event's status to CLOSED.
  */
 class CloseEventsCommand extends Command
@@ -37,7 +37,7 @@ class CloseEventsCommand extends Command
      * Execute the console command.
      *
      * Orchestrates the event closing process by:
-     * 1. Dispatching GetEventsToCloseQuery to retrieve active events that have ended
+     * 1. Dispatching GetEventsToClose to retrieve active events that have ended
      * 2. Updating each event's status to CLOSED
      *
      * @param  XenforoService  $xenforo  The XenForo API service for moving threads

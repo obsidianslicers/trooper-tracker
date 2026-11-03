@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Event;
 use App\Models\EventShift;
 use Illuminate\Contracts\View\View;
@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * Provides administrators and moderators with a form to manage event shifts,
  * including creating new shifts and updating existing shift times.
  */
-class UpdateShiftsController extends MagicBusController
+class UpdateShiftsController extends PageController
 {
     protected function initialized(): void
     {

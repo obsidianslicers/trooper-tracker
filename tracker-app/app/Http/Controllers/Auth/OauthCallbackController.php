@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Auth;
 use App\Enums\FlashType;
 use App\Enums\OauthProvider;
 use App\Facades\TroopTracker;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Services\Forums\XenforoService;
@@ -28,7 +28,7 @@ use Laravel\Socialite\Two\InvalidStateException;
  * - Initiating registration flow for new troopers
  * - Linking OAuth providers to existing trooper accounts
  */
-class OauthCallbackController extends MagicBusController
+class OauthCallbackController extends PageController
 {
     private TroopTracker $troop_tracker;
 

@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
  * This controller renders the public landing page. For authenticated troopers,
  * it redirects to the events list. For guests, it displays the home page.
  */
-class HomeController extends MagicBusController
+class HomeController extends PageController
 {
     /**
      * Handle the incoming request to display the home page.

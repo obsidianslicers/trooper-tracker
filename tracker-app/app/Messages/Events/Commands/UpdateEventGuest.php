@@ -11,7 +11,7 @@ use Hyperdrive\Message;
  * Carries the data required to update an event guest's sign-up information.
  *
  * Encapsulates an EventGuest record and validated attributes, such as status
- * changes or name corrections, to be applied by UpdateEventGuestCommandHandler.
+ * changes or name corrections, to be applied by UpdateEventGuest.
  *
  * @method static void call(EventGuest $event_guest, array $valid_data)
  */

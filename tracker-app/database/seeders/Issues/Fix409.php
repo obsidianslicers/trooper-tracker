@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Issues;
 
-use App\Bus\MagicBus;
 use App\Enums\AchievementType;
 use App\Enums\EventTrooperStatus;
 use App\Mail\Fix409OutstandingCredit;
@@ -50,7 +49,7 @@ class Fix409 extends Seeder
     /** @var array<int, array<string, mixed>> */
     private array $outstanding_rows = [];
 
-    public function run(MagicBus $bus): void
+    public function run(): void
     {
         $this->counts = array_fill_keys([
             'rows_checked', 'impossible_credit_removed', 'rows_trimmed', 'rows_reresolved',
@@ -69,7 +68,7 @@ class Fix409 extends Seeder
             $this->printSummary();
         });
 
-        $this->emailAdministrators($bus, Fix409OutstandingCredit::class, $this->outstanding_rows);
+        $this->emailAdministrators(Fix409OutstandingCredit::class, $this->outstanding_rows);
     }
 
     private function checkCreditedRows(): void
@@ -205,7 +204,7 @@ class Fix409 extends Seeder
     }
 
     /**
-     * Counts the same way RecalculateTrooperRankCommandHandler does (creditedOrgIds(): costume
+     * Counts the same way RecalculateTrooperRank does (creditedOrgIds(): costume
      * ids, else organization_id) so a milestone removed here is never recreated by it.
      *
      * @return array<int, array<int, int>> [trooper_id][root_id] => credited attended rows

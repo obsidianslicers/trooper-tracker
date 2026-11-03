@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Events\GuestUpdateHtmxRequest;
 use App\Messages\Events\Commands\UpdateEventGuest;
 use App\Messages\Events\Queries\GetEventShiftDisplay;
@@ -18,9 +18,9 @@ use Illuminate\Support\Facades\Auth;
  * Handles HTMX-driven updates to event guest details.
  *
  * Processes validated guest update payloads and dispatches an
- * {@see UpdateEventGuestCommand} through the magic bus.
+ * {@see UpdateEventGuest} through the magic bus.
  */
-class GuestUpdateHtmxController extends MagicBusController
+class GuestUpdateHtmxController extends PageController
 {
     /**
      * Processes an HTMX guest update request.

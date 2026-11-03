@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Notices;
 
 use App\Enums\NoticeType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
  *
  * Handles displaying the form to create a new notice.
  */
-class CreateController extends MagicBusController
+class CreateController extends PageController
 {
     protected function initialized(): void
     {

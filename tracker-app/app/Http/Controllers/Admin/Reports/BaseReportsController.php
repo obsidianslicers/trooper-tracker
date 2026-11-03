@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 
-class BaseReportsController extends MagicBusController
+class BaseReportsController extends PageController
 {
     protected function initialized(): void
     {

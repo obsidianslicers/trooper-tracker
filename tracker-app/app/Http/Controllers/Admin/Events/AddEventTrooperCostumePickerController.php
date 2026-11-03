@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
@@ -12,7 +12,7 @@ use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
-class AddEventTrooperCostumePickerController extends MagicBusController
+class AddEventTrooperCostumePickerController extends PageController
 {
     public function __invoke(Request $request, Event $event, EventShift $event_shift): View
     {

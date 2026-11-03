@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Troopers\Queries\Membership\GetTrooperOrganizationMemberships;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * Presents organizational memberships and related assignments for a given trooper
  * so administrators and moderators can review or adjust membership details.
  */
-class MembershipController extends MagicBusController
+class MembershipController extends PageController
 {
     protected function initialized(): void
     {

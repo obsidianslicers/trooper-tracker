@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Event;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
  * before submission. This allows easy creation of similar events without manual
  * data entry.
  */
-class CopyController extends MagicBusController
+class CopyController extends PageController
 {
     protected function initialized(): void
     {

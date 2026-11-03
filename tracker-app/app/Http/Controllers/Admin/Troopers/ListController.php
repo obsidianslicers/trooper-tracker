@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\MembershipStatus;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Filters\TrooperFilter;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -22,7 +22,7 @@ use Illuminate\Http\Request;
  * based on the authenticated user's role. Administrators see all troopers, while
  * other roles see only the troopers they are assigned to moderate.
  */
-class ListController extends MagicBusController
+class ListController extends PageController
 {
     private const SORT_COLS = [
         Trooper::DISPLAY_NAME => 'Name / Email',

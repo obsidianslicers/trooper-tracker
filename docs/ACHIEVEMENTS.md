@@ -21,10 +21,10 @@ php artisan tracker:calculate-trooper-achievements
 
 The scheduler runs this daily at 2:00 AM in `routes/console.php`.
 
-The command dispatches `RecalculateTrooperRankCommand`, handled by:
+The command dispatches `RecalculateTrooperRank`, handled by:
 
 ```text
-app/Features/Troopers/Commands/RecalculateTrooperRankCommandHandler.php
+app/Messages/Troopers/Commands/RecalculateTrooperRank.php
 ```
 
 The handler processes troopers in chunks and writes rows to `tt_trooper_achievements`.
@@ -180,13 +180,13 @@ Club-scoped milestones use the same notification path as global milestones. Noti
 Recent milestone activity is loaded by:
 
 ```text
-app/Features/Troopers/Queries/GetTrooperAchievementsQueryHandler.php
+app/Messages/Troopers/Queries/GetTrooperAchievements.php
 ```
 
 Trooper service-record summaries are loaded by:
 
 ```text
-app/Features/Troopers/Queries/GetTrooperServiceRecordQueryHandler.php
+app/Messages/Troopers/Queries/GetTrooperServiceRecord.php
 ```
 
 Service-record milestones are grouped in this order:
@@ -206,11 +206,11 @@ Service-record milestones are grouped in this order:
 2. Update `valueType()` if the achievement is numeric.
 3. Add icon/title/description handling in `toIcon()`, `toTitle()`, and `toDescription()`.
 4. Add the case to `isMilestone()` if it should appear in milestone feeds and trigger milestone notifications.
-5. Add calculation logic in `RecalculateTrooperRankCommandHandler`.
+5. Add calculation logic in `RecalculateTrooperRank`.
 6. Add display ordering/grouping in `TrooperAchievement` if needed.
 7. Add tests for calculation, storage, display, and notification behavior.
 
-For another troop-count threshold, add it to the threshold map in `RecalculateTrooperRankCommandHandler`. The same threshold map is used for both global and club-scoped troop milestones.
+For another troop-count threshold, add it to the threshold map in `RecalculateTrooperRank`. The same threshold map is used for both global and club-scoped troop milestones.
 
 For a non-troop club achievement, decide whether it should be global-only or organization-scoped before adding storage/calculation behavior.
 
@@ -235,9 +235,9 @@ Run focused tests:
 ```bash
 php artisan test \
   tests/Feature/Models/TrooperAchievementTest.php \
-  tests/Feature/Features/Troopers/Commands/RecalculateTrooperRankCommandHandlerTest.php \
-  tests/Feature/Features/Troopers/Queries/GetTrooperAchievementsQueryHandlerTest.php \
-  tests/Feature/Features/Troopers/Queries/GetTrooperServiceRecordQueryHandlerTest.php \
+  tests/Unit/Messages/Troopers/Commands/RecalculateTrooperRankTest.php \
+  tests/Unit/Messages/Troopers/Queries/GetTrooperAchievementsTest.php \
+  tests/Unit/Messages/Troopers/Queries/GetTrooperServiceRecordTest.php \
   tests/Feature/Jobs/SendTrooperMilestoneNotificationsJobTest.php \
   tests/Feature/Mail/Admin/Troopers/TrooperMilestoneMailTest.php
 ```

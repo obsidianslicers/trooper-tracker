@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Organizations\Queries\GetOrganizations;
 use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use App\Messages\Reports\Queries\GetEventSummary;
@@ -18,7 +18,7 @@ use Illuminate\Http\Request;
  * from the complete event history with their organizations, shifts,
  * and attendance information.
  */
-class ClosedController extends MagicBusController
+class ClosedController extends PageController
 {
     /**
      * Handle the incoming request to display the closed events list page

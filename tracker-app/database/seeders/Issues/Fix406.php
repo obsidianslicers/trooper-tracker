@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Issues;
 
-use App\Bus\MagicBus;
 use App\Enums\EventTrooperStatus;
 use App\Mail\Fix406OutstandingCredit;
 use App\Models\EventTrooper;
@@ -30,7 +29,7 @@ class Fix406 extends Seeder
     /** @var array<int, array<string, mixed>> */
     private array $outstanding_rows = [];
 
-    public function run(MagicBus $bus): void
+    public function run(): void
     {
         $this->counts = array_fill_keys(
             ['scanned', 'resolved_tt1', 'resolved_tt2', 'outstanding'],
@@ -47,7 +46,7 @@ class Fix406 extends Seeder
             $this->printSummary();
         });
 
-        $this->emailAdministrators($bus, Fix406OutstandingCredit::class, $this->outstanding_rows);
+        $this->emailAdministrators(Fix406OutstandingCredit::class, $this->outstanding_rows);
     }
 
     private function printSummary(): void

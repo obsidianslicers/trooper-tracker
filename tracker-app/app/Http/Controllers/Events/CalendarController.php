@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Events\Queries\GetEventsForDisplay;
 use App\Messages\Organizations\Queries\GetOrganizations;
 use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
@@ -19,7 +19,7 @@ use Illuminate\Http\Request;
  * events grouped by date. Each month displays weeks with events marked
  * on their corresponding dates.
  */
-class CalendarController extends MagicBusController
+class CalendarController extends PageController
 {
     /**
      * Handle the incoming request to display the calendar page

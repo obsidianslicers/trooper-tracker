@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Troopers\MembershipRequest;
 use App\Messages\Troopers\Commands\UpdateTrooperIdentifiers;
 use App\Messages\Troopers\Commands\UpdateTrooperMemberships;
@@ -19,7 +19,7 @@ use Illuminate\Http\RedirectResponse;
  * and identifiers via UpdateTrooperIdentifiers and UpdateTrooperMemberships.
  * Moderators are restricted to organizations within their moderation scope.
  */
-class MembershipSubmitController extends MagicBusController
+class MembershipSubmitController extends PageController
 {
     /**
      * Handle the incoming request to update a trooper's organization memberships

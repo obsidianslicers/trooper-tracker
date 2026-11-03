@@ -35,8 +35,8 @@ class SendDailyEventNotifications extends Command
      * Execute the console command.
      *
      * Orchestrates the daily notification process by:
-     * 1. Dispatching GetTroopersForDailyEventNotificationsQuery to retrieve troopers
-     * 2. Dispatching SendEventDailyNotificationCommand for each trooper
+     * 1. Dispatching GetTroopersForDailyEventNotifications to retrieve troopers
+     * 2. Dispatching SendEventDailyNotification for each trooper
      */
     public function handle(): void
     {

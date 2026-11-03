@@ -50,7 +50,7 @@ All business logic reads `$shift->effective_charity_hours` — never `charity_ho
 
 ### Rank calculation
 
-`app/Features/Troopers/Commands/RecalculateTrooperRankCommandHandler.php`
+`app/Messages/Troopers/Commands/RecalculateTrooperRank.php`
 
 Sums `effective_charity_hours` across all of a trooper's attended shifts to compute total
 volunteer hours for rank thresholds.

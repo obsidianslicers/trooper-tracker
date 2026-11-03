@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Costumes;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Costume;
 use App\Models\Organization;
 use Illuminate\Contracts\View\View;
@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * An invokable controller that authorizes the user, retrieves the costume,
  * and renders the costume update form with available organization assignments.
  */
-class UpdateController extends MagicBusController
+class UpdateController extends PageController
 {
     /**
      * Set up breadcrumbs for the costume update page.

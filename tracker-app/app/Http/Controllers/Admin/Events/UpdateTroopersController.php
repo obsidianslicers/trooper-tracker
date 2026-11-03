@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Events\Queries\GetTroopersForEventAdmin;
 use App\Models\Event;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
-class UpdateTroopersController extends MagicBusController
+class UpdateTroopersController extends PageController
 {
     protected function initialized(): void
     {

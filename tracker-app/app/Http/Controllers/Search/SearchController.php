@@ -6,12 +6,12 @@ namespace App\Http\Controllers\Search;
 
 use App\Enums\SearchType;
 use App\Enums\TrooperTheme;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Search\Queries\GlobalSearch;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class SearchController extends MagicBusController
+class SearchController extends PageController
 {
     public function __invoke(Request $request): View
     {

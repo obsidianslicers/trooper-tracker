@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Organizations;
 
 use App\Enums\OrganizationType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
  *
  * Handles displaying the form to create a new organization under a parent.
  */
-class CreateController extends MagicBusController
+class CreateController extends PageController
 {
     protected function initialized(): void
     {

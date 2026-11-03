@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Events\Queries\GetEventShiftDisplay;
 use App\Models\EventGuest;
 use App\Models\EventShift;
@@ -19,7 +19,7 @@ use Illuminate\Http\Response;
  * Creates guest records for non-empty names submitted in the
  * newline-delimited guest_names payload.
  */
-class GuestSignUpHtmxController extends MagicBusController
+class GuestSignUpHtmxController extends PageController
 {
     /**
      * Processes an HTMX guest sign-up request.

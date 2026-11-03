@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Costumes;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Costume;
 use App\Models\Filters\CostumeFilter;
 use App\Models\Organization;
@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
  * Retrieves and displays all costumes with their organization assignments,
  * ordered alphabetically.
  */
-class ListController extends MagicBusController
+class ListController extends PageController
 {
     protected function initialized(): void
     {
