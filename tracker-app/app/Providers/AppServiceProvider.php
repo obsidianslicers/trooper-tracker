@@ -9,6 +9,7 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\OauthProvider;
 use App\Mail\Auth\VerifyTrooperEmail;
+use App\Mail\OutgoingMailBudget;
 use App\Models\TrooperRequest;
 use App\Policies\TrooperRequestPolicy;
 use App\Services\BreadCrumbService;
@@ -21,10 +22,12 @@ use Illuminate\Database\Migrations\MigrationRepositoryInterface;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Mail\MailManager;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -106,6 +109,20 @@ class AppServiceProvider extends ServiceProvider
             {
                 $transport->setPingThreshold(10);
             }
+        });
+
+        //
+        //  OUTGOING MAIL BUDGET
+        //  Count every recipient sent to, queued or not, so ThrottleOutgoingMail can
+        //  hold queued mail under MAIL_RECIPIENTS_PER_HOUR.
+        //
+        Event::listen(MessageSending::class, function (MessageSending $event): void
+        {
+            $message = $event->message;
+
+            app(OutgoingMailBudget::class)->record(
+                count($message->getTo()) + count($message->getCc()) + count($message->getBcc())
+            );
         });
 
         Paginator::useBootstrapFive();

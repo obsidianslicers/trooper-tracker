@@ -299,6 +299,13 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **Example**: `[501st FL]`
 - **When to change**: Customize to easily identify emails from your organization
 
+### MAIL_RECIPIENTS_PER_HOUR
+- **Purpose**: Keeps outgoing mail under your host's hourly sending cap. Every recipient (to, cc and bcc) counts over a rolling hour. Queued mail waits for room instead of failing and keeps trying for up to 24 hours; mail sent right away, such as sign-in emails, counts but is never held.
+- **Required**: No
+- **Default**: empty (no limit)
+- **Example**: `90` (DreamHost allows 100 recipients an hour per sending address and blocks the address when it goes over)
+- **When to change**: Set it a little under the cap when your mail goes through a host that limits sending. A big announcement then goes out over several hours. The cap is per address, so give the tracker its own sending address if the forum or anything else shares the host's mail.
+
 ---
 
 ## OAuth Providers
