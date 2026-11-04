@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\ServiceRecords;
 
-use App\Bus\MagicBus;
-use App\Features\Troopers\Queries\GetCommandStaffQuery;
+use App\Messages\Troopers\Queries\GetCommandStaff;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
-use Mockery\MockInterface;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class CommandStaffControllerTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_invoke_requires_authentication(): void
@@ -32,18 +32,13 @@ class CommandStaffControllerTest extends TestCase
             Trooper::factory()->asModerator()->withDisplayName('Bravo Moderator')->create(),
         ]);
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($command_staff): void
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetCommandStaffQuery $query): bool
-                {
-                    return $query instanceof GetCommandStaffQuery;
-                })
-                ->andReturn($command_staff);
-        });
+        $messages = $this->fakeMessages([
+            GetCommandStaff::class => $command_staff,
+        ]);
 
         $response = $this->actingAs($trooper)->get(route('service-records.command-staff'));
+
+        $messages->assertCalled(GetCommandStaff::class);
 
         $response->assertOk();
         $response->assertViewIs('pages.service-records.command-staff');

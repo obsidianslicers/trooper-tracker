@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\FlashType;
-use App\Features\Troopers\Commands\UnvoidTrooperCommand;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Troopers\Commands\UnvoidTrooper;
 use App\Models\Trooper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,7 +17,7 @@ class UnvoidSubmitController extends MagicBusController
     {
         $this->authorize('unvoid', $trooper);
 
-        $this->bus->send(new UnvoidTrooperCommand($trooper));
+        UnvoidTrooper::call(trooper: $trooper);
 
         FlashType::success("{$trooper->display_name} has been restored to pending status.");
 

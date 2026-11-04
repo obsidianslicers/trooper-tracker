@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Bus\MagicBus;
 use App\Enums\MembershipStatus;
 use App\Enums\TrooperRequestStatus;
-use App\Features\Troopers\Commands\SubmitTrooperRequestCommand;
+use App\Messages\Troopers\Commands\SubmitTrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;
@@ -21,7 +20,7 @@ class SimulateTrooperRequestCommand extends Command
 
     protected $description = 'Create a pending club join request for a trooper and output the admin review URL. Dev use only.';
 
-    public function handle(MagicBus $bus): int
+    public function handle(): int
     {
         $trooper_id = $this->argument('trooper_id');
 
@@ -70,7 +69,7 @@ class SimulateTrooperRequestCommand extends Command
             return self::FAILURE;
         }
 
-        $bus->send(new SubmitTrooperRequestCommand($trooper, $organization, null));
+        SubmitTrooperRequest::call(trooper: $trooper, organization: $organization, identifier: null);
 
         $trooper_request = TrooperRequest::where(TrooperRequest::TROOPER_ID, $trooper->id)
             ->where(TrooperRequest::ORGANIZATION_ID, $organization->id)

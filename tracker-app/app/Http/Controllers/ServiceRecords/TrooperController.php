@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\ServiceRecords;
 
 use App\Facades\TroopTrackerFacade;
-use App\Features\Troopers\Queries\GetEventTroopersMissingCreditQuery;
-use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
-use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForDisplay;
+use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
+use App\Messages\Troopers\Queries\GetTrooperServiceRecord;
 use App\Models\Costume;
 use App\Models\Trooper;
 use App\Services\Forums\XenforoService;
@@ -38,13 +38,9 @@ class TrooperController extends MagicBusController
             $this->crumbs->addRoute('Profile', 'account.index');
         }
 
-        $service_record_query = new GetTrooperServiceRecordQuery($trooper->id);
+        $data = GetTrooperServiceRecord::call(trooper_id: $trooper->id);
 
-        $data = $this->bus->send($service_record_query);
-
-        $trooper_costumes_query = new GetTrooperCostumesQuery($data['trooper']);
-
-        $trooper_costumes = $this->bus->send($trooper_costumes_query);
+        $trooper_costumes = GetTrooperCostumesForDisplay::call(trooper: $data['trooper']);
 
         $trooper_costumes = $trooper_costumes->filter(fn ($c) => !in_array($c->name, [Costume::COMMAND_STAFF, Costume::HANDLER]));
 
@@ -93,9 +89,7 @@ class TrooperController extends MagicBusController
 
     private function hasMissingCredit(Trooper $trooper): bool
     {
-        ['total' => $total] = $this->bus->send(
-            new GetEventTroopersMissingCreditQuery(actor: Auth::user(), trooper_id: $trooper->id)
-        );
+        ['total' => $total] = GetEventTroopersMissingCredit::call(actor: Auth::user(), trooper_id: $trooper->id);
 
         return $total > 0;
     }

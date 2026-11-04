@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\FlashType;
-use App\Features\Troopers\Commands\UpdateTrooperAuthorityCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Troopers\AuthorityRequest;
+use App\Messages\Troopers\Commands\UpdateTrooperAuthority;
 use App\Models\Trooper;
 use Illuminate\Http\RedirectResponse;
 
@@ -35,9 +35,11 @@ class AuthoritySubmitController extends MagicBusController
         $membership_role = $request->validated('membership_role');
         $organizations = $request->validated('organizations', []);
 
-        $authority_cmd = new UpdateTrooperAuthorityCommand($trooper, $membership_role, $organizations);
-
-        $this->bus->send($authority_cmd);
+        UpdateTrooperAuthority::call(
+            trooper: $trooper,
+            membership_role: $membership_role,
+            valid_data: $organizations,
+        );
 
         FlashType::updated($trooper);
 

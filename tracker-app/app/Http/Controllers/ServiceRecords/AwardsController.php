@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\ServiceRecords;
 
-use App\Features\Troopers\Queries\GetTrooperAwardsQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Troopers\Queries\GetTrooperAwards;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -24,9 +24,7 @@ class AwardsController extends MagicBusController
     {
         $days = (int) $request->query('days', '30');
 
-        $query = new GetTrooperAwardsQuery($days);
-
-        $award_troopers = $this->bus->send($query);
+        $award_troopers = GetTrooperAwards::call(lookback: $days);
 
         $data = compact('award_troopers', 'days');
 

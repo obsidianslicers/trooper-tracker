@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Features\Troopers\Queries\GetTrooperMembershipsQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Troopers\Queries\Membership\GetTrooperOrganizationMemberships;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -28,7 +28,7 @@ class MembershipController extends MagicBusController
      * Handle the incoming request to display a trooper's membership page
      *
      * This method authorizes the user, sets up breadcrumbs, loads the trooper's
-     * organization memberships via GetTrooperMembershipsQuery, and returns the view
+     * organization memberships via GetTrooperOrganizationMemberships, and returns the view
      * for managing a specific trooper's organization memberships.
      *
      * @param  Request  $request  The incoming HTTP request
@@ -39,9 +39,7 @@ class MembershipController extends MagicBusController
     {
         $this->authorize('update', $trooper);
 
-        $membership_query = new GetTrooperMembershipsQuery($trooper);
-
-        $organization_memberships = $this->bus->send($membership_query);
+        $organization_memberships = GetTrooperOrganizationMemberships::call(trooper: $trooper);
 
         $data = compact('trooper', 'organization_memberships');
 

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Bus\MagicBus;
-use App\Features\Troopers\Commands\RecalculateTrooperRankCommand;
+use App\Messages\Troopers\Commands\RecalculateTrooperRank;
 use Carbon\CarbonInterval;
 use Illuminate\Console\Command;
 use Illuminate\Support\Benchmark;
@@ -37,20 +36,18 @@ class CalculateTrooperAchievementsCommand extends Command
      * Execute the console command.
      *
      * Orchestrates the trooper rank recalculation process by dispatching
-     * the RecalculateTrooperRankCommand through the message bus.
-     *
-     * @param  MagicBus  $bus  The message bus for dispatching commands
+     * the RecalculateTrooperRank message.
      */
-    public function handle(MagicBus $bus): void
+    public function handle(): void
     {
         $summary = null;
         $send_milestone_notifications = !$this->option('without-notifications');
 
-        $ms = Benchmark::measure(function () use ($bus, $send_milestone_notifications, &$summary)
+        $ms = Benchmark::measure(function () use ($send_milestone_notifications, &$summary)
         {
-            $summary = $bus->send(new RecalculateTrooperRankCommand(
+            $summary = RecalculateTrooperRank::call(
                 send_milestone_notifications: $send_milestone_notifications,
-            ));
+            );
         });
 
         $readable = CarbonInterval::millisecond($ms)->cascade()->forHumans();

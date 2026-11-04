@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\ServiceRecords\PageData;
 
-use App\Bus\MagicBus;
-use App\Features\Troopers\Queries\GetEventTroopersMissingCreditQuery;
+use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
@@ -28,13 +27,13 @@ final class MissingCreditsPageData extends Message
         private readonly int $offset = 0,
     ) {}
 
-    public function handle(MagicBus $bus): array
+    public function handle(): array
     {
-        ['rows' => $rows, 'total' => $total] = $bus->send(new GetEventTroopersMissingCreditQuery(
+        ['rows' => $rows, 'total' => $total] = GetEventTroopersMissingCredit::call(
             actor: $this->actor,
             trooper_id: $this->trooper_id,
             offset: $this->offset,
-        ));
+        );
 
         $next_offset = $this->offset + $rows->count();
 

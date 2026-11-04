@@ -1,0 +1,205 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Messages\Troopers\Commands;
+
+use App\Enums\MembershipStatus;
+use App\Messages\Troopers\Commands\UpdateTrooperIdentifiers;
+use App\Models\Organization;
+use App\Models\Trooper;
+use App\Models\TrooperOrganization;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class UpdateTrooperIdentifiersTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_handle_updates_existing_identifier(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+        TrooperOrganization::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->withIdentifier('TK-OLD')
+            ->create();
+
+        $valid_data = [
+            $organization->id => ['identifier' => 'TK-NEW'],
+        ];
+
+        $command = new UpdateTrooperIdentifiers(
+            trooper: $trooper,
+            valid_data: $valid_data
+        );
+
+        $command->handle();
+
+        $this->assertDatabaseHas('tt_trooper_organizations', [
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => 'TK-NEW',
+        ]);
+    }
+
+    public function test_handle_creates_new_identifier_when_no_relationship_exists(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+
+        $valid_data = [
+            $organization->id => ['identifier' => 'TK-123'],
+        ];
+
+        $command = new UpdateTrooperIdentifiers(
+            trooper: $trooper,
+            valid_data: $valid_data
+        );
+
+        $command->handle();
+
+        $this->assertDatabaseHas('tt_trooper_organizations', [
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => 'TK-123',
+        ]);
+    }
+
+    public function test_handle_trims_whitespace_from_identifier(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+
+        $valid_data = [
+            $organization->id => ['identifier' => '  TK-777  '],
+        ];
+
+        $command = new UpdateTrooperIdentifiers(
+            trooper: $trooper,
+            valid_data: $valid_data
+        );
+
+        $command->handle();
+
+        $this->assertDatabaseHas('tt_trooper_organizations', [
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => 'TK-777',
+        ]);
+    }
+
+    public function test_handle_skips_null_identifiers(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+
+        $valid_data = [
+            $organization->id => ['identifier' => null],
+        ];
+
+        $command = new UpdateTrooperIdentifiers(
+            trooper: $trooper,
+            valid_data: $valid_data
+        );
+
+        $command->handle();
+
+        $this->assertDatabaseMissing('tt_trooper_organizations', [
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+        ]);
+    }
+
+    public function test_handle_updates_existing_membership_status(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+        TrooperOrganization::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE]);
+
+        $valid_data = [
+            $organization->id => [
+                'identifier' => null,
+                'membership_status' => MembershipStatus::RETIRED->value,
+            ],
+        ];
+
+        $command = new UpdateTrooperIdentifiers(
+            trooper: $trooper,
+            valid_data: $valid_data
+        );
+
+        $command->handle();
+
+        $this->assertDatabaseHas('tt_trooper_organizations', [
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::RETIRED->value,
+        ]);
+    }
+
+    public function test_handle_does_not_create_membership_for_status_only_default_row(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+
+        $valid_data = [
+            $organization->id => [
+                'identifier' => null,
+                'assignment' => null,
+                'membership_status' => MembershipStatus::ACTIVE->value,
+            ],
+        ];
+
+        $command = new UpdateTrooperIdentifiers(
+            trooper: $trooper,
+            valid_data: $valid_data
+        );
+
+        $command->handle();
+
+        $this->assertDatabaseMissing('tt_trooper_organizations', [
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+        ]);
+    }
+
+    public function test_handle_handles_multiple_organizations(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperOrganization::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($org1)
+            ->create();
+
+        $valid_data = [
+            $org1->id => ['identifier' => 'TK-111'],
+            $org2->id => ['identifier' => 'TK-222'],
+        ];
+
+        $command = new UpdateTrooperIdentifiers(
+            trooper: $trooper,
+            valid_data: $valid_data
+        );
+
+        $command->handle();
+
+        $this->assertDatabaseHas('tt_trooper_organizations', [
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $org1->id,
+            TrooperOrganization::IDENTIFIER => 'TK-111',
+        ]);
+        $this->assertDatabaseHas('tt_trooper_organizations', [
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $org2->id,
+            TrooperOrganization::IDENTIFIER => 'TK-222',
+        ]);
+    }
+}

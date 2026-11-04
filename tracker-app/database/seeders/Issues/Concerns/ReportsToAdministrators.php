@@ -6,7 +6,7 @@ namespace Database\Seeders\Issues\Concerns;
 
 use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
-use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
+use App\Messages\Troopers\Queries\GetTroopersByRole;
 use App\Models\EventTrooper;
 use Illuminate\Support\Facades\Mail;
 
@@ -65,7 +65,7 @@ trait ReportsToAdministrators
             return;
         }
 
-        $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
+        $admins = GetTroopersByRole::call(membership_role: MembershipRole::ADMINISTRATOR);
 
         foreach ($admins as $admin)
         {
