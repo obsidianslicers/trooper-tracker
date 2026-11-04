@@ -175,4 +175,17 @@ class UpdateTrooperAuthorityTest extends TestCase
             TrooperAssignment::IS_MODERATOR => true,
         ]);
     }
+
+    public function test_handle_gives_new_visitor_six_months_and_clears_expiry_notice(): void
+    {
+        $this->travelTo(now()->startOfDay());
+        $trooper = Trooper::factory()->asMember()->create([Trooper::VISITOR_NOTIFIED_AT => now()]);
+
+        (new UpdateTrooperAuthority($trooper, MembershipRole::VISITOR, []))->handle();
+
+        $trooper->refresh();
+        $this->assertSame(MembershipRole::VISITOR, $trooper->membership_role);
+        $this->assertTrue($trooper->visitor_expires_at->equalTo(now()->addMonths(6)));
+        $this->assertNull($trooper->visitor_notified_at);
+    }
 }

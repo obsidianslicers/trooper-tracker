@@ -7,17 +7,22 @@ namespace Tests\Unit\Messages\Troopers\Commands\Merge;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\NotificationFrequency;
+use App\Messages\Troopers\Commands\Merge\MergeTrooperCostumes;
 use App\Messages\Troopers\Commands\Merge\MergeTrooperFriends;
 use App\Messages\Troopers\Commands\Merge\MergeTroopers;
 use App\Models\Trooper;
 use App\Models\TrooperFriend;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Exceptions;
 use ReflectionMethod;
+use RuntimeException;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class MergeTroopersTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_merge_trooper_accounts_promotes_target_and_copies_missing_trooper_fields(): void
@@ -190,5 +195,92 @@ class MergeTroopersTest extends TestCase
             TrooperFriend::FRIEND_ID => $target_trooper->{Trooper::ID},
         ]);
         $this->assertSame(4, TrooperFriend::query()->count());
+    }
+
+    public function test_handle_merges_relationships_and_marks_source_merged(): void
+    {
+        $target_trooper = Trooper::factory()->asPending()->create();
+        $source_trooper = Trooper::factory()->asActive()->create();
+        $friend = Trooper::factory()->create();
+        TrooperFriend::factory()->forTrooper($source_trooper)->forFriend($friend)->create();
+
+        $subject = new MergeTroopers($target_trooper, $source_trooper);
+        $subject->handle();
+
+        $this->assertSame(MembershipStatus::MERGED, $source_trooper->fresh()->membership_status);
+        $this->assertSame(MembershipStatus::ACTIVE, $target_trooper->fresh()->membership_status);
+        $this->assertDatabaseHas('tt_trooper_friends', [
+            TrooperFriend::TROOPER_ID => $target_trooper->id,
+            TrooperFriend::FRIEND_ID => $friend->id,
+        ]);
+    }
+
+    public function test_handle_reports_failure_and_rolls_back(): void
+    {
+        Exceptions::fake();
+        $target_trooper = Trooper::factory()->asPending()->create();
+        $source_trooper = Trooper::factory()->asActive()->create();
+        $this->fakeMessages([
+            MergeTrooperCostumes::class => fn (array $params): never => throw new RuntimeException('boom'),
+        ]);
+
+        $subject = new MergeTroopers($target_trooper, $source_trooper);
+        $subject->handle();
+
+        Exceptions::assertReported(RuntimeException::class);
+        $this->assertSame(MembershipStatus::ACTIVE, $source_trooper->fresh()->membership_status);
+        $this->assertSame(MembershipStatus::PENDING, $target_trooper->fresh()->membership_status);
+    }
+
+    public function test_merge_keeps_whichever_notification_preferences_exist(): void
+    {
+        $target_trooper = Trooper::factory()->create([Trooper::NOTIFICATION_PREFERENCES => null]);
+        $source_trooper = Trooper::factory()->create([
+            Trooper::NOTIFICATION_PREFERENCES => ['events' => ['mail' => false]],
+        ]);
+
+        $this->invokeMergeAccounts($target_trooper, $source_trooper);
+        $this->assertSame(['events' => ['mail' => false]], $target_trooper->fresh()->notification_preferences);
+
+        $other_source = Trooper::factory()->create([Trooper::NOTIFICATION_PREFERENCES => null]);
+        $this->invokeMergeAccounts($target_trooper->fresh(), $other_source);
+        $this->assertSame(['events' => ['mail' => false]], $target_trooper->fresh()->notification_preferences);
+    }
+
+    public function test_merge_keeps_target_guardian_and_drops_source_guardian_pointing_at_target(): void
+    {
+        $guardian = Trooper::factory()->create();
+        $target_trooper = Trooper::factory()->create([Trooper::GUARDIAN_ID => $guardian->id]);
+        $source_trooper = Trooper::factory()->create([Trooper::GUARDIAN_ID => Trooper::factory()->create()->id]);
+
+        $this->invokeMergeAccounts($target_trooper, $source_trooper);
+        $this->assertSame($guardian->id, $target_trooper->fresh()->guardian_id);
+
+        $minor_target = Trooper::factory()->create([Trooper::GUARDIAN_ID => null]);
+        $minor_source = Trooper::factory()->create([Trooper::GUARDIAN_ID => $minor_target->id]);
+
+        $this->invokeMergeAccounts($minor_target, $minor_source);
+        $this->assertNull($minor_target->fresh()->guardian_id);
+    }
+
+    public function test_merge_keeps_latest_visitor_dates_when_one_side_is_null(): void
+    {
+        $expires = Carbon::parse('2026-09-01 00:00:00');
+        $target_trooper = Trooper::factory()->create([Trooper::VISITOR_EXPIRES_AT => $expires]);
+        $source_trooper = Trooper::factory()->create([Trooper::VISITOR_EXPIRES_AT => null]);
+
+        $this->invokeMergeAccounts($target_trooper, $source_trooper);
+
+        $this->assertSame(
+            '2026-09-01 00:00:00',
+            $target_trooper->fresh()->visitor_expires_at?->format('Y-m-d H:i:s')
+        );
+    }
+
+    private function invokeMergeAccounts(Trooper $target_trooper, Trooper $source_trooper): void
+    {
+        $subject = new MergeTroopers($target_trooper, $source_trooper);
+        $method = new ReflectionMethod($subject, 'mergeTrooperAccounts');
+        $method->invoke($subject);
     }
 }

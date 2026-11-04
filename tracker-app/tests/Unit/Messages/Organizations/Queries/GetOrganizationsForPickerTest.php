@@ -102,4 +102,16 @@ class GetOrganizationsForPickerTest extends TestCase
 
         $this->assertSame([$first->id, $second->id, $third->id], $result->pluck(Organization::ID)->all());
     }
+
+    public function test_handle_with_depth_max_drops_deeper_organizations(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $club = Organization::factory()->asOrganization()->create();
+        $region = Organization::factory()->asRegion()->withParent($club)->create();
+        Organization::factory()->asUnit()->withParent($region)->create();
+
+        $result = (new GetOrganizationsForPicker($trooper, ['depth_max' => $region->fresh()->depth]))->handle();
+
+        $this->assertEqualsCanonicalizing([$club->id, $region->id], $result->pluck('id')->all());
+    }
 }
