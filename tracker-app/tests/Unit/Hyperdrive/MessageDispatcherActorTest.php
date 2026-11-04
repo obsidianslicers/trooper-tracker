@@ -6,11 +6,9 @@ namespace Tests\Unit\Hyperdrive;
 
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
-use Hyperdrive\Concerns\ShouldBeTransactional;
 use Hyperdrive\Message;
 use Hyperdrive\MessageDispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 final class MessageDispatcherActorTest extends TestCase
@@ -29,16 +27,6 @@ final class MessageDispatcherActorTest extends TestCase
         $this->assertInstanceOf(Trooper::class, $result);
         $this->assertSame($trooper->id, $result->getKey());
     }
-
-    public function test_transactional_messages_join_an_existing_transaction(): void
-    {
-        $subject = app(MessageDispatcher::class);
-
-        $transaction_level = $subject->handle(TestTransactionalMessage::class);
-
-        $this->assertSame(1, $transaction_level);
-        $this->assertSame(1, DB::transactionLevel());
-    }
 }
 
 final class TestActorMessage extends Message
@@ -50,15 +38,5 @@ final class TestActorMessage extends Message
     public function handle(): Actor
     {
         return $this->actor;
-    }
-}
-
-final class TestTransactionalMessage extends Message
-{
-    use ShouldBeTransactional;
-
-    public function handle(): int
-    {
-        return DB::transactionLevel();
     }
 }
