@@ -78,7 +78,10 @@ final class MessageDispatcher
 
             if (in_array(ShouldBeTransactional::class, class_uses_recursive($message_class), true))
             {
-                return DB::transaction($execute);
+                if (DB::transactionLevel() === 0)
+                {
+                    return DB::transaction($execute);
+                }
             }
 
             return $execute();
