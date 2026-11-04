@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Troopers\Queries;
 
-use App\Features\Concerns\HasLookback;
+use App\Messages\Concerns\HasLookback;
 use Carbon\Carbon;
 
 /**

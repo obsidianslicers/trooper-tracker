@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\ServiceRecords;
 
-use App\Bus\MagicBus;
-use App\Features\Reports\Queries\GetCostumeTrooperLeaderboardQuery;
+use App\Messages\Reports\Queries\GetCostumeTrooperLeaderboard;
 use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
-use Mockery\MockInterface;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class CostumeControllerTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_invoke_requires_authentication(): void
@@ -32,12 +32,12 @@ class CostumeControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $costume = Costume::factory()->create();
 
-        $this->mock(MagicBus::class, function (MockInterface $mock): void {
-            $mock->shouldReceive('send')->once()->andReturn($this->handlerResult());
-        });
+        $messages = $this->fakeMessages([GetCostumeTrooperLeaderboard::class => $this->handlerResult()]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.costume', $costume));
+
+        $messages->assertCalled(GetCostumeTrooperLeaderboard::class);
 
         $response->assertOk();
         $response->assertViewIs('pages.service-records.costume');
@@ -48,13 +48,13 @@ class CostumeControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $costume = Costume::factory()->create();
 
-        $this->mock(MagicBus::class, function (MockInterface $mock): void {
-            $mock->shouldReceive('send')->once()->andReturn($this->handlerResult());
-        });
+        $messages = $this->fakeMessages([GetCostumeTrooperLeaderboard::class => $this->handlerResult()]);
 
         $response = $this->actingAs($trooper)
             ->withHeader('HX-Request', 'true')
             ->get(route('service-records.costume', $costume));
+
+        $messages->assertCalled(GetCostumeTrooperLeaderboard::class);
 
         $response->assertOk();
         $response->assertViewIs('pages.service-records.inc.costume-stats');
@@ -65,23 +65,12 @@ class CostumeControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $costume = Costume::factory()->create();
 
-        $this->mock(
-            MagicBus::class,
-            function (MockInterface $mock) use ($costume): void {
-                $mock->shouldReceive('send')
-                    ->once()
-                    ->withArgs(function (GetCostumeTrooperLeaderboardQuery $query) use ($costume): bool {
-                        return $query->costume->id === $costume->id
-                            && $query->lookback === 90
-                            && $query->organization === null
-                            && $query->limit === 30;
-                    })
-                    ->andReturn($this->handlerResult());
-            }
-        );
+        $messages = $this->fakeMessages([GetCostumeTrooperLeaderboard::class => $this->handlerResult()]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.costume', ['costume' => $costume, 'days' => 90]));
+
+        $messages->assertCalled(GetCostumeTrooperLeaderboard::class, fn (array $params): bool => $params['costume']->id === $costume->id && $params['lookback'] === 90 && $params['organization'] === null && $params['limit'] === 30);
 
         $response->assertOk();
         $response->assertViewHas('days', 90);
@@ -92,20 +81,12 @@ class CostumeControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $costume = Costume::factory()->create();
 
-        $this->mock(
-            MagicBus::class,
-            function (MockInterface $mock): void {
-                $mock->shouldReceive('send')
-                    ->once()
-                    ->withArgs(function (GetCostumeTrooperLeaderboardQuery $query): bool {
-                        return $query->lookback === null;
-                    })
-                    ->andReturn($this->handlerResult());
-            }
-        );
+        $messages = $this->fakeMessages([GetCostumeTrooperLeaderboard::class => $this->handlerResult()]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.costume', $costume));
+
+        $messages->assertCalled(GetCostumeTrooperLeaderboard::class, fn (array $params): bool => $params['lookback'] === null);
 
         $response->assertOk();
         $response->assertViewHas('days', null);
@@ -116,20 +97,12 @@ class CostumeControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $costume = Costume::factory()->create();
 
-        $this->mock(
-            MagicBus::class,
-            function (MockInterface $mock): void {
-                $mock->shouldReceive('send')
-                    ->once()
-                    ->withArgs(function (GetCostumeTrooperLeaderboardQuery $query): bool {
-                        return $query->lookback === null;
-                    })
-                    ->andReturn($this->handlerResult());
-            }
-        );
+        $messages = $this->fakeMessages([GetCostumeTrooperLeaderboard::class => $this->handlerResult()]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.costume', ['costume' => $costume, 'days' => 999]));
+
+        $messages->assertCalled(GetCostumeTrooperLeaderboard::class, fn (array $params): bool => $params['lookback'] === null);
 
         $response->assertOk();
         $response->assertViewHas('days', null);
@@ -141,23 +114,15 @@ class CostumeControllerTest extends TestCase
         $costume = Costume::factory()->create();
         $organization = Organization::factory()->asOrganization()->create();
 
-        $this->mock(
-            MagicBus::class,
-            function (MockInterface $mock) use ($organization): void {
-                $mock->shouldReceive('send')
-                    ->once()
-                    ->withArgs(function (GetCostumeTrooperLeaderboardQuery $query) use ($organization): bool {
-                        return $query->organization?->id === $organization->id;
-                    })
-                    ->andReturn($this->handlerResult());
-            }
-        );
+        $messages = $this->fakeMessages([GetCostumeTrooperLeaderboard::class => $this->handlerResult()]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.costume', [
                 'costume' => $costume,
                 'organization_id' => $organization->id,
             ]));
+
+        $messages->assertCalled(GetCostumeTrooperLeaderboard::class, fn (array $params): bool => $params['organization']?->id === $organization->id);
 
         $response->assertOk();
         $response->assertViewHas('organization_id', $organization->id);
@@ -168,15 +133,16 @@ class CostumeControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $costume = Costume::factory()->create();
 
-        $this->mock(MagicBus::class, function (MockInterface $mock): void {
-            $mock->shouldReceive('send')->once()->andReturn($this->handlerResult());
-        });
+        $messages = $this->fakeMessages([GetCostumeTrooperLeaderboard::class => $this->handlerResult()]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.costume', $costume));
 
+        $messages->assertCalled(GetCostumeTrooperLeaderboard::class);
+
         $response->assertOk();
-        $response->assertViewHas('costume', function (Costume $view_costume) use ($costume): bool {
+        $response->assertViewHas('costume', function (Costume $view_costume) use ($costume): bool
+        {
             return $view_costume->id === $costume->id;
         });
     }
@@ -186,18 +152,20 @@ class CostumeControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $costume = Costume::factory()->create();
 
-        $this->mock(MagicBus::class, function (MockInterface $mock): void {
-            $mock->shouldReceive('send')->once()->andReturn($this->handlerResult());
-        });
+        $messages = $this->fakeMessages([GetCostumeTrooperLeaderboard::class => $this->handlerResult()]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.costume', $costume));
 
+        $messages->assertCalled(GetCostumeTrooperLeaderboard::class);
+
         $response->assertOk();
-        $response->assertViewHas('top_troopers', function (Collection $top_troopers): bool {
+        $response->assertViewHas('top_troopers', function (Collection $top_troopers): bool
+        {
             return $top_troopers->isEmpty();
         });
-        $response->assertViewHas('stats', function (array $stats): bool {
+        $response->assertViewHas('stats', function (array $stats): bool
+        {
             return array_key_exists('total_deployments', $stats)
                 && array_key_exists('unique_troopers', $stats)
                 && array_key_exists('last_deployed_at', $stats);
@@ -213,8 +181,8 @@ class CostumeControllerTest extends TestCase
             'top_troopers' => collect(),
             'stats' => [
                 'total_deployments' => 0,
-                'unique_troopers'   => 0,
-                'last_deployed_at'  => null,
+                'unique_troopers' => 0,
+                'last_deployed_at' => null,
             ],
         ];
     }

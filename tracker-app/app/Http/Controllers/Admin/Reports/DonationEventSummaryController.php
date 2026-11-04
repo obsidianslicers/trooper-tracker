@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Features\Reports\Queries\GetDonationEventSummaryQuery;
+use App\Messages\Reports\Queries\GetDonationEventSummary;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
@@ -79,7 +79,17 @@ class DonationEventSummaryController extends BaseReportsController
             return $this->streamCsv($trooper, $date_start, $date_end, $charity_only, $sort, $dir, $selected_org_ids, $accessible_org_ids, $selected_names ?: null);
         }
 
-        $events = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, 50, $sort, $dir, $selected_org_ids, $accessible_org_ids));
+        $events = GetDonationEventSummary::call(
+            moderator: $trooper,
+            date_start: $date_start,
+            date_end: $date_end,
+            charity_only: $charity_only,
+            page_size: 50,
+            sort: $sort,
+            dir: $dir,
+            selected_org_ids: $selected_org_ids,
+            accessible_org_ids: $accessible_org_ids,
+        );
 
         $data = compact('events', 'date_start', 'date_end', 'charity_only', 'sort', 'dir', 'filter_orgs', 'selected_ids');
 
@@ -137,18 +147,18 @@ class DonationEventSummaryController extends BaseReportsController
 
             do
             {
-                $events = $this->bus->send(new GetDonationEventSummaryQuery(
-                    $trooper,
-                    $date_start,
-                    $date_end,
-                    $charity_only,
-                    $page_size,
-                    $sort,
-                    $dir,
-                    $selected_org_ids,
-                    $accessible_org_ids,
-                    $page,
-                ));
+                $events = GetDonationEventSummary::call(
+                    moderator: $trooper,
+                    date_start: $date_start,
+                    date_end: $date_end,
+                    charity_only: $charity_only,
+                    page_size: $page_size,
+                    sort: $sort,
+                    dir: $dir,
+                    selected_org_ids: $selected_org_ids,
+                    accessible_org_ids: $accessible_org_ids,
+                    page: $page,
+                );
 
                 foreach ($events as $event)
                 {

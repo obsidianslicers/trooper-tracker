@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Features\Reports\Queries\GetCostumeEventSummaryQuery;
+use App\Messages\Reports\Queries\GetCostumeEventSummary;
 use App\Models\Organization;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -46,12 +46,30 @@ class CostumeEventSummaryController extends BaseReportsController
 
         if ($request->input('format') === 'csv')
         {
-            $all = $this->bus->send(new GetCostumeEventSummaryQuery($trooper, $date_start, $date_end, PHP_INT_MAX, $organization, $sort, $dir, $accessible_org_ids));
+            $all = GetCostumeEventSummary::call(
+                moderator: $trooper,
+                date_start: $date_start,
+                date_end: $date_end,
+                page_size: PHP_INT_MAX,
+                organization: $organization,
+                sort: $sort,
+                dir: $dir,
+                accessible_org_ids: $accessible_org_ids,
+            );
 
             return $this->streamCsv($all, $date_start, $date_end, $organization?->name);
         }
 
-        $costume_events = $this->bus->send(new GetCostumeEventSummaryQuery($trooper, $date_start, $date_end, 50, $organization, $sort, $dir, $accessible_org_ids));
+        $costume_events = GetCostumeEventSummary::call(
+            moderator: $trooper,
+            date_start: $date_start,
+            date_end: $date_end,
+            page_size: 50,
+            organization: $organization,
+            sort: $sort,
+            dir: $dir,
+            accessible_org_ids: $accessible_org_ids,
+        );
 
         $data = compact('costume_events', 'date_start', 'date_end', 'organizations', 'organization_id', 'sort', 'dir');
 

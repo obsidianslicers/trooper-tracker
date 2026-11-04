@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Features\Reports\Queries\GetTrooperEventSummaryQuery;
+use App\Messages\Reports\Queries\GetTrooperEventSummary;
 use App\Models\Organization;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -48,12 +48,32 @@ class TrooperEventSummaryController extends BaseReportsController
 
         if ($request->input('format') === 'csv')
         {
-            $all = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only, PHP_INT_MAX, $organization, $sort, $dir, $accessible_org_ids));
+            $all = GetTrooperEventSummary::call(
+                moderator: $trooper,
+                date_start: $date_start,
+                date_end: $date_end,
+                active_only: $active_only,
+                page_size: PHP_INT_MAX,
+                organization: $organization,
+                sort: $sort,
+                dir: $dir,
+                accessible_org_ids: $accessible_org_ids,
+            );
 
             return $this->streamCsv($all, $date_start, $date_end, $active_only, $organization?->name);
         }
 
-        $trooper_events = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only, 50, $organization, $sort, $dir, $accessible_org_ids));
+        $trooper_events = GetTrooperEventSummary::call(
+            moderator: $trooper,
+            date_start: $date_start,
+            date_end: $date_end,
+            active_only: $active_only,
+            page_size: 50,
+            organization: $organization,
+            sort: $sort,
+            dir: $dir,
+            accessible_org_ids: $accessible_org_ids,
+        );
 
         $data = compact('trooper_events', 'date_start', 'date_end', 'active_only', 'organizations', 'organization_id', 'sort', 'dir');
 
