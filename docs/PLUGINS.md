@@ -249,7 +249,7 @@ Listeners registered with `$this->listen()` run in the same process as the code 
 
 ### Hyperdrive message hooks
 
-Every Hyperdrive message fires `Hyperdrive\Events\MessageHandling` before `handle()` and `Hyperdrive\Events\MessageHandled` after it returns (after the commit for transactional messages). `beforeMessage()` and `afterMessage()` filter these by message class; pass `Hyperdrive\Message::class` to see every message. These callbacks are not isolated: an error in one stops the message, like an error in the message itself. Code that still runs through the legacy MagicBus has no hooks; it gains them as it moves to Hyperdrive.
+Every Hyperdrive message fires `Hyperdrive\Events\MessageHandling` before `handle()` and `Hyperdrive\Events\MessageHandled` after it returns (after the commit for transactional messages). `beforeMessage()` and `afterMessage()` filter these by message class; pass `Hyperdrive\Message::class` to see every message. These callbacks are not isolated: an error in one stops the message, like an error in the message itself.
 
 ### UI slots
 

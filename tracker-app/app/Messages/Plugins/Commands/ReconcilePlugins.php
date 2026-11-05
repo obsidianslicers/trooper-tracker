@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Messages\Plugins\Commands;
 
-use App\Enums\PluginSource;
 use App\Enums\PluginStatus;
 use App\Models\Plugin;
 use App\Plugins\PluginDeployPackages;
@@ -240,38 +239,12 @@ final class ReconcilePlugins extends Message
         PluginManifest $manifest,
         Plugin $record,
     ): void {
-        $source = match (true)
-        {
-            $record->source === PluginSource::UPLOADED->value => PluginSource::UPLOADED,
-            $this->inFolder($manifest, $discovery, uploads: true) => PluginSource::CUSTOM,
-            default => PluginSource::BUNDLED,
-        };
+        $source = $discovery->sourceOf($manifest, $record->source);
 
         if ($record->source !== $source->value)
         {
             $plugins->recordSource($manifest->slug, $source);
         }
-    }
-
-    private function inFolder(
-        PluginManifest $manifest,
-        PluginDiscovery $discovery,
-        bool $uploads = false,
-    ): bool {
-        $folders = $uploads
-            ? [$discovery->uploadsPath()]
-            : [$discovery->localPath(), $discovery->uploadsPath()];
-        $path = realpath($manifest->path) ?: $manifest->path;
-
-        foreach (array_filter($folders) as $folder)
-        {
-            if (str_starts_with($path, (realpath($folder) ?: $folder).DIRECTORY_SEPARATOR))
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private function attempt(callable $callback, string $success): string

@@ -19,8 +19,8 @@ class PluginCommandsTest extends TestCase
 
         $this->artisan('plugins:list')
             ->expectsTable(['Slug', 'Name', 'Version', 'Source', 'Enabled'], [
-                ['hello', 'Hello', '2.1.0', 'local', 'no'],
-                ['missing-provider', 'Missing Provider', '0.0.0', 'local', 'no'],
+                ['hello', 'Hello', '2.1.0', 'bundled', 'no'],
+                ['missing-provider', 'Missing Provider', '0.0.0', 'bundled', 'no'],
             ])
             ->assertSuccessful();
     }

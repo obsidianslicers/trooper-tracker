@@ -43,7 +43,10 @@ final class GetPlugins extends Message
     ): array {
         return array_values(array_map(fn (PluginManifest $manifest): array => [
             'manifest' => $manifest,
-            'source' => $this->source($manifest, $discovery),
+            'source' => $discovery->sourceOf(
+                $manifest,
+                $plugins->record($manifest->slug)?->source,
+            )->value,
             'is_enabled' => $plugins->isEnabled($manifest->slug),
             'is_installed' => $plugins->isInstalled($manifest->slug),
             'is_loaded' => $plugins->isLoaded($manifest->slug),
@@ -69,14 +72,5 @@ final class GetPlugins extends Message
         );
 
         return Arr::join($descriptions, ', ', count($descriptions) > 2 ? ', and ' : ' and ');
-    }
-
-    private function source(PluginManifest $manifest, PluginDiscovery $discovery): string
-    {
-        return match (true)
-        {
-            $discovery->isUploaded($manifest) => 'uploaded',
-            default => 'local',
-        };
     }
 }

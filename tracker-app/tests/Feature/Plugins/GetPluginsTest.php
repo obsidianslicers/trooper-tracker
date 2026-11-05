@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Plugins;
 
+use App\Enums\PluginSource;
 use App\Messages\Plugins\Queries\GetPlugins;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 class GetPluginsTest extends TestCase
@@ -24,16 +26,29 @@ class GetPluginsTest extends TestCase
             'namespace' => 'UploadedPlugin',
             'provider' => 'UploadedPlugin\\UploadedServiceProvider',
         ]));
-        $this->useFixturePlugins($uploads_path)->enable('hello');
+        $manager = $this->useFixturePlugins($uploads_path);
+        $manager->enable('hello');
 
-        $plugins = collect(GetPlugins::call())
-            ->keyBy(fn (array $plugin): string => $plugin['manifest']->slug);
+        $plugins = $this->pluginsBySlug();
 
-        $this->assertSame('local', $plugins['hello']['source']);
+        $this->assertSame('bundled', $plugins['hello']['source']);
         $this->assertTrue($plugins['hello']['is_enabled']);
-        $this->assertSame('uploaded', $plugins['uploaded']['source']);
+        $this->assertSame('custom', $plugins['uploaded']['source']);
         $this->assertFalse($plugins['uploaded']['is_installed']);
 
+        $manager->recordSource('uploaded', PluginSource::UPLOADED);
+
+        $this->assertSame('uploaded', $this->pluginsBySlug()['uploaded']['source']);
+
         $files->deleteDirectory($uploads_path);
+    }
+
+    /**
+     * @return Collection<string, array<string, mixed>>
+     */
+    private function pluginsBySlug(): Collection
+    {
+        return collect(GetPlugins::call())
+            ->keyBy(fn (array $plugin): string => $plugin['manifest']->slug);
     }
 }

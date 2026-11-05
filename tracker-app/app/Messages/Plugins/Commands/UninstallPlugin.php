@@ -29,7 +29,7 @@ final class UninstallPlugin extends Message
 
         $plugins->uninstall($this->slug);
 
-        if ($discovery->isUploaded($manifest))
+        if ($discovery->isInUploadsFolder($manifest))
         {
             $files->deleteDirectory($manifest->path);
             $plugins->forgetManifests();

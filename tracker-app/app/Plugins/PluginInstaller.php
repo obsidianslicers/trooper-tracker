@@ -219,7 +219,7 @@ final class PluginInstaller
             return null;
         }
 
-        if (!$this->discovery->isUploaded($installed))
+        if (!$this->discovery->isInUploadsFolder($installed))
         {
             throw new PluginInstallException(
                 "[{$manifest->slug}] came with a deploy or Composer. Update it the same way."

@@ -56,7 +56,6 @@
     "scripts": {
         "pint:format": [
             "pint app/helpers.php",
-            "pint app/Bus",
             "pint app/Channels",
             "pint app/Console",
             "pint app/Contracts",
@@ -72,6 +71,7 @@
             "pint app/Models/Filters",
             "pint app/Models/Observers",
             "pint app/Notifications",
+            "pint app/Plugins",
             "pint app/Policies",
             "pint app/Providers",
             "pint app/Rules",

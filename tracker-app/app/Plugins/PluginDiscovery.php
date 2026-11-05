@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Plugins;
 
+use App\Enums\PluginSource;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -58,14 +59,37 @@ class PluginDiscovery
         return $manifests[$slug] ?? null;
     }
 
-    public function isUploaded(PluginManifest $manifest): bool
+    /**
+     * Whether the plugin lives in the persistent plugins folder, whether it was
+     * uploaded there or copied in by hand.
+     */
+    public function isInUploadsFolder(PluginManifest $manifest): bool
     {
         if ($this->uploads_path === null)
         {
             return false;
         }
 
-        return dirname($manifest->path) === rtrim($this->uploads_path, '/');
+        $folder = realpath($this->uploads_path) ?: rtrim($this->uploads_path, '/');
+        $path = realpath($manifest->path) ?: $manifest->path;
+
+        return str_starts_with($path, $folder.DIRECTORY_SEPARATOR);
+    }
+
+    /**
+     * Where the plugin came from. Only the Plugins page's upload records a plugin
+     * as uploaded; anything else in the persistent folder was copied in by hand.
+     */
+    public function sourceOf(PluginManifest $manifest, ?string $recorded_source = null): PluginSource
+    {
+        if (!$this->isInUploadsFolder($manifest))
+        {
+            return PluginSource::BUNDLED;
+        }
+
+        return $recorded_source === PluginSource::UPLOADED->value
+            ? PluginSource::UPLOADED
+            : PluginSource::CUSTOM;
     }
 
     /**
