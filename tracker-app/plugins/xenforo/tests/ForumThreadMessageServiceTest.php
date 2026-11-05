@@ -59,8 +59,8 @@ class ForumThreadMessageServiceTest extends TestCase
 
         $result = $subject->buildThreadMessage($event);
 
-        $this->assertStringContainsString('[b]Roster:[/b]', $result);
-        $this->assertStringContainsString('-[i]Stand By[/i]: TK-421 (Shadow Trooper)', $result);
-        $this->assertStringContainsString('[url]'.url('/events/details/'.$event->id).'[/url]', $result);
+        $this->assertStringContainsString('[b]👥 Event Roster[/b]', $result);
+        $this->assertStringContainsString('[tr][td]TK-421[/td][td]Shadow Trooper[/td][td][i]Stand By[/i][/td][/tr]', $result);
+        $this->assertStringContainsString('[url="'.url('/events/details/'.$event->id).'"]', $result);
     }
 }
