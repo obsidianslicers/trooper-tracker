@@ -45,6 +45,23 @@
                                           :value="$organization->name" />
                         </x-input-container>
 
+                        @if($organization->type == \App\Enums\OrganizationType::ORGANIZATION
+                            && auth()->user()->is_administrator)
+                            <x-input-container>
+                                <x-label>
+                                    Roster sync:
+                                </x-label>
+                                <x-input-select :property="'synchronizer'"
+                                                :options="$synchronizer_options"
+                                                :placeholder="'None'"
+                                                :value="$organization->synchronizer" />
+                                <x-input-help>
+                                    Keeps this club's members and costumes in step with
+                                    the club's own records.
+                                </x-input-help>
+                            </x-input-container>
+                        @endif
+
                         @pluginSlot('admin.organizations.update.fields')
 
 

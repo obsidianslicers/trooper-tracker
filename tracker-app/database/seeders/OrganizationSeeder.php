@@ -7,12 +7,6 @@ namespace Database\Seeders;
 use App\Enums\OrganizationType;
 use App\Models\Observers\OrganizationObserver;
 use App\Models\Organization;
-use App\Services\Synchronizers\DarkEmpireServices;
-use App\Services\Synchronizers\DroidBuildersService;
-use App\Services\Synchronizers\MandalorianMercsService;
-use App\Services\Synchronizers\RebelLegionService;
-use App\Services\Synchronizers\SaberGuildServices;
-use App\Services\Synchronizers\TheLegionService;
 use Illuminate\Database\Seeder;
 
 class OrganizationSeeder extends Seeder
@@ -42,7 +36,7 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Imperial costuming organization focused on Star Wars villains.',
                 'identifier_display' => 'TKID',
                 'identifier_validation' => 'integer|between:100,99999',
-                'service_class' => TheLegionService::class,
+                'synchronizer' => '501st',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
             ],
@@ -51,7 +45,7 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Rebel-aligned Star Wars costuming group.',
                 'identifier_display' => 'Forum Username',
                 'identifier_validation' => 'string|max:64',
-                'service_class' => RebelLegionService::class,
+                'synchronizer' => 'rebel-legion',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
             ],
@@ -60,7 +54,7 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Custom Mandalorian armor builders and costumers.',
                 'identifier_display' => 'CAT #',
                 'identifier_validation' => 'integer',
-                'service_class' => MandalorianMercsService::class,
+                'synchronizer' => 'mandalorian-mercs',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
             ],
@@ -69,7 +63,7 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Expanded universe costuming group for dark side characters.',
                 'identifier_display' => '#',
                 'identifier_validation' => 'integer',
-                'service_class' => DarkEmpireServices::class,
+                'synchronizer' => 'dark-empire',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
             ],
@@ -78,7 +72,7 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Star Wars droid construction and robotics enthusiast group.',
                 'identifier_display' => 'Forum Username',
                 'identifier_validation' => 'string|max:64',
-                'service_class' => DroidBuildersService::class,
+                'synchronizer' => 'droid-builders',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
             ],
@@ -87,7 +81,7 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Lightsaber performance and Jedi/Sith costuming group.',
                 'identifier_display' => 'SG #',
                 'identifier_validation' => 'integer',
-                'service_class' => SaberGuildServices::class,
+                'synchronizer' => 'saber-guild',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
             ],
@@ -96,7 +90,7 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Star Wars costuming group for children and families.',
                 'identifier_display' => 'GA ID',
                 'identifier_validation' => 'string|max:128',
-                'service_class' => null,
+                'synchronizer' => null,
                 'can_attend_default' => true,
                 'requires_guardian' => true,
             ],
@@ -109,7 +103,7 @@ class OrganizationSeeder extends Seeder
             $org->name = $data['name'];
             $org->can_attend_default = $data['can_attend_default'];
             $org->requires_guardian = $data['requires_guardian'];
-            $org->service_class = $data['service_class'];
+            $org->synchronizer = $data['synchronizer'];
             $org->description = $data['description'];
             $org->identifier_display = $data['identifier_display'] ?? '';
             $org->identifier_validation = $data['identifier_validation'] ?? '';

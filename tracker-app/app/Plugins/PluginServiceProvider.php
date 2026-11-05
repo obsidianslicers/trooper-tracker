@@ -174,6 +174,21 @@ abstract class PluginServiceProvider extends ServiceProvider
     }
 
     /**
+     * Offer a way to keep a club's roster and costumes in step with the club's own
+     * records. Admins pick it per club on the organization page.
+     *
+     * @param  class-string  $synchronizer_class  implements SynchronizerInterface,
+     *                                            MemberLookupSource, or both
+     */
+    protected function addClubSynchronizer(
+        string $key,
+        string $label,
+        string $synchronizer_class,
+    ): void {
+        $this->app->make(PluginClubSynchronizers::class)->add($key, $label, $synchronizer_class);
+    }
+
+    /**
      * Let permission requests ask for something more, such as forum user groups.
      *
      * @param  class-string<\App\Contracts\PermissionRequestExtension>  $extension_class

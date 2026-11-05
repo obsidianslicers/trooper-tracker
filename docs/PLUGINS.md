@@ -350,6 +350,19 @@ Troopers can sign in through another site, such as a forum. Core has Google buil
 
 Plugin pages a trooper must reach before finishing account setup, such as a page to link their account, opt in with `->defaults(TrooperSetupRequiredMiddleware::ALLOWED, true)` on the route.
 
+### Club synchronizers
+
+A club synchronizer keeps one club's roster and costumes in step with the club's own records, and can also check a member ID at sign-up. Administrators pick one per club in the **Roster sync** field on the organization page, and `tracker:synchronize-organizations` runs them weekly. The built-in clubs (501st Legion, Rebel Legion, Mandalorian Mercs, Dark Empire, Droid Builders, Saber Guild) are registered the same way a plugin's are, in `App\Services\Synchronizers\BuiltInClubSynchronizers`.
+
+Register one with `$this->addClubSynchronizer('my-club', 'My Club', MyClubSync::class)`. The key is what the club stores, so keep it stable once clubs use it; a key that is already taken stops the plugin loading. The class gets the club as its `organization` constructor argument and implements one or both of:
+
+- `App\Contracts\SynchronizerInterface`: `run()` does the sync.
+- `App\Contracts\MemberLookupSource`: `lookupMember()` returns an `App\Contracts\MemberLookupInterface` for sign-up, or `null`.
+
+Extending `App\Services\Synchronizers\BaseOrganizationService` gives both, plus helpers for reading sheets through the sheet source, matching troopers and recording costumes. A synchronizer can also read anything else, such as a club's own API.
+
+When the plugin is off, its clubs keep their choice. The sync skips them with a warning, sign-up has no lookup, and the organization page shows the choice as not available.
+
 ### Sheet source
 
 The club synchronizers (`tracker:synchronize-organizations`) and the sign-up member lookups read roster spreadsheets through `App\Contracts\SheetSource`. Its `rows($organization, $sheet_name)` returns every row of one sheet, header included, or `null` when the organization has no spreadsheet; throw `App\Exceptions\SheetUnavailableException` when it can't be read, so the run is skipped instead of treated as empty. Register it with `$this->setSheetSource(MySheets::class)`. A site has one source; without one, the syncs that need a sheet read nothing.

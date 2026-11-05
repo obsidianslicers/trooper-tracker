@@ -36,6 +36,11 @@ class UpdateSubmitController extends MagicBusController
     ): RedirectResponse {
         $organization->name = $request->validated('name');
 
+        if ($request->canChooseSynchronizer())
+        {
+            $organization->synchronizer = $request->validated('synchronizer') ?: null;
+        }
+
         DB::transaction(function () use ($organization, $request, $plugin_forms): void
         {
             $organization->save();

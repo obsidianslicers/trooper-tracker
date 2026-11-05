@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Synchronizers;
 
 use App\Contracts\MemberLookupInterface;
+use App\Contracts\MemberLookupSource;
 use App\Contracts\SynchronizerInterface;
 use App\Enums\MembershipStatus;
 use App\Exceptions\SheetUnavailableException;
@@ -17,7 +18,7 @@ use App\Models\TrooperOrganization;
 use App\Plugins\PluginSheetSource;
 use Illuminate\Support\Facades\Log;
 
-abstract class BaseOrganizationService implements SynchronizerInterface
+abstract class BaseOrganizationService implements MemberLookupSource, SynchronizerInterface
 {
     private array $costume_cache = [];
 

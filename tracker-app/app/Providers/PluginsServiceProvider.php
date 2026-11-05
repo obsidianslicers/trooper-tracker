@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Plugins\PluginAutoloader;
+use App\Plugins\PluginClubSynchronizers;
 use App\Plugins\PluginDiscovery;
 use App\Plugins\PluginDonations;
 use App\Plugins\PluginForms;
@@ -16,6 +17,7 @@ use App\Plugins\PluginPermissionRequests;
 use App\Plugins\PluginSheetSource;
 use App\Plugins\PluginSlots;
 use App\Plugins\PluginSystemChecks;
+use App\Services\Synchronizers\BuiltInClubSynchronizers;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,6 +36,16 @@ class PluginsServiceProvider extends ServiceProvider
         $this->app->singleton(PluginDonations::class);
         $this->app->singleton(PluginPermissionRequests::class);
         $this->app->singleton(PluginSheetSource::class);
+        $this->app->singleton(
+            PluginClubSynchronizers::class,
+            function ($app): PluginClubSynchronizers
+            {
+                $synchronizers = new PluginClubSynchronizers($app);
+                BuiltInClubSynchronizers::register($synchronizers);
+
+                return $synchronizers;
+            },
+        );
         $this->app->singleton(
             PluginMigrator::class,
             fn ($app): PluginMigrator => new PluginMigrator($app['migrator']),

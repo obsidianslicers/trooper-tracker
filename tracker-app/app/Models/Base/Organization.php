@@ -41,7 +41,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $identifier_validation
  * @property string|null $image_path_lg
  * @property string|null $image_path_sm
- * @property string|null $service_class
+ * @property string|null $synchronizer
  * @property string|null $sync_sheet_id
  * @property string|null $discord_mention
  * @property int|null $related_forum
@@ -88,7 +88,7 @@ class Organization extends Model
     const IDENTIFIER_VALIDATION = 'identifier_validation';
     const IMAGE_PATH_LG = 'image_path_lg';
     const IMAGE_PATH_SM = 'image_path_sm';
-    const SERVICE_CLASS = 'service_class';
+    const SYNCHRONIZER = 'synchronizer';
     const SYNC_SHEET_ID = 'sync_sheet_id';
     const DISCORD_MENTION = 'discord_mention';
     const RELATED_FORUM = 'related_forum';
@@ -139,7 +139,7 @@ class Organization extends Model
         self::IDENTIFIER_VALIDATION,
         self::IMAGE_PATH_LG,
         self::IMAGE_PATH_SM,
-        self::SERVICE_CLASS,
+        self::SYNCHRONIZER,
         self::SYNC_SHEET_ID,
         self::DISCORD_MENTION,
         self::RELATED_FORUM,

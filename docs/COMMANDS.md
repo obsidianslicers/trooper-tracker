@@ -287,7 +287,7 @@ php artisan tracker:simulate-shift-complete 42 --expired --no-eligible-orgs
 
 ### `tracker:synchronize-organizations`
 
-Synchronizes all organizations that have a configured service class. Instantiates each service class via the container, runs the sync, and reports timing and success/failure per organization.
+Runs the roster sync each club chose on its organization page, whether built in or from a plugin, and reports timing and success or failure per club. A club whose sync comes from a plugin that is off is skipped with a warning.
 
 ```bash
 php artisan tracker:synchronize-organizations

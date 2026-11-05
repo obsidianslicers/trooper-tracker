@@ -444,7 +444,7 @@ Purpose: Hierarchical organization nodes.
 | identifier_validation | varchar(64) | yes |  |
 | image_path_lg | varchar(128) | yes |  |
 | image_path_sm | varchar(128) | yes |  |
-| service_class | varchar(128) | yes |  |
+| synchronizer | varchar(64) | yes |  |
 | sync_sheet_id | varchar(128) | yes |  |
 | discord_mention | varchar(128) | yes | Legacy. Copied into the Discord plugin's table; a later core migration drops it. |
 | related_forum | bigint unsigned | yes | no longer used (XenForo plugin's `tt_xenforo_organization_forums`) |
