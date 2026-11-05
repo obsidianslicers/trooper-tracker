@@ -149,7 +149,7 @@
             </tr>
         @empty
             <x-table-empty :colspan="5">
-                No plugins found. Add one to the plugins folder or install one with Composer.
+                No plugins found. Upload one below or add it to the plugins folder.
             </x-table-empty>
         @endforelse
     </tbody>
@@ -159,7 +159,7 @@
     <x-card :label="'Missing plugins'">
         <p class="text-muted small">
             These plugins were set up before, but their files are gone from the server.
-            Their settings and data are kept. Put the files back (or re-add the Composer package)
+            Their settings and data are kept. Put the files back
             and the next deploy restores them as they were.
         </p>
         <ul class="list-group">
@@ -181,90 +181,6 @@
         </ul>
     </x-card>
 @endif
-
-<x-card :label="'Composer plugins'">
-    <p class="text-muted small">
-        Add a plugin published as a Composer package, from its own repository.
-        The next deploy installs it and its packages, then it appears above to enable.
-        Removing it here uninstalls it with the next deploy.
-        Pinned packages stay on the version first installed; compatible ones take
-        updates within the same major version.
-    </p>
-    @if($packages->isNotEmpty())
-        <ul class="list-group mb-3">
-            @foreach($packages as $package)
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>
-                        <code>{{ $package->requirement() }}</code>
-                        @if($package->isInstalled())
-                            <span class="badge text-bg-success">
-                                Installed {{ $package->installed_version }}
-                            </span>
-                        @else
-                            <span class="badge text-bg-info">Installs at next deploy</span>
-                        @endif
-                        <span class="small text-muted">
-                            {{ $update_policies[$package->update_policy] ?? '' }}
-                        </span>
-                        @if($package->repository_url !== null)
-                            <div class="small text-muted">From {{ $package->repository_url }}</div>
-                        @endif
-                        @if($package->last_error !== null && $package->last_error !== '')
-                            <div class="small text-danger">{{ $package->last_error }}</div>
-                        @endif
-                    </span>
-                    <form method="POST"
-                          action="{{ route('admin.plugins.packages.remove', ['package' => $package]) }}">
-                        @csrf
-                        <button type="submit"
-                                class="btn btn-sm btn-outline-danger">
-                            Remove
-                        </button>
-                    </form>
-                </li>
-            @endforeach
-        </ul>
-    @endif
-    <form method="POST"
-          action="{{ route('admin.plugins.packages.add') }}">
-        @csrf
-        <div class="input-group">
-            <input type="text"
-                   name="name"
-                   class="form-control"
-                   placeholder="vendor/package"
-                   value="{{ old('name') }}"
-                   required>
-            <input type="text"
-                   name="version_constraint"
-                   class="form-control"
-                   placeholder="Version (optional, e.g. ^1.0)"
-                   value="{{ old('version_constraint') }}">
-            <select name="update_policy"
-                    class="form-select">
-                @foreach($update_policies as $value => $label)
-                    <option value="{{ $value }}"
-                            @selected(old('update_policy', 'pinned') === $value)>
-                        {{ $label }}
-                    </option>
-                @endforeach
-            </select>
-            <button type="submit"
-                    class="btn btn-primary">
-                Add
-            </button>
-        </div>
-        <input type="url"
-               name="repository_url"
-               class="form-control mt-2"
-               placeholder="Repository URL (optional, for packages not on Packagist)"
-               value="{{ old('repository_url') }}">
-        <x-input-error :property="'name'" />
-        <x-input-error :property="'version_constraint'" />
-        <x-input-error :property="'update_policy'" />
-        <x-input-error :property="'repository_url'" />
-    </form>
-</x-card>
 
 <x-card :label="'Install a plugin'">
     @if($uploads['is_enabled'])
@@ -295,7 +211,7 @@
         <p class="text-muted small mb-0">
             Installing plugins from here is turned off.
             The server sets TRACKER_PLUGINS_ALLOW_UPLOADS=false. Remove that to allow it,
-            or add plugins with a deploy (plugins folder or Composer).
+            or copy plugins into storage/app/plugins on the server.
         </p>
     @endif
 </x-card>

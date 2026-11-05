@@ -48,12 +48,18 @@ jobs:
         working-directory: ./tracker-app
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      # "bundled" checks the app and its tests work with no Composer plugins installed;
-      # "composer" installs them so their own tests run too.
-      - name: Install Composer-managed plugins
+      # "bundled" checks the app and its tests work without the packages plugins bring;
+      # "composer" installs the bundled plugins' packages so their own tests run too.
+      - name: Install the bundled plugins' packages
         if: matrix.plugins == 'composer'
         working-directory: ./tracker-app
-        run: composer require trooptracker/google-sheets --no-interaction --no-progress
+        run: |
+          PACKAGES="$(php -r 'foreach (glob("plugins/*/composer.json") as $file) {
+              foreach (json_decode(file_get_contents($file), true)["require"] ?? [] as $name => $version) {
+                  if (str_contains($name, "/")) { echo "{$name}:{$version} "; }
+              }
+          }')"
+          composer require $PACKAGES --no-interaction --no-progress
 
       - name: Generate application key
         working-directory: ./tracker-app

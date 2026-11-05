@@ -13,7 +13,7 @@ class MakePluginCommand extends Command
     protected $signature = 'make:plugin
         {name : The plugin name, e.g. "Event Weather"}
         {--namespace= : PHP namespace (default: TroopTracker\\Plugins\\<Name>)}
-        {--composer : Also write a composer.json so it can be shared as a package}';
+        {--composer : Also write a composer.json for the Composer packages it needs}';
 
     protected $description = 'Create a starter plugin in the plugins folder.';
 

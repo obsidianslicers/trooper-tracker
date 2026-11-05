@@ -36,8 +36,7 @@ class ManagedComposerFileTest extends TestCase
     ];
 
     private const REQUIREMENTS = [
-        'packages' => ['trooptracker/google-sheets' => '*', 'acme/badges' => '1.2.0'],
-        'repositories' => [['type' => 'path', 'url' => '/srv/plugins/sheets']],
+        'packages' => ['google/apiclient' => '^2.18', 'acme/badges' => '1.2.0'],
     ];
 
     public function test_core_packages_are_held_at_the_app_lock_versions(): void
@@ -54,19 +53,19 @@ class ManagedComposerFileTest extends TestCase
         $this->assertSame('^8.2', $json['require']['php']);
     }
 
-    public function test_plugin_packages_and_repositories_are_added(): void
+    public function test_plugin_packages_are_added(): void
     {
         $subject = $this->subject();
 
         $json = $subject->json();
 
         $this->assertTrue($subject->hasPluginPackages());
-        $this->assertSame('*', $json['require']['trooptracker/google-sheets']);
+        $this->assertSame('^2.18', $json['require']['google/apiclient']);
         $this->assertSame('1.2.0', $json['require']['acme/badges']);
-        $this->assertSame([
-            ['type' => 'vcs', 'url' => 'https://github.com/acme/core-fork'],
-            ['type' => 'path', 'url' => '/srv/plugins/sheets'],
-        ], $json['repositories']);
+        $this->assertSame(
+            [['type' => 'vcs', 'url' => 'https://github.com/acme/core-fork']],
+            $json['repositories'],
+        );
     }
 
     public function test_a_plugin_cannot_change_a_core_package(): void
@@ -99,7 +98,7 @@ class ManagedComposerFileTest extends TestCase
         $subject = $this->subject(self::APP_LOCK);
 
         $this->assertSame(
-            ['trooptracker/google-sheets', 'acme/badges'],
+            ['google/apiclient', 'acme/badges'],
             $subject->packagesToUpdate(),
         );
     }

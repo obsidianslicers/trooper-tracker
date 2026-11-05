@@ -12,14 +12,12 @@ trait UsesFixturePlugins
 {
     /**
      * Point the plugin manager at tests/Fixtures/plugins instead of the real plugins folder.
-     * Installed Composer plugins are left out too, so the tests don't depend on them.
      */
     protected function useFixturePlugins(?string $uploads_path = null): PluginManager
     {
         $discovery = new PluginDiscovery(
             base_path('tests/Fixtures/plugins'),
             $uploads_path,
-            includes_composer_packages: false,
         );
 
         $manager = new PluginManager(

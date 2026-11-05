@@ -235,11 +235,11 @@ If clubs sync their rosters from Google Sheets, enable the Google Sheets plugin 
 
 #### Plugin packages on deploy
 
-Once a plugin is installed, every later deploy keeps it as it was, with nothing to set in `.env`, `composer.json` or the script. That holds for bundled plugins, uploaded zips, plugin folders copied onto the server, and Composer plugins from other repositories.
+Once a plugin is installed, every later deploy keeps it as it was, with nothing to set in `.env`, `composer.json` or the script. That holds for bundled plugins, uploaded zips and plugin folders copied onto the server, including the Composer packages they need.
 
-**Where plugins live.** Uploaded zips go to `storage/app/plugins`, outside the git checkout. Put a plugin you copy onto the server there too (it shows as "Custom"); it is found and reconciled like an upload. Don't copy plugins into `tracker-app/plugins/` on the server: that folder belongs to the repository. Each plugin's choices are in the database (`tt_plugins`: enabled or waiting, settings, source, installed version, status and last error; `tt_plugin_packages`: Composer plugins with their constraint, repository and update policy).
+**Where plugins live.** Uploaded zips go to `storage/app/plugins`, outside the git checkout. Put a plugin you copy onto the server there too (it shows as "Custom"); it is found and reconciled like an upload. Don't copy plugins into `tracker-app/plugins/` on the server: that folder belongs to the repository. Each plugin's choices are in the database (`tt_plugins`: enabled or waiting, settings, source, installed version, status and last error).
 
-**Packages.** The app's `composer.json` never lists a plugin. Each plugin folder that is on or waiting to be turned on (bundled, uploaded or copied) lists its packages in its own `composer.json`; those, and the Composer plugins added on the Plugins page, are what the deploy installs. The app saves that list to `storage/app/plugin-deploy/requirements.json` whenever a plugin is enabled, disabled, updated, or a Composer plugin is added or removed, and the deploy refreshes it from the new release before Composer runs (`php artisan plugins:packages --write`). Two plugins that need the same package must both be satisfied. Then `php bin/plugin-composer prepare` builds `composer.plugins.json`: the app's `composer.json`, plus those packages and their repositories, with every core package held at the exact version in this release's `composer.lock`. Composer then installs from it with its own lock file, `composer.plugins.lock`, which stays on the server (both files are git-ignored):
+**Packages.** The app's `composer.json` never lists a plugin. Each plugin folder that is on or waiting to be turned on (bundled, uploaded or copied) lists its packages in its own `composer.json`; those are what the deploy installs, from Packagist. The app saves that list to `storage/app/plugin-deploy/requirements.json` whenever a plugin is enabled, disabled or updated, and the deploy refreshes it from the new release before Composer runs (`php artisan plugins:packages --write`). Two plugins that need the same package must both be satisfied. Then `php bin/plugin-composer prepare` builds `composer.plugins.json`: the app's `composer.json`, plus those packages, with every core package held at the exact version in this release's `composer.lock`. Composer then installs from it with its own lock file, `composer.plugins.lock`, which stays on the server (both files are git-ignored):
 
 ```bash
 COMPOSER=composer.plugins.json composer update <plugin packages and changed core packages> \
@@ -248,9 +248,7 @@ COMPOSER=composer.plugins.json composer update <plugin packages and changed core
 
 So core packages always match the release, plugin packages keep the versions they had, and a deploy where nothing changed changes nothing ("Nothing to modify in lock file"). When no plugin needs packages, the deploy runs a plain `composer install`.
 
-**Versions.** A Composer plugin is **pinned** by default: after it is first installed, each deploy asks for exactly that version. Choose **compatible updates** when adding it (or `plugins:add-package --compatible`) to take newer versions with the same major version on each deploy (`^1.0` for 1.x, `^0.3` for 0.3.x). A deploy never moves a plugin to a new major version unless you change its version constraint to one that needs it.
-
-**Trust.** Packages are only installed by `deploy.sh`, never from a web request, and only administrators can add them. They install with `--no-scripts`, and only the Composer plugins the app's own `composer.json` allows (`config.allow-plugins`) may run, so a plugin's dependencies can't run install scripts. Repository URLs must be `https://`.
+**Trust.** Packages are only installed by `deploy.sh`, never from a web request, and only administrators can install or enable plugins. They install with `--no-scripts`, and only the Composer extensions the app's own `composer.json` allows (`config.allow-plugins`) may run, so a plugin's dependencies can't run install scripts.
 
 **Order.** `deploy.sh` takes a lock (`storage/framework/deploy.lock`) so two deploys never run Composer or migrations at once, then:
 
@@ -267,8 +265,6 @@ So core packages always match the release, plugin packages keep the versions the
 **Interrupted deploys.** A deploy that is cut off part way leaves `storage/app/plugin-deploy/deploy-in-progress` behind. The next deploy says so and simply does every step again; if it has to stop, it goes back to the release that was running before the interrupted one.
 
 **Rollback.** Each good deploy saves its `composer.plugins.json`, `composer.plugins.lock` and installed requirements under `storage/app/plugin-deploy/releases/<commit>/` (the last ten). `bash deploy.sh --rollback` deploys the release before the last good one, starting from the plugin packages it had. A rollback does not undo migrations, and it does not bring back older files of uploaded or copied plugins, which live outside git.
-
-Composer plugins from other repositories are added under **Composer plugins** on the Plugins page (or `php artisan plugins:add-package vendor/name [^1.0] [--repository=https://...] [--compatible]`). Removing one there (or `plugins:remove-package`) uninstalls it with the next deploy; that is refused while the plugin is on.
 
 Set the webhook under Command Staff > Plugins > Discord > Settings, or keep `DISCORD_WEBHOOK_URL` in `.env`. See [PLUGINS.md](PLUGINS.md).
 

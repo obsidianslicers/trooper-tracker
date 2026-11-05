@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Plugins;
 
-use App\Enums\PackageUpdatePolicy;
-use App\Models\PluginPackage;
-use Composer\InstalledVersions;
 use Throwable;
 
 /**
@@ -14,9 +11,8 @@ use Throwable;
  *
  * A plugin folder (bundled, uploaded or copied onto the server) lists the
  * packages it needs in its composer.json; those of every plugin that is on or
- * waiting to be turned on are installed at app level. A plugin from another
- * repository is a package an administrator added. The app's composer.json never
- * lists them. Instead this class saves them to requirements.json in the plugin
+ * waiting to be turned on are installed at app level, from Packagist. The app's
+ * composer.json never lists them. Instead this class saves them to requirements.json in the plugin
  * deploy folder, and the deploy builds composer.plugins.json from it (see
  * Deploy\ManagedComposerFile).
  */
@@ -59,12 +55,11 @@ final class PluginDeployPackages
     }
 
     /**
-     * @return array{packages: array<string, string>, repositories: array<int, array<string, mixed>>}
+     * @return array{packages: array<string, string>}
      */
     public function requirements(): array
     {
         $packages = [];
-        $repositories = [];
 
         foreach ($this->wanted() as $manifest)
         {
@@ -75,21 +70,9 @@ final class PluginDeployPackages
         }
 
         $packages = array_map($this->combine(...), $packages);
-
-        foreach ($this->added() as $package)
-        {
-            $packages[$package->name] = $this->constraintFor($package);
-            $repositories[] = $package->repository_url === null
-                ? null
-                : ['type' => 'vcs', 'url' => $package->repository_url];
-        }
-
         ksort($packages);
 
-        return [
-            'packages' => $packages,
-            'repositories' => array_values(array_unique(array_filter($repositories), SORT_REGULAR)),
-        ];
+        return ['packages' => $packages];
     }
 
     /**
@@ -140,82 +123,6 @@ final class PluginDeployPackages
     public static function requirementsPath(): string
     {
         return config('plugins.deploy_path').'/requirements.json';
-    }
-
-    /**
-     * The version a deploy asks Composer for. A pinned package keeps the version
-     * it has; a compatible one may move up within its major version. Neither ever
-     * jumps to a new major version unless the administrator's constraint says so,
-     * and a constraint the installed version no longer meets wins.
-     */
-    public function constraintFor(PluginPackage $package): string
-    {
-        $installed = $package->installed_version;
-        $constraint = $package->version_constraint;
-
-        if ($installed === null)
-        {
-            return $constraint ?? '*';
-        }
-
-        if ($constraint !== null && !$this->requirements->satisfies($installed, $constraint))
-        {
-            return $constraint;
-        }
-
-        if ($package->update_policy !== PackageUpdatePolicy::COMPATIBLE->value)
-        {
-            return $installed;
-        }
-
-        return $constraint ?? $this->sameMajor($installed);
-    }
-
-    private function sameMajor(string $version): string
-    {
-        $parts = explode('.', ltrim($version, 'v'));
-
-        return $parts[0] === '0' && isset($parts[1])
-            ? "^0.{$parts[1]}"
-            : '^'.$parts[0].'.0';
-    }
-
-    /**
-     * The installed Composer plugin that came from this package, if any.
-     */
-    public function manifestFromPackage(string $name): ?PluginManifest
-    {
-        $path = InstalledVersions::isInstalled($name)
-            ? InstalledVersions::getInstallPath($name)
-            : null;
-        $path = $path === null ? null : (realpath($path) ?: $path);
-
-        foreach ($this->plugins->all() as $manifest)
-        {
-            if ($path !== null && $manifest->is_composer_package
-                && (realpath($manifest->path) ?: $manifest->path) === $path)
-            {
-                return $manifest;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @return array<int, PluginPackage>
-     */
-    private function added(): array
-    {
-        try
-        {
-            return PluginPackage::query()->orderBy(PluginPackage::NAME)->get()->all();
-        }
-        catch (Throwable)
-        {
-            // The table does not exist yet, before this deploy's migrations.
-            return [];
-        }
     }
 
     /**

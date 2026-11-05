@@ -656,7 +656,7 @@ class PluginManager
 
     private function makeProvider(PluginManifest $manifest): PluginServiceProvider
     {
-        if ($manifest->namespace !== null && !$manifest->is_composer_package)
+        if ($manifest->namespace !== null)
         {
             $this->autoloader->add($manifest->namespace, $manifest->source_path);
         }

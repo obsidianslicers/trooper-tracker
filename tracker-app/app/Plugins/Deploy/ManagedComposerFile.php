@@ -28,7 +28,7 @@ final class ManagedComposerFile
      * @param  array<string, mixed>  $app_json  the app's composer.json
      * @param  array<string, mixed>  $app_lock  the app's composer.lock
      * @param  array<string, mixed>|null  $managed_lock  the last composer.plugins.lock
-     * @param  array{packages?: array<string, string>, repositories?: array<int, array<string, mixed>>}  $requirements
+     * @param  array{packages?: array<string, string>}  $requirements
      */
     public function __construct(
         private readonly array $app_json,
@@ -49,10 +49,6 @@ final class ManagedComposerFile
     {
         $json = $this->app_json;
         $json['require'] = [...($this->app_json['require'] ?? []), ...$this->pluginPackages()];
-        $json['repositories'] = [
-            ...($this->app_json['repositories'] ?? []),
-            ...($this->requirements['repositories'] ?? []),
-        ];
 
         // Only the Composer plugins the app trusts may run; a plugin's own
         // dependencies cannot add more.

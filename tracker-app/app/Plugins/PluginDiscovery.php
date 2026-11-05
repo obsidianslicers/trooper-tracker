@@ -4,20 +4,15 @@ declare(strict_types=1);
 
 namespace App\Plugins;
 
-use Composer\InstalledVersions;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Finds plugins in the local plugins folder and in installed Composer packages.
- *
- * A local plugin is a folder holding a plugin.json file. A Composer plugin is a
- * package of type "trooptracker-plugin" with a plugin.json file at its root.
+ * Finds plugins: each folder holding a plugin.json file, in the bundled plugins
+ * folder or the persistent one (uploaded and copied plugins).
  */
 class PluginDiscovery
 {
-    public const COMPOSER_TYPE = 'trooptracker-plugin';
-
     public const MANIFEST_FILE = 'plugin.json';
 
     public const STAGED_FOLDER = '.pending';
@@ -25,7 +20,6 @@ class PluginDiscovery
     public function __construct(
         private readonly string $local_path,
         private readonly ?string $uploads_path = null,
-        private readonly bool $includes_composer_packages = true,
     ) {}
 
     public function localPath(): string
@@ -59,14 +53,14 @@ class PluginDiscovery
         }
 
         $manifests = [];
-        $this->addManifest($manifests, $path, false);
+        $this->addManifest($manifests, $path);
 
         return $manifests[$slug] ?? null;
     }
 
     public function isUploaded(PluginManifest $manifest): bool
     {
-        if ($this->uploads_path === null || $manifest->is_composer_package)
+        if ($this->uploads_path === null)
         {
             return false;
         }
@@ -81,21 +75,9 @@ class PluginDiscovery
     {
         $manifests = [];
 
-        $composer_paths = $this->composerPaths();
-
-        foreach ($composer_paths as $path)
-        {
-            $this->addManifest($manifests, $path, true);
-        }
-
         foreach ($this->localPaths() as $path)
         {
-            // A local folder required through the "plugins/*" path repository is
-            // already listed as a Composer package.
-            if (!in_array(realpath($path) ?: $path, $composer_paths, true))
-            {
-                $this->addManifest($manifests, $path, false);
-            }
+            $this->addManifest($manifests, $path);
         }
 
         ksort($manifests);
@@ -121,34 +103,9 @@ class PluginDiscovery
     }
 
     /**
-     * @return array<int, string>
-     */
-    private function composerPaths(): array
-    {
-        if (!$this->includes_composer_packages)
-        {
-            return [];
-        }
-
-        $paths = [];
-
-        foreach (InstalledVersions::getInstalledPackagesByType(self::COMPOSER_TYPE) as $package)
-        {
-            $path = InstalledVersions::getInstallPath($package);
-
-            if ($path !== null && is_file($path.'/'.self::MANIFEST_FILE))
-            {
-                $paths[] = realpath($path) ?: $path;
-            }
-        }
-
-        return array_values(array_unique($paths));
-    }
-
-    /**
      * @param  array<string, PluginManifest>  $manifests
      */
-    private function addManifest(array &$manifests, string $path, bool $is_composer_package): void
+    private function addManifest(array &$manifests, string $path): void
     {
         try
         {
@@ -158,7 +115,7 @@ class PluginDiscovery
                 flags: JSON_THROW_ON_ERROR,
             );
 
-            $manifest = PluginManifest::fromArray($data, $path, $is_composer_package);
+            $manifest = PluginManifest::fromArray($data, $path);
         }
         catch (Throwable $e)
         {

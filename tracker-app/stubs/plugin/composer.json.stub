@@ -1,15 +1,7 @@
 {
     "name": "{{ composer_name }}",
-    "description": "{{ name_json }} plugin for TroopTracker",
-    "type": "trooptracker-plugin",
-    "version": "0.1.0",
-    "license": "MIT",
+    "description": "Composer packages the {{ name_json }} plugin needs. The deploy installs them.",
     "require": {
         "php": "^8.2"
-    },
-    "autoload": {
-        "psr-4": {
-            "{{ namespace_json }}\\": "src/"
-        }
     }
 }

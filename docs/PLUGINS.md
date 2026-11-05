@@ -23,8 +23,6 @@ php artisan plugins:upgrade [slug]     # runs new migrations after a deploy brou
 php artisan plugins:packages [--write] # Composer packages enabled plugins need (--write saves them)
 php artisan plugins:unmet              # enabled plugins that can't run (deploy.sh uses it)
 php artisan plugins:enable-pending     # turns on plugins that were waiting for their packages
-php artisan plugins:add-package <name> [version] [--repository=https://...] [--compatible]
-php artisan plugins:remove-package <name>         # stop installing it; the next deploy removes it
 ```
 
 **Enable** first checks the plugin's requirements (see `requires` under [plugin.json](#pluginjson)): the PHP version, PHP extensions, Composer packages, the plugin API version, and any other plugins it needs, which must be installed at the right version and turned on first. If anything is missing nothing runs, and the Plugins page and `plugins:enable` say what is missing; the Plugins page also shows it next to the plugin and greys out Enable. A plugin another enabled plugin needs can't be disabled or uninstalled until that one is turned off. If an enabled plugin's requirements stop being met, for example after a PHP change or because a plugin it needs failed to load, it is skipped with a log warning instead of loaded, and plugins load after the plugins they need.
@@ -42,7 +40,6 @@ Every install, upgrade, enable, disable, uninstall and failure is recorded in `t
 There are three ways to put a plugin on the server:
 
 - **In this repo:** add the folder under `tracker-app/plugins/` (see `make:plugin`), commit, deploy.
-- **As a Composer package:** add it under **Composer plugins** on the Plugins page; the next deploy installs it.
 - **Upload a zip** under Command Staff > Plugins > Install a plugin (administrators only).
 - **Copy a folder onto the server** into `storage/app/plugins/<slug>`. It shows as "Custom" and, like an upload, survives every deploy, and its `composer.json` packages are installed by the next deploy after you enable it. To update one that is running, put the new version in `storage/app/plugins/.pending/<slug>` (or upload it): it is applied by the next deploy, once its packages are in.
 
@@ -87,12 +84,9 @@ To update an uploaded plugin, upload the newer version. Its `version` must be hi
 
 ### Packages a plugin needs
 
-There are three ways to install a plugin. Packages are only ever installed by Composer during a deploy, never from a web request.
+A plugin lists the Composer packages it needs in its own `composer.json` `require` (plus any in `plugin.json` `requires`). Packages are only ever installed by Composer during a deploy, never from a web request, and come from Packagist.
 
-- **Bundled plugins** live in `tracker-app/plugins/` and are found automatically. One with no packages of its own needs nothing else. One that needs outside PHP packages declares them in its own `composer.json` (with a `name`, such as `trooptracker/<slug>`). Enabling it before they are installed marks it **Turns on at next deploy**: the deploy installs it through a path repository, which pulls in its packages and symlinks the folder into `vendor/`, and then turns it on (see [DEPLOY.md](DEPLOY.md#plugin-packages-on-deploy)). Cancel shown in its place stops that. Keep a `version` in the plugin's `composer.json` so the lock file does not depend on the branch name.
-- **Composer-managed plugins** live in their own repository, declare their packages in their `composer.json`, Composer resolves them into the app's shared `vendor/` as one set, with core packages held at the app's versions, so a plugin can't pull in a version that clashes with the app's. Add one under **Composer plugins** on the Plugins page (or `php artisan plugins:add-package vendor/name [^1.0]`), with its repository URL if it isn't on Packagist and whether to keep its version or take compatible updates: it is saved, the next deploy installs it, and it then appears in the list to enable. Removing it there uninstalls it with the next deploy. Composer never runs from the page itself.
-- **Uploaded and copied plugins** (in `storage/app/plugins`) work like bundled ones: their `composer.json` packages are installed by the deploy once they are enabled. On upload, the PHP version and extensions they need are checked and the zip is refused if they don't match.
-
+- **Bundled plugins** live in `tracker-app/plugins/` and are found automatically. One with no packages of its own needs nothing else. One that needs outside PHP packages declares them in its own `composer.json`. Enabling it before they are installed marks it **Turns on at next deploy**: the deploy installs the packages and then turns it on (see [DEPLOY.md](DEPLOY.md#plugin-packages-on-deploy)). Cancel shown in its place stops that. Composer resolves every plugin's packages together with the app's, with core packages held at the app's versions, so a plugin can't pull in a version that clashes with the app's.
 The app's own `composer.json` never lists a plugin's packages. Removing a plugin and its packages leaves the app booting and its tests passing; only that plugin's features go away.
 
 ---
@@ -100,10 +94,9 @@ The app's own `composer.json` never lists a plugin's packages. Removing a plugin
 ## Where plugins come from
 
 1. **Local folder.** Any folder in `tracker-app/plugins/` that holds a `plugin.json`. Set `TRACKER_PLUGINS_PATH` to use another folder.
-2. **Uploaded folder.** Plugins installed from the app, in `storage/app/plugins` (`TRACKER_PLUGINS_UPLOADS_PATH`).
-3. **Composer packages** of type `trooptracker-plugin` with a `plugin.json` at the package root. Composer autoloads them, so they can live in their own repository and be shared with other garrisons.
+2. **Persistent folder.** Plugins uploaded from the app or copied onto the server, in `storage/app/plugins` (`TRACKER_PLUGINS_UPLOADS_PATH`).
 
-If two plugins use the same slug, the Composer package wins, then the local folder, and the other is skipped with a log warning.
+If two plugins use the same slug, the first found (the local folder) wins and the other is skipped with a log warning.
 
 ---
 
@@ -161,11 +154,11 @@ plugins/hello/
 |-------|----------|-------|
 | `slug` | yes | kebab-case, unique. Used in URLs, view names and config keys. |
 | `provider` | yes | Must extend `App\Plugins\PluginServiceProvider`. |
-| `namespace` | local plugins | PSR-4 namespace for the plugin's `src/` folder. Composer packages use their own autoload instead. |
+| `namespace` | yes | PSR-4 namespace for the plugin's `src/` folder. |
 | `name`, `version`, `description`, `author` | no | Shown on the Plugins page. |
 | `settings` | no | Admin-editable settings (see below). |
 | `capabilities` | if it uses those hooks | What the plugin does to the site, shown on the Plugins page and confirmed when it is turned on (see [Capabilities](#capabilities)). |
-| `requires` | no | What the plugin needs before it can be turned on. `trooptracker` is the plugin API range it works with (the app's is `App\Plugins\PluginApi::VERSION`, currently 1.0.0); also `php`, `ext-*` and Composer packages, each with a Composer version constraint, and `plugins`, other plugins' slugs with the versions it works with. A plugin folder's `composer.json` `require` list is checked the same way. |
+| `requires` | no | What the plugin needs before it can be turned on. `trooptracker` is the plugin API range it works with (the app's is `App\Plugins\PluginApi::VERSION`, currently 1.0.0); also `php`, `ext-*` and Composer packages, each with a Composer version constraint, and `plugins`, other plugins' slugs with the versions it works with. The plugin's `composer.json` `require` list is checked the same way. |
 
 ### Capabilities
 
@@ -545,4 +538,4 @@ $plugins->load($plugins->findOrFail('discord'));
 
 A plugin whose packages may not be installed skips its tests when they are missing (see the Google Sheets plugin's `setUp()`).
 
-CI (`.github/workflows/tests.yml`) runs every suite on PHP 8.4 twice: once with only bundled plugins, which checks the app and core tests work with no Composer plugins installed, and once with the Composer-managed plugins installed, so their tests run. A PHP 8.5 run is an early warning and does not block a pull request.
+CI (`.github/workflows/tests.yml`) runs every suite on PHP 8.4 twice: once with only bundled plugins, which checks the app and core tests work without the packages plugins bring, and once with the bundled plugins' packages installed, so their tests run. A PHP 8.5 run is an early warning and does not block a pull request.

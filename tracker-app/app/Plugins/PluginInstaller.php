@@ -360,7 +360,7 @@ final class PluginInstaller
             $json = (string) $zip->getFromName($root.PluginDiscovery::MANIFEST_FILE);
             $data = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
             $slug = is_array($data) ? (string) ($data['slug'] ?? '') : '';
-            $manifest = PluginManifest::fromArray((array) $data, $uploads_path.'/'.$slug, false);
+            $manifest = PluginManifest::fromArray((array) $data, $uploads_path.'/'.$slug);
         }
         catch (JsonException $e)
         {

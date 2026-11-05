@@ -19,7 +19,4 @@ enum PluginSource: string
 
     /** Uploaded as a zip on the Plugins page. */
     case UPLOADED = 'uploaded';
-
-    /** Installed by Composer. */
-    case COMPOSER = 'composer';
 }

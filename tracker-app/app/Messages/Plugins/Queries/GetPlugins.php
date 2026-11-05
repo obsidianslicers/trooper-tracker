@@ -75,7 +75,6 @@ final class GetPlugins extends Message
     {
         return match (true)
         {
-            $manifest->is_composer_package => 'composer',
             $discovery->isUploaded($manifest) => 'uploaded',
             default => 'local',
         };

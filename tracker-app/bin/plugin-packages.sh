@@ -93,7 +93,7 @@ install_packages() {
     : >"$PLUGIN_COMPOSER_LOG"
 
     if [ ! -f "$PLUGIN_REQUIREMENTS" ]; then
-        echo '{"packages":{},"repositories":[]}' >"$PLUGIN_REQUIREMENTS"
+        echo '{"packages":{}}' >"$PLUGIN_REQUIREMENTS"
     fi
 
     if install_with_requirements "$PLUGIN_REQUIREMENTS"; then

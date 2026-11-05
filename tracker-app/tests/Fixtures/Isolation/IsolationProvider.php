@@ -21,7 +21,7 @@ class IsolationProvider extends PluginServiceProvider
             'provider' => self::class,
             'namespace' => 'Tests\\Fixtures\\Isolation',
             'capabilities' => ['events', 'middleware'],
-        ], base_path('tests/Fixtures/Isolation'), false));
+        ], base_path('tests/Fixtures/Isolation')));
     }
 
     public function listenTo(string $event, Closure|string|array $listener): void

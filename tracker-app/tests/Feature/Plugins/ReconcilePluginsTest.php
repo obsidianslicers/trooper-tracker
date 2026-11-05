@@ -373,7 +373,6 @@ class ReconcilePluginsTest extends TestCase
         $discovery = new PluginDiscovery(
             $this->bundled_path,
             $this->uploads_path,
-            includes_composer_packages: false,
         );
         $this->plugins = new PluginManager(
             $this->app,

@@ -24,7 +24,7 @@ class PluginManifestTest extends TestCase
             'namespace' => '\\Acme\\MyPlugin\\',
             'provider' => '\\Acme\\MyPlugin\\MyServiceProvider',
             'settings' => [['key' => 'api_key', 'type' => 'secret']],
-        ], '/plugins/my-plugin/', false);
+        ], '/plugins/my-plugin/');
 
         $this->assertSame('my-plugin', $subject->slug);
         $this->assertSame('My Plugin', $subject->name);
@@ -48,7 +48,7 @@ class PluginManifestTest extends TestCase
                 'trooptracker' => '^1.0',
                 'plugins' => ['xenforo' => '^1.0'],
             ],
-        ], '/tmp/ok', false);
+        ], '/tmp/ok');
 
         $this->assertSame(['php' => '^8.2', 'trooptracker' => '^1.0'], $manifest->requires);
         $this->assertSame(['xenforo' => '^1.0'], $manifest->plugin_requires);
@@ -61,7 +61,7 @@ class PluginManifestTest extends TestCase
             'provider' => 'A\\B',
             'namespace' => 'A',
             'capabilities' => ['login', 'events'],
-        ], '/tmp/ok', false);
+        ], '/tmp/ok');
 
         $this->assertSame(
             [PluginCapability::LOGIN, PluginCapability::EVENTS],
@@ -76,25 +76,10 @@ class PluginManifestTest extends TestCase
         $manifest = PluginManifest::fromArray(
             ['slug' => 'ok', 'provider' => 'A\\B', 'namespace' => 'A'],
             '/tmp/ok',
-            false,
         );
 
         $this->assertSame([], $manifest->requires);
         $this->assertSame([], $manifest->plugin_requires);
-    }
-
-    public function test_composer_packages_do_not_need_a_namespace(): void
-    {
-        $subject = PluginManifest::fromArray(
-            ['slug' => 'pkg', 'provider' => 'Acme\\Provider'],
-            '/vendor/acme/pkg',
-            true,
-        );
-
-        $this->assertNull($subject->namespace);
-        $this->assertNull($subject->source_path);
-        $this->assertSame('pkg', $subject->name);
-        $this->assertFalse($subject->hasSettings());
     }
 
     #[DataProvider('invalidManifests')]
@@ -102,7 +87,7 @@ class PluginManifestTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        PluginManifest::fromArray($data, '/plugins/x', false);
+        PluginManifest::fromArray($data, '/plugins/x');
     }
 
     public static function invalidManifests(): array

@@ -35,7 +35,7 @@ class GoogleSheetsPluginTest extends TestCase
         {
             $this->markTestSkipped(
                 'google/apiclient is not installed. '
-                    .'Run composer require trooptracker/google-sheets.'
+                    .'Enable the plugin and deploy, or run composer require google/apiclient.'
             );
         }
 

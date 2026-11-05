@@ -140,7 +140,6 @@ class PluginDeployPackagesTest extends TestCase
             $this->assertTrue($this->plugins->isEnablePending('uploaded'));
             $this->assertSame([
                 'packages' => ['acme/sheets-api' => '^1.2 ^1.0', 'acme/uploaded-api' => '^2.0'],
-                'repositories' => [],
             ], $this->saved());
         }
         finally
@@ -179,7 +178,6 @@ class PluginDeployPackagesTest extends TestCase
         $discovery = new PluginDiscovery(
             $local_path,
             $uploads_path,
-            includes_composer_packages: false,
         );
         $this->plugins = new PluginManager(
             $this->app,

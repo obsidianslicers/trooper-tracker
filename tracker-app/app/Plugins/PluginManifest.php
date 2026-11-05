@@ -29,7 +29,6 @@ final readonly class PluginManifest
         public string $path,
         public ?string $namespace,
         public ?string $source_path,
-        public bool $is_composer_package,
         public array $settings = [],
         public array $requires = [],
         public array $plugin_requires = [],
@@ -37,8 +36,8 @@ final readonly class PluginManifest
     ) {}
 
     /**
-     * The Composer packages this plugin folder needs, from its composer.json
-     * and plugin.json. Empty for a Composer package, which Composer resolved.
+     * The Composer packages this plugin needs, from its composer.json and
+     * plugin.json. The deploy installs them.
      *
      * @return array<string, string>
      */
@@ -48,13 +47,12 @@ final readonly class PluginManifest
 
         return PluginRequirements::split([
             ...(is_array($require) ? $require : []),
-            ...($this->is_composer_package ? [] : $this->requires),
+            ...$this->requires,
         ])['packages'];
     }
 
     /**
-     * The composer.json of a plugin folder. Empty for a plugin installed through
-     * Composer, whose packages Composer already checked, or one without the file.
+     * The plugin's composer.json, or nothing if it has none.
      *
      * @return array<string, mixed>
      */
@@ -62,7 +60,7 @@ final readonly class PluginManifest
     {
         $file = $this->path.'/composer.json';
 
-        if ($this->is_composer_package || !is_file($file))
+        if (!is_file($file))
         {
             return [];
         }
@@ -80,10 +78,10 @@ final readonly class PluginManifest
     /**
      * Build a manifest from decoded plugin.json data.
      *
-     * Local plugins must declare a "namespace" so the plugin loader can autoload
-     * their "src" directory. Composer packages are autoloaded by Composer.
+     * A plugin must declare a "namespace" so the plugin loader can autoload its
+     * "src" directory.
      */
-    public static function fromArray(array $data, string $path, bool $is_composer_package): self
+    public static function fromArray(array $data, string $path): self
     {
         $slug = self::slug($data, $path);
 
@@ -92,7 +90,7 @@ final readonly class PluginManifest
             throw new InvalidArgumentException("Plugin [{$slug}] needs a \"provider\" class.");
         }
 
-        $namespace = self::namespace($data, $slug, $is_composer_package);
+        $namespace = self::namespace($data, $slug);
         $requires = self::requires($data, $slug);
 
         return new self(
@@ -105,7 +103,6 @@ final readonly class PluginManifest
             path: rtrim($path, DIRECTORY_SEPARATOR),
             namespace: $namespace,
             source_path: $namespace === null ? null : rtrim($path, DIRECTORY_SEPARATOR).'/src',
-            is_composer_package: $is_composer_package,
             settings: array_map(
                 fn (array $setting): PluginSetting => PluginSetting::fromArray($setting),
                 array_values($data['settings'] ?? []),
@@ -195,13 +192,13 @@ final readonly class PluginManifest
         return $slug;
     }
 
-    private static function namespace(array $data, string $slug, bool $is_composer_package): ?string
+    private static function namespace(array $data, string $slug): ?string
     {
         $namespace = isset($data['namespace'])
             ? trim((string) $data['namespace'], '\\').'\\'
             : null;
 
-        if (!$is_composer_package && $namespace === null)
+        if ($namespace === null)
         {
             throw new InvalidArgumentException(
                 "Plugin [{$slug}] needs a \"namespace\" to autoload."

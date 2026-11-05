@@ -361,7 +361,7 @@ php artisan xenforo:test-thread 5 "Test" "Body" --extra=field1:val1 --extra=fiel
 
 ### `plugins:list` / `plugins:enable {slug}` / `plugins:disable {slug}` / `plugins:uninstall {slug} [--force]`
 
-List the plugins found in `tracker-app/plugins/` and in Composer packages, or turn one on or off for the whole site. Enabling runs the plugin's migrations. Disabling keeps its data and settings. Uninstalling disables it, rolls back its migrations and deletes its settings, after a confirmation prompt (`--force` skips it). See [PLUGINS.md](PLUGINS.md).
+List the plugins found in `tracker-app/plugins/` and `storage/app/plugins`, or turn one on or off for the whole site. Enabling runs the plugin's migrations. Disabling keeps its data and settings. Uninstalling disables it, rolls back its migrations and deletes its settings, after a confirmation prompt (`--force` skips it). See [PLUGINS.md](PLUGINS.md).
 
 ```bash
 php artisan plugins:list
@@ -371,7 +371,7 @@ php artisan plugins:disable discord
 
 ### `plugins:reconcile`
 
-Run by `deploy.sh` after Composer and migrations. Runs plugin migrations for plugins whose files changed, turns on plugins that were waiting for their packages, and records each plugin's and Composer plugin's installed version, status and last error for the Plugins page. A plugin whose files are gone is marked missing; its settings and data are kept. Running it again changes nothing ("Every plugin is as it was."). It never fails, so it never stops a deploy. See [DEPLOY.md](DEPLOY.md#plugin-packages-on-deploy).
+Run by `deploy.sh` after Composer and migrations. Runs plugin migrations for plugins whose files changed, turns on plugins that were waiting for their packages, and records each plugin's installed version, status and last error for the Plugins page. A plugin whose files are gone is marked missing; its settings and data are kept. Running it again changes nothing ("Every plugin is as it was."). It never fails, so it never stops a deploy. See [DEPLOY.md](DEPLOY.md#plugin-packages-on-deploy).
 
 ```bash
 php artisan plugins:reconcile
@@ -381,17 +381,9 @@ php artisan plugins:reconcile
 
 `plugins:packages` lists the Composer packages the enabled plugins need; `--write` also saves them for the deploy. `plugins:unmet` lists enabled plugins that can't run right now (files missing or requirements not met). `deploy.sh` runs it before and after installing packages and stops if a plugin that could run before can't any more.
 
-### `plugins:add-package {name} {version?} [--repository=] [--compatible]` / `plugins:remove-package {name}`
-
-Save a Composer plugin for the next deploy to install, or stop installing it. `--repository` is an `https://` repository for a package not on Packagist. `--compatible` takes updates within the same major version on each deploy; without it the first installed version is kept.
-
-```bash
-php artisan plugins:add-package acme/trooptracker-badges ^1.0 --repository=https://github.com/acme/badges
-```
-
 ### `make:plugin {name} [--namespace=] [--composer]`
 
-Creates a starter plugin in `tracker-app/plugins/<slug>` from the templates in `tracker-app/stubs/plugin`. `--composer` also writes a `composer.json` so the plugin can be shared as a package.
+Creates a starter plugin in `tracker-app/plugins/<slug>` from the templates in `tracker-app/stubs/plugin`. `--composer` also writes a `composer.json` for the Composer packages the plugin needs.
 
 ```bash
 php artisan make:plugin "Event Weather"

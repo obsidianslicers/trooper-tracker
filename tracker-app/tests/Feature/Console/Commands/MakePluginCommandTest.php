@@ -83,7 +83,7 @@ class MakePluginCommandTest extends TestCase
         Log::shouldHaveReceived('info')->with('[starter-check] Event posted: Parade');
     }
 
-    public function test_composer_option_writes_a_composer_package_file(): void
+    public function test_composer_option_writes_a_composer_json_for_its_packages(): void
     {
         $this->artisan(
             'make:plugin',
@@ -95,11 +95,8 @@ class MakePluginCommandTest extends TestCase
             true,
         );
 
-        $this->assertSame('trooptracker-plugin', $composer['type']);
-        $this->assertSame(
-            ['TroopTracker\\Plugins\\SharedThing\\' => 'src/'],
-            $composer['autoload']['psr-4'],
-        );
+        $this->assertSame(['php' => '^8.2'], $composer['require']);
+        $this->assertArrayNotHasKey('type', $composer);
     }
 
     public function test_it_refuses_to_overwrite_an_existing_plugin(): void

@@ -7,7 +7,6 @@ namespace App\Messages\Plugins\Commands;
 use App\Enums\PluginSource;
 use App\Enums\PluginStatus;
 use App\Models\Plugin;
-use App\Models\PluginPackage;
 use App\Plugins\PluginDeployPackages;
 use App\Plugins\PluginDiscovery;
 use App\Plugins\PluginException;
@@ -16,7 +15,6 @@ use App\Plugins\PluginInstallException;
 use App\Plugins\PluginManager;
 use App\Plugins\PluginManifest;
 use App\Plugins\PluginRequirements;
-use Composer\InstalledVersions;
 use Hyperdrive\Message;
 
 /**
@@ -25,7 +23,7 @@ use Hyperdrive\Message;
  * already in its chosen state is left alone.
  *
  * Runs pending plugin migrations, turns on plugins that were waiting for their
- * packages, records what each package and plugin ended up as (including errors
+ * packages, records what each plugin ended up as (including errors
  * from the deploy's Composer step), and saves the packages the next deploy needs.
  *
  * @method static array call()
@@ -55,8 +53,6 @@ final class ReconcilePlugins extends Message
         $report = [];
         $composer_error = $this->composerError();
 
-        $this->recordPackages($composer_error, $report);
-
         foreach ($plugins->all() as $manifest)
         {
             $staged = $discovery->staged($manifest->slug);
@@ -76,31 +72,6 @@ final class ReconcilePlugins extends Message
         }
 
         return $report;
-    }
-
-    /**
-     * @param  array<string, string>  $report
-     */
-    private function recordPackages(?string $composer_error, array &$report): void
-    {
-        foreach (PluginPackage::query()->get() as $package)
-        {
-            $installed = InstalledVersions::isInstalled($package->name)
-                ? InstalledVersions::getPrettyVersion($package->name)
-                : null;
-            $error = $installed === null
-                ? ($composer_error ?? 'Not installed yet; the next deploy installs it.')
-                : null;
-
-            if ($package->installed_version !== $installed || $package->last_error !== $error)
-            {
-                $package->installed_version = $installed ?? $package->installed_version;
-                $package->last_error = $error;
-                $package->checked_at = now();
-                $package->save();
-                $report[$package->name] = $error ?? "installed {$installed}";
-            }
-        }
     }
 
     /**
@@ -269,11 +240,9 @@ final class ReconcilePlugins extends Message
         PluginManifest $manifest,
         Plugin $record,
     ): void {
-        $from_composer = $manifest->is_composer_package && !$this->inFolder($manifest, $discovery);
         $source = match (true)
         {
             $record->source === PluginSource::UPLOADED->value => PluginSource::UPLOADED,
-            $from_composer => PluginSource::COMPOSER,
             $this->inFolder($manifest, $discovery, uploads: true) => PluginSource::CUSTOM,
             default => PluginSource::BUNDLED,
         };
