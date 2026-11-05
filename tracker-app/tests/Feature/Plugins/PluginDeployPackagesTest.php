@@ -162,6 +162,17 @@ class PluginDeployPackagesTest extends TestCase
         );
     }
 
+    public function test_the_saved_requirements_stay_writable_by_the_deploy_user(): void
+    {
+        $this->writePlugin('sheets', ['laravel/framework' => '*']);
+        $this->plugins->enable('sheets');
+
+        $path = PluginDeployPackages::requirementsPath();
+
+        $this->assertSame(0664, fileperms($path) & 0777);
+        $this->assertSame(02775, fileperms(dirname($path)) & 07777);
+    }
+
     /**
      * @return array<string, mixed>
      */

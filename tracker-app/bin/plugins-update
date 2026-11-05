@@ -9,6 +9,8 @@
 # the last working set of packages, and it stops without changing anything if a
 # plugin that works now would stop working.
 set -Eeuo pipefail
+# The web server writes plugin files in storage too, so let the group write what we create.
+umask 002
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$APP_DIR"
