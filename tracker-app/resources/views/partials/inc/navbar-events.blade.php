@@ -39,6 +39,21 @@
                 <i class="fa fa-fw fa-ban fa-lg me-2"></i>
                 Cancelled
             </x-nav-link>
+            @role(['coordinator'])
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <x-nav-link :url="route('admin.events.list')"
+                            :active="request()->routeIs('admin.events.list')">
+                    <i class="fa fa-fw fa-clipboard-list fa-lg me-2"></i>
+                    My Events
+                </x-nav-link>
+                <x-nav-link :url="route('admin.events.create')"
+                            :active="request()->routeIs('admin.events.create')">
+                    <i class="fa fa-fw fa-plus fa-lg me-2"></i>
+                    Create Event
+                </x-nav-link>
+            @endrole
         </ul>
     </li>
     @endunless

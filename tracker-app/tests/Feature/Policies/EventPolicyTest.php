@@ -63,6 +63,39 @@ class EventPolicyTest extends TestCase
         $this->assertFalse($policy->update($moderator, $denied_event));
     }
 
+    public function test_event_coordinator_can_create_and_update_only_their_own_events(): void
+    {
+        $policy = new EventPolicy;
+
+        $coordinator = Trooper::factory()->asEventCoordinator()->create();
+        $organization = Organization::factory()->withNodePath('org.any')->create();
+
+        $own = Event::factory()->withOrganization($organization)->withCreatedByTrooper($coordinator)->create();
+        $others = Event::factory()->withOrganization($organization)->create();
+
+        $this->assertTrue($policy->create($coordinator));
+        $this->assertTrue($policy->update($coordinator, $own));
+        $this->assertFalse($policy->update($coordinator, $others));
+    }
+
+    public function test_event_coordinator_ignores_leftover_moderator_flags(): void
+    {
+        $policy = new EventPolicy;
+
+        $coordinator = Trooper::factory()->asEventCoordinator()->create();
+        $organization = Organization::factory()->withNodePath('org.flagged')->create();
+
+        TrooperAssignment::factory()
+            ->forTrooper($coordinator)
+            ->forOrganization($organization)
+            ->asModerator()
+            ->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+
+        $this->assertFalse($policy->update($coordinator, $event));
+    }
+
     public function test_delete_restore_and_force_delete_are_denied(): void
     {
         $policy = new EventPolicy;

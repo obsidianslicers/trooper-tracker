@@ -17,6 +17,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
  * Filters and returns events based on moderator permissions:
  * - Administrators see all events
  * - Moderators see only events from organizations they moderate
+ * - Event coordinators see only the events they created
  *
  * Supports filtering by status, organization, and search term.
  * Returns paginated results with eager-loaded relationships.
@@ -45,7 +46,7 @@ final class GetEventsForModerator extends Message
      * 1. Eager load organization with trooper's moderator assignments
      * 2. Count related event shifts
      * 3. Apply filter criteria (status, organization, search term)
-     * 4. Filter by moderator permissions using moderatedBy scope
+     * 4. Filter by the trooper's permissions using the managedBy scope
      * 5. Order by event_end descending
      * 6. Return paginated results with query string preserved
      *
@@ -63,7 +64,7 @@ final class GetEventsForModerator extends Message
 
         $q = $q->withCount('event_shifts');
 
-        $q = $q->filterWith($this->filter)->moderatedBy($this->moderator);
+        $q = $q->filterWith($this->filter)->managedBy($this->moderator);
 
         $q->orderByDesc(Event::EVENT_END);
 

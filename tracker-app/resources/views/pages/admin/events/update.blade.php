@@ -18,7 +18,7 @@
                     <x-label>Hosting Organization:</x-label>
                     <x-input-picker :property="'organization_id'"
                                     :route="'pickers.organization'"
-                                    :params="['moderated_only' => true]"
+                                    :params="['event_host_only' => true]"
                                     :text="$event->organization->name ?? 'Select a Host'"
                                     :value="$event->organization_id" />
                 </x-input-container>

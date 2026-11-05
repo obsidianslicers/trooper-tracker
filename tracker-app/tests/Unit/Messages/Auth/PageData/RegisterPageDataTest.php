@@ -63,6 +63,7 @@ class RegisterPageDataTest extends TestCase
         ], $result['organizations']);
         $this->assertSame(
             MembershipRole::toValueLabels([
+                MembershipRole::EVENT_COORDINATOR,
                 MembershipRole::MODERATOR,
                 MembershipRole::ADMINISTRATOR,
             ]),
