@@ -1,0 +1,194 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Messages\Events\Commands;
+
+use App\Enums\EventTrooperStatus;
+use App\Messages\Events\Commands\PromoteNextInLineEventTrooper;
+use App\Models\EventShift;
+use App\Models\EventTrooper;
+use App\Models\Organization;
+use App\Models\Trooper;
+use App\Notifications\Events\TrooperPromotedToGoingNotification;
+use App\Services\EventRosterCapacityService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
+use Tests\TestCase;
+
+class PromoteNextInLineEventTrooperTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_handle_promotes_next_standby_trooper_to_going(): void
+    {
+        Notification::fake();
+
+        $organization = Organization::factory()->create();
+        $event_shift = EventShift::factory()->create();
+        $cancelled_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::CANCELLED,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ]);
+
+        $standby_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ]);
+
+        $command = new PromoteNextInLineEventTrooper(event_trooper: $cancelled_trooper);
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $standby_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_handle_matches_handler_role(): void
+    {
+        Notification::fake();
+
+        $organization = Organization::factory()->create();
+        $event_shift = EventShift::factory()->create();
+        $cancelled_handler = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::CANCELLED,
+                EventTrooper::IS_HANDLER => true,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ]);
+
+        $standby_member = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ]);
+
+        $standby_handler = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::IS_HANDLER => true,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ]);
+
+        $command = new PromoteNextInLineEventTrooper(event_trooper: $cancelled_handler);
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $standby_handler->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $standby_member->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
+    public function test_handle_queues_next_in_line_email(): void
+    {
+        Notification::fake();
+
+        $organization = Organization::factory()->create();
+        $event_shift = EventShift::factory()->create();
+        $cancelled_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::CANCELLED,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ]);
+
+        $standby_trooper_model = Trooper::factory()->create();
+        $standby_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($standby_trooper_model)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::IS_HANDLER => $cancelled_trooper->{EventTrooper::IS_HANDLER},
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ]);
+
+        $command = new PromoteNextInLineEventTrooper(event_trooper: $cancelled_trooper);
+
+        $command->handle(new EventRosterCapacityService);
+
+        Notification::assertSentTo($standby_trooper_model, TrooperPromotedToGoingNotification::class);
+    }
+
+    public function test_handle_returns_null_when_no_standby_trooper_available(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $cancelled_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([EventTrooper::STATUS => EventTrooperStatus::CANCELLED]);
+
+        $command = new PromoteNextInLineEventTrooper(event_trooper: $cancelled_trooper);
+
+        $result = $command->handle(new EventRosterCapacityService);
+
+        $this->assertNull($result);
+        Notification::assertNothingSent();
+    }
+
+    public function test_handle_uses_override_is_handler_to_promote_from_old_pool(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+
+        // Trooper who switched — is_handler is now false on the model (already saved)
+        $switched_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::GOING,
+                EventTrooper::IS_HANDLER => false,
+            ]);
+
+        // Should be promoted — was waiting in the handler pool
+        $standby_handler = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::IS_HANDLER => true,
+            ]);
+
+        // Should NOT be promoted — wrong pool
+        $standby_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::IS_HANDLER => false,
+            ]);
+
+        $command = new PromoteNextInLineEventTrooper(
+            event_trooper: $switched_trooper,
+            global_was_full: true,
+            effective_org_id: null,
+            override_is_handler: true,
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $standby_handler->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $standby_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+}

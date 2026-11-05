@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
-use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Events\Commands\PromoteNextInLineEventTrooper;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use Illuminate\Http\Request;
@@ -27,10 +27,10 @@ class RemoveEventTrooperController extends MagicBusController
         {
             if ($event_trooper->intendsToGo())
             {
-                $this->bus->send(new PromoteNextInLineEventTrooperCommand(
-                    $event_trooper,
+                PromoteNextInLineEventTrooper::call(
+                    event_trooper: $event_trooper,
                     event_shift_station_id: $event_trooper->event_shift_station_id,
-                ));
+                );
             }
 
             $event_trooper->delete();

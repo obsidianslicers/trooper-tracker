@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Features\Events\Commands\ShareEventRosterCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\ShareRosterHtmxRequest;
+use App\Messages\Events\Commands\ShareEventRoster;
 use App\Models\Event;
 use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\ValidationException;
@@ -52,9 +52,11 @@ class ShareRosterHtmxController extends MagicBusController
 
             $recipient_email = $request->validated('recipient_email');
 
-            $command = new ShareEventRosterCommand($event, $recipient_email, $request->user());
-
-            $this->bus->send($command);
+            ShareEventRoster::call(
+                event: $event,
+                recipient_email: $recipient_email,
+                shared_by_trooper: $request->user(),
+            );
 
             $message = 'Roster successfully sent.';
         }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Features\Events\Queries\GetEventsForDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Messages\Organizations\Queries\GetOrganizations;
 use App\Models\Event;

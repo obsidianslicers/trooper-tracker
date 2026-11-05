@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
 use App\Enums\FlashType;
-use App\Features\Events\Commands\UpdateEventTrooperCommand;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Events\Commands\UpdateEventTrooper;
 use App\Models\EventTrooper;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\View\View;
@@ -112,9 +112,7 @@ class ShiftCompleteController extends MagicBusController
                 }
             }
 
-            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
-
-            $this->bus->send($event_trooper_cmd);
+            UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
 
             $message = $this->getMessageForStatus($trooper_status);
         }
