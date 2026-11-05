@@ -9,7 +9,7 @@ use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
-use App\Services\GoogleService;
+use App\Plugins\PluginSheetSource;
 use App\Services\Synchronizers\DroidBuildersService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
@@ -24,10 +24,10 @@ class DroidBuildersServiceTest extends TestCase
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->create();
 
-        $google = Mockery::mock(GoogleService::class);
+        $sheets = app(PluginSheetSource::class);
 
-        /** @var DroidBuildersService&\Mockery\MockInterface $subject */
-        $subject = Mockery::mock(DroidBuildersService::class, [$organization, $google])
+        /** @var DroidBuildersService&Mockery\MockInterface $subject */
+        $subject = Mockery::mock(DroidBuildersService::class, [$organization, $sheets])
             ->makePartial()
             ->shouldAllowMockingProtectedMethods();
 
@@ -68,10 +68,10 @@ class DroidBuildersServiceTest extends TestCase
     public function test_synchronize_skips_rows_missing_costume_name_or_identifier(): void
     {
         $organization = Organization::factory()->create();
-        $google = Mockery::mock(GoogleService::class);
+        $sheets = app(PluginSheetSource::class);
 
-        /** @var DroidBuildersService&\Mockery\MockInterface $subject */
-        $subject = Mockery::mock(DroidBuildersService::class, [$organization, $google])
+        /** @var DroidBuildersService&Mockery\MockInterface $subject */
+        $subject = Mockery::mock(DroidBuildersService::class, [$organization, $sheets])
             ->makePartial()
             ->shouldAllowMockingProtectedMethods();
 

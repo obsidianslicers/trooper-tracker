@@ -1,0 +1,6 @@
+{
+    "slug": "missing-provider",
+    "name": "Missing Provider",
+    "namespace": "MissingProviderPlugin",
+    "provider": "MissingProviderPlugin\\NopeServiceProvider"
+}

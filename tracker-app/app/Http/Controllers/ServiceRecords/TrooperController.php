@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\ServiceRecords;
 
-use App\Facades\TroopTrackerFacade;
 use App\Http\Controllers\PageController;
 use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForDisplay;
 use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
 use App\Messages\Troopers\Queries\GetTrooperServiceRecord;
 use App\Models\Costume;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
-use App\Support\XenforoUpgradeHelper;
+use App\Plugins\PluginDonations;
+use App\Plugins\PluginGuard;
+use App\Support\DonationSummary;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use RuntimeException;
@@ -46,43 +45,7 @@ class TrooperController extends PageController
 
         $data['trooper_costumes'] = $trooper_costumes;
         $data['has_missing_credit'] = Auth::user()->can('update', $trooper) && $this->hasMissingCredit($trooper);
-        $data['xenforo_group_banners'] = collect();
-        $data['is_active_donor'] = false;
-        $data['xenforo_donations'] = [];
-        $data['xenforo_profile_url'] = null;
-
-        if (TroopTrackerFacade::isXenforoIntegrationConfigured())
-        {
-            $xenforo = app(XenforoService::class);
-            $xenforo_user_id = $xenforo->resolve_user_id_for_trooper($trooper->id);
-
-            if ($xenforo_user_id !== null)
-            {
-                $data['xenforo_profile_url'] = config('services.xenforo.base_url').'/members/'.$xenforo_user_id.'/';
-
-                $group_data = $xenforo->get_user_groups($xenforo_user_id);
-                $data['xenforo_group_banners'] = $this->extractXenforoGroupBanners($group_data);
-
-                $upgrade_history = $xenforo->get_user_upgrade_history($xenforo_user_id);
-                $data['xenforo_donations'] = $upgrade_history ?? [];
-                $data['is_active_donor'] = collect($data['xenforo_donations'])
-                    ->contains('is_active', true);
-            }
-        }
-
-        // Compute live donation totals from both sources so the profile always
-        // reflects current data regardless of when the batch command last ran.
-        $local_total = (float) $data['all_donations']->sum('amount');
-        $xenforo_total = (float) collect($data['xenforo_donations'])->sum('total_amount');
-
-        $local_months = $data['all_donations']
-            ->filter(fn ($d) => $d->created_at !== null)
-            ->mapWithKeys(fn ($d) => [$d->created_at->format('Y-m') => true])
-            ->all();
-        $xenforo_months = XenforoUpgradeHelper::monthKeysFromUpgrades($data['xenforo_donations'], []);
-
-        $data['service_summary']['total_donated'] = $xenforo_total + $local_total;
-        $data['service_summary']['donation_months'] = count(array_merge($local_months, $xenforo_months));
+        $this->applyLiveDonationTotals($data, $trooper);
 
         return view('pages.service-records.trooper', $data);
     }
@@ -95,34 +58,37 @@ class TrooperController extends PageController
     }
 
     /**
-     * @param  array<string,mixed>|null  $group_data
-     * @return Collection<int, array{title:string,banner_text:string,is_primary:bool,order:int}>
+     * Live totals from local records and every donation source, so the profile is
+     * current whenever the batch recalculation last ran.
+     *
+     * @param  array<string, mixed>  $data
      */
-    private function extractXenforoGroupBanners(?array $group_data): Collection
+    private function applyLiveDonationTotals(array &$data, Trooper $trooper): void
     {
-        return collect($group_data['userGroups'] ?? [])
-            ->filter(function (mixed $group): bool
+        $month_keys = $data['all_donations']
+            ->filter(fn ($d) => $d->created_at !== null)
+            ->mapWithKeys(fn ($d) => [$d->created_at->format('Y-m') => true])
+            ->all();
+        $total = (float) $data['all_donations']->sum('amount');
+        $is_active_donor = false;
+
+        foreach (app(PluginDonations::class)->sources() as $source)
+        {
+            $summary = PluginGuard::attempt(
+                'summarize donations',
+                fn (): ?DonationSummary => $source->summaryFor($trooper),
+            );
+
+            if ($summary !== null)
             {
-                return is_array($group) && !empty($group['bannerText']);
-            })
-            ->map(function (array $group): array
-            {
-                return [
-                    'title' => (string) ($group['title'] ?? ''),
-                    'banner_text' => (string) ($group['bannerText'] ?? ''),
-                    'is_primary' => (bool) ($group['isPrimary'] ?? false),
-                    'order' => (int) ($group['order'] ?? PHP_INT_MAX),
-                ];
-            })
-            ->sortBy(function (array $group): string
-            {
-                return sprintf(
-                    '%d-%010d-%s',
-                    $group['is_primary'] ? 0 : 1,
-                    $group['order'],
-                    strtolower($group['title'])
-                );
-            })
-            ->values();
+                $month_keys = array_merge($month_keys, $summary->month_keys);
+                $total += $summary->total;
+                $is_active_donor = $is_active_donor || $summary->is_active;
+            }
+        }
+
+        $data['is_active_donor'] = $is_active_donor;
+        $data['service_summary']['total_donated'] = $total;
+        $data['service_summary']['donation_months'] = count($month_keys);
     }
 }

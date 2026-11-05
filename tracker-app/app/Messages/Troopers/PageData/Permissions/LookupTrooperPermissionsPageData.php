@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\PageData\Permissions;
 
-use App\Facades\TroopTrackerFacade;
-use App\Messages\Troopers\Queries\Permissions\GetTrooperForumGroupIds;
 use App\Messages\Troopers\Resources\PermissionRequestsCollection;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
+use App\Plugins\PluginGuard;
+use App\Plugins\PluginPermissionRequests;
 use Hyperdrive\Message;
 
 /**
@@ -25,12 +24,8 @@ final class LookupTrooperPermissionsPageData extends Message
     /**
      * @return array<string, mixed>
      */
-    public function handle(XenforoService $xenforo): array
+    public function handle(PluginPermissionRequests $extensions): array
     {
-        $has_forum_account = TroopTrackerFacade::isXenforoIntegrationConfigured()
-            && $xenforo->resolve_user_id_for_trooper($this->trooper->id) !== null;
-
-        $forum_group_ids = GetTrooperForumGroupIds::call(trooper: $this->trooper);
         $moderated_ids = array_map('intval', $this->trooper->resolveModeratorOrgIds() ?? []);
 
         return [
@@ -45,9 +40,32 @@ final class LookupTrooperPermissionsPageData extends Message
             ],
             'moderated_organization_ids' => $moderated_ids,
             'covered_organization_ids' => $this->getCoveredOrganizationIds($moderated_ids),
-            'has_forum_account' => $has_forum_account,
-            'forum_group_ids' => $forum_group_ids ?? [],
+            'extension_sections' => $this->getExtensionSections($extensions),
         ];
+    }
+
+    /**
+     * @return array<int, array{key:string,html:string}>
+     */
+    private function getExtensionSections(PluginPermissionRequests $extensions): array
+    {
+        $sections = [];
+
+        foreach ($extensions->all() as $key => $extension)
+        {
+            $html = PluginGuard::attempt(
+                "show permission request section [{$key}]",
+                fn (): string => $extension->formSection($this->trooper),
+                '',
+            );
+
+            if ($html !== '')
+            {
+                $sections[] = ['key' => $key, 'html' => $html];
+            }
+        }
+
+        return $sections;
     }
 
     /**

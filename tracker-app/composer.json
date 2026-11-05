@@ -10,7 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "google/apiclient": "^2.18",
+        "composer/semver": "^3.4",
         "inertiajs/inertia-laravel": "^2.0",
         "intervention/image": "^3.11",
         "kreait/laravel-firebase": "^7.1",
@@ -56,13 +56,11 @@
     "scripts": {
         "pint:format": [
             "pint app/helpers.php",
-            "pint app/Bus",
             "pint app/Channels",
             "pint app/Console",
             "pint app/Contracts",
             "pint app/Enums",
             "pint app/Facades",
-            "pint app/Features",
             "pint app/Helpers",
             "pint app/Http",
             "pint app/Jobs",
@@ -73,6 +71,7 @@
             "pint app/Models/Filters",
             "pint app/Models/Observers",
             "pint app/Notifications",
+            "pint app/Plugins",
             "pint app/Policies",
             "pint app/Providers",
             "pint app/Rules",
@@ -80,6 +79,7 @@
             "pint packages/hyperdrive/src",
             "pint packages/fabricator/src",
             "pint packages/chaincode/src",
+            "pint plugins",
             "pint routes"
         ],
         "pint:test": "@pint:format --test",

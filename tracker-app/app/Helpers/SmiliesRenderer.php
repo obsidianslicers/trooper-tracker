@@ -17,7 +17,7 @@ final class SmiliesRenderer
      * input HTML has already been escaped (e.g. ":->" appears as ":-&gt;").
      *
      * @param  string  $html  Already-rendered HTML (post BBCode or Markdown)
-     * @param  array  $smilies  Array of smiley data returned by XenforoService::get_smilies()
+     * @param  array  $smilies  Array of smiley data such as a forum plugin provides
      */
     public static function render(string $html, array $smilies): string
     {

@@ -32,4 +32,28 @@ class UpdateControllerTest extends TestCase
 
         $response->assertRedirect(route('auth.login'));
     }
+
+    public function test_invoke_shows_the_roster_sync_choice_for_a_club(): void
+    {
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $organization = Organization::factory()->asOrganization()->create([
+            Organization::SYNCHRONIZER => 'from-a-disabled-plugin',
+        ]);
+
+        $this->actingAs($trooper)
+            ->get(route('admin.organizations.update', ['organization' => $organization->id]))
+            ->assertSee('Roster sync:')
+            ->assertSee('Rebel Legion')
+            ->assertSee('from-a-disabled-plugin (not available)');
+    }
+
+    public function test_invoke_hides_the_roster_sync_choice_for_a_region(): void
+    {
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $organization = Organization::factory()->asRegion()->create();
+
+        $this->actingAs($trooper)
+            ->get(route('admin.organizations.update', ['organization' => $organization->id]))
+            ->assertDontSee('Roster sync:');
+    }
 }

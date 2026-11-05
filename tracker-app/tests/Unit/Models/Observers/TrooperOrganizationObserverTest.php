@@ -46,7 +46,7 @@ class TrooperOrganizationObserverTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('501st Legion TKID 1012 is already assigned to another trooper.');
 
-        (new TrooperOrganizationObserver())->saving($trooper_organization);
+        (new TrooperOrganizationObserver)->saving($trooper_organization);
     }
 
     public function test_saving_allows_existing_identifier_for_same_trooper_organization(): void
@@ -63,7 +63,7 @@ class TrooperOrganizationObserverTest extends TestCase
         $trooper_organization->setRelation('organization', $organization);
 
         $this->expectNotToPerformAssertions();
-        (new TrooperOrganizationObserver())->saving($trooper_organization);
+        (new TrooperOrganizationObserver)->saving($trooper_organization);
     }
 
     public function test_saving_still_requires_primary_club_membership(): void
@@ -85,7 +85,7 @@ class TrooperOrganizationObserverTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Trooper can only be a member at top-level organizations.');
 
-        (new TrooperOrganizationObserver())->saving($trooper_organization);
+        (new TrooperOrganizationObserver)->saving($trooper_organization);
     }
 
     public function test_saved_demotes_global_to_retired_when_last_active_pivot_changes_to_retired(): void

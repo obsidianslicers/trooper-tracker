@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\Troopers\Commands\Membership;
 
 use App\Enums\TrooperRequestStatus;
+use App\Events\TrooperRequestApproved;
 use App\Messages\Troopers\Commands\Notifications\CreateOrUpdateOrganizationNotification;
 use App\Messages\Troopers\Queries\Membership\AssertOrganizationIdentifierAvailable;
 use App\Models\Organization;
@@ -56,6 +57,8 @@ final class ApproveTrooperRequest extends Message
         {
             $trooper->notify(new TrooperRequestApprovedNotification($trooper_request));
         }
+
+        TrooperRequestApproved::dispatch($trooper_request);
     }
 
     private function createOrUpdateNotifications(Organization $primary_organization, Organization $requested_org, int $trooper_id): void

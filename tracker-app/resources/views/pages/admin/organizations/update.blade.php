@@ -45,88 +45,25 @@
                                           :value="$organization->name" />
                         </x-input-container>
 
-                        @if(TroopTracker::isGoogleSyncConfigured() && $organization->type == \App\Enums\OrganizationType::ORGANIZATION)
+                        @if($organization->type == \App\Enums\OrganizationType::ORGANIZATION
+                            && auth()->user()->is_administrator)
                             <x-input-container>
                                 <x-label>
-                                    Google Sync Sheet ID:
+                                    Roster sync:
                                 </x-label>
-                                <x-input-text :property="'sync_sheet_id'"
-                                              :value="$organization->sync_sheet_id" />
-                                <p class="form-help">
-                                    <i class="text-muted">Optional Google Sheet ID used for sync.</i>
-                                </p>
+                                <x-input-select :property="'synchronizer'"
+                                                :options="$synchronizer_options"
+                                                :placeholder="'None'"
+                                                :value="$organization->synchronizer" />
+                                <x-input-help>
+                                    Keeps this club's members and costumes in step with
+                                    the club's own records.
+                                </x-input-help>
                             </x-input-container>
                         @endif
 
-                        @if(TroopTracker::isDiscordIntegrationConfigured())
-                            <x-input-container>
-                                <x-label>
-                                    Discord Mention:
-                                </x-label>
-                                <x-input-text :property="'discord_mention'"
-                                              :value="$organization->discord_mention" />
-                                <p class="form-help">
-                                    <i class="text-muted">Optional Discord role/user mention (e.g. <code>&lt;@&amp;123456789&gt;</code>).</i>
-                                </p>
-                            </x-input-container>
-                        @endif
+                        @pluginSlot('admin.organizations.update.fields')
 
-                        @if(TroopTracker::isXenforoIntegrationConfigured())
-                            <x-input-container>
-                                <x-label>
-                                    Related Forum (Node ID):
-                                </x-label>
-                                <x-input-text :property="'related_forum'"
-                                              :value="$organization->related_forum" />
-                                <p class="form-help">
-                                    <i class="text-muted">Optional XenForo forum node id where event threads should be created.</i>
-                                </p>
-                            </x-input-container>
-
-                            <x-input-container>
-                                <x-label>
-                                    Related Forum Archive (Node ID):
-                                </x-label>
-                                <x-input-text :property="'related_forum_archive'"
-                                              :value="$organization->related_forum_archive" />
-                                <p class="form-help">
-                                    <i class="text-muted">Optional XenForo archive forum node id for moved/archived threads.</i>
-                                </p>
-                            </x-input-container>
-
-                            <x-input-container>
-                                <x-label>
-                                    XenForo Group (Active):
-                                </x-label>
-                                <x-input-text :property="'xenforo_group_active_id'"
-                                              :value="$organization->xenforo_group_active_id" />
-                                <p class="form-help">
-                                    <i class="text-muted">Optional XenForo secondary group ID applied when members of this organization (or its units) are active.</i>
-                                </p>
-                            </x-input-container>
-
-                            <x-input-container>
-                                <x-label>
-                                    XenForo Group (Reserve):
-                                </x-label>
-                                <x-input-text :property="'xenforo_group_reserve_id'"
-                                              :value="$organization->xenforo_group_reserve_id" />
-                                <p class="form-help">
-                                    <i class="text-muted">Optional XenForo secondary group ID applied when members are in reserve status.</i>
-                                </p>
-                            </x-input-container>
-
-                            <x-input-container>
-                                <x-label>
-                                    XenForo Group (Retired):
-                                </x-label>
-                                <x-input-text :property="'xenforo_group_retired_id'"
-                                              :value="$organization->xenforo_group_retired_id" />
-                                <p class="form-help">
-                                    <i class="text-muted">Optional XenForo secondary group ID applied when members are retired from this organization.</i>
-                                </p>
-                            </x-input-container>
-                        @endif
 
                         <x-submit-container>
                             <x-submit-button>

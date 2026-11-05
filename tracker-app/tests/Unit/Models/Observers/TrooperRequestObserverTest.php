@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Models\Observers;
 
 use App\Enums\TrooperRequestStatus;
-use App\Models\TrooperRequest;
 use App\Models\Observers\TrooperRequestObserver;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperRequest;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -33,7 +33,7 @@ class TrooperRequestObserverTest extends TestCase
 
         $trooper_request->status = TrooperRequestStatus::APPROVED;
 
-        $subject = new TrooperRequestObserver();
+        $subject = new TrooperRequestObserver;
 
         $this->expectNotToPerformAssertions();
         $subject->updating($trooper_request);
@@ -53,7 +53,7 @@ class TrooperRequestObserverTest extends TestCase
 
         $trooper_request->status = TrooperRequestStatus::DENIED;
 
-        $subject = new TrooperRequestObserver();
+        $subject = new TrooperRequestObserver;
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Join request is not pending.');
@@ -74,7 +74,7 @@ class TrooperRequestObserverTest extends TestCase
 
         $trooper_request->status = TrooperRequestStatus::APPROVED;
 
-        $subject = new TrooperRequestObserver();
+        $subject = new TrooperRequestObserver;
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Join request is not pending.');
@@ -95,7 +95,7 @@ class TrooperRequestObserverTest extends TestCase
 
         $trooper_request->denial_reason = 'updated reason';
 
-        $subject = new TrooperRequestObserver();
+        $subject = new TrooperRequestObserver;
 
         $this->expectNotToPerformAssertions();
         $subject->updating($trooper_request);
@@ -129,7 +129,7 @@ class TrooperRequestObserverTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('501st Legion TKID 1012 is already assigned to another trooper.');
 
-        (new TrooperRequestObserver())->saving($trooper_request);
+        (new TrooperRequestObserver)->saving($trooper_request);
     }
 
     public function test_saving_allows_pending_identifier_for_same_trooper(): void
@@ -154,6 +154,6 @@ class TrooperRequestObserverTest extends TestCase
         $trooper_request->setRelation('primary_organization', $organization);
 
         $this->expectNotToPerformAssertions();
-        (new TrooperRequestObserver())->saving($trooper_request);
+        (new TrooperRequestObserver)->saving($trooper_request);
     }
 }

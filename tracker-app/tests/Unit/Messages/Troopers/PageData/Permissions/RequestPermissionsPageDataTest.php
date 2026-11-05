@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Messages\Troopers\PageData\Permissions;
 
 use App\Messages\Troopers\PageData\Permissions\RequestPermissionsPageData;
-use App\Messages\Troopers\Queries\Permissions\GetRequestableForumGroups;
+use App\Messages\Troopers\Queries\Permissions\GetRequestableOrganizations;
+use App\Messages\Troopers\Queries\Permissions\GetRequestedPermissionRequests;
+use App\Messages\Troopers\Resources\PermissionRequestsCollection;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\FakesMessages;
@@ -16,27 +19,20 @@ class RequestPermissionsPageDataTest extends TestCase
     use FakesMessages;
     use RefreshDatabase;
 
-    public function test_handle_lists_forum_groups_when_xenforo_is_configured(): void
+    public function test_handle_returns_requestable_organizations_and_requests(): void
     {
-        config(['services.xenforo.base_url' => 'https://forums.example.com', 'services.xenforo.api_key' => 'key']);
-        $groups = [['id' => 3, 'title' => 'Command Staff']];
-        $this->fakeMessages([GetRequestableForumGroups::class => collect($groups)]);
+        $organization = Organization::factory()->create();
+        $this->fakeMessages([
+            GetRequestableOrganizations::class => collect([$organization]),
+            GetRequestedPermissionRequests::class => collect(),
+        ]);
 
-        $result = (new RequestPermissionsPageData(Trooper::factory()->asAdministrator()->create()))->handle();
+        $subject = new RequestPermissionsPageData(Trooper::factory()->asAdministrator()->create());
+        $result = $subject->handle();
 
-        $this->assertTrue($result['is_xenforo_configured']);
-        $this->assertSame($groups, $result['forum_groups']);
-    }
-
-    public function test_handle_skips_forum_groups_without_xenforo(): void
-    {
-        config(['services.xenforo.base_url' => '', 'services.xenforo.api_key' => null]);
-        $messages = $this->fakeMessages([GetRequestableForumGroups::class => collect()]);
-
-        $result = (new RequestPermissionsPageData(Trooper::factory()->asAdministrator()->create()))->handle();
-
-        $this->assertFalse($result['is_xenforo_configured']);
-        $this->assertSame([], $result['forum_groups']);
-        $messages->assertNotCalled(GetRequestableForumGroups::class);
+        $this->assertSame($organization->id, $result['organizations'][0]['id']);
+        $this->assertSame($organization->name, $result['organizations'][0]['name']);
+        $this->assertInstanceOf(PermissionRequestsCollection::class, $result['permission_requests']);
+        $this->assertArrayNotHasKey('forum_groups', $result);
     }
 }

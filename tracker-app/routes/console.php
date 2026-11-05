@@ -12,7 +12,6 @@ use App\Console\Commands\SendDailyEventNotifications;
 use App\Console\Commands\SendDailyMilestoneNotifications;
 use App\Console\Commands\SendTentativeReminders;
 use App\Console\Commands\SynchronizeOrganizations;
-use App\Console\Commands\SynchronizeXenforoUsers;
 use Illuminate\Support\Facades\Schedule;
 
 $timezone = config('tracker.calendar.timezone');
@@ -22,8 +21,6 @@ Schedule::command('auth:clear-resets')->everyFifteenMinutes();
 Schedule::command(DispatchQueueHeartbeatCommand::class)->everyMinute();
 
 Schedule::command(CheckSupervisorHealthCommand::class)->everyFiveMinutes();
-
-Schedule::command(SynchronizeXenforoUsers::class)->hourly();
 
 Schedule::command(SynchronizeOrganizations::class)
     ->weeklyOn(0, '03:00')

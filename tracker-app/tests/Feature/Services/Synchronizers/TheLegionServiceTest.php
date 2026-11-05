@@ -9,11 +9,10 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
-use App\Services\GoogleService;
+use App\Plugins\PluginSheetSource;
 use App\Services\Synchronizers\TheLegionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
-use Mockery;
 use Tests\TestCase;
 
 class TheLegionServiceTest extends TestCase
@@ -53,8 +52,8 @@ class TheLegionServiceTest extends TestCase
             ], 200),
         ]);
 
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new TheLegionService($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new TheLegionService($organization, $sheets);
 
         $subject->run();
 
@@ -99,8 +98,8 @@ class TheLegionServiceTest extends TestCase
             'https://api.501st.com/*' => Http::response(['costumes' => []], 200),
         ]);
 
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new TheLegionService($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new TheLegionService($organization, $sheets);
 
         $subject->run();
 
@@ -142,8 +141,8 @@ class TheLegionServiceTest extends TestCase
             ], 200),
         ]);
 
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new TheLegionService($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new TheLegionService($organization, $sheets);
 
         $subject->run();
 
@@ -182,8 +181,8 @@ class TheLegionServiceTest extends TestCase
             ], 200),
         ]);
 
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new TheLegionService($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new TheLegionService($organization, $sheets);
 
         $subject->run();
 
@@ -230,8 +229,8 @@ class TheLegionServiceTest extends TestCase
             ], 200),
         ]);
 
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new TheLegionService($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new TheLegionService($organization, $sheets);
 
         $subject->run();
 
@@ -269,8 +268,8 @@ class TheLegionServiceTest extends TestCase
             ], 200),
         ]);
 
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new TheLegionService($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new TheLegionService($organization, $sheets);
 
         $subject->run();
 
@@ -310,8 +309,8 @@ class TheLegionServiceTest extends TestCase
             ], 200),
         ]);
 
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new TheLegionService($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new TheLegionService($organization, $sheets);
 
         $subject->run();
 
@@ -348,8 +347,8 @@ class TheLegionServiceTest extends TestCase
             ], 200),
         ]);
 
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new TheLegionService($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new TheLegionService($organization, $sheets);
 
         $subject->run();
 
@@ -386,8 +385,8 @@ class TheLegionServiceTest extends TestCase
             ], 200),
         ]);
 
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new TheLegionService($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new TheLegionService($organization, $sheets);
 
         $subject->run();
 
@@ -424,8 +423,8 @@ class TheLegionServiceTest extends TestCase
             ], 200),
         ]);
 
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new TheLegionService($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new TheLegionService($organization, $sheets);
 
         $subject->run();
 
@@ -462,8 +461,8 @@ class TheLegionServiceTest extends TestCase
             ], 200),
         ]);
 
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new TheLegionService($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new TheLegionService($organization, $sheets);
 
         $subject->run();
 

@@ -7,7 +7,7 @@ namespace App\Services\Synchronizers;
 use App\Contracts\MemberLookupInterface;
 use App\Enums\MembershipStatus;
 use App\Models\TrooperCostume;
-use App\Services\MemberLookup\GoogleSheetsMemberLookupService;
+use App\Services\MemberLookup\SheetMemberLookupService;
 
 /**
  * RebelLegionService
@@ -20,7 +20,7 @@ class RebelLegionService extends BaseOrganizationService
 {
     public function lookupMember(): ?MemberLookupInterface
     {
-        return new GoogleSheetsMemberLookupService($this->organization, $this->google, 'Troopers', 'ID', 'Name');
+        return new SheetMemberLookupService($this->organization, $this->sheets, 'Troopers', 'ID', 'Name');
     }
 
     protected function synchronize(): void

@@ -1,0 +1,10 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Support\Facades\Route;
+
+// Served under /plugins/{{ slug }}, named plugins.{{ slug }}.*, for signed-in active troopers.
+// Put administrator pages in routes/admin.php and pages anyone may see in routes/public.php.
+Route::get('/', fn () => view('{{ slug }}::event-panel', ['greeting' => 'It works!']))
+    ->name('index');

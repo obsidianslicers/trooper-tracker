@@ -6,28 +6,30 @@ namespace Tests\Feature\Services\Synchronizers;
 
 use App\Contracts\MemberLookupInterface;
 use App\Enums\MembershipStatus;
-use App\Exceptions\GoogleSheetsUnavailableException;
+use App\Exceptions\SheetUnavailableException;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
-use App\Services\GoogleService;
+use App\Plugins\PluginSheetSource;
 use App\Services\Synchronizers\BaseOrganizationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use Tests\Concerns\UsesFakeSheetSource;
 use Tests\TestCase;
 
 class BaseOrganizationServiceTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesFakeSheetSource;
 
     public function test_run_calls_synchronize_and_updates_organization_sync_timestamp(): void
     {
         $organization = Organization::factory()->create();
-        $google = Mockery::mock(GoogleService::class);
+        $sheets = app(PluginSheetSource::class);
 
-        $subject = new BaseOrganizationServiceHarness($organization, $google);
+        $subject = new BaseOrganizationServiceHarness($organization, $sheets);
 
         $subject->run();
 
@@ -37,58 +39,52 @@ class BaseOrganizationServiceTest extends TestCase
         $this->assertNotNull($organization->{Organization::SYNCHRONIZED_AT});
     }
 
-    public function test_get_sheet_rows_returns_empty_when_sync_sheet_id_missing(): void
+    public function test_get_sheet_rows_returns_empty_without_a_sheet_source(): void
     {
-        $organization = Organization::factory()->create([
-            Organization::SYNC_SHEET_ID => null,
-        ]);
+        $subject = new BaseOrganizationServiceHarness(
+            Organization::factory()->create(),
+            app(PluginSheetSource::class),
+        );
 
-        $google = Mockery::mock(GoogleService::class);
-        $google->shouldNotReceive('getSheet');
+        $this->assertSame([], $subject->publicGetSheetRows('Troopers'));
+    }
 
-        $subject = new BaseOrganizationServiceHarness($organization, $google);
+    public function test_get_sheet_rows_returns_empty_when_the_organization_has_no_sheet(): void
+    {
+        $organization = Organization::factory()->create();
+        $this->fakeSheetSource()->shouldReceive('rows')->once()->andReturn(null);
 
-        $result = $subject->publicGetSheetRows('Troopers');
+        $subject = new BaseOrganizationServiceHarness($organization, app(PluginSheetSource::class));
 
-        $this->assertSame([], $result);
+        $this->assertSame([], $subject->publicGetSheetRows('Troopers'));
     }
 
     public function test_get_sheet_rows_skips_header_by_default(): void
     {
-        $organization = Organization::factory()->create([
-            Organization::SYNC_SHEET_ID => 'sheet-123',
-        ]);
-
-        $google = Mockery::mock(GoogleService::class);
-        $google->shouldReceive('getSheet')
+        $organization = Organization::factory()->create();
+        $this->fakeSheetSource()->shouldReceive('rows')
             ->once()
-            ->with('sheet-123', 'Troopers')
+            ->with(Mockery::on(fn (Organization $o): bool => $o->is($organization)), 'Troopers')
             ->andReturn([
                 ['header_a', 'header_b'],
                 ['row1_a', 'row1_b'],
             ]);
 
-        $subject = new BaseOrganizationServiceHarness($organization, $google);
+        $subject = new BaseOrganizationServiceHarness($organization, app(PluginSheetSource::class));
 
-        $result = $subject->publicGetSheetRows('Troopers');
-
-        $this->assertSame([['row1_a', 'row1_b']], $result);
+        $this->assertSame([['row1_a', 'row1_b']], $subject->publicGetSheetRows('Troopers'));
     }
 
-    public function test_get_sheet_rows_rethrows_and_leaves_sync_timestamp_stale_when_google_unavailable(): void
+    public function test_get_sheet_rows_rethrows_and_leaves_sync_timestamp_stale_when_unavailable(): void
     {
-        $organization = Organization::factory()->create([
-            Organization::SYNC_SHEET_ID => 'sheet-123',
-        ]);
-
-        $google = Mockery::mock(GoogleService::class);
-        $google->shouldReceive('getSheet')
+        $organization = Organization::factory()->create();
+        $this->fakeSheetSource()->shouldReceive('rows')
             ->once()
-            ->andThrow(new GoogleSheetsUnavailableException('Google Sheets is unavailable.'));
+            ->andThrow(new SheetUnavailableException('The sheet is unavailable.'));
 
-        $subject = new BaseOrganizationServiceHarness($organization, $google);
+        $subject = new BaseOrganizationServiceHarness($organization, app(PluginSheetSource::class));
 
-        $this->expectException(GoogleSheetsUnavailableException::class);
+        $this->expectException(SheetUnavailableException::class);
 
         try
         {
@@ -104,8 +100,8 @@ class BaseOrganizationServiceTest extends TestCase
     public function test_get_or_create_organization_costume_returns_cached_instance(): void
     {
         $organization = Organization::factory()->create();
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new BaseOrganizationServiceHarness($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new BaseOrganizationServiceHarness($organization, $sheets);
 
         $first = $subject->publicGetOrCreateOrganizationCostume('TK Armor', 'TK');
         $second = $subject->publicGetOrCreateOrganizationCostume('TK Armor', 'TK');
@@ -130,8 +126,8 @@ class BaseOrganizationServiceTest extends TestCase
 
         $trooper_with_pivot = $organization->troopers()->where('tt_troopers.id', $trooper->id)->first();
 
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new BaseOrganizationServiceHarness($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new BaseOrganizationServiceHarness($organization, $sheets);
 
         $subject->publicSyncTrooperStatus($trooper_with_pivot, MembershipStatus::RESERVE);
 
@@ -145,9 +141,9 @@ class BaseOrganizationServiceTest extends TestCase
     {
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->create();
-        $google = Mockery::mock(GoogleService::class);
+        $sheets = app(PluginSheetSource::class);
 
-        $subject = new BaseOrganizationServiceHarness($organization, $google);
+        $subject = new BaseOrganizationServiceHarness($organization, $sheets);
         $org_costume = $subject->publicGetOrCreateOrganizationCostume('Scout Trooper');
 
         $subject->publicSyncTrooperCostume($trooper, $org_costume, [
@@ -166,8 +162,8 @@ class BaseOrganizationServiceTest extends TestCase
     public function test_clean_input_returns_null_for_null_and_sanitizes_strings(): void
     {
         $organization = Organization::factory()->create();
-        $google = Mockery::mock(GoogleService::class);
-        $subject = new BaseOrganizationServiceHarness($organization, $google);
+        $sheets = app(PluginSheetSource::class);
+        $subject = new BaseOrganizationServiceHarness($organization, $sheets);
 
         $this->assertNull($subject->publicCleanInput(null));
         $this->assertSame('&lt;b&gt;tag&lt;/b&gt;', $subject->publicCleanInput('<b>tag</b>'));

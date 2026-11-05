@@ -7,9 +7,9 @@ namespace Tests\Feature\Console\Commands;
 use App\Contracts\SynchronizerInterface;
 use App\Enums\OrganizationType;
 use App\Models\Organization;
+use App\Plugins\PluginClubSynchronizers;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
-
 use Tests\TestCase;
 
 /**
@@ -22,15 +22,36 @@ class SynchronizeOrganizationsTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * Test that the command executes synchronization for organizations with service class.
-     */
-    public function test_command_executes_synchronization_for_organizations_with_service_class(): void
+    protected function setUp(): void
     {
-        // Arrange: Create organization with service class
+        parent::setUp();
+
+        $this->app->make(PluginClubSynchronizers::class)
+            ->add('mock', 'Mock', MockSynchronizerService::class);
+    }
+
+    public function test_command_warns_when_the_synchronizer_is_not_available(): void
+    {
+        Organization::factory()->create([
+            Organization::TYPE => OrganizationType::ORGANIZATION,
+            Organization::NAME => 'Plugin Club',
+            Organization::SYNCHRONIZER => 'from-a-disabled-plugin',
+        ]);
+
+        $this->artisan('tracker:synchronize-organizations')
+            ->expectsOutputToContain('No roster sync [from-a-disabled-plugin]')
+            ->assertExitCode(0);
+    }
+
+    /**
+     * Test that the command executes synchronization for organizations with a synchronizer.
+     */
+    public function test_command_executes_synchronization_for_organizations_with_a_synchronizer(): void
+    {
+        // Arrange: Create organization with a synchronizer
         $organization = Organization::factory()->create([
             Organization::TYPE => OrganizationType::ORGANIZATION,
-            Organization::SERVICE_CLASS => MockSynchronizerService::class,
+            Organization::SYNCHRONIZER => 'mock',
         ]);
 
         // Mock the synchronizer service
@@ -51,14 +72,14 @@ class SynchronizeOrganizationsTest extends TestCase
     }
 
     /**
-     * Test that the command skips organizations without service class.
+     * Test that the command skips organizations without a synchronizer.
      */
-    public function test_command_skips_organizations_without_service_class(): void
+    public function test_command_skips_organizations_without_a_synchronizer(): void
     {
-        // Arrange: Create organization without service class
+        // Arrange: Create organization without a synchronizer
         Organization::factory()->create([
             Organization::TYPE => OrganizationType::ORGANIZATION,
-            Organization::SERVICE_CLASS => null,
+            Organization::SYNCHRONIZER => null,
         ]);
 
         // Act: Command should complete without running any synchronizers
@@ -74,17 +95,17 @@ class SynchronizeOrganizationsTest extends TestCase
         // Arrange: Create different organization types
         $organization = Organization::factory()->create([
             Organization::TYPE => OrganizationType::ORGANIZATION,
-            Organization::SERVICE_CLASS => MockSynchronizerService::class,
+            Organization::SYNCHRONIZER => 'mock',
         ]);
 
         $region = Organization::factory()->create([
             Organization::TYPE => OrganizationType::REGION,
-            Organization::SERVICE_CLASS => MockSynchronizerService::class,
+            Organization::SYNCHRONIZER => 'mock',
         ]);
 
         $unit = Organization::factory()->create([
             Organization::TYPE => OrganizationType::UNIT,
-            Organization::SERVICE_CLASS => MockSynchronizerService::class,
+            Organization::SYNCHRONIZER => 'mock',
         ]);
 
         // Mock service - should only be called once for organization
@@ -112,13 +133,13 @@ class SynchronizeOrganizationsTest extends TestCase
         $org1 = Organization::factory()->create([
             Organization::TYPE => OrganizationType::ORGANIZATION,
             Organization::NAME => 'Alpha Organization',
-            Organization::SERVICE_CLASS => MockSynchronizerService::class,
+            Organization::SYNCHRONIZER => 'mock',
         ]);
 
         $org2 = Organization::factory()->create([
             Organization::TYPE => OrganizationType::ORGANIZATION,
             Organization::NAME => 'Beta Organization',
-            Organization::SERVICE_CLASS => MockSynchronizerService::class,
+            Organization::SYNCHRONIZER => 'mock',
         ]);
 
         // Mock service - should be called twice
@@ -145,7 +166,7 @@ class SynchronizeOrganizationsTest extends TestCase
         // Arrange: Create organization
         Organization::factory()->create([
             Organization::TYPE => OrganizationType::ORGANIZATION,
-            Organization::SERVICE_CLASS => MockSynchronizerService::class,
+            Organization::SYNCHRONIZER => 'mock',
         ]);
 
         // Mock service
@@ -171,19 +192,19 @@ class SynchronizeOrganizationsTest extends TestCase
         Organization::factory()->create([
             Organization::TYPE => OrganizationType::ORGANIZATION,
             Organization::NAME => 'Alpha',
-            Organization::SERVICE_CLASS => MockSynchronizerService::class,
+            Organization::SYNCHRONIZER => 'mock',
         ]);
 
         Organization::factory()->create([
             Organization::TYPE => OrganizationType::ORGANIZATION,
             Organization::NAME => 'Zulu',
-            Organization::SERVICE_CLASS => MockSynchronizerService::class,
+            Organization::SYNCHRONIZER => 'mock',
         ]);
 
         Organization::factory()->create([
             Organization::TYPE => OrganizationType::ORGANIZATION,
             Organization::NAME => 'Bravo',
-            Organization::SERVICE_CLASS => MockSynchronizerService::class,
+            Organization::SYNCHRONIZER => 'mock',
         ]);
 
         $processed_order = [];
@@ -201,6 +222,7 @@ class SynchronizeOrganizationsTest extends TestCase
             {
                 $processed_order[] = $params['organization']->name;
             }
+
             return $mock_service;
         });
 
@@ -244,7 +266,7 @@ class SynchronizeOrganizationsTest extends TestCase
         // Arrange: Create organization
         $organization = Organization::factory()->create([
             Organization::TYPE => OrganizationType::ORGANIZATION,
-            Organization::SERVICE_CLASS => MockSynchronizerService::class,
+            Organization::SYNCHRONIZER => 'mock',
         ]);
 
         $service_instantiated_with_org = false;
@@ -260,6 +282,7 @@ class SynchronizeOrganizationsTest extends TestCase
             {
                 $service_instantiated_with_org = true;
             }
+
             return $mock_service;
         });
 

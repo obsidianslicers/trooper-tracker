@@ -1,0 +1,21 @@
+{
+    "slug": "discord",
+    "name": "Discord",
+    "version": "1.0.0",
+    "description": "Announces newly posted events in a Discord channel through a webhook, mentioning the hosting organization's Discord role.",
+    "author": "Obsidian Slicers",
+    "namespace": "TroopTracker\\Plugins\\Discord",
+    "provider": "TroopTracker\\Plugins\\Discord\\DiscordServiceProvider",
+    "capabilities": ["events", "forms"],
+    "requires": {
+        "trooptracker": "^1.0"
+    },
+    "settings": [
+        {
+            "key": "webhook_url",
+            "label": "Webhook URL",
+            "type": "secret",
+            "help": "The Discord channel webhook to post events to. Leave empty to use DISCORD_WEBHOOK_URL from the .env file."
+        }
+    ]
+}

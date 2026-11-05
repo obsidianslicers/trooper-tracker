@@ -273,7 +273,7 @@ Audit all documentation files in the docs/ folder and the README with the follow
 
 3. Create a consistent hierarchy across all docs:
    - README = high-level overview + contributor quickstart + links into docs
-   - docs/ARCHITECTURE = full system architecture (ADR, MagicBus, domains, data flow)
+   - docs/ARCHITECTURE = full system architecture (ADR, Hyperdrive messages, domains, data flow)
    - docs/PROJECT_STRUCTURE = directory and subsystem layout
    - docs/DATABASE = schema, relationships, ERD
    - docs/AUTHENTICATION, docs/NOTIFICATIONS, docs/XENFORO_OAUTH = subsystem-specific guides

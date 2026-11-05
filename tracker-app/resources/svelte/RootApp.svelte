@@ -1,6 +1,7 @@
 <script lang="ts">
     import FlashMessages from "$lib/components/FlashMessages.svelte";
     import PageTitle from "$lib/components/PageTitle.svelte";
+    import PluginSlot from "$lib/components/PluginSlot.svelte";
     import ToastMessages from "$lib/components/ToastMessages.svelte";
     import pageState from "$lib/states/page-state.svelte";
 
@@ -24,5 +25,7 @@
 
 <div class="container rounded-3 shadow-sm p-4 mb-5 main-content">
     <FlashMessages />
+    <PluginSlot name="page.top" />
     <InertiaComponent {...appProps} />
+    <PluginSlot name="page.bottom" />
 </div>

@@ -46,18 +46,10 @@
             {@render organizationList(request.moderated_organizations_to_remove)}
         </dd>
     {/if}
-    {#if request.forum_groups_to_add.length > 0}
-        <dt class="col-4">Add Forum Groups:</dt>
-        <dd class="col-8">
-            {request.forum_groups_to_add.map((g) => g.title).join(", ")}
-        </dd>
-    {/if}
-    {#if request.forum_groups_to_remove.length > 0}
-        <dt class="col-4">Remove Forum Groups:</dt>
-        <dd class="col-8">
-            {request.forum_groups_to_remove.map((g) => g.title).join(", ")}
-        </dd>
-    {/if}
+    {#each request.extension_changes as change (change.label)}
+        <dt class="col-4">{change.label}:</dt>
+        <dd class="col-8">{change.value}</dd>
+    {/each}
     {#if request.note}
         <dt class="col-4">Note:</dt>
         <dd class="col-8" style="white-space: pre-line">{request.note}</dd>

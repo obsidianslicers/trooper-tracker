@@ -30,29 +30,5 @@
                       x-model="form.referred_by" />
     </x-input-container>
 
-    @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured())
-        <x-input-container>
-            <x-label>Create XenForo Thread for this Event:</x-label>
-            <x-input-yesno :property="'create_forum_thread'"
-                           :value="$event->create_forum_thread ?? true"
-                           x-model="form.create_forum_thread" />
-            <x-input-help>
-                Set to "No" to skip creating a forum thread when this event is posted.
-            </x-input-help>
-        </x-input-container>
-
-        <x-input-container>
-            <x-label>Forum Thread ID:</x-label>
-            <x-input-text :property="'thread_id'"
-                          :value="$event->thread_id"
-                          x-model="form.thread_id" />
-        </x-input-container>
-
-        <x-input-container>
-            <x-label>Forum Post ID:</x-label>
-            <x-input-text :property="'post_id'"
-                          :value="$event->post_id"
-                          x-model="form.post_id" />
-        </x-input-container>
-    @endif
+    @pluginSlot('admin.events.form.fields')
 </x-accordion-card>

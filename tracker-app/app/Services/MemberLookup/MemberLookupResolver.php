@@ -6,18 +6,14 @@ namespace App\Services\MemberLookup;
 
 use App\Contracts\MemberLookupInterface;
 use App\Models\Organization;
+use App\Plugins\PluginClubSynchronizers;
 
 class MemberLookupResolver
 {
+    public function __construct(private readonly PluginClubSynchronizers $synchronizers) {}
+
     public function resolve(Organization $organization): ?MemberLookupInterface
     {
-        if (!$organization->service_class || !class_exists($organization->service_class))
-        {
-            return null;
-        }
-
-        $service = app($organization->service_class, ['organization' => $organization]);
-
-        return $service->lookupMember();
+        return $this->synchronizers->memberLookup($organization);
     }
 }

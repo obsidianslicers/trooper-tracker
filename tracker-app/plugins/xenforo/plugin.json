@@ -1,0 +1,24 @@
+{
+    "slug": "xenforo",
+    "name": "XenForo",
+    "version": "1.0.0",
+    "description": "Connects TroopTracker to a XenForo forum: keeps forum users in step with troopers. More of the forum integration moves here in later releases.",
+    "author": "Obsidian Slicers",
+    "namespace": "TroopTracker\\Plugins\\Xenforo",
+    "provider": "TroopTracker\\Plugins\\Xenforo\\XenforoServiceProvider",
+    "capabilities": ["events", "forms", "login", "donations", "middleware", "schedule", "webhooks"],
+    "requires": {
+        "trooptracker": "^1.0"
+    },
+    "settings": [
+        { "key": "base_url", "label": "Forum URL", "type": "url", "help": "For example https://forum.example.com. Leave empty to use XENFORO_BASE_URL." },
+        { "key": "name", "label": "Forum name", "type": "text", "help": "Shown to troopers, for example on the login button. Leave empty to use XENFORO_NAME." },
+        { "key": "api_key", "label": "API key", "type": "secret", "help": "A XenForo super user API key. Leave empty to use XENFORO_API_KEY." },
+        { "key": "api_user", "label": "API user ID", "type": "text", "help": "The forum user the API acts as. Leave empty to use XENFORO_API_USER." },
+        { "key": "client_id", "label": "OAuth client ID", "type": "text", "help": "Leave empty to use XENFORO_CLIENT_ID." },
+        { "key": "client_secret", "label": "OAuth client secret", "type": "secret", "help": "Leave empty to use XENFORO_CLIENT_SECRET." },
+        { "key": "redirect", "label": "OAuth redirect URL", "type": "url", "help": "Leave empty to use XENFORO_REDIRECT_URI." },
+        { "key": "webhook_secret", "label": "Webhook secret", "type": "secret", "help": "Leave empty to use XENFORO_WEBHOOK_SECRET." },
+        { "key": "require_xenforo", "label": "Require a linked forum account", "type": "boolean", "help": "Troopers must link their forum account to use the site. Until this is saved here, TRACKER_REQUIRE_XENFORO is used." }
+    ]
+}

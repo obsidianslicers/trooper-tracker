@@ -1,0 +1,11 @@
+# {{ name }}
+
+A TroopTracker plugin.
+
+Enable it under Command Staff > Plugins, or with:
+
+```bash
+php artisan plugins:enable {{ slug }}
+```
+
+See `docs/PLUGINS.md` in the TroopTracker repository for every hook a plugin can use.

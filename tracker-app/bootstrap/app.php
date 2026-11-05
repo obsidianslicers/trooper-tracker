@@ -7,39 +7,38 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Illuminate\Support\Facades\RateLimiter;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: [
-            __DIR__ . '/../routes/web/home.php',
-            __DIR__ . '/../routes/web/shares.php',
-            __DIR__ . '/../routes/web/events.php',
-            __DIR__ . '/../routes/web/auth.php',
-            __DIR__ . '/../routes/web/verification.php',
-            __DIR__ . '/../routes/web/widgets.php',
-            __DIR__ . '/../routes/web/pickers.php',
-            __DIR__ . '/../routes/web/account.php',
-            __DIR__ . '/../routes/web/admin.php',
-            __DIR__ . '/../routes/web/admin-organizations.php',
-            __DIR__ . '/../routes/web/admin-costumes.php',
-            __DIR__ . '/../routes/web/admin-notices.php',
-            __DIR__ . '/../routes/web/admin-awards.php',
-            __DIR__ . '/../routes/web/admin-events.php',
-            __DIR__ . '/../routes/web/admin-troopers.php',
-            __DIR__ . '/../routes/web/admin-faq.php',
-            __DIR__ . '/../routes/web/admin-reports.php',
-            __DIR__ . '/../routes/web/admin-service-records.php',
-            __DIR__ . '/../routes/web/service-records.php',
-            __DIR__ . '/../routes/web/search.php',
-            __DIR__ . '/../routes/web/api.php',
-            __DIR__ . '/../routes/web/mobile-api.php',
-            __DIR__ . '/../routes/web/webhooks.php',
+            __DIR__.'/../routes/web/home.php',
+            __DIR__.'/../routes/web/shares.php',
+            __DIR__.'/../routes/web/events.php',
+            __DIR__.'/../routes/web/auth.php',
+            __DIR__.'/../routes/web/verification.php',
+            __DIR__.'/../routes/web/widgets.php',
+            __DIR__.'/../routes/web/pickers.php',
+            __DIR__.'/../routes/web/account.php',
+            __DIR__.'/../routes/web/admin.php',
+            __DIR__.'/../routes/web/admin-organizations.php',
+            __DIR__.'/../routes/web/admin-costumes.php',
+            __DIR__.'/../routes/web/admin-notices.php',
+            __DIR__.'/../routes/web/admin-awards.php',
+            __DIR__.'/../routes/web/admin-events.php',
+            __DIR__.'/../routes/web/admin-troopers.php',
+            __DIR__.'/../routes/web/admin-faq.php',
+            __DIR__.'/../routes/web/admin-plugins.php',
+            __DIR__.'/../routes/web/admin-reports.php',
+            __DIR__.'/../routes/web/admin-service-records.php',
+            __DIR__.'/../routes/web/service-records.php',
+            __DIR__.'/../routes/web/search.php',
+            __DIR__.'/../routes/web/api.php',
+            __DIR__.'/../routes/web/mobile-api.php',
         ],
-        commands: __DIR__ . '/../routes/console.php',
+        commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void
@@ -47,29 +46,26 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/push-notifications',
             'api/push-notifications/*',
-            'webhooks/xenforo',
         ]);
 
         $middleware->web(append: [
-            \App\Http\Middleware\HandleInertiaRequests::class,
-            \App\Http\Middleware\PushNotificationCountMiddleware::class,
-            \App\Http\Middleware\HtmxDispatchHeaderMiddleware::class,
-            \App\Http\Middleware\UpdateLastActiveMiddleware::class,
-            \App\Http\Middleware\TrooperSetupRequiredMiddleware::class,
-            \App\Http\Middleware\CheckVisitorAccessMiddleware::class,
-            \App\Http\Middleware\EnsureXenforoLinked::class,
-            \App\Http\Middleware\CheckXenforoBanMiddleware::class,
+            App\Http\Middleware\HandleInertiaRequests::class,
+            App\Http\Middleware\PushNotificationCountMiddleware::class,
+            App\Http\Middleware\HtmxDispatchHeaderMiddleware::class,
+            App\Http\Middleware\UpdateLastActiveMiddleware::class,
+            App\Http\Middleware\TrooperSetupRequiredMiddleware::class,
+            App\Http\Middleware\CheckVisitorAccessMiddleware::class,
         ]);
 
         $middleware->alias([
-            'check.role' => \App\Http\Middleware\CheckActorRoleMiddleware::class,
-            'check.active' => \App\Http\Middleware\CheckActiveTrooperMiddleware::class,
-            'auth.registration' => \App\Http\Middleware\RegistrationMiddleware::class,
-            'redirect.denied' => \App\Http\Middleware\RedirectDeniedTrooperMiddleware::class,
-            'redirect.pending' => \App\Http\Middleware\RedirectPendingTrooperMiddleware::class,
+            'check.role' => App\Http\Middleware\CheckActorRoleMiddleware::class,
+            'check.active' => App\Http\Middleware\CheckActiveTrooperMiddleware::class,
+            'auth.registration' => App\Http\Middleware\RegistrationMiddleware::class,
+            'redirect.denied' => App\Http\Middleware\RedirectDeniedTrooperMiddleware::class,
+            'redirect.pending' => App\Http\Middleware\RedirectPendingTrooperMiddleware::class,
         ]);
 
-        $middleware->redirectGuestsTo(fn(Illuminate\Http\Request $request) => route('auth.login'));
+        $middleware->redirectGuestsTo(fn (Request $request) => route('auth.login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void
     {
@@ -103,7 +99,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 RateLimiter::attempt(
                     'exception-email',
                     1,
-                    fn() => dispatch(new SendExceptionNotificationJob($e, $context)),
+                    fn () => dispatch(new SendExceptionNotificationJob($e, $context)),
                     60,
                 );
             }

@@ -8,6 +8,7 @@ use App\Enums\AdministrativeNotifications;
 use App\Enums\TrooperNotifications;
 use App\Messages\Account\PageData\IndexPageData;
 use App\Models\Trooper;
+use App\Plugins\PluginNotifications;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -38,7 +39,6 @@ class IndexPageDataTest extends TestCase
         $this->assertContains(AdministrativeNotifications::TROOPER_MILESTONES->value, $values);
         $this->assertContains(AdministrativeNotifications::TROOPER_REQUESTS->value, $values);
         $this->assertContains(AdministrativeNotifications::TROOPER_REGISTRATIONS->value, $values);
-        $this->assertContains(AdministrativeNotifications::FORUM_POST_COMMAND_STAFF->value, $values);
         $this->assertNotContains(AdministrativeNotifications::TROOPERS_MERGED->value, $values);
     }
 
@@ -64,6 +64,28 @@ class IndexPageDataTest extends TestCase
         $this->assertCount(
             count(AdministrativeNotifications::cases()) + count(TrooperNotifications::cases()),
             $preferences
+        );
+    }
+
+    public function test_handle_includes_plugin_notification_categories(): void
+    {
+        $plugins = $this->app->make(PluginNotifications::class);
+        $plugins->add('forum_reply', 'Forum Reply');
+        $plugins->add('forum_flag', 'Forum Flag', for_command_staff: true);
+        $plugins->add('forum_audit', 'Forum Audit', administrator_only: true);
+
+        $moderator = (new IndexPageData(Trooper::factory()->asModerator()->create()))->handle();
+        $administrator = (new IndexPageData(Trooper::factory()->asAdministrator()->create()))->handle();
+
+        $trooper_values = array_column($moderator['notifications']['trooper_notification_enums'], 'value');
+        $this->assertContains('forum_reply', $trooper_values);
+        $this->assertNotContains('forum_flag', $trooper_values);
+        $this->assertContains('forum_flag', $this->administrativeValues($moderator));
+        $this->assertNotContains('forum_audit', $this->administrativeValues($moderator));
+        $this->assertContains('forum_audit', $this->administrativeValues($administrator));
+        $this->assertEquals(
+            ['mail' => true, 'fcm' => true, 'database' => true],
+            $moderator['notifications']['notification_preferences']['forum_reply'],
         );
     }
 
