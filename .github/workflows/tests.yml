@@ -59,7 +59,7 @@ jobs:
                   if (str_contains($name, "/")) { echo "{$name}:{$version} "; }
               }
           }')"
-          composer require $PACKAGES --no-interaction --no-progress
+          composer require $PACKAGES --no-interaction --no-progress --no-scripts
 
       - name: Generate application key
         working-directory: ./tracker-app

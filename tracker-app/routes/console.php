@@ -22,7 +22,6 @@ Schedule::command(DispatchQueueHeartbeatCommand::class)->everyMinute();
 
 Schedule::command(CheckSupervisorHealthCommand::class)->everyFiveMinutes();
 
-
 Schedule::command(SynchronizeOrganizations::class)
     ->weeklyOn(0, '03:00')
     ->timezone($timezone);
