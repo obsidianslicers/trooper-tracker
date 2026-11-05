@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Messages\Plugins\Commands\UpgradePlugin;
+use App\Plugins\PluginException;
 use App\Plugins\PluginManager;
-use App\Plugins\PluginMigrationException;
 use Illuminate\Console\Command;
 
 class UpgradePluginsCommand extends Command
@@ -59,7 +59,7 @@ class UpgradePluginsCommand extends Command
         {
             $record = UpgradePlugin::call(slug: $slug);
         }
-        catch (PluginMigrationException $e)
+        catch (PluginException $e)
         {
             $this->error($e->getMessage());
 

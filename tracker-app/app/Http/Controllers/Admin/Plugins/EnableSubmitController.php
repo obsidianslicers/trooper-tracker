@@ -7,8 +7,8 @@ namespace App\Http\Controllers\Admin\Plugins;
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
 use App\Messages\Plugins\Commands\EnablePlugin;
+use App\Plugins\PluginException;
 use App\Plugins\PluginManager;
-use App\Plugins\PluginMigrationException;
 use Illuminate\Http\RedirectResponse;
 
 class EnableSubmitController extends Controller
@@ -21,7 +21,7 @@ class EnableSubmitController extends Controller
         {
             EnablePlugin::call(slug: $slug);
         }
-        catch (PluginMigrationException $e)
+        catch (PluginException $e)
         {
             FlashType::danger($e->getMessage());
 

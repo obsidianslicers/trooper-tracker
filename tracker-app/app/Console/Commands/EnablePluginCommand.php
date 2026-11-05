@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Messages\Plugins\Commands\EnablePlugin;
+use App\Plugins\PluginException;
 use App\Plugins\PluginManager;
-use App\Plugins\PluginMigrationException;
 use Illuminate\Console\Command;
 
 class EnablePluginCommand extends Command
@@ -30,7 +30,7 @@ class EnablePluginCommand extends Command
         {
             EnablePlugin::call(slug: $slug);
         }
-        catch (PluginMigrationException $e)
+        catch (PluginException $e)
         {
             $this->error($e->getMessage());
 

@@ -6,6 +6,9 @@
     "author": "Obsidian Slicers",
     "namespace": "TroopTracker\\Plugins\\Discord",
     "provider": "TroopTracker\\Plugins\\Discord\\DiscordServiceProvider",
+    "requires": {
+        "trooptracker": "^1.0"
+    },
     "settings": [
         {
             "key": "webhook_url",

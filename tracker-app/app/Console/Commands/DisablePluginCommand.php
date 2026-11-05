@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Messages\Plugins\Commands\DisablePlugin;
+use App\Plugins\PluginException;
 use App\Plugins\PluginManager;
 use Illuminate\Console\Command;
 
@@ -25,7 +26,16 @@ class DisablePluginCommand extends Command
             return self::FAILURE;
         }
 
-        DisablePlugin::call(slug: $slug);
+        try
+        {
+            DisablePlugin::call(slug: $slug);
+        }
+        catch (PluginException $e)
+        {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
 
         $this->info("Plugin [{$slug}] disabled.");
 

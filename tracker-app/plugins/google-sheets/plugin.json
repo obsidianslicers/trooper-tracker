@@ -6,6 +6,9 @@
     "author": "Obsidian Slicers",
     "namespace": "TroopTracker\\Plugins\\GoogleSheets",
     "provider": "TroopTracker\\Plugins\\GoogleSheets\\GoogleSheetsServiceProvider",
+    "requires": {
+        "trooptracker": "^1.0"
+    },
     "settings": [
         {
             "key": "credentials_path",

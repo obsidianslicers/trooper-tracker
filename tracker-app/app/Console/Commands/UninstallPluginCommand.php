@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Messages\Plugins\Commands\UninstallPlugin;
+use App\Plugins\PluginException;
 use App\Plugins\PluginManager;
 use Illuminate\Console\Command;
 
@@ -37,7 +38,16 @@ class UninstallPluginCommand extends Command
             return self::SUCCESS;
         }
 
-        UninstallPlugin::call(slug: $slug);
+        try
+        {
+            UninstallPlugin::call(slug: $slug);
+        }
+        catch (PluginException $e)
+        {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
 
         $this->info("Plugin [{$slug}] uninstalled. Remove its files with your next deploy.");
 

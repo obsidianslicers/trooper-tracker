@@ -7,11 +7,11 @@ namespace App\Messages\Plugins\Commands;
 use App\Enums\PluginChangeAction;
 use App\Models\PluginChange;
 use App\Models\Trooper;
+use App\Plugins\PluginException;
 use App\Plugins\PluginInstaller;
 use App\Plugins\PluginInstallException;
 use App\Plugins\PluginManager;
 use App\Plugins\PluginManifest;
-use App\Plugins\PluginMigrationException;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 use Illuminate\Support\Facades\Log;
@@ -88,7 +88,7 @@ final class InstallPlugin extends Message
         {
             $plugins->upgrade($manifest->slug);
         }
-        catch (PluginMigrationException $e)
+        catch (PluginException $e)
         {
             $installer->restorePrevious($manifest);
 

@@ -44,10 +44,19 @@ class PluginManager
      */
     private array $loaded = [];
 
+    /**
+     * Enabled plugins that were not loaded this request because something they
+     * need is missing.
+     *
+     * @var array<string, true>
+     */
+    private array $skipped = [];
+
     public function __construct(
         private readonly Application $app,
         private readonly PluginDiscovery $discovery,
         private readonly PluginAutoloader $autoloader,
+        private readonly PluginRequirements $requirements = new PluginRequirements,
     ) {}
 
     /**
@@ -111,12 +120,140 @@ class PluginManager
         );
     }
 
+    /**
+     * Load every enabled plugin, the plugins each one needs first. An enabled
+     * plugin whose requirements are no longer met, for example after a PHP
+     * change, is skipped and logged instead of loaded.
+     */
     public function loadEnabledPlugins(): void
     {
         foreach ($this->enabled() as $manifest)
         {
-            $this->load($manifest);
+            $this->loadWithRequirements($manifest, []);
         }
+    }
+
+    /**
+     * @param  array<int, string>  $loading  slugs further up this chain, to stop loops
+     */
+    private function loadWithRequirements(PluginManifest $manifest, array $loading): bool
+    {
+        $slug = $manifest->slug;
+
+        if ($this->isLoaded($slug) || isset($this->skipped[$slug]))
+        {
+            return $this->isLoaded($slug);
+        }
+
+        if (in_array($slug, $loading, true))
+        {
+            return $this->skip($manifest, 'its required plugins need each other in a loop');
+        }
+
+        foreach (array_keys($manifest->plugin_requires) as $required)
+        {
+            $required_manifest = $this->enabled()[$required] ?? null;
+
+            if ($required_manifest === null
+                || !$this->loadWithRequirements($required_manifest, [...$loading, $slug]))
+            {
+                return $this->skip($manifest, "the [{$required}] plugin did not load");
+            }
+        }
+
+        $unmet = $this->unmetRequirements($slug);
+
+        return $unmet === []
+            ? $this->load($manifest)
+            : $this->skip($manifest, 'it needs '.implode('; ', $unmet));
+    }
+
+    private function skip(PluginManifest $manifest, string $reason): bool
+    {
+        $this->skipped[$manifest->slug] = true;
+        Log::warning("Plugin [{$manifest->slug}] was not loaded because {$reason}.");
+
+        return false;
+    }
+
+    /**
+     * What the plugin needs that the site does not have: PHP, extensions, packages,
+     * the plugin API version, and other plugins enabled at the right version.
+     *
+     * @return array<int, string> one description per unmet requirement
+     */
+    public function unmetRequirements(string $slug): array
+    {
+        $manifest = $this->findOrFail($slug);
+        $requires = [...$this->composerRequires($manifest), ...$manifest->requires];
+
+        return [
+            ...$this->requirements->unmet($requires),
+            ...$this->unmetPluginRequirements($manifest),
+        ];
+    }
+
+    /**
+     * A plugin installed through Composer had its composer.json checked by
+     * Composer. A plugin folder's composer.json is checked here.
+     *
+     * @return array<string, string>
+     */
+    private function composerRequires(PluginManifest $manifest): array
+    {
+        $file = $manifest->path.'/composer.json';
+
+        if ($manifest->is_composer_package || !is_file($file))
+        {
+            return [];
+        }
+
+        $composer = json_decode((string) file_get_contents($file), true);
+
+        return is_array($composer) && is_array($composer['require'] ?? null)
+            ? $composer['require']
+            : [];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function unmetPluginRequirements(PluginManifest $manifest): array
+    {
+        $unmet = [];
+
+        foreach ($manifest->plugin_requires as $slug => $constraint)
+        {
+            $required = $this->find($slug);
+
+            $unmet[] = match (true)
+            {
+                $required === null => "the [{$slug}] plugin {$constraint}, which is not installed",
+                !$this->requirements->satisfies($required->version, $constraint) => "the {$required->name} plugin {$constraint} ({$required->version} is installed)",
+                !$this->isEnabled($slug) => "the {$required->name} plugin turned on first",
+                default => null,
+            };
+        }
+
+        return array_values(array_filter($unmet));
+    }
+
+    /**
+     * Names of the enabled plugins that need this one.
+     *
+     * @return array<int, string>
+     */
+    public function dependents(string $slug): array
+    {
+        $dependents = array_filter(
+            $this->enabled(),
+            fn (PluginManifest $manifest): bool => isset($manifest->plugin_requires[$slug]),
+        );
+
+        return array_values(array_map(
+            fn (PluginManifest $manifest): string => $manifest->name,
+            $dependents,
+        ));
     }
 
     /**
@@ -150,15 +287,17 @@ class PluginManager
     }
 
     /**
-     * Run the plugin's migrations and turn it on. If a migration fails, the ones
-     * that ran are rolled back and the plugin stays off.
+     * Check the plugin's requirements, run its migrations and turn it on. If
+     * something it needs is missing nothing runs; if a migration fails, the ones
+     * that ran are rolled back. Either way the plugin stays off.
      *
-     * @throws PluginMigrationException
+     * @throws PluginException
      */
     public function enable(string $slug): Plugin
     {
         $manifest = $this->findOrFail($slug);
         $from_version = $this->record($slug)?->installed_version;
+        $this->checkRequirements($manifest, $from_version);
         $migrations = $this->migrateOrRecordFailure($manifest, $from_version);
 
         $record = Plugin::firstOrNew([Plugin::SLUG => $slug]);
@@ -198,7 +337,7 @@ class PluginManager
      * Bring an enabled plugin's database up to its current files: run new
      * migrations and record the new version. Settings and data are kept.
      *
-     * @throws PluginMigrationException
+     * @throws PluginException
      */
     public function upgrade(string $slug): Plugin
     {
@@ -207,6 +346,7 @@ class PluginManager
             "Plugin [{$slug}] is not installed."
         );
         $from_version = $record->installed_version;
+        $this->checkRequirements($manifest, $from_version);
         $migrations = $this->migrateOrRecordFailure($manifest, $from_version);
 
         $record->installed_version = $manifest->version;
@@ -250,6 +390,43 @@ class PluginManager
         }
     }
 
+    /**
+     * @throws PluginRequirementsException
+     */
+    private function checkRequirements(PluginManifest $manifest, ?string $from_version): void
+    {
+        $unmet = $this->unmetRequirements($manifest->slug);
+
+        if ($unmet === [])
+        {
+            return;
+        }
+
+        $e = PluginRequirementsException::cannotEnable($manifest, $unmet);
+        PluginChange::record(
+            $manifest->slug,
+            PluginChangeAction::FAILED,
+            $from_version,
+            $manifest->version,
+            message: $e->getMessage(),
+        );
+
+        throw $e;
+    }
+
+    /**
+     * @throws PluginRequirementsException
+     */
+    private function checkNotNeeded(PluginManifest $manifest): void
+    {
+        $dependents = $this->dependents($manifest->slug);
+
+        if ($dependents !== [])
+        {
+            throw PluginRequirementsException::stillNeeded($manifest, $dependents);
+        }
+    }
+
     private function runEnabledHook(PluginManifest $manifest): void
     {
         if (!$this->load($manifest))
@@ -270,9 +447,12 @@ class PluginManager
         }
     }
 
+    /**
+     * @throws PluginRequirementsException when an enabled plugin still needs it
+     */
     public function disable(string $slug): Plugin
     {
-        $this->findOrFail($slug);
+        $this->checkNotNeeded($this->findOrFail($slug));
 
         $record = Plugin::firstOrNew([Plugin::SLUG => $slug]);
         $record->is_enabled = false;
@@ -289,10 +469,13 @@ class PluginManager
      * Turn a plugin off and remove everything it stored: its migrations are rolled
      * back (dropping its tables) and its settings deleted. The plugin's files stay,
      * so it can be enabled again; remove them with the next deploy.
+     *
+     * @throws PluginRequirementsException when an enabled plugin still needs it
      */
     public function uninstall(string $slug): void
     {
         $manifest = $this->findOrFail($slug);
+        $this->checkNotNeeded($manifest);
         $migrations = $this->migrator()->ran($manifest);
 
         $this->migrator()->reset($manifest);

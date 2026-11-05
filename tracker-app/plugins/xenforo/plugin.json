@@ -6,6 +6,9 @@
     "author": "Obsidian Slicers",
     "namespace": "TroopTracker\\Plugins\\Xenforo",
     "provider": "TroopTracker\\Plugins\\Xenforo\\XenforoServiceProvider",
+    "requires": {
+        "trooptracker": "^1.0"
+    },
     "settings": [
         { "key": "base_url", "label": "Forum URL", "type": "url", "help": "For example https://forum.example.com. Leave empty to use XENFORO_BASE_URL." },
         { "key": "name", "label": "Forum name", "type": "text", "help": "Shown to troopers, for example on the login button. Leave empty to use XENFORO_NAME." },

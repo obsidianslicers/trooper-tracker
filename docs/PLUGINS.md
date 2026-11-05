@@ -21,7 +21,9 @@ php artisan plugins:uninstall <slug>   # disables it and deletes its data (asks 
 php artisan plugins:upgrade [slug]     # runs new migrations after a deploy brought new plugin files
 ```
 
-**Enable** runs the plugin's migrations as one unit. If one fails, the migrations that already ran in that attempt are rolled back, the plugin stays disabled, and the Plugins page shows the error. Fix the plugin and enable it again. MySQL can't undo the half-run migration itself, so a plugin migration should start by dropping anything an earlier failed run of it may have left (`Schema::dropIfExists(...)` before `Schema::create(...)`).
+**Enable** first checks the plugin's requirements (see `requires` under [plugin.json](#pluginjson)): the PHP version, PHP extensions, Composer packages, the plugin API version, and any other plugins it needs, which must be installed at the right version and turned on first. If anything is missing nothing runs, and the Plugins page and `plugins:enable` say what is missing; the Plugins page also shows it next to the plugin and greys out Enable. A plugin another enabled plugin needs can't be disabled or uninstalled until that one is turned off. If an enabled plugin's requirements stop being met, for example after a PHP change or because a plugin it needs failed to load, it is skipped with a log warning instead of loaded, and plugins load after the plugins they need.
+
+Then enable runs the plugin's migrations as one unit. If one fails, the migrations that already ran in that attempt are rolled back, the plugin stays disabled, and the Plugins page shows the error. Fix the plugin and enable it again. MySQL can't undo the half-run migration itself, so a plugin migration should start by dropping anything an earlier failed run of it may have left (`Schema::dropIfExists(...)` before `Schema::create(...)`).
 
 **Upgrade** applies a newer version of a plugin's files without touching its settings or data. `tt_plugins.installed_version` is the version whose migrations last ran; when the files are newer, the Plugins page shows the update as pending. Run `php artisan plugins:upgrade` after each deploy (the deploy's `php artisan migrate` already runs enabled plugins' new migrations; `plugins:upgrade` runs any that are left and records the new version). A failed upgrade is rolled back the same way as a failed enable.
 
@@ -125,6 +127,12 @@ plugins/hello/
     "author": "Your Garrison",
     "namespace": "Acme\\Hello",
     "provider": "Acme\\Hello\\HelloServiceProvider",
+    "requires": {
+        "trooptracker": "^1.0",
+        "php": ">=8.2",
+        "ext-intl": "*",
+        "plugins": { "xenforo": "^1.0" }
+    },
     "settings": [
         { "key": "greeting", "label": "Greeting", "type": "text", "default": "Hello" },
         { "key": "api_key", "label": "API key", "type": "secret", "help": "Shown here as help text." }
@@ -139,6 +147,7 @@ plugins/hello/
 | `namespace` | local plugins | PSR-4 namespace for the plugin's `src/` folder. Composer packages use their own autoload instead. |
 | `name`, `version`, `description`, `author` | no | Shown on the Plugins page. |
 | `settings` | no | Admin-editable settings (see below). |
+| `requires` | no | What the plugin needs before it can be turned on. `trooptracker` is the plugin API range it works with (the app's is `App\Plugins\PluginApi::VERSION`, currently 1.0.0); also `php`, `ext-*` and Composer packages, each with a Composer version constraint, and `plugins`, other plugins' slugs with the versions it works with. A plugin folder's `composer.json` `require` list is checked the same way. |
 
 ### The service provider
 

@@ -6,6 +6,9 @@
     "author": "",
     "namespace": "{{ namespace_json }}",
     "provider": "{{ namespace_json }}\\{{ class }}ServiceProvider",
+    "requires": {
+        "trooptracker": "^1.0"
+    },
     "settings": [
         {
             "key": "greeting",

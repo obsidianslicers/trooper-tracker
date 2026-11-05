@@ -61,6 +61,11 @@
                     @else
                         <span class="badge text-bg-secondary">Disabled</span>
                     @endif
+                    @if($plugin['unmet_requirements'] !== [])
+                        <div class="small text-danger">
+                            Needs {{ implode('; ', $plugin['unmet_requirements']) }}.
+                        </div>
+                    @endif
                 </td>
                 <td class="text-end text-nowrap">
                     @if($manifest->hasSettings())
@@ -86,7 +91,8 @@
                             </button>
                         @else
                             <button type="submit"
-                                    class="btn btn-sm btn-outline-success">
+                                    class="btn btn-sm btn-outline-success"
+                                    @disabled($plugin['unmet_requirements'] !== [])>
                                 Enable
                             </button>
                         @endif

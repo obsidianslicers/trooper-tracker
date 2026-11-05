@@ -36,6 +36,35 @@ class PluginManifestTest extends TestCase
         $this->assertSame('secret', $subject->settings[0]->type);
     }
 
+    public function test_from_array_reads_requirements(): void
+    {
+        $manifest = PluginManifest::fromArray([
+            'slug' => 'ok',
+            'provider' => 'A\\B',
+            'namespace' => 'A',
+            'requires' => [
+                'php' => '^8.2',
+                'trooptracker' => '^1.0',
+                'plugins' => ['xenforo' => '^1.0'],
+            ],
+        ], '/tmp/ok', false);
+
+        $this->assertSame(['php' => '^8.2', 'trooptracker' => '^1.0'], $manifest->requires);
+        $this->assertSame(['xenforo' => '^1.0'], $manifest->plugin_requires);
+    }
+
+    public function test_requirements_default_to_none(): void
+    {
+        $manifest = PluginManifest::fromArray(
+            ['slug' => 'ok', 'provider' => 'A\\B', 'namespace' => 'A'],
+            '/tmp/ok',
+            false,
+        );
+
+        $this->assertSame([], $manifest->requires);
+        $this->assertSame([], $manifest->plugin_requires);
+    }
+
     public function test_composer_packages_do_not_need_a_namespace(): void
     {
         $subject = PluginManifest::fromArray(
@@ -70,6 +99,18 @@ class PluginManifestTest extends TestCase
                 'provider' => 'A\\B',
                 'namespace' => 'A',
                 'settings' => [['key' => 'x', 'type' => 'color']],
+            ]],
+            'requires not an object' => [[
+                'slug' => 'ok',
+                'provider' => 'A\\B',
+                'namespace' => 'A',
+                'requires' => 'php 8',
+            ]],
+            'requires with a non-string version' => [[
+                'slug' => 'ok',
+                'provider' => 'A\\B',
+                'namespace' => 'A',
+                'requires' => ['plugins' => ['other' => 1]],
             ]],
             'bad setting key' => [[
                 'slug' => 'ok',

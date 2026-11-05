@@ -13,6 +13,9 @@ final readonly class PluginManifest
 {
     /**
      * @param  array<int, PluginSetting>  $settings
+     * @param  array<string, string>  $requires  PHP, extensions, packages and the plugin
+     *                                           API ("trooptracker"), each with a constraint
+     * @param  array<string, string>  $plugin_requires  other plugins' slugs => version constraint
      */
     public function __construct(
         public string $slug,
@@ -26,6 +29,8 @@ final readonly class PluginManifest
         public ?string $source_path,
         public bool $is_composer_package,
         public array $settings = [],
+        public array $requires = [],
+        public array $plugin_requires = [],
     ) {}
 
     /**
@@ -44,6 +49,7 @@ final readonly class PluginManifest
         }
 
         $namespace = self::namespace($data, $slug, $is_composer_package);
+        $requires = self::requires($data, $slug);
 
         return new self(
             slug: $slug,
@@ -60,7 +66,53 @@ final readonly class PluginManifest
                 fn (array $setting): PluginSetting => PluginSetting::fromArray($setting),
                 array_values($data['settings'] ?? []),
             ),
+            requires: $requires['packages'],
+            plugin_requires: $requires['plugins'],
         );
+    }
+
+    /**
+     * Read "requires": {"php": "^8.2", "ext-intl": "*", "trooptracker": "^1.0",
+     * "plugins": {"other-slug": "^1.0"}}.
+     *
+     * @return array{packages: array<string, string>, plugins: array<string, string>}
+     */
+    private static function requires(array $data, string $slug): array
+    {
+        $requires = $data['requires'] ?? [];
+        $plugins = is_array($requires) ? ($requires['plugins'] ?? []) : null;
+
+        if (!is_array($requires) || !is_array($plugins))
+        {
+            throw new InvalidArgumentException(
+                "Plugin [{$slug}] has a \"requires\" that is not an object."
+            );
+        }
+
+        unset($requires['plugins']);
+
+        return [
+            'packages' => self::constraints($requires, $slug),
+            'plugins' => self::constraints($plugins, $slug),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function constraints(array $list, string $slug): array
+    {
+        foreach ($list as $name => $constraint)
+        {
+            if (!is_string($name) || !is_string($constraint))
+            {
+                throw new InvalidArgumentException(
+                    "Plugin [{$slug}] lists a requirement that is not \"name\": \"version\"."
+                );
+            }
+        }
+
+        return $list;
     }
 
     private static function slug(array $data, string $path): string
