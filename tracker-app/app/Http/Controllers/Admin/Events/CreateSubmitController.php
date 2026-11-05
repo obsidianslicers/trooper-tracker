@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Events\CreateRequest;
 use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Messages\Events\Commands\UpdateEvent;
@@ -24,7 +24,7 @@ use Illuminate\Http\RedirectResponse;
  * associations from the form. Dispatches notification jobs for events created in
  * OPEN or SIGN_UP_LOCKED status.
  */
-class CreateSubmitController extends MagicBusController
+class CreateSubmitController extends PageController
 {
     /**
      * Creates a new event from validated form submission

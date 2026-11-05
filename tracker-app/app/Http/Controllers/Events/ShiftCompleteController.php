@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\UpdateEventTrooper;
 use App\Models\EventTrooper;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -22,7 +22,7 @@ use ValueError;
  * allow troopers to update their attendance status by clicking encrypted URLs.
  * The status is decrypted from the URL and applied to the event trooper record.
  */
-class ShiftCompleteController extends MagicBusController
+class ShiftCompleteController extends PageController
 {
     private array $attended_messages = [
         'Excellent work trooper! Imperial records now reflect your heroic presence.',

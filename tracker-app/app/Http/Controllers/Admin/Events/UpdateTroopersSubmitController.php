@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
 use App\Messages\Events\Commands\UpdateEventRoster;
 use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 
-class UpdateTroopersSubmitController extends MagicBusController
+class UpdateTroopersSubmitController extends PageController
 {
     public function __invoke(UpdateTroopersRequest $request, Event $event): RedirectResponse
     {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Troopers\ProfileRequest;
 use App\Messages\Troopers\Commands\UpdateTrooper;
 use App\Models\Trooper;
@@ -16,7 +16,7 @@ use Illuminate\Http\RedirectResponse;
  *
  * Handles the form submission for updating a trooper's profile.
  */
-class ProfileSubmitController extends MagicBusController
+class ProfileSubmitController extends PageController
 {
     /**
      * Handle the incoming request to update a trooper's profile information

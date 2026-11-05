@@ -83,7 +83,7 @@ flowchart TD
 
 **Purpose:** Orchestrates notification delivery to all active troopers.
 
-**Implementation:** This job dispatches `SendEventCreatedNotificationCommand` for each eligible trooper through the MagicBus. The command handler calls `$trooper->notify(new EventCreatedNotification($event))`. The notification's `via()` method selects channels based on trooper preferences:
+**Implementation:** This job dispatches `SendEventCreatedNotification` for each eligible trooper as a Hyperdrive message. The message calls `$trooper->notify(new EventCreatedNotification($event))`. The notification's `via()` method selects channels based on trooper preferences:
 
 - `database` — always included; writes a record to `tt_notifications` for the web/mobile inbox
 - `FcmChannel` — included when `push_notifications_enabled = true`; sends FCM push to registered devices
@@ -92,7 +92,7 @@ flowchart TD
 
 **Key Components:**
 - `SendEventCreatedNotificationsJob` - Queue job that orchestrates the process
-- `SendEventCreatedNotificationCommand` / `SendEventCreatedNotificationCommandHandler` - Dispatches notification per trooper
+- `SendEventCreatedNotification` / `SendEventCreatedNotification` - Dispatches notification per trooper
 - `EventCreatedNotification` - Laravel Notification class; owns channel selection logic
 - `FcmChannel` - Custom channel; sends FCM via `kreait/laravel-firebase`
 - `DailyDigestChannel` - Custom channel; creates `EventNotification` record for digest
@@ -128,8 +128,8 @@ flowchart TD
 
 **Implementation:** This Artisan command orchestrates the daily notification process by:
 
-1. Dispatching `GetTroopersForDailyEventNotificationsQuery` to retrieve eligible troopers
-2. Dispatching `SendEventDailyNotificationCommand` for each trooper
+1. Dispatching `GetTroopersForDailyEventNotifications` to retrieve eligible troopers
+2. Dispatching `SendEventDailyNotification` for each trooper
 3. The command handler queues the digest email and marks notifications as processed
 
 **Process:**
@@ -141,9 +141,9 @@ flowchart TD
 
 **Key Components:**
 - `SendDailyEventNotifications` - Artisan command (orchestrator)
-- `GetTroopersForDailyEventNotificationsQuery` - Retrieves eligible troopers
-- `SendEventDailyNotificationCommand` - Command for each trooper
-- `SendEventDailyNotificationCommandHandler` - Handles email queueing and marking processed
+- `GetTroopersForDailyEventNotifications` - Retrieves eligible troopers
+- `SendEventDailyNotification` - Command for each trooper
+- `SendEventDailyNotification` - Handles email queueing and marking processed
 
 **Scheduling:**
 This command should be scheduled to run daily.
@@ -178,7 +178,7 @@ flowchart TD
 
 **Purpose:** Notifies all troopers who signed up for the cancelled event.
 
-**Implementation:** This job dispatches `SendEventCancelledNotificationCommand` through the MagicBus. The command handler calls `$trooper->notify(new EventCancelledNotification($event))`. The notification's `via()` method always includes:
+**Implementation:** This job dispatches `SendEventCancelledNotification` as a Hyperdrive message. The message calls `$trooper->notify(new EventCancelledNotification($event))`. The notification's `via()` method always includes:
 
 - `database` — writes to `tt_notifications` inbox
 - `FcmChannel` — when `push_notifications_enabled = true`
@@ -188,7 +188,7 @@ Updates event's `cancel_notifications_sent_at` timestamp to prevent duplicate se
 
 **Key Components:**
 - `SendEventCancelledNotificationsJob` - Queue job (orchestrator)
-- `SendEventCancelledNotificationCommand` / `SendEventCancelledNotificationCommandHandler` - Dispatches notification per trooper
+- `SendEventCancelledNotification` / `SendEventCancelledNotification` - Dispatches notification per trooper
 - `EventCancelledNotification` - Laravel Notification class
 
 **Important Notes:**
@@ -220,13 +220,13 @@ flowchart TD
 
 **Implementation:** This Artisan command orchestrates the shift closing process by:
 
-1. Dispatching `GetEventShiftsToCloseQuery` to retrieve ended shifts
+1. Dispatching `GetEventShiftsToClose` to retrieve ended shifts
 2. Updating each shift's status to `CLOSED`
 3. Queueing `EventShiftComplete` emails for troopers with `GOING` status
 
 **Key Components:**
 - `CloseEventShiftsCommand` - Artisan command (orchestrator)
-- `GetEventShiftsToCloseQuery` - Retrieves shifts that have ended
+- `GetEventShiftsToClose` - Retrieves shifts that have ended
 - `EventShiftComplete` - Mailable sent to attending troopers
 
 ## Event Closing Command
@@ -249,12 +249,12 @@ flowchart TD
 
 **Implementation:** This Artisan command orchestrates the event closing process by:
 
-1. Dispatching `GetEventsToCloseQuery` to retrieve ended events
+1. Dispatching `GetEventsToClose` to retrieve ended events
 2. Updating each event's status to `CLOSED`
 
 **Key Components:**
 - `CloseEventsCommand` - Artisan command (orchestrator)
-- `GetEventsToCloseQuery` - Retrieves events that have ended
+- `GetEventsToClose` - Retrieves events that have ended
 
 ## Email Templates
 
@@ -287,12 +287,12 @@ See [docs/DATABASE.md](docs/DATABASE.md) for table details and column references
 The notification system follows the **Command/Query** pattern with **Laravel Notifications** as the dispatch mechanism:
 
 - **Jobs** (SendEventCreatedNotificationsJob, SendEventCancelledNotificationsJob) orchestrate workflow
-- **Commands** (SendEventCreatedNotificationCommand, SendEventDailyNotificationCommand, SendEventCancelledNotificationCommand) represent write operations
+- **Commands** (SendEventCreatedNotification, SendEventDailyNotification, SendEventCancelledNotification) represent write operations
 - **Command Handlers** call `$trooper->notify(new SomeNotification(...))` — no direct mail or push logic
 - **Laravel Notification classes** own channel selection in their `via()` method
 - **Custom channels** (`FcmChannel`, `DailyDigestChannel`) handle FCM and digest record creation
-- **Queries** (GetTroopersForDailyEventNotificationsQuery) retrieve eligible troopers
-- **MagicBus** dispatches commands and queries to their handlers
+- **Queries** (GetTroopersForDailyEventNotifications) retrieve eligible troopers
+- **Hyperdrive messages** (`app/Messages`) hold the commands and queries, each with its own `handle()`
 
 This separation ensures business logic is testable and reusable across different entry points.
 

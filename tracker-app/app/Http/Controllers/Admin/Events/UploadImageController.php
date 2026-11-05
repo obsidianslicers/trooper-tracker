@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Controllers\Events\Concerns\HandlesEventImageUploadResponses;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Event;
 use App\Services\EventImageUploadService;
 use Illuminate\Http\Request;
@@ -19,7 +19,7 @@ use Illuminate\Validation\ValidationException;
  * creating both original and thumbnail versions. Images are marked as administrative
  * uploads.
  */
-class UploadImageController extends MagicBusController
+class UploadImageController extends PageController
 {
     use HandlesEventImageUploadResponses;
 

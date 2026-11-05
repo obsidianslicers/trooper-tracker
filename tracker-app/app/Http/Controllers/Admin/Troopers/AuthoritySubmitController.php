@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Troopers\AuthorityRequest;
 use App\Messages\Troopers\Commands\UpdateTrooperAuthority;
 use App\Models\Trooper;
@@ -17,7 +17,7 @@ use Illuminate\Http\RedirectResponse;
  * Handles the form submission for a trooper's authority settings, including their
  * membership role and which organizations they are assigned to moderate.
  */
-class AuthoritySubmitController extends MagicBusController
+class AuthoritySubmitController extends PageController
 {
     /**
      * Handle the incoming request to update a trooper's authority settings

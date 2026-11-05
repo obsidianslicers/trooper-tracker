@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Notices;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Filters\NoticeFilter;
 use App\Models\Notice;
 use App\Models\Organization;
@@ -23,7 +23,7 @@ use Illuminate\Http\Request;
  * filtered by scope (active, past, future) and by organization. It ensures that
  * non-administrator users can only see notices for organizations they moderate.
  */
-class ListController extends MagicBusController
+class ListController extends PageController
 {
     protected function initialized(): void
     {

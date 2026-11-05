@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Event;
 use Spatie\CalendarLinks\Generators\Ics;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class DownloadEventIcsController extends MagicBusController
+class DownloadEventIcsController extends PageController
 {
     public function __invoke(Event $event): StreamedResponse
     {

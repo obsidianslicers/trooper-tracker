@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Events\UpdateRequest;
 use App\Jobs\ReconcileEventRosterJob;
 use App\Jobs\SendEventCancelledNotificationsJob;
@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Auth;
  * event dates, amenities, and organization associations. Updates both the event record
  * and its related EventOrganization pivot records for access control.
  */
-class UpdateSubmitController extends MagicBusController
+class UpdateSubmitController extends PageController
 {
     /**
      * Updates an existing event from the validated form submission

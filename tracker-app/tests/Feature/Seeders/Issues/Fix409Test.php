@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Seeders\Issues;
 
-use App\Bus\MagicBus;
 use App\Enums\AchievementType;
 use App\Mail\Fix409OutstandingCredit;
 use App\Models\EventTrooper;
@@ -41,7 +40,7 @@ class Fix409Test extends TestCase
         $event_trooper = $this->tt1Row($trooper, self::TT1_SHIFT_AT, 'Handler', 0, $both);
 
         $subject = new Fix409;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertCredit(['501st Legion'], $event_trooper);
     }
@@ -53,7 +52,7 @@ class Fix409Test extends TestCase
         $event_trooper = $this->tt1Row($trooper, self::TT1_SHIFT_AT, 'Handler', 0, $rebel);
 
         $subject = new Fix409;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertCredit(['501st Legion'], $event_trooper);
     }
@@ -66,7 +65,7 @@ class Fix409Test extends TestCase
         $after = $this->attendedWithCredit($trooper, '2026-09-01 10:00:00', $both);
 
         $subject = new Fix409;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertCredit(['501st Legion'], $before);
         $this->assertCredit(['501st Legion', 'Rebel Legion'], $after);
@@ -80,7 +79,7 @@ class Fix409Test extends TestCase
         $event_trooper = $this->attendedWithCredit($trooper, '2026-07-01 10:00:00', $saber_guild);
 
         $subject = new Fix409;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertCredit(['Saber Guild'], $event_trooper);
         Mail::assertQueued(Fix409OutstandingCredit::class, function ($mail): bool
@@ -96,7 +95,7 @@ class Fix409Test extends TestCase
         $event_trooper = $this->organizationIdRow($trooper, 'Rebel Legion');
 
         $subject = new Fix409;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $event_trooper->refresh();
         $this->assertSame($this->clubId('Rebel Legion'), $event_trooper->organization_id);
@@ -112,7 +111,7 @@ class Fix409Test extends TestCase
         $removed = $this->firstTroopMilestone($trooper, 'Rebel Legion');
 
         $subject = new Fix409;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertNotNull(TrooperAchievement::find($kept->id));
         $this->assertNull(TrooperAchievement::withTrashed()->find($removed->id));
@@ -125,7 +124,7 @@ class Fix409Test extends TestCase
         $milestone = $this->firstTroopMilestone($trooper, '501st Legion');
 
         $subject = new Fix409;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertNotNull(TrooperAchievement::find($milestone->id));
     }
@@ -137,11 +136,11 @@ class Fix409Test extends TestCase
         $event_trooper = $this->attendedWithCredit($trooper, '2026-07-01 10:00:00', $both);
 
         $subject = new Fix409;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
         $first_updated_at = $event_trooper->refresh()->updated_at;
 
         $this->travel(1)->hours();
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertEquals($first_updated_at, $event_trooper->refresh()->updated_at);
     }

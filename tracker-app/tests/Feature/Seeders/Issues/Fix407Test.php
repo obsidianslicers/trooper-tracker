@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Seeders\Issues;
 
-use App\Bus\MagicBus;
 use App\Mail\Fix407OutstandingCredit;
 use App\Models\Trooper;
 use Database\Seeders\Issues\Fix407;
@@ -35,7 +34,7 @@ class Fix407Test extends TestCase
         $event_trooper = $this->tt1Row($trooper, self::SHIFT_AT, 'Stormtrooper', 0, $credit);
 
         $subject = new Fix407;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertCredit(['501st Legion'], $event_trooper);
     }
@@ -47,7 +46,7 @@ class Fix407Test extends TestCase
         $event_trooper = $this->tt1Row($trooper, self::SHIFT_AT, 'Stormtrooper', 0, [$region->id]);
 
         $subject = new Fix407;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertSame([$region->id], $event_trooper->refresh()->costume_organization_ids);
     }
@@ -59,7 +58,7 @@ class Fix407Test extends TestCase
         $event_trooper = $this->tt1Row($trooper, self::SHIFT_AT, 'N/A', 5, $credit);
 
         $subject = new Fix407;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertCredit(['501st Legion', 'Rebel Legion'], $event_trooper);
     }
@@ -72,7 +71,7 @@ class Fix407Test extends TestCase
         $event_trooper = $this->tt1Row($trooper, self::SHIFT_AT, 'Other', 4, $credit);
 
         $subject = new Fix407;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertCredit(['Rebel Legion'], $event_trooper);
         Mail::assertQueued(Fix407OutstandingCredit::class);
@@ -85,7 +84,7 @@ class Fix407Test extends TestCase
         $event_trooper = $this->attendedWithCredit($trooper, self::SHIFT_AT, $credit);
 
         $subject = new Fix407;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertCredit(['Rebel Legion'], $event_trooper);
     }
@@ -97,11 +96,11 @@ class Fix407Test extends TestCase
         $event_trooper = $this->tt1Row($trooper, self::SHIFT_AT, 'Stormtrooper', 0, $credit);
 
         $subject = new Fix407;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
         $first_updated_at = $event_trooper->refresh()->updated_at;
 
         $this->travel(1)->hours();
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertEquals($first_updated_at, $event_trooper->refresh()->updated_at);
         $this->assertCredit(['501st Legion'], $event_trooper);

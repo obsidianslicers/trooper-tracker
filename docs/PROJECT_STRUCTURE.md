@@ -9,16 +9,15 @@ This document maps the Troop Tracker directory structure and file organization.
 ```
 tracker-app/
 ├── app/
-│   ├── Bus/                    # MagicBus command/query dispatcher
 │   ├── Console/                # Artisan commands
 │   ├── Contracts/              # Interface definitions
 │   ├── Enums/                  # Backed enums with helpers
 │   ├── Facades/                # Laravel facades
-│   ├── Features/               # Domain-organized business logic
 │   ├── Generators/             # Code generation utilities
 │   ├── Http/                   # Controllers and middleware
 │   ├── Jobs/                   # Queue jobs
 │   ├── Mail/                   # Mailable classes
+│   ├── Messages/               # Domain-organized business logic (Hyperdrive messages)
 │   ├── Models/                 # Eloquent models (extended)
 │   │   ├── Base/              # Auto-generated base models (DO NOT EDIT)
 │   │   ├── Concerns/          # Model traits
@@ -52,58 +51,56 @@ tracker-app/
 └── vendor/                     # Composer dependencies
 ```
 
-## Features Directory
+## Messages Directory
 
-The `app/Features/` directory contains domain-organized business logic (Commands and Queries with their handlers).
+The `app/Messages/` directory contains domain-organized business logic as Hyperdrive messages.
+Each message is a single class: its constructor is the input contract and its `handle()` method
+is the operation.
 
 ### Structure
 
 ```
-app/Features/
-├── Changes/
-│   └── Commands/              # Audit trail tracking commands
+app/Messages/
+├── Concerns/                  # Traits shared by messages (lookback, org credit, display)
 ├── Events/
 │   ├── Commands/              # Event management commands
 │   └── Queries/               # Event data retrieval queries
-├── Notices/
-│   ├── Commands/              # Notice management commands
-│   └── Queries/               # Notice data retrieval queries
 ├── Organizations/
-│   ├── Commands/              # Organization management commands
 │   └── Queries/               # Organization data retrieval queries
 ├── Reports/
 │   └── Queries/               # Reporting queries
-└── Troopers/
-    ├── Commands/              # Trooper management commands
-    └── Queries/               # Trooper data retrieval queries
+├── Troopers/
+│   ├── Commands/              # Trooper management commands (grouped in subfolders by topic)
+│   ├── PageData/              # Page payloads for trooper screens
+│   └── Queries/               # Trooper data retrieval queries
+└── ...                        # Auth, Account, Faq, Notices, Costumes, Search, ServiceRecords
 ```
 
 ### Naming Conventions
 
-Each command or query follows a strict naming convention:
+Messages are named `[Verb][Object][optional details]` with no `Command`/`Query` suffix. The
+folder says which kind it is:
 
-- **Command Class:** `{Verb}{Entity}Command` (e.g., `CreateEventCommand`, `UpdateTrooperCommand`)
-- **Command Handler:** `{Verb}{Entity}CommandHandler` (implements `CommandHandlerInterface`)
-- **Query Class:** `Get{Entity}{Context}Query` (e.g., `GetTroopersByRoleQuery`, `GetEventSummaryQuery`)
-- **Query Handler:** `Get{Entity}{Context}QueryHandler` (implements `QueryHandlerInterface`)
+- **Commands:** `{Verb}{Entity}` (e.g., `UpdateEvent`, `VoidTrooper`)
+- **Queries:** `Get{Entity}{Context}` (e.g., `GetTroopersByRole`, `GetEventSummary`)
+- **Page data:** `{Page}PageData` (e.g., `LoginPageData`)
 
 ### Examples
 
 **Command:**
 ```php
-// app/Features/Events/Commands/UpdateEventCommand.php
-readonly class UpdateEventCommand
+// app/Messages/Events/Commands/UpdateEvent.php
+/**
+ * @method static void call(Event $event, array $data)
+ */
+final class UpdateEvent extends Message
 {
     public function __construct(
-        public Event $event,
-        public array $data
+        private readonly Event $event,
+        private readonly array $data,
     ) {}
-}
 
-// app/Features/Events/Commands/UpdateEventCommandHandler.php
-readonly class UpdateEventCommandHandler implements CommandHandlerInterface
-{
-    public function __invoke(UpdateEventCommand $command): Event
+    public function handle(): void
     {
         // Business logic here
     }
@@ -112,27 +109,28 @@ readonly class UpdateEventCommandHandler implements CommandHandlerInterface
 
 **Query:**
 ```php
-// app/Features/Reports/Queries/GetEventSummaryQuery.php
-readonly class GetEventSummaryQuery
+// app/Messages/Reports/Queries/GetEventSummary.php
+/**
+ * @method static Collection call(Trooper $moderator, int|string|Carbon|null $lookback)
+ */
+final class GetEventSummary extends Message
 {
-    public function __construct(
-        public int $lookback_days
-    ) {}
-}
+    use HasLookback;
 
-// app/Features/Reports/Queries/GetEventSummaryQueryHandler.php
-readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
-{
-    public function __invoke(GetEventSummaryQuery $query): array
+    public function __construct(
+        private readonly Trooper $moderator,
+        private readonly int|string|Carbon|null $lookback,
+    ) {}
+
+    public function handle(): Collection
     {
         // Data retrieval logic here
     }
 }
 ```
 
-## MagicBus Integration
-
-Commands and Queries are dispatched through the **MagicBus** which automatically resolves handlers using naming conventions. See [CODING_CONVENTIONS.md](CODING_CONVENTIONS.md#magicbus-commandquery-pattern) for details.
+Messages are called with `GetEventSummary::call(moderator: $trooper, lookback: 30)`. See
+[CODING_CONVENTIONS.md](CODING_CONVENTIONS.md#9-hyperdrive-messages) for details.
 
 ## HTTP Controllers
 
@@ -154,7 +152,7 @@ app/Http/Controllers/
 ├── Pickers/               # HTMX picker components
 ├── Widgets/               # Reusable HTMX widgets
 ├── HomeController.php     # Homepage
-├── MagicBusController.php # Generic command/query dispatcher
+├── PageController.php     # Base controller with breadcrumbs
 └── ShareEventController.php # Event sharing
 ```
 
@@ -163,7 +161,7 @@ app/Http/Controllers/
 Controllers follow the **Action-Domain-Responder (ADR)** pattern:
 
 - **Invokable controllers** for single-action endpoints
-- **Thin orchestration** - delegate to MagicBus commands/queries
+- **Thin orchestration** - delegate to messages with `::call()`
 - **No business logic** in controllers
 
 ## Models
@@ -296,13 +294,11 @@ The `app/Services/` directory contains standalone service classes:
 - **GoogleService:** Google API integration
 - **StandaloneService:** Base service class
 
-## MagicBus
+## Hyperdrive
 
-The `app/Bus/` directory contains the command/query bus implementation:
-
-- **MagicBus.php:** Convention-based handler resolution and dispatch
-- **Contracts/:** Handler interfaces (CommandHandlerInterface, QueryHandlerInterface)
-- **Concerns/:** Handler behavior traits (ShouldBeTransactional, ShouldRunAfterResponse)
+The message dispatcher lives in `packages/hyperdrive/` (`Hyperdrive\Message`,
+`Hyperdrive\MessageDispatcher`, `Hyperdrive\Concerns\ShouldBeTransactional`). See its
+[README](../tracker-app/packages/hyperdrive/README.md) for hydration and parameter precedence.
 
 ## Web Routes
 
@@ -329,7 +325,7 @@ tests/
 │   ├── Jobs/              # Job tests
 │   └── Console/Commands/  # Command tests
 └── Unit/
-    ├── Features/          # Command/Query handler tests
+    ├── Messages/          # Message tests
     ├── Policies/          # Policy tests
     ├── Rules/             # Validation rule tests
     └── Services/          # Service class tests

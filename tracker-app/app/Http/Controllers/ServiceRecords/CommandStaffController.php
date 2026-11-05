@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\ServiceRecords;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Troopers\Queries\GetCommandStaff;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ use RuntimeException;
 /**
  * Displays the command staff listing.
  */
-class CommandStaffController extends MagicBusController
+class CommandStaffController extends PageController
 {
     /**
      * Retrieves command staff troopers and renders the command staff view.

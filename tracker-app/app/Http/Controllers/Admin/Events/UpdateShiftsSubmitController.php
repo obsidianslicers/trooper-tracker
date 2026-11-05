@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
 use App\Jobs\ReconcileEventRosterJob;
 use App\Messages\Events\Commands\UpdateEventShiftStations;
@@ -21,7 +21,7 @@ use Illuminate\Http\RedirectResponse;
  * Handles creating new event shifts and updating existing shift start/end times.
  * Parses date and time inputs to create Carbon datetime objects for storage.
  */
-class UpdateShiftsSubmitController extends MagicBusController
+class UpdateShiftsSubmitController extends PageController
 {
     /**
      * Updates or creates event shifts from the validated form submission

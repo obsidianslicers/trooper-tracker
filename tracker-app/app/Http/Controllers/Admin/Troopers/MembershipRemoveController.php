@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Troopers\MembershipRemoveRequest;
 use App\Messages\Troopers\Commands\RemoveTrooperMembership;
 use App\Models\Organization;
@@ -18,7 +18,7 @@ use Illuminate\Http\RedirectResponse;
  * This deletes the trooper-organization membership record and clears member
  * assignments within that organization's hierarchy.
  */
-class MembershipRemoveController extends MagicBusController
+class MembershipRemoveController extends PageController
 {
     /**
      * Handle the incoming request to remove a membership.

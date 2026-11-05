@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
 use App\Facades\TroopTrackerFacade;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Services\Forums\XenforoService;
@@ -20,7 +20,7 @@ use Illuminate\Http\Request;
  * including venue information, contact details, and organization associations.
  * Shows a draft warning if the event is not yet published.
  */
-class UpdateController extends MagicBusController
+class UpdateController extends PageController
 {
     protected function initialized(): void
     {

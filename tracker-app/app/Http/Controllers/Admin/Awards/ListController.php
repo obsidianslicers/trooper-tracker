@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Award;
 use App\Models\Filters\AwardFilter;
 use App\Models\Organization;
@@ -21,7 +21,7 @@ use Illuminate\Http\Request;
  * Fetches a paginated list of awards and applies filters. Non-administrator
  * troopers can only see awards for organizations they moderate.
  */
-class ListController extends MagicBusController
+class ListController extends PageController
 {
     protected function initialized(): void
     {

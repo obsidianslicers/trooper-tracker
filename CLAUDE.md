@@ -23,83 +23,83 @@ The Laravel app root is `tracker-app/`. All commands below assume you're running
 
 ### Action-Domain-Responder (ADR)
 
-- **Action**: Thin invokable controllers — validate input, dispatch via MagicBus, return response
-- **Domain**: All business logic lives in `app/Features/` handlers
-- **Responder**: Controllers format handler results into Blade views, redirects, or JSON
+- **Action**: Thin invokable controllers — validate input, call a message, return response
+- **Domain**: All business logic lives in Hyperdrive messages in `app/Messages/`
+- **Responder**: Controllers format message results into Blade views, redirects, or JSON
 
 Controllers contain no business logic. They orchestrate.
 
-### MagicBus — Command/Query Separation
+### Hyperdrive Messages — Command/Query Separation
 
-Convention-based dispatcher. Handlers are auto-resolved: `CreateEventCommand` → `CreateEventCommandHandler`.
+Each operation is one class in `app/Messages/[Feature]/{Commands,Queries,PageData}/` that extends
+`Hyperdrive\Message`. The constructor is the input; `handle()` does the work. There are no handler
+classes and no `Command`/`Query` suffixes. Shared traits live in `app/Messages/Concerns/`.
 
 **Commands** — write operations (state change):
 ```php
-// app/Features/Events/Commands/CreateEventCommand.php
-readonly class CreateEventCommand
+// app/Messages/Troopers/Commands/VoidTrooper.php
+/**
+ * @method static void call(Trooper $trooper)
+ */
+final class VoidTrooper extends Message
 {
-    public function __construct(
-        public Organization $organization,
-        public array $data
-    ) {}
-}
+    use ShouldBeTransactional;
 
-// app/Features/Events/Commands/CreateEventCommandHandler.php
-readonly class CreateEventCommandHandler implements CommandHandlerInterface
-{
-    public function __invoke(CreateEventCommand $command): Event
+    public function __construct(private readonly Trooper $trooper) {}
+
+    public function handle(): void
     {
-        return Event::create([...]);
+        // ...
     }
 }
 ```
 
 **Queries** — read operations (no side effects):
 ```php
-// app/Features/Troopers/Queries/GetTroopersByRoleQuery.php
-readonly class GetTroopersByRoleQuery
+// app/Messages/Troopers/Queries/GetTroopersByRole.php
+/**
+ * @method static Collection<int, Trooper> call(MembershipRole $membership_role)
+ */
+final class GetTroopersByRole extends Message
 {
-    public function __construct(public MembershipRole $role) {}
-}
+    public function __construct(private readonly MembershipRole $membership_role) {}
 
-// app/Features/Troopers/Queries/GetTroopersByRoleQueryHandler.php
-readonly class GetTroopersByRoleQueryHandler implements QueryHandlerInterface
-{
-    public function __invoke(GetTroopersByRoleQuery $query): Collection
+    public function handle(): Collection
     {
-        return Trooper::where(Trooper::MEMBERSHIP_ROLE, $query->role->value)->get();
+        return Trooper::active()
+            ->where(Trooper::MEMBERSHIP_ROLE, $this->membership_role)
+            ->orderBy(Trooper::DISPLAY_NAME)
+            ->get();
     }
 }
 ```
 
-**Dispatching from a controller:**
+**Calling a message from a controller:**
 ```php
-use App\Bus\MagicBus;
-
-class CreateEventController extends Controller
+class VoidSubmitController extends PageController
 {
-    public function __invoke(CreateEventRequest $request, MagicBus $bus)
+    public function __invoke(Request $request, Trooper $trooper): RedirectResponse
     {
-        $event = $bus->send(new CreateEventCommand(
-            organization: $request->user()->organization,
-            data: $request->validated()
-        ));
-        return redirect()->route('events.show', $event);
+        $this->authorize('void', $trooper);
+
+        VoidTrooper::call(trooper: $trooper);
+
+        return redirect()->route('admin.troopers.profile', compact('trooper'));
     }
 }
 ```
 
-**Handler modifier traits:**
-- `ShouldBeTransactional` — wraps handler in a DB transaction
-- `ShouldRunAfterResponse` — defers execution until after HTTP response is sent
+- Inject services into `handle()` (e.g. `handle(XenforoService $xenforo)`), never the constructor.
+- `Hyperdrive\Concerns\ShouldBeTransactional` wraps `handle()` in a DB transaction.
+- Work that shouldn't block the response goes in a queued Job that calls the message.
 
 ### Jobs & Console Commands (Orchestration Pattern)
 
-Jobs and Artisan commands are thin orchestrators — they dispatch Commands/Queries and contain no business logic:
+Jobs and Artisan commands are thin orchestrators — they call messages and contain no business logic:
 ```php
-public function handle(MagicBus $bus): void
+public function handle(): void
 {
-    $bus->send(new SendEventCreatedNotificationCommand($this->event));
+    SendEventCreatedNotification::call(event: $this->event, trooper: $trooper);
 }
 ```
 
@@ -129,7 +129,7 @@ Core principle: **decomposition into small, single units of work** — reduces c
 
 ### Message decomposition (PageData)
 
-In addition to Commands and Queries (see MagicBus above), page-facing endpoints get a **PageData** message:
+In addition to Commands and Queries (see Hyperdrive Messages above), page-facing endpoints get a **PageData** message:
 
 - **Commands & Queries** stay strictly separate — neither should be overloaded to also supply multi-query page view data.
 - **PageData**: aggregates multiple queries into a single response payload tailored to a specific page. Example: `GetAllOrganizationsQuery` returns full records/columns; `RegistrationPageData` pulls from that query and trims the payload to only the JSON fields the registration UI needs.
@@ -165,11 +165,12 @@ resources/svelte/
 ```
 tracker-app/
 ├── app/
-│   ├── Features/              # Domain logic, organized by feature
+│   ├── Messages/              # Domain logic (Hyperdrive messages), organized by feature
+│   │   ├── Concerns/          # Traits shared by messages
 │   │   ├── Events/
-│   │   │   ├── Commands/      # e.g. CreateEventCommand + CreateEventCommandHandler
-│   │   │   └── Queries/       # e.g. GetEventsByOrganizationQuery + Handler
-│   │   ├── Troopers/
+│   │   │   ├── Commands/      # e.g. UpdateEvent
+│   │   │   └── Queries/       # e.g. GetEventsForDisplay
+│   │   ├── Troopers/          # Commands, Queries, PageData
 │   │   ├── Organizations/
 │   │   ├── Reports/           # Queries only
 │   │   ├── Notices/
@@ -177,7 +178,6 @@ tracker-app/
 │   ├── Http/Controllers/      # Invokable single-action controllers
 │   ├── Models/                # Extended Eloquent models — add custom logic here
 │   ├── Models/Base/           # Auto-generated from schema — NEVER EDIT
-│   ├── Bus/                   # MagicBus dispatcher + interfaces
 │   ├── Jobs/                  # Queueable jobs (orchestration only)
 │   ├── Console/Commands/      # Artisan commands (orchestration only)
 │   ├── Policies/              # Authorization (HasTrooperPermissionsTrait)
@@ -185,7 +185,7 @@ tracker-app/
 │   └── Services/              # Standalone services (Flash, BreadCrumb, Geocoding, Google)
 ├── tests/
 │   ├── Feature/               # HTTP, Job, Console Command tests
-│   └── Unit/                  # Handler, Policy, Rule, Service tests
+│   └── Unit/                  # Message, Policy, Rule, Service tests
 └── docs/                      # Full documentation (see links at bottom)
 ```
 
@@ -197,7 +197,7 @@ tracker-app/
 
 | Element | Convention | Example |
 |---------|-----------|---------|
-| Classes | PascalCase | `CreateEventCommandHandler`, `LoginSubmitController` |
+| Classes | PascalCase | `GetTroopersByRole`, `LoginSubmitController` |
 | Methods / Functions | camelCase | `handleRequest()`, `findUserById()` |
 | Parameters & local variables | snake_case | `$user_name`, `$local_variable` |
 | Class properties | snake_case | `private string $class_property` |
@@ -219,18 +219,15 @@ Always invokable (single-action). One controller = one action.
 // app/Http/Controllers/Events/CreateEventController.php
 class CreateEventController extends Controller
 {
-    public function __invoke(CreateEventRequest $request, MagicBus $bus) { ... }
+    public function __invoke(CreateEventRequest $request): RedirectResponse { ... }
 }
 
 // routes/web.php
 Route::post('/events', CreateEventController::class);
 ```
 
-For simple CRUD where no dedicated controller class is needed, use `MagicBusController`:
-```php
-Route::post('/admin/events/{event}/update', MagicBusController::class)
-    ->defaults('command', UpdateEventCommand::class);
-```
+Controllers that render pages extend `PageController`, which provides the breadcrumb service
+(`$this->crumbs`) and an `initialized()` hook.
 
 ---
 
@@ -266,7 +263,7 @@ Do not edit anything in `app/Models/Base/` — it is overwritten on regeneration
 | Controllers | Feature | Full HTTP request/response cycle |
 | Jobs | Feature | Queue concerns + orchestration |
 | Console Commands | Feature | Argument parsing + console output |
-| Handlers (Commands/Queries) | Unit | Isolated business logic |
+| Messages (Commands/Queries/PageData) | Unit | Isolated business logic |
 | Policies | Unit | Authorization logic in isolation |
 | Rules | Unit | Validation logic in isolation |
 | Services | Unit | Isolated, no framework infrastructure |
@@ -276,20 +273,20 @@ Do not edit anything in `app/Models/Base/` — it is overwritten on regeneration
 
 - Subject under test is always `$subject`
 - Mocking: Mockery with `shouldReceive()` chain
+- Stubbing messages in controller/job/console tests: `Tests\Concerns\FakesMessages`
 - Factory states for setup: `asAdministrator()`, `asActive()`, etc.
 - Test DB: SQLite in-memory (configured in `phpunit.xml`)
 - Front-end: `npm test` runs Vitest (`vitest.config.js`, `tests/js/**/*.test.js`)
 
 ```php
-public function test_invoke_creates_event(): void
+public function test_handle_returns_troopers_with_role(): void
 {
-    $organization = Organization::factory()->create();
+    $admin = Trooper::factory()->asAdministrator()->create();
 
-    $subject = new CreateEventCommandHandler();
-    $result = $subject(new CreateEventCommand($organization, ['name' => 'Test Event']));
+    $subject = new GetTroopersByRole(MembershipRole::ADMINISTRATOR);
+    $result = $subject->handle();
 
-    $this->assertInstanceOf(Event::class, $result);
-    $this->assertDatabaseHas('tt_events', ['name' => 'Test Event']);
+    $this->assertTrue($result->contains($admin));
 }
 ```
 

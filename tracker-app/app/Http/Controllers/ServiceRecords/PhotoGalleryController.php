@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\ServiceRecords;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\ServiceRecords\Queries\GetPhotoGallery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 /**
  * Displays the community photo gallery of recent event uploads.
  */
-class PhotoGalleryController extends MagicBusController
+class PhotoGalleryController extends PageController
 {
     public function __invoke(Request $request): View
     {

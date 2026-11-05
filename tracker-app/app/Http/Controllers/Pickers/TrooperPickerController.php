@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Pickers;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Troopers\Queries\GetTroopersForPicker;
 use App\Models\Filters\TrooperFilter;
 use Exception;
@@ -18,7 +18,7 @@ use Illuminate\Http\Request;
  * needs to select a trooper from a list, potentially filtered by organization
  * or search criteria.
  */
-class TrooperPickerController extends MagicBusController
+class TrooperPickerController extends PageController
 {
     /**
      * Handle the incoming request to display the trooper picker view

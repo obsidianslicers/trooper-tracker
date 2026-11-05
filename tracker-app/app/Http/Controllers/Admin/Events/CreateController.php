@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Admin\Events;
 use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Facades\TroopTrackerFacade;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Organizations\Queries\GetOrganizationTree;
 use App\Models\Event;
 use App\Models\EventOrganization;
@@ -26,7 +26,7 @@ use Illuminate\Support\Collection;
  * optionally assigns an organization based on query parameters. Provides the
  * organization hierarchy for form selection.
  */
-class CreateController extends MagicBusController
+class CreateController extends PageController
 {
     protected function initialized(): void
     {

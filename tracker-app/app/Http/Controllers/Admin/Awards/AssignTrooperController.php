@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Award;
 use App\Models\AwardTrooper;
 use Illuminate\Contracts\View\View;
@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * Displays the single-trooper award assignment form, allowing administrators
  * and moderators to award a specific trooper with an award on a specified date.
  */
-class AssignTrooperController extends MagicBusController
+class AssignTrooperController extends PageController
 {
     protected function initialized(): void
     {

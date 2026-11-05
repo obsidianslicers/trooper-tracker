@@ -86,7 +86,7 @@ final class AssignEventTrooperCredit extends Message
      * trooper is *currently* a member of (tt_trooper_organizations). The display logic
      * (HasOrgCreditAnnotation) can only ever resolve a credited org against that second list, so
      * writing anything outside it would "succeed" but never actually render — the same failure
-     * mode this tool exists to fix. This mirrors GetEventTroopersMissingCreditQueryHandler's own
+     * mode this tool exists to fix. This mirrors GetEventTroopersMissingCredit's own
      * fallback-option query exactly, so the server never accepts more than the picker offered.
      *
      * @param  array<int, int>  $organization_ids

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Records a trooper's acknowledgement of an event mission brief.
  */
-class MissionBriefAcknowledgeController extends MagicBusController
+class MissionBriefAcknowledgeController extends PageController
 {
     public function __invoke(Request $request, Event $event): RedirectResponse
     {

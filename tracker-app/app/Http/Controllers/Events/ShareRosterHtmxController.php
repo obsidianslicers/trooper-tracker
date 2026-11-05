@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Events\ShareRosterHtmxRequest;
 use App\Messages\Events\Commands\ShareEventRoster;
 use App\Models\Event;
@@ -19,7 +19,7 @@ use Illuminate\View\View;
  * moderate the event, and returns the share-roster partial with success/error
  * feedback and validation errors for inline rendering.
  */
-class ShareRosterHtmxController extends MagicBusController
+class ShareRosterHtmxController extends PageController
 {
     /**
      * Handle the incoming HTMX request to share an event roster.

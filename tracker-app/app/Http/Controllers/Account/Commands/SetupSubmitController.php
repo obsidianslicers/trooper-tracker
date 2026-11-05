@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account\Commands;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Account\SetupRequest;
 use App\Messages\Troopers\Commands\SetupTrooper;
 use Illuminate\Http\RedirectResponse;
@@ -16,7 +16,7 @@ use Illuminate\Http\RedirectResponse;
  * persists organization memberships, and redirects to the costume setup page.
  * This is the first step in trooper onboarding after account approval.
  */
-class SetupSubmitController extends MagicBusController
+class SetupSubmitController extends PageController
 {
     /**
      * Handle the incoming request to process organization setup submission.

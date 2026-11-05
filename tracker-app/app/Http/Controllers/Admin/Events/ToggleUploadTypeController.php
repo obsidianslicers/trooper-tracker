@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\ToggleEventUploadType;
 use App\Models\Event;
 use App\Models\EventUpload;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
-class ToggleUploadTypeController extends MagicBusController
+class ToggleUploadTypeController extends PageController
 {
     protected function initialized(): void {}
 

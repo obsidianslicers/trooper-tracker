@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Troopers\GuardianRequest;
 use App\Messages\Troopers\Commands\UpdateTrooper;
 use App\Models\Trooper;
 use Illuminate\Http\RedirectResponse;
 
-class GuardianSubmitController extends MagicBusController
+class GuardianSubmitController extends PageController
 {
     public function __invoke(GuardianRequest $request, Trooper $trooper): RedirectResponse
     {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Costumes;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Costume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
  * An invokable controller that authorizes the user and renders the costume
  * creation form with appropriate breadcrumbs.
  */
-class CreateController extends MagicBusController
+class CreateController extends PageController
 {
     /**
      * Set up breadcrumbs for the costume creation page.

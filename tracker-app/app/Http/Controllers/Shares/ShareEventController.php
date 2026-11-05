@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shares;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Event;
 use App\Models\EventUpload;
 use Illuminate\Contracts\View\View;
@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
  * that allows users to share event information via various channels
  * such as social media, email, or direct links.
  */
-class ShareEventController extends MagicBusController
+class ShareEventController extends PageController
 {
     /**
      * Handle the incoming request to display the event sharing page.

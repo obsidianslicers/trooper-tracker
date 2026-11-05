@@ -8,7 +8,7 @@ use App\Models\Faq;
 use App\Models\FaqSection;
 use Illuminate\Contracts\View\View;
 
-class FaqController extends MagicBusController
+class FaqController extends PageController
 {
     public function __invoke(): View
     {

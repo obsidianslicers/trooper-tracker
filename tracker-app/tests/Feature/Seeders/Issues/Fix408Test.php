@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Seeders\Issues;
 
-use App\Bus\MagicBus;
 use App\Enums\MembershipStatus;
 use App\Mail\Fix408AmbiguousMemberships;
 use App\Models\Trooper;
@@ -37,7 +36,7 @@ class Fix408Test extends TestCase
         [, $membership, $assignment] = $this->falseRebelMember(MembershipStatus::RETIRED);
 
         $subject = new Fix408;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertTrue($membership->refresh()->trashed());
         $assignment = TrooperAssignment::withTrashed()->find($assignment->id);
@@ -54,7 +53,7 @@ class Fix408Test extends TestCase
         $rebel_only = $this->attendedWithCredit($trooper, '2026-07-08 10:00:00', $rebel);
 
         $subject = new Fix408;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertCredit(['501st Legion'], $partial);
         $this->assertCredit(['501st Legion'], $rebel_only);
@@ -67,7 +66,7 @@ class Fix408Test extends TestCase
         $event_trooper = $this->tt1Row($trooper, '2019-02-01 10:00:00', 'Rebel Pilot', 1, $rebel);
 
         $subject = new Fix408;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertCredit(['Rebel Legion'], $event_trooper);
     }
@@ -81,7 +80,7 @@ class Fix408Test extends TestCase
             ->create();
 
         $subject = new Fix408;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertSame(0, TrooperAchievement::withTrashed()->count());
     }
@@ -94,7 +93,7 @@ class Fix408Test extends TestCase
         $event_trooper = $this->attendedWithCredit($trooper, '2026-07-01 10:00:00', $rebel);
 
         $subject = new Fix408;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertFalse($membership->refresh()->trashed());
         $this->assertTrue((bool) $assignment->refresh()->is_member);
@@ -112,12 +111,12 @@ class Fix408Test extends TestCase
         $event_trooper = $this->attendedWithCredit($trooper, '2026-07-08 10:00:00', $rebel);
 
         $subject = new Fix408;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
         $first_updated_at = $event_trooper->refresh()->updated_at;
         $first_deleted_at = $membership->refresh()->deleted_at;
 
         $this->travel(1)->hours();
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertEquals($first_updated_at, $event_trooper->refresh()->updated_at);
         $this->assertEquals($first_deleted_at, $membership->refresh()->deleted_at);

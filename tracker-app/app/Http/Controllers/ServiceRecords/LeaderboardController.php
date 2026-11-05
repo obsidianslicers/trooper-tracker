@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\ServiceRecords;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Reports\Queries\GetLeaderboardMetrics;
 use App\Models\Costume;
 use App\Models\Organization;
@@ -15,7 +15,7 @@ use RuntimeException;
 /**
  * Displays service record leaderboard metrics.
  */
-class LeaderboardController extends MagicBusController
+class LeaderboardController extends PageController
 {
     /**
      * Retrieves leaderboard metrics for a lookback window and renders the leaderboard view.

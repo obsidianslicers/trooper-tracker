@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Issues\Concerns;
 
-use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
 use App\Messages\Troopers\Queries\GetTroopersByRole;
 use App\Models\EventTrooper;
@@ -58,7 +57,7 @@ trait ReportsToAdministrators
      * @param  class-string  $mailable  constructed as new $mailable($admin, $rows)
      * @param  array<int, array<string, mixed>>  $rows
      */
-    private function emailAdministrators(MagicBus $bus, string $mailable, array $rows): void
+    private function emailAdministrators(string $mailable, array $rows): void
     {
         if (empty($rows))
         {

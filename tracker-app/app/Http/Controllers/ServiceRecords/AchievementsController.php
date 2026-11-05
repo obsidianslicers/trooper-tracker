@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\ServiceRecords;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Troopers\Queries\GetTrooperAchievements;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ use RuntimeException;
 /**
  * Displays trooper achievement activity.
  */
-class AchievementsController extends MagicBusController
+class AchievementsController extends PageController
 {
     /**
      * Retrieves achievements for a lookback window and renders the achievements view.

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Event;
 use App\Models\EventShift;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
-class UpdateCharityController extends MagicBusController
+class UpdateCharityController extends PageController
 {
     protected function initialized(): void
     {

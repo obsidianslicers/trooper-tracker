@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Seeders\Issues;
 
-use App\Bus\MagicBus;
 use App\Enums\EventTrooperStatus;
 use App\Mail\Fix406OutstandingCredit;
 use App\Models\Event;
@@ -49,7 +48,7 @@ class Fix406Test extends TestCase
             ]);
 
         $subject = new Fix406;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $event_trooper->refresh();
         $this->assertSame([$org->id], $event_trooper->costume_organization_ids);
@@ -76,7 +75,7 @@ class Fix406Test extends TestCase
             ]);
 
         $subject = new Fix406;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $event_trooper->refresh();
         $this->assertEqualsCanonicalizing([$org1->id, $org2->id], $event_trooper->costume_organization_ids);
@@ -99,7 +98,7 @@ class Fix406Test extends TestCase
             ]);
 
         $subject = new Fix406;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $event_trooper->refresh();
         $this->assertNull($event_trooper->costume_organization_ids);
@@ -124,7 +123,7 @@ class Fix406Test extends TestCase
             ]);
 
         $subject = new Fix406;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $event_trooper->refresh();
         $this->assertSame([$org->id], $event_trooper->costume_organization_ids);
@@ -159,7 +158,7 @@ class Fix406Test extends TestCase
         }
 
         $subject = new Fix406;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $remaining = EventTrooper::query()
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
@@ -192,7 +191,7 @@ class Fix406Test extends TestCase
             ]);
 
         $subject = new Fix406;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         Mail::assertQueued(Fix406OutstandingCredit::class, function (Fix406OutstandingCredit $mail) use ($admin): bool
         {
@@ -215,7 +214,7 @@ class Fix406Test extends TestCase
         $event_trooper = $this->tt1Row($trooper, '2018-06-01 10:00:00', 'Handler', 0);
 
         $subject = new Fix406;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertCredit(['501st Legion'], $event_trooper);
         Mail::assertNothingQueued();
@@ -229,7 +228,7 @@ class Fix406Test extends TestCase
         $event_trooper = $this->tt1Row($trooper, '2018-06-01 10:00:00', 'Other', 4);
 
         $subject = new Fix406;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertNull($event_trooper->refresh()->costume_organization_ids);
         Mail::assertQueued(Fix406OutstandingCredit::class, function ($mail): bool
@@ -245,7 +244,7 @@ class Fix406Test extends TestCase
         $event_trooper = $this->attendedWithCredit($trooper, '2026-07-04 10:00:00', null);
 
         $subject = new Fix406;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         $this->assertCredit(['501st Legion'], $event_trooper);
     }
@@ -269,7 +268,7 @@ class Fix406Test extends TestCase
             ]);
 
         $subject = new Fix406;
-        $subject->run(app(MagicBus::class));
+        $subject->run();
 
         Mail::assertNothingQueued();
     }
