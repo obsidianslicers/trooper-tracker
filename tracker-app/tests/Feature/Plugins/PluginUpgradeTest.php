@@ -135,22 +135,6 @@ class PluginUpgradeTest extends TestCase
         $this->assertTrue($this->hasChange(PluginChangeAction::FAILED, null, '1.0.0'));
     }
 
-    public function test_upgrade_command_migrates_plugins_whose_files_changed(): void
-    {
-        $this->plugins->enable('hello');
-        DB::table('tt_plugins')->where('slug', 'hello')->update(['installed_version' => '0.1.0']);
-        $this->plugins->forgetState();
-
-        $this->assertTrue($this->plugins->hasPendingUpgrade('hello'));
-
-        $this->artisan('plugins:upgrade')
-            ->expectsOutputToContain('upgraded from 0.1.0')
-            ->assertSuccessful();
-
-        $this->assertFalse($this->plugins->hasPendingUpgrade('hello'));
-        $this->artisan('plugins:upgrade')->expectsOutputToContain('up to date');
-    }
-
     private function installAndEnableVersionOne(): void
     {
         $this->upload('1.0.0', ['000001_create_items' => self::ITEMS])->assertSessionHas('success');
@@ -180,8 +164,7 @@ class PluginUpgradeTest extends TestCase
     {
         $down = match (true)
         {
-            str_starts_with($up, "Schema::create('tt_greeter_items'")
-                => "Schema::dropIfExists('tt_greeter_items');",
+            str_starts_with($up, "Schema::create('tt_greeter_items'") => "Schema::dropIfExists('tt_greeter_items');",
             str_contains($up, 'tt_greeter_extras') => "Schema::dropIfExists('tt_greeter_extras');",
             str_contains($up, 'color') => "Schema::table('tt_greeter_items', "
                 ."fn (\$t) => \$t->dropColumn('color'));",

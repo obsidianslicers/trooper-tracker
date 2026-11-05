@@ -7,8 +7,10 @@ namespace Tests\Feature\Plugins;
 use App\Models\Trooper;
 use App\Plugins\PluginManager;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
+use ReflectionProperty;
 use Tests\TestCase;
 
 class PluginCapabilitiesTest extends TestCase
@@ -63,6 +65,26 @@ class PluginCapabilitiesTest extends TestCase
         $this->assertContains(
             'App\Http\Middleware\IsolatePluginMiddleware:stdClass',
             $this->app['router']->getMiddlewareGroups()['web'],
+        );
+    }
+
+    public function test_a_webhook_skips_csrf_only_on_its_own_route(): void
+    {
+        $this->writePlugin(
+            'hooks',
+            ['webhooks'],
+            '$this->addWebhook(\'hooks\', fn () => \'received\', \'hooks\');',
+        );
+        $this->subject->load($this->subject->findOrFail('hooks'));
+        $this->app['router']->getRoutes()->refreshNameLookups();
+
+        $route = $this->app['router']->getRoutes()->getByName('webhooks.hooks');
+
+        $this->assertSame('webhooks/hooks', $route->uri());
+        $this->assertContains(ValidateCsrfToken::class, $route->excludedMiddleware());
+        $this->assertNotContains(
+            'webhooks/*',
+            (new ReflectionProperty(ValidateCsrfToken::class, 'neverVerify'))->getValue(),
         );
     }
 

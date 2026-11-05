@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Plugins;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\PageController;
 use App\Plugins\PluginManager;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 
 /**
  * Shows the settings form a plugin declares in its plugin.json.
  */
-class UpdateSettingsController extends Controller
+class UpdateSettingsController extends PageController
 {
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Plugins', 'admin.plugins.list');

@@ -23,6 +23,7 @@ enum PluginCapability: string
     case DONATIONS = 'donations';
     case CLUB_DATA = 'club-data';
     case SCHEDULE = 'schedule';
+    case WEBHOOKS = 'webhooks';
 
     public function description(): string
     {
@@ -35,6 +36,7 @@ enum PluginCapability: string
             self::DONATIONS => 'adds donations from another system to troopers\' totals',
             self::CLUB_DATA => 'changes club rosters and costumes from outside records',
             self::SCHEDULE => 'runs scheduled tasks',
+            self::WEBHOOKS => 'receives webhooks from another system',
         };
     }
 }

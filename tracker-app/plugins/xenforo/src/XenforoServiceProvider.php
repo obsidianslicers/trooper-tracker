@@ -7,7 +7,6 @@ namespace TroopTracker\Plugins\Xenforo;
 use App\Events\EventClosed;
 use App\Events\EventPosted;
 use App\Events\EventWatchChanging;
-use App\Http\Middleware\CheckVisitorAccessMiddleware;
 use App\Http\Middleware\TrooperSetupRequiredMiddleware;
 use App\Models\Event;
 use App\Models\EventTrooper;
@@ -215,13 +214,7 @@ class XenforoServiceProvider extends PluginServiceProvider
                     ->name('forum-attachment');
             });
 
-        Route::middleware('web')
-            ->post('/webhooks/xenforo', WebhookController::class)
-            ->withoutMiddleware([
-                TrooperSetupRequiredMiddleware::class,
-                CheckVisitorAccessMiddleware::class,
-            ])
-            ->name('webhooks.xenforo');
+        $this->addWebhook('xenforo', WebhookController::class, 'xenforo');
     }
 
     private function registerOrganizationFields(): void

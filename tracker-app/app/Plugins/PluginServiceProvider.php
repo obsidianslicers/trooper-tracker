@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Plugins;
 
 use App\Enums\PluginCapability;
+use App\Http\Middleware\CheckVisitorAccessMiddleware;
 use App\Http\Middleware\IsolatePluginMiddleware;
+use App\Http\Middleware\TrooperSetupRequiredMiddleware;
 use Closure;
 use Hyperdrive\Events\MessageHandled;
 use Hyperdrive\Events\MessageHandling;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
@@ -280,6 +283,30 @@ abstract class PluginServiceProvider extends ServiceProvider
     {
         $this->requireCapability(PluginCapability::SCHEDULE);
         $this->callAfterResolving(Schedule::class, $callback);
+    }
+
+    /**
+     * Receive webhooks at POST /webhooks/<path>, named "webhooks.<name>". Only
+     * this route skips the CSRF check and trooper setup redirects, so the
+     * action must check the sender itself (a shared secret or a signature).
+     */
+    protected function addWebhook(string $path, Closure|string|array $action, string $name): void
+    {
+        $this->requireCapability(PluginCapability::WEBHOOKS);
+
+        if ($this->app->routesAreCached())
+        {
+            return;
+        }
+
+        Route::middleware('web')
+            ->post('/webhooks/'.ltrim($path, '/'), $action)
+            ->withoutMiddleware([
+                ValidateCsrfToken::class,
+                TrooperSetupRequiredMiddleware::class,
+                CheckVisitorAccessMiddleware::class,
+            ])
+            ->name("webhooks.{$name}");
     }
 
     private function mergeConfigIfPresent(): void

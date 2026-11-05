@@ -71,15 +71,14 @@ class PluginDeployPackagesTest extends TestCase
         $this->writePlugin('sheets', ['acme/not-installed' => '^1.0']);
         EnablePlugin::call(slug: 'sheets');
 
-        $this->artisan('plugins:enable-pending')
-            ->expectsOutputToContain('is still waiting')
-            ->assertFailed();
+        $this->assertStringContainsString(
+            'acme/not-installed',
+            (string) $this->subject->enablePending()['sheets'],
+        );
         $this->assertTrue($this->plugins->isEnablePending('sheets'));
 
         $this->writePlugin('sheets', ['laravel/framework' => '*']);
-        $this->artisan('plugins:enable-pending')
-            ->expectsOutput('Plugin [sheets] enabled.')
-            ->assertSuccessful();
+        $this->assertSame(['sheets' => null], $this->subject->enablePending());
 
         $this->assertTrue($this->plugins->isEnabled('sheets'));
         $this->assertFalse($this->plugins->isEnablePending('sheets'));

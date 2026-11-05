@@ -19,10 +19,8 @@ php artisan plugins:enable <slug>      # also runs the plugin's migrations
 php artisan plugins:disable <slug>     # keeps the plugin's data and settings
 php artisan plugins:uninstall <slug>   # disables it and deletes its data (asks first)
 php artisan plugins:reconcile          # after a deploy: upgrades, turns on waiting plugins, records status
-php artisan plugins:upgrade [slug]     # runs new migrations after a deploy brought new plugin files
 php artisan plugins:packages [--write] # Composer packages enabled plugins need (--write saves them)
 php artisan plugins:unmet              # enabled plugins that can't run (deploy.sh uses it)
-php artisan plugins:enable-pending     # turns on plugins that were waiting for their packages
 ```
 
 **Enable** first checks the plugin's requirements (see `requires` under [plugin.json](#pluginjson)): the PHP version, PHP extensions, Composer packages, the plugin API version, and any other plugins it needs, which must be installed at the right version and turned on first. If anything is missing nothing runs, and the Plugins page and `plugins:enable` say what is missing; the Plugins page also shows it next to the plugin and greys out Enable. A plugin another enabled plugin needs can't be disabled or uninstalled until that one is turned off. If an enabled plugin's requirements stop being met, for example after a PHP change or because a plugin it needs failed to load, it is skipped with a log warning instead of loaded, and plugins load after the plugins they need.
@@ -173,6 +171,7 @@ A plugin lists in `capabilities` the hooks that change what the site does, so an
 | `donations` | `addDonationSource` | adds donations from another system |
 | `club-data` | `addClubSynchronizer`, `setSheetSource` | changes club rosters and costumes |
 | `schedule` | `schedule` | runs scheduled tasks |
+| `webhooks` | `addWebhook` | receives webhooks from another system |
 
 Slots, System Check rows, notification categories and settings need no capability. This is disclosure and a guardrail, not a sandbox: a plugin is PHP code running with the app's full access, so only install plugins you trust.
 
@@ -336,7 +335,7 @@ Forms that support this are listed as constants on `App\Plugins\PluginForms`: th
 
 ### Webhooks
 
-Routes under `/webhooks/` skip the CSRF check, so a plugin can receive webhooks there. Check the sender yourself (a shared secret header, a signature).
+`$this->addWebhook('hello', HelloWebhookController::class, 'hello')` adds `POST /webhooks/hello`, named `webhooks.hello`. Only that route skips the CSRF check and the trooper setup redirects; nothing else under `/webhooks/` does. Check the sender yourself (a shared secret header, a signature). Needs the `webhooks` capability.
 
 ### Web middleware
 

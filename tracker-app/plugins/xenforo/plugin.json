@@ -6,7 +6,7 @@
     "author": "Obsidian Slicers",
     "namespace": "TroopTracker\\Plugins\\Xenforo",
     "provider": "TroopTracker\\Plugins\\Xenforo\\XenforoServiceProvider",
-    "capabilities": ["events", "forms", "login", "donations", "middleware", "schedule"],
+    "capabilities": ["events", "forms", "login", "donations", "middleware", "schedule", "webhooks"],
     "requires": {
         "trooptracker": "^1.0"
     },

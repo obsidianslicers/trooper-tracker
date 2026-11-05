@@ -47,7 +47,7 @@
                     {{ $manifest->version }}
                     @if($plugin['has_pending_upgrade'])
                         <div class="small text-warning"
-                             title="Run php artisan plugins:upgrade to finish updating it.">
+                             title="Run php artisan plugins:reconcile to finish updating it.">
                             Update pending from {{ $plugin['installed_version'] }}
                         </div>
                     @endif
