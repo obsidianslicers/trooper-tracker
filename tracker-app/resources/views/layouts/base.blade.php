@@ -26,10 +26,12 @@
     <div class="container rounded-3 shadow-sm p-4 mb-5 main-content">
         @include('partials.messages')
         @include('partials.account-delete-notice')
+        @pluginPageSlot('page.top')
 
         <div class="row dashboard-row"></div>
 
         @yield('content')
+        @pluginPageSlot('page.bottom')
 
     </div>
 
@@ -37,6 +39,7 @@
     @vite(['resources/js/app.js'])
     @yield('page-script')
     @stack('scripts')
+    @pluginPageSlot('page.scripts')
 
     @auth
         @vite('resources/js/fcm-register.js')

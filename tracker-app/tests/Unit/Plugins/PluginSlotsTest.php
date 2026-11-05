@@ -42,6 +42,32 @@ class PluginSlotsTest extends TestCase
         $this->assertMatchesRegularExpression('/First Rex, Rex!.*Second, Rex!/s', $html);
     }
 
+    public function test_render_page_shows_every_page_and_matching_route_entries(): void
+    {
+        $this->subject->add('page.top', 'slot-test::greeting', ['greeting' => 'Everywhere'], order: 30);
+        $this->subject->add('page.top:events.display', 'slot-test::greeting', ['greeting' => 'Event'], order: 10);
+        $this->subject->add('page.top:events.*', 'slot-test::greeting', ['greeting' => 'Events'], order: 20);
+        $this->subject->add('page.top:account.index', 'slot-test::greeting', ['greeting' => 'Account']);
+        $this->subject->add('page.topping', 'slot-test::greeting', ['greeting' => 'Other slot']);
+
+        $html = $this->subject->renderPage('page.top', [], 'events.display');
+
+        $this->assertMatchesRegularExpression('/Event, nobody!.*Events, nobody!.*Everywhere, nobody!/s', $html);
+        $this->assertStringNotContainsString('Account', $html);
+        $this->assertStringNotContainsString('Other slot', $html);
+    }
+
+    public function test_render_page_without_a_route_shows_only_every_page_entries(): void
+    {
+        $this->subject->add('page.bottom', 'slot-test::greeting', ['greeting' => 'Everywhere']);
+        $this->subject->add('page.bottom:*', 'slot-test::greeting', ['greeting' => 'Routed']);
+
+        $html = $this->subject->renderPage('page.bottom', [], null);
+
+        $this->assertStringContainsString('Everywhere', $html);
+        $this->assertStringNotContainsString('Routed', $html);
+    }
+
     public function test_render_skips_entries_whose_condition_fails(): void
     {
         $this->subject->add('slot', 'slot-test::greeting', ['greeting' => 'Hidden'], fn (): bool => false);

@@ -52,6 +52,9 @@ class PluginsServiceProvider extends ServiceProvider
         Blade::directive('pluginSlot', fn (string $expression): string => '<?php echo app('
             .PluginSlots::class."::class)->render({$expression}, get_defined_vars()); ?>");
 
+        Blade::directive('pluginPageSlot', fn (string $expression): string => '<?php echo app('
+            .PluginSlots::class."::class)->renderPage({$expression}, get_defined_vars()); ?>");
+
         Blade::if('pluginEnabled', fn (string $slug): bool => $this->app
             ->make(PluginManager::class)
             ->isEnabled($slug));

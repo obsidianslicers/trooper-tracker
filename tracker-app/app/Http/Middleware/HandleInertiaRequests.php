@@ -61,10 +61,7 @@ class HandleInertiaRequests extends Middleware
             'config' => $config,
             'user' => $actor,
             'results' => fn () => $request->session()->pull('results'),
-            'plugin_slots' => fn (): array => app(PluginSlots::class)->renderMany(
-                PluginSlots::SVELTE_SLOTS,
-                ['request' => $request, 'actor' => $request->user()],
-            ),
+            'plugin_slots' => fn (): array => $this->pluginSlots($request),
             'flash' => function () use ($request)
             {
                 $messages = [];
@@ -82,5 +79,27 @@ class HandleInertiaRequests extends Middleware
                 return $messages;
             },
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function pluginSlots(Request $request): array
+    {
+        $slots = app(PluginSlots::class);
+        $context = ['request' => $request, 'actor' => $request->user()];
+        $rendered = $slots->renderMany(PluginSlots::SVELTE_SLOTS, $context);
+
+        foreach (PluginSlots::SVELTE_PAGE_SLOTS as $slot)
+        {
+            $html = $slots->renderPage($slot, $context, $request->route()?->getName());
+
+            if ($html !== '')
+            {
+                $rendered[$slot] = $html;
+            }
+        }
+
+        return $rendered;
     }
 }

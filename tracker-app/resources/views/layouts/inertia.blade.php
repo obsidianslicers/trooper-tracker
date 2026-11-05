@@ -24,6 +24,7 @@
     @include('partials.footer')
     @yield('page-script')
     @stack('scripts')
+    @pluginPageSlot('page.scripts')
 
     @auth
         @vite('resources/js/fcm-register.js')

@@ -240,6 +240,26 @@ Svelte pages have slots too. Their names are listed in `App\Plugins\PluginSlots:
 
 To add a slot to another Svelte page, add its name to `SVELTE_SLOTS` and drop `<PluginSlot name="..." />` where it should appear.
 
+#### Page slots
+
+Every page has four page slots, with no core edit needed:
+
+| Page slot | Where |
+|-----------|-------|
+| `page.head` | Inside `<head>`, after the stylesheets. On Svelte pages, only on the first full page load. |
+| `page.top` | Above the page content, below flash messages. |
+| `page.bottom` | Below the page content. |
+| `page.scripts` | End of `<body>`. On Svelte pages, only on the first full page load. |
+
+`page.top` alone shows on every page. Add a route name after a colon to target pages: `page.top:events.display` shows only on the event page, and `page.top:events.*` on every route whose name starts with `events.`.
+
+```php
+$this->addToSlot('page.bottom:events.display', 'hello::event-footer');
+$this->addToSlot('page.head', 'hello::styles');
+```
+
+On Blade pages the views get the page's variables. On Svelte pages, `page.top` and `page.bottom` come with each page change through `plugin_slots` and get `$request` and `$actor`, as other Svelte slots do. Find a page's route name with `php artisan route:list`.
+
 A slot view that throws is logged and left out of the page.
 
 Views can also check whether a plugin is on: `@pluginEnabled('discord') ... @endpluginEnabled`.
