@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Enums\EventType;
 use App\Models\Base\Event as BaseEvent;
 use App\Models\Casts\SanitizeHtmlCast;
@@ -119,6 +120,16 @@ class Event extends BaseEvent
         return $this->event_organizations->contains(
             fn($o) => $o->troopers_allowed !== null || $o->handlers_allowed !== null
         );
+    }
+
+    /**
+     * Statuses a trooper may pick for their own sign-up.
+     *
+     * @return array<string, string>
+     */
+    public function signUpStatusOptions(): array
+    {
+        return EventTrooperStatus::toSignUpArray($this->tentative_signups_allowed, $this->hasLimits());
     }
 
     /**
