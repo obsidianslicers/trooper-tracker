@@ -7,8 +7,9 @@ namespace App\Providers;
 use App\Plugins\PluginAutoloader;
 use App\Plugins\PluginDiscovery;
 use App\Plugins\PluginDonations;
-use App\Plugins\PluginForumGroups;
 use App\Plugins\PluginForms;
+use App\Plugins\PluginForumGroups;
+use App\Plugins\PluginLoginProviders;
 use App\Plugins\PluginManager;
 use App\Plugins\PluginSlots;
 use App\Plugins\PluginSystemChecks;
@@ -29,6 +30,7 @@ class PluginsServiceProvider extends ServiceProvider
         $this->app->singleton(PluginForms::class);
         $this->app->singleton(PluginDonations::class);
         $this->app->singleton(PluginForumGroups::class);
+        $this->app->singleton(PluginLoginProviders::class);
         $this->app->singleton(PluginSystemChecks::class);
 
         $this->app->singleton(PluginDiscovery::class, fn (): PluginDiscovery => new PluginDiscovery(

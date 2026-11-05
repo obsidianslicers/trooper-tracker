@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Contracts\LoginProvider;
 use App\Enums\SystemCheckStatus;
 use App\Facades\TroopTracker;
+use App\Plugins\PluginLoginProviders;
 use App\Plugins\PluginSystemChecks;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -230,11 +232,16 @@ class SystemCheckService
         $mail_mailer = (string) config('mail.default');
         $mail_warn = $mail_mailer === 'log' && config('app.env') === 'production';
 
-        return collect([
-            $this->toResult('Google OAuth', $this->troop_tracker->isGoogleOAuthConfigured()),
+        $logins = collect(app(PluginLoginProviders::class)->all())->map(
+            fn (LoginProvider $provider): SystemCheckResult => $this->toResult(
+                "{$provider->name()} login",
+                $provider->isConfigured(),
+            ),
+        );
+
+        return $logins->merge([
             $this->toResult('Google Sync', $this->troop_tracker->isGoogleSyncConfigured()),
             $this->toResult('Google Maps API key', !empty(config('services.google.maps_api_key'))),
-            $this->toResult('XenForo OAuth', $this->troop_tracker->isXenforoOAuthConfigured()),
             $this->toResult('XenForo integration', $this->troop_tracker->isXenforoIntegrationConfigured()),
             new SystemCheckResult(
                 "Mail transport ({$mail_mailer})",

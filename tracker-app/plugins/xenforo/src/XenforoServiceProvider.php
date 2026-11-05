@@ -18,6 +18,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Laravel\Socialite\Facades\Socialite;
+use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
 use TroopTracker\Plugins\Xenforo\Console\SyncUserCommand;
 use TroopTracker\Plugins\Xenforo\Console\SyncUsersCommand;
 use TroopTracker\Plugins\Xenforo\Donations\XenforoDonationSource;
@@ -75,6 +76,7 @@ class XenforoServiceProvider extends PluginServiceProvider
             config('services.xenforo'),
         ));
 
+        $this->addLoginProvider(XenforoLoginProvider::class);
         $this->addWebMiddleware(EnsureXenforoLinked::class);
         $this->addWebMiddleware(CheckXenforoBan::class);
         $this->registerAccountRoutes();
@@ -216,8 +218,8 @@ class XenforoServiceProvider extends PluginServiceProvider
     }
 
     /**
-     * Kept at their old /account/xenforo addresses and account.xenforo.* names,
-     * which core's login and setup flow still link to.
+     * Kept at their old /account/xenforo addresses and account.xenforo.* names.
+     * Troopers who haven't finished setup can still reach them.
      */
     private function registerAccountRoutes(): void
     {
@@ -226,8 +228,12 @@ class XenforoServiceProvider extends PluginServiceProvider
             ->name('account.xenforo.')
             ->group(function (): void
             {
-                Route::get('/', AccountLinkController::class)->name('index');
-                Route::get('/required', AccountLinkRequiredController::class)->name('required');
+                Route::get('/', AccountLinkController::class)
+                    ->defaults(TrooperSetupRequiredMiddleware::ALLOWED, true)
+                    ->name('index');
+                Route::get('/required', AccountLinkRequiredController::class)
+                    ->defaults(TrooperSetupRequiredMiddleware::ALLOWED, true)
+                    ->name('required');
             });
     }
 

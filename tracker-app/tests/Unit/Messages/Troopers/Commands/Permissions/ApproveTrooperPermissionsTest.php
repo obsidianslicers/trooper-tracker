@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Messages\Troopers\Commands\Permissions;
 
 use App\Enums\MembershipRole;
-use App\Enums\OauthProvider;
 use App\Enums\PermissionRequestStatus;
 use App\Events\TrooperPermissionsApproved;
 use App\Exceptions\ForumGroupUpdateException;
@@ -308,7 +307,7 @@ class ApproveTrooperPermissionsTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
 
         OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER => 'xenforo',
             OauthLogin::PROVIDER_ID => $xenforo_user_id,
         ]);
 

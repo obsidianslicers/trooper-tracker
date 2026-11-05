@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
-use App\Enums\OauthProvider;
 use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -50,7 +49,7 @@ class LookupTrooperPermissionsControllerTest extends TestCase
             TrooperAssignment::IS_MODERATOR => true,
         ]);
         OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER => 'xenforo',
             OauthLogin::PROVIDER_ID => '77',
         ]);
 

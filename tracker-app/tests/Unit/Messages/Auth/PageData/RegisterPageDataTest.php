@@ -21,22 +21,23 @@ class RegisterPageDataTest extends TestCase
     {
         $oauth = [
             'session' => ['method' => 'email'],
-            'google' => ['enabled' => true, 'configured' => true],
+            'providers' => [],
+            'required' => null,
         ];
 
         $organization = $this->makeOrganizationHierarchy();
 
-        Mockery::mock('alias:' . GetAuthConfig::class)
+        Mockery::mock('alias:'.GetAuthConfig::class)
             ->shouldReceive('call')
             ->once()
             ->andReturn($oauth);
 
-        Mockery::mock('alias:' . GetOrganizationHierarchy::class)
+        Mockery::mock('alias:'.GetOrganizationHierarchy::class)
             ->shouldReceive('call')
             ->once()
             ->andReturn(collect([$organization]));
 
-        $subject = new RegisterPageData();
+        $subject = new RegisterPageData;
 
         $result = $subject->handle();
 

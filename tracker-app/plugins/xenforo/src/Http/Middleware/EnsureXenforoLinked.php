@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Http\Middleware;
 
-use App\Enums\OauthProvider;
 use App\Models\OauthLogin;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
 
 /**
  * Ensure the authenticated trooper has a linked XenForo OAuth account.
@@ -51,7 +51,7 @@ class EnsureXenforoLinked
         }
 
         $has_xenforo = OauthLogin::where(OauthLogin::TROOPER_ID, $user->id)
-            ->where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
+            ->where(OauthLogin::PROVIDER, XenforoLoginProvider::KEY)
             ->exists();
 
         if (!$has_xenforo)

@@ -15,19 +15,9 @@ class TroopTrackerFacadeTest extends TestCase
 
     public function test_facade_delegates_to_bound_troop_tracker_instance(): void
     {
-        config([
-            'tracker.auth.require_xenforo' => false,
-            'services.google.client_id' => 'google-client-id',
-            'services.google.client_secret' => 'google-secret',
-            'services.google.redirect' => 'https://example.com/google-callback',
-            'services.xenforo.client_id' => null,
-            'services.xenforo.client_secret' => null,
-            'services.xenforo.redirect' => null,
-        ]);
-
         $this->instance(TroopTracker::class, new TroopTracker);
 
-        $this->assertTrue(TroopTrackerFacade::isGoogleOAuthEnabled());
+        $this->assertTrue(TroopTrackerFacade::isEmailPasswordAuthEnabled());
     }
 
     public function test_facade_returns_false_when_underlying_service_returns_false(): void

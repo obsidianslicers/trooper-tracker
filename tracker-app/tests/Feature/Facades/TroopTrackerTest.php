@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Facades;
 
 use App\Facades\TroopTracker;
+use App\Plugins\PluginLoginProviders;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
 use Tests\TestCase;
@@ -21,84 +22,35 @@ class TroopTrackerTest extends TestCase
         $this->enableXenforo();
     }
 
-    public function test_is_xenforo_oauth_configured_returns_true_when_all_values_exist(): void
+    public function test_required_login_provider_needs_the_flag_and_configuration(): void
     {
-        config([
-            'services.xenforo.client_id' => 'client-id',
-            'services.xenforo.client_secret' => 'secret',
-            'services.xenforo.redirect' => 'https://example.com/callback',
-        ]);
+        $this->configureXenforoLogin();
 
         $subject = new TroopTracker;
 
-        $this->assertTrue($subject->isXenforoOAuthConfigured());
-    }
-
-    public function test_is_xenforo_oauth_required_requires_flag_and_configuration(): void
-    {
-        config([
-            'tracker.auth.require_xenforo' => true,
-            'services.xenforo.client_id' => 'client-id',
-            'services.xenforo.client_secret' => 'secret',
-            'services.xenforo.redirect' => 'https://example.com/callback',
-        ]);
-
-        $subject = new TroopTracker;
-
-        $this->assertTrue($subject->isXenforoOAuthRequired());
+        $this->assertSame('xenforo', $subject->requiredLoginProvider()?->key());
 
         config(['tracker.auth.require_xenforo' => false]);
-        $this->assertFalse($subject->isXenforoOAuthRequired());
-    }
+        $this->assertNull($subject->requiredLoginProvider());
 
-    public function test_is_xenforo_oauth_required_is_off_while_the_plugin_is_disabled(): void
-    {
         config([
             'tracker.auth.require_xenforo' => true,
-            'services.xenforo.client_id' => 'client-id',
-            'services.xenforo.client_secret' => 'secret',
-            'services.xenforo.redirect' => 'https://example.com/callback',
-        ]);
-        $this->app->make(\App\Plugins\PluginManager::class)->disable('xenforo');
-
-        $this->assertFalse((new TroopTracker)->isXenforoOAuthRequired());
-    }
-
-    public function test_is_google_oauth_enabled_requires_google_configuration_and_no_required_xenforo(): void
-    {
-        config([
-            'tracker.auth.require_xenforo' => false,
-            'services.google.client_id' => 'google-client-id',
-            'services.google.client_secret' => 'google-secret',
-            'services.google.redirect' => 'https://example.com/google-callback',
-            'services.xenforo.client_id' => null,
             'services.xenforo.client_secret' => null,
-            'services.xenforo.redirect' => null,
         ]);
-
-        $subject = new TroopTracker;
-
-        $this->assertTrue($subject->isGoogleOAuthConfigured());
-        $this->assertTrue($subject->isGoogleOAuthEnabled());
-
-        config([
-            'tracker.auth.require_xenforo' => true,
-            'services.xenforo.client_id' => 'client-id',
-            'services.xenforo.client_secret' => 'secret',
-            'services.xenforo.redirect' => 'https://example.com/callback',
-        ]);
-
-        $this->assertFalse($subject->isGoogleOAuthEnabled());
+        $this->assertNull($subject->requiredLoginProvider());
     }
 
-    public function test_is_email_password_auth_enabled_is_inverse_of_required_xenforo_oauth(): void
+    public function test_required_login_provider_is_null_without_the_plugin(): void
     {
-        config([
-            'tracker.auth.require_xenforo' => true,
-            'services.xenforo.client_id' => 'client-id',
-            'services.xenforo.client_secret' => 'secret',
-            'services.xenforo.redirect' => 'https://example.com/callback',
-        ]);
+        $this->configureXenforoLogin();
+        $this->app->forgetInstance(PluginLoginProviders::class);
+
+        $this->assertNull((new TroopTracker)->requiredLoginProvider());
+    }
+
+    public function test_is_email_password_auth_enabled_unless_a_login_provider_is_required(): void
+    {
+        $this->configureXenforoLogin();
 
         $subject = new TroopTracker;
 
@@ -149,5 +101,15 @@ class TroopTrackerTest extends TestCase
         $expected = is_readable(base_path('google-credentials.json'));
 
         $this->assertSame($expected, $subject->isGoogleSyncConfigured());
+    }
+
+    private function configureXenforoLogin(): void
+    {
+        config([
+            'tracker.auth.require_xenforo' => true,
+            'services.xenforo.client_id' => 'client-id',
+            'services.xenforo.client_secret' => 'secret',
+            'services.xenforo.redirect' => 'https://example.com/callback',
+        ]);
     }
 }

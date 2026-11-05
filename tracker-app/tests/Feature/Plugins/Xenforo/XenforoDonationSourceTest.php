@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Plugins\Xenforo;
 
-use App\Enums\OauthProvider;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Services\Forums\XenforoService;
@@ -12,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
+use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
 use TroopTracker\Plugins\Xenforo\Donations\XenforoDonationSource;
 use TroopTracker\Plugins\Xenforo\Donations\XenforoProfile;
 
@@ -93,7 +93,7 @@ class XenforoDonationSourceTest extends TestCase
         $trooper = Trooper::factory()->create();
 
         OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER => XenforoLoginProvider::KEY,
             OauthLogin::PROVIDER_ID => (string) $forum_user_id,
         ]);
 

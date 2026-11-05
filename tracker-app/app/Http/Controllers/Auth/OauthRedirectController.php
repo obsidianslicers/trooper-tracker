@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Enums\FlashType;
-use App\Enums\OauthProvider;
-use App\Facades\TroopTracker;
 use App\Http\Controllers\MagicBusController;
+use App\Plugins\PluginLoginProviders;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
@@ -21,36 +20,21 @@ use Laravel\Socialite\Facades\Socialite;
  */
 class OauthRedirectController extends MagicBusController
 {
-    private TroopTracker $troop_tracker;
-
-    protected function initialized(): void
-    {
-        $this->troop_tracker = app(TroopTracker::class);
-    }
-
     /**
-     * Handle the incoming request to initiate OAuth authorization.
-     *
-     * Redirects the trooper to the OAuth provider's authorization page.
-     * After authorization, the provider will redirect back to the callback URL.
+     * Redirects the trooper to the provider's authorization page. After
+     * authorization, the provider redirects back to the callback URL.
      *
      * @param  Request  $request  The incoming HTTP request
-     * @param  string  $provider  The OAuth provider name (google, xenforo, etc.)
-     * @return RedirectResponse A redirect to the OAuth provider's authorization page
+     * @param  string  $provider  The login provider's key, such as google
+     * @return RedirectResponse A redirect to the provider's authorization page
      */
     public function __invoke(Request $request, string $provider): RedirectResponse
     {
-        if ($this->troop_tracker->isXenforoOAuthRequired() && $provider !== OauthProvider::XENFORO->value)
-        {
-            FlashType::warning('Troop Tracker is configured to use XenForo for login.');
+        $refusal = app(PluginLoginProviders::class)->unavailableReason($provider);
 
-            return redirect()->route('auth.login');
-        }
-
-        if ($provider === OauthProvider::XENFORO->value
-            && !$this->troop_tracker->isXenforoOAuthConfigured())
+        if ($refusal !== null)
         {
-            FlashType::warning('XenForo login is not available.');
+            FlashType::warning($refusal);
 
             return redirect()->route('auth.login');
         }

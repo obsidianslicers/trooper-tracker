@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Services\Forums;
 
-use App\Enums\OauthProvider;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Services\Forums\XenforoService;
@@ -34,7 +33,7 @@ class XenforoServiceTest extends TestCase
 
         OauthLogin::factory()->create([
             OauthLogin::TROOPER_ID => $trooper->id,
-            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER => 'xenforo',
             OauthLogin::PROVIDER_ID => '9876',
         ]);
 
@@ -55,7 +54,7 @@ class XenforoServiceTest extends TestCase
 
         OauthLogin::factory()->create([
             OauthLogin::TROOPER_ID => $trooper->id,
-            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER => 'xenforo',
             OauthLogin::PROVIDER_ID => '999',
         ]);
 

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Jobs;
 
-use App\Enums\OauthProvider;
 use App\Models\Event;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
 use TroopTracker\Plugins\Xenforo\Notifications\EventForumPostNotification;
 
 class SendForumPostNotificationsJob implements ShouldQueue
@@ -47,7 +47,7 @@ class SendForumPostNotificationsJob implements ShouldQueue
             return null;
         }
 
-        $oauth = OauthLogin::where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
+        $oauth = OauthLogin::where(OauthLogin::PROVIDER, XenforoLoginProvider::KEY)
             ->where(OauthLogin::PROVIDER_ID, (string) $this->xenforo_user_id)
             ->first();
 

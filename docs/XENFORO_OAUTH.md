@@ -138,11 +138,13 @@ What it does:
 
 ### XenForo OAuth Login
 
-Troop Tracker includes a custom Socialite provider for XenForo.
+The XenForo plugin (`tracker-app/plugins/xenforo`) adds XenForo as a login provider, with a custom Socialite driver. Enable the plugin first; with it off, the XenForo button is hidden and email and Google login work as usual.
 
 What it provides:
 
 - XenForo OAuth login
+- a ban check at sign-in (from the `/me` response, or the admin API when `/me` has no `is_banned`)
+- keeping the trooper's email address in step with the forum account
 - account linking to a Troop Tracker user
 - XenForo avatar retrieval
 - persistent mapping from Troop Tracker user to XenForo `user_id`
@@ -153,6 +155,7 @@ Relevant config:
 - `XENFORO_CLIENT_SECRET`
 - `XENFORO_REDIRECT_URI`
 - `XENFORO_BASE_URL`
+- each of these can be set on the plugin's settings page instead, which wins over `.env`
 - optional endpoint path overrides in `config/services.php`
 
 ### XenForo-Required Accounts

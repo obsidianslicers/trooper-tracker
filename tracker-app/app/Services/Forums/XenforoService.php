@@ -2,7 +2,6 @@
 
 namespace App\Services\Forums;
 
-use App\Enums\OauthProvider;
 use App\Helpers\ForumBBCodeRenderer;
 use App\Helpers\SmiliesRenderer;
 use App\Models\OauthLogin;
@@ -724,7 +723,7 @@ class XenforoService
         }
 
         $oauth = OauthLogin::where(OauthLogin::TROOPER_ID, $trooper_id)
-            ->where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
+            ->where(OauthLogin::PROVIDER, 'xenforo')
             ->first();
 
         if ($oauth === null || empty($oauth->provider_id))

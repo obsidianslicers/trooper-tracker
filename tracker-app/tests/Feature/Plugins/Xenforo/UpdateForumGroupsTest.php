@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Plugins\Xenforo;
 
-use App\Enums\OauthProvider;
 use App\Exceptions\ForumGroupUpdateException;
 use App\Messages\Troopers\Commands\Permissions\UpdateTrooperForumGroups;
 use App\Models\OauthLogin;
@@ -13,6 +12,7 @@ use App\Plugins\PluginForumGroups;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
+use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
 
 class UpdateForumGroupsTest extends TestCase
 {
@@ -35,7 +35,7 @@ class UpdateForumGroupsTest extends TestCase
         $this->trooper = Trooper::factory()->asMember()->create();
 
         OauthLogin::factory()->forTrooper($this->trooper)->create([
-            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER => XenforoLoginProvider::KEY,
             OauthLogin::PROVIDER_ID => '77',
         ]);
     }

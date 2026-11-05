@@ -170,6 +170,17 @@ abstract class PluginServiceProvider extends ServiceProvider
     }
 
     /**
+     * Let troopers sign in through another site. Register a Socialite driver
+     * named after the provider's key() as well.
+     *
+     * @param  class-string<\App\Contracts\LoginProvider>  $provider_class
+     */
+    protected function addLoginProvider(string $provider_class): void
+    {
+        $this->app->make(PluginLoginProviders::class)->add($provider_class);
+    }
+
+    /**
      * Run a middleware on every web request, after core's own web middleware.
      */
     protected function addWebMiddleware(string $middleware_class): void

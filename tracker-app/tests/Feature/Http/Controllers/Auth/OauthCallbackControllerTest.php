@@ -7,12 +7,13 @@ namespace Tests\Feature\Http\Controllers\Auth;
 use App\Enums\MembershipStatus;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
+use App\Plugins\PluginLoginProviders;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
-use Illuminate\Support\Facades\Route;
 use Mockery;
 use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
 use Tests\TestCase;
@@ -30,6 +31,9 @@ class OauthCallbackControllerTest extends TestCase
             'services.xenforo.client_id' => 'client-id',
             'services.xenforo.client_secret' => 'secret',
             'services.xenforo.redirect' => 'https://example.com/callback',
+            'services.google.client_id' => 'google-id',
+            'services.google.client_secret' => 'google-secret',
+            'services.google.redirect' => 'https://example.com/google/callback',
         ]);
         $this->enableXenforo();
         Route::getRoutes()->refreshNameLookups();
@@ -38,6 +42,7 @@ class OauthCallbackControllerTest extends TestCase
     public function test_invoke_refuses_xenforo_while_the_plugin_is_disabled(): void
     {
         $this->app->make(\App\Plugins\PluginManager::class)->disable('xenforo');
+        $this->app->forgetInstance(PluginLoginProviders::class);
         Socialite::shouldReceive('driver')->never();
 
         $this->get(route('auth.oauth-callback', ['provider' => 'xenforo']))

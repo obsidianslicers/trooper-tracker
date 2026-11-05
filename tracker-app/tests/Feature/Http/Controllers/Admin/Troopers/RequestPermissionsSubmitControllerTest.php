@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
 use App\Enums\MembershipRole;
-use App\Enums\OauthProvider;
 use App\Jobs\SendPermissionRequestNotificationsJob;
 use App\Models\OauthLogin;
 use App\Models\Organization;
@@ -153,7 +152,7 @@ class RequestPermissionsSubmitControllerTest extends TestCase
         $this->configureXenforo();
         $trooper = Trooper::factory()->asMember()->create();
         OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER => 'xenforo',
             OauthLogin::PROVIDER_ID => '77',
         ]);
 

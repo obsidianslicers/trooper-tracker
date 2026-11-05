@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Plugins\Xenforo;
 
-use App\Enums\OauthProvider;
 use App\Models\Event;
 use App\Models\EventWatch;
 use App\Models\OauthLogin;
@@ -12,6 +11,7 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
+use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
 use TroopTracker\Plugins\Xenforo\Jobs\SendForumPostNotificationsJob;
 use TroopTracker\Plugins\Xenforo\Notifications\EventForumPostNotification;
 
@@ -65,7 +65,7 @@ class SendForumPostNotificationsJobTest extends TestCase
 
         $poster = Trooper::factory()->asMember()->create();
         OauthLogin::factory()->forTrooper($poster)->create([
-            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER => XenforoLoginProvider::KEY,
             OauthLogin::PROVIDER_ID => '42',
         ]);
         EventWatch::factory()->forEvent($event)->forTrooper($poster)->create();
@@ -88,7 +88,7 @@ class SendForumPostNotificationsJobTest extends TestCase
 
         $trooper = Trooper::factory()->asMember()->create();
         OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER => XenforoLoginProvider::KEY,
             OauthLogin::PROVIDER_ID => '99',
         ]);
         EventWatch::factory()->forEvent($event)->forTrooper($trooper)->create();

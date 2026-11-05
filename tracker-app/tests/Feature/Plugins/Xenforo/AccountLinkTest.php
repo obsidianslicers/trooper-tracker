@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Plugins\Xenforo;
 
-use App\Enums\OauthProvider;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Services\Forums\XenforoService;
@@ -12,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Mockery;
 use Tests\TestCase;
+use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
 
 class AccountLinkTest extends TestCase
 {
@@ -39,6 +39,17 @@ class AccountLinkTest extends TestCase
             ->assertSee('XenForo account required');
     }
 
+    public function test_link_page_is_reachable_before_setup_is_finished(): void
+    {
+        config(['tracker.auth.require_xenforo' => true]);
+        $trooper = Trooper::factory()->asActive()->withSetupIncomplete()->create();
+
+        $this->actingAs($trooper)->get(route('account.index'))
+            ->assertRedirect(route('account.setup'));
+
+        $this->actingAs($trooper)->get(route('account.xenforo.required'))->assertOk();
+    }
+
     public function test_unlinked_trooper_is_let_through_when_not_required(): void
     {
         config(['tracker.auth.require_xenforo' => false]);
@@ -53,7 +64,7 @@ class AccountLinkTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
         OauthLogin::create([
             OauthLogin::TROOPER_ID => $trooper->id,
-            OauthLogin::PROVIDER => OauthProvider::XENFORO->value,
+            OauthLogin::PROVIDER => XenforoLoginProvider::KEY,
             OauthLogin::PROVIDER_ID => '55',
         ]);
         $xenforo = Mockery::mock(XenforoService::class);

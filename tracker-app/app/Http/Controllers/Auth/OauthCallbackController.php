@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Contracts\LoginProvider;
 use App\Enums\FlashType;
-use App\Enums\OauthProvider;
-use App\Facades\TroopTracker;
 use App\Http\Controllers\MagicBusController;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
+use App\Plugins\PluginLoginProviders;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
@@ -22,7 +20,7 @@ use Laravel\Socialite\Two\InvalidStateException;
 /**
  * Handles OAuth provider callbacks during authentication.
  *
- * This controller processes the callback from OAuth providers (Google, XenForo, etc.)
+ * This controller processes the callback from login providers (Google, or one a plugin adds)
  * after a trooper authorizes the application. It handles:
  * - Logging in existing troopers with linked OAuth accounts
  * - Redirecting inactive troopers to the inactive page
@@ -31,14 +29,11 @@ use Laravel\Socialite\Two\InvalidStateException;
  */
 class OauthCallbackController extends MagicBusController
 {
-    private TroopTracker $troop_tracker;
-
-    private XenforoService $xenforo;
+    private PluginLoginProviders $providers;
 
     protected function initialized(): void
     {
-        $this->troop_tracker = app(TroopTracker::class);
-        $this->xenforo = app(XenforoService::class);
+        $this->providers = app(PluginLoginProviders::class);
     }
 
     /**
@@ -51,25 +46,21 @@ class OauthCallbackController extends MagicBusController
      * 4. Existing trooper (by email) without OAuth link -> Link the provider and log in
      *
      * @param  Request  $request  The incoming HTTP request
-     * @param  string  $provider  The OAuth provider name (google, xenforo, etc.)
+     * @param  string  $provider  The login provider's key, such as google
      * @return RedirectResponse A redirect to the appropriate destination
      */
     public function __invoke(Request $request, string $provider): RedirectResponse
     {
-        if ($this->troop_tracker->isXenforoOAuthRequired() && $provider !== OauthProvider::XENFORO->value)
+        $refusal = $this->providers->unavailableReason($provider);
+
+        if ($refusal !== null)
         {
-            FlashType::warning('Troop Tracker is configured to use XenForo for login.');
+            FlashType::warning($refusal);
 
             return redirect()->route('auth.login');
         }
 
-        if ($provider === OauthProvider::XENFORO->value
-            && !$this->troop_tracker->isXenforoOAuthConfigured())
-        {
-            FlashType::warning('XenForo login is not available.');
-
-            return redirect()->route('auth.login');
-        }
+        $login_provider = $this->providers->find($provider);
 
         if ($request->has('error'))
         {
@@ -89,29 +80,13 @@ class OauthCallbackController extends MagicBusController
             return redirect()->route('auth.login');
         }
 
-        // Check XenForo ban status at login.
-        if ($provider === OauthProvider::XENFORO->value)
+        $refusal = $login_provider->refusal($provider_user);
+
+        if ($refusal !== null)
         {
-            $raw = $provider_user->getRaw();
-            $xenforo_user_data = $raw['me'] ?? $raw;
-            // Fall back to the admin API if the /me endpoint didn't include the field.
-            if (array_key_exists('is_banned', $xenforo_user_data))
-            {
-                $is_banned = !empty($xenforo_user_data['is_banned']);
-            }
-            else
-            {
-                $api_result = $this->xenforo->get_user((int) $provider_user->getId());
-                $is_banned = $api_result['status'] === 200
-                    && !empty($api_result['body']['user']['is_banned']);
-            }
+            FlashType::danger($refusal);
 
-            if ($is_banned)
-            {
-                FlashType::danger('You are currently banned. Please refer to command staff for additional information.');
-
-                return redirect()->route('auth.login');
-            }
+            return redirect()->route('auth.login');
         }
 
         // Find existing social account
@@ -135,8 +110,7 @@ class OauthCallbackController extends MagicBusController
                 return redirect()->route('auth.inactive');
             }
 
-            // Keep trooper email and verification in sync with XenForo account.
-            $this->syncTrooperFromProvider($trooper, $provider, $provider_user);
+            $login_provider->syncTrooper($trooper, $provider_user);
 
             Auth::login($trooper, true);
 
@@ -147,20 +121,7 @@ class OauthCallbackController extends MagicBusController
 
         if (empty($email))
         {
-            $message = 'Your XenForo account did not provide an email address. Please contact an administrator.';
-
-            if (!$this->troop_tracker->isXenforoOAuthRequired())
-            {
-                $message .= ' Or log in with email/password.';
-            }
-
-            $route = Route::has('account.xenforo.required') ? 'account.xenforo.required' : 'auth.login';
-
-            return redirect()
-                ->route($route)
-                ->withErrors([
-                    'oauth' => $message,
-                ]);
+            return $this->missingEmail($login_provider);
         }
 
         $trooper = Trooper::byEmail($email)->first();
@@ -202,8 +163,7 @@ class OauthCallbackController extends MagicBusController
             return redirect()->route('auth.inactive');
         }
 
-        // Keep trooper email and verification in sync with XenForo account.
-        $this->syncTrooperFromProvider($trooper, $provider, $provider_user);
+        $login_provider->syncTrooper($trooper, $provider_user);
 
         // Link provider to existing trooper account
         OauthLogin::create([
@@ -219,34 +179,18 @@ class OauthCallbackController extends MagicBusController
         return redirect()->intended('/');
     }
 
-    /**
-     * Synchronize trooper data from the OAuth provider when appropriate.
-     *
-     * Currently used to align trooper email and email verification status with
-     * the XenForo account when logging in via the `xenforo` provider.
-     */
-    private function syncTrooperFromProvider(Trooper $trooper, string $provider, $provider_user): void
+    private function missingEmail(LoginProvider $login_provider): RedirectResponse
     {
-        if ($provider !== OauthProvider::XENFORO->value)
+        $message = "Your {$login_provider->name()} account did not provide an email address. "
+            .'Please contact an administrator.';
+
+        if ($this->providers->required() === null)
         {
-            return;
+            $message .= ' Or log in with email/password.';
         }
 
-        $email = $provider_user->getEmail();
-
-        if (!empty($email) && $trooper->email !== $email)
-        {
-            $trooper->email = $email;
-        }
-
-        if ($trooper->email_verified_at === null)
-        {
-            $trooper->email_verified_at = now();
-        }
-
-        if ($trooper->isDirty(['email', 'email_verified_at']))
-        {
-            $trooper->save();
-        }
+        return redirect()
+            ->route($login_provider->missingEmailRoute())
+            ->withErrors(['oauth' => $message]);
     }
 }

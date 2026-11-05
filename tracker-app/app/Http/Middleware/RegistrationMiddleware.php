@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Enums\OauthProvider;
 use App\Facades\TroopTracker;
 use Closure;
 use Illuminate\Http\RedirectResponse;
@@ -51,15 +50,15 @@ class RegistrationMiddleware
                 ->with('error', 'Your registration session expired.');
         }
 
-        $troop_tracker = app(TroopTracker::class);
+        $required = app(TroopTracker::class)->requiredLoginProvider();
 
-        if ($troop_tracker->isXenforoOAuthRequired() && ($registration_auth['method'] ?? null) !== OauthProvider::XENFORO->value)
+        if ($required !== null && ($registration_auth['method'] ?? null) !== $required->key())
         {
             Session::forget('registration_auth');
 
             return redirect()
                 ->route('auth.signup')
-                ->with('error', 'Please sign up with XenForo.');
+                ->with('error', "Please sign up with {$required->name()}.");
         }
 
         return $next($request);

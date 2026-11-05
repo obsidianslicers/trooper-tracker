@@ -39,11 +39,13 @@ class SignUpEmailController extends MagicBusController
      */
     public function __invoke(Request $request): RedirectResponse
     {
-        if ($this->troop_tracker->isXenforoOAuthRequired())
+        $required = $this->troop_tracker->requiredLoginProvider();
+
+        if ($required !== null)
         {
             Session::forget('registration_auth');
 
-            FlashType::warning('Email sign up is disabled. Please sign up with XenForo.');
+            FlashType::warning("Email sign up is disabled. Please sign up with {$required->name()}.");
 
             return redirect()->route('auth.signup');
         }

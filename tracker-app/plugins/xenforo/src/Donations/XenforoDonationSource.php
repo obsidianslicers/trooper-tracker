@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace TroopTracker\Plugins\Xenforo\Donations;
 
 use App\Contracts\DonationSource;
-use App\Enums\OauthProvider;
 use App\Facades\TroopTrackerFacade;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Services\Forums\XenforoService;
 use App\Support\DonationSummary;
 use App\Support\XenforoUpgradeHelper;
+use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
 
 /**
  * Forum account upgrades (paid subscriptions) count as donations.
@@ -77,7 +77,7 @@ final class XenforoDonationSource implements DonationSource
      */
     private function forumUserIds(array $trooper_ids): array
     {
-        return OauthLogin::where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
+        return OauthLogin::where(OauthLogin::PROVIDER, XenforoLoginProvider::KEY)
             ->whereIn(OauthLogin::TROOPER_ID, $trooper_ids)
             ->pluck(OauthLogin::PROVIDER_ID, OauthLogin::TROOPER_ID)
             ->map(fn (mixed $id): int => (int) $id)

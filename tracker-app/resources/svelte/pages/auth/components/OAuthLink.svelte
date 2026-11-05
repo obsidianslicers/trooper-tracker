@@ -1,33 +1,23 @@
 <script lang="ts">
     import { getRoute } from "$lib/utils";
+    import type { LoginProvider } from "../models/types";
 
     interface Props {
         prefix?: string;
-        configured: boolean;
-        provider: "xenforo" | "google";
-        name: string;
-        imageUrl: string;
+        provider: LoginProvider;
     }
-    let {
-        prefix = "Login",
-        configured,
-        provider,
-        name,
-        imageUrl,
-    }: Props = $props();
+    let { prefix = "Login", provider }: Props = $props();
 </script>
 
-{#if configured}
-    <a
-        href={getRoute("auth.oauth-redirect", { provider })}
-        class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2"
-    >
-        <img
-            src={imageUrl}
-            alt="{name} Logo"
-            style="width: 18px; height: 18px;"
-            class="me-3"
-        />
-        <span>{prefix} with {name}</span>
-    </a>
-{/if}
+<a
+    href={getRoute("auth.oauth-redirect", { provider: provider.key })}
+    class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2"
+>
+    <img
+        src={provider.icon_url}
+        alt="{provider.name} Logo"
+        style="width: 18px; height: 18px;"
+        class="me-3"
+    />
+    <span>{prefix} with {provider.name}</span>
+</a>

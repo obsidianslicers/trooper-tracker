@@ -1,7 +1,6 @@
 <script lang="ts">
     import { LoginViewModel } from "../../models";
-    import OAuthGoogleLink from "../OAuthGoogleLink.svelte";
-    import OAuthXenforoLink from "../OAuthXenforoLink.svelte";
+    import OAuthLinks from "../OAuthLinks.svelte";
 
     interface Props {
         vm: LoginViewModel;
@@ -10,18 +9,10 @@
     let { vm }: Props = $props();
 </script>
 
-{#if vm.oauth?.xenforo.configured || vm.oauth?.google.configured}
+{#if vm.oauth?.providers.length}
     <hr class="my-5" />
 
     <div class="d-grid gap-2 mb-3">
-        <OAuthXenforoLink
-            configured={vm.oauth?.xenforo.configured}
-            name={vm.oauth?.xenforo.name}
-            prefix="Login"
-        />
-        <OAuthGoogleLink
-            configured={vm.oauth?.google.configured}
-            prefix="Login"
-        />
+        <OAuthLinks oauth={vm.oauth} prefix="Login" />
     </div>
 {/if}
