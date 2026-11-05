@@ -3,7 +3,7 @@
     "name": "XenForo",
     "version": "0.1.0",
     "description": "Connects TroopTracker to a XenForo forum: keeps forum users in step with troopers. More of the forum integration moves here in later releases.",
-    "author": "TroopTracker",
+    "author": "Obsidian Slicers",
     "namespace": "TroopTracker\\Plugins\\Xenforo",
     "provider": "TroopTracker\\Plugins\\Xenforo\\XenforoServiceProvider",
     "settings": [

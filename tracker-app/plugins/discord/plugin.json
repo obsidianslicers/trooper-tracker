@@ -3,7 +3,7 @@
     "name": "Discord",
     "version": "1.1.0",
     "description": "Announces newly posted events in a Discord channel through a webhook, mentioning the hosting organization's Discord role.",
-    "author": "TroopTracker",
+    "author": "Obsidian Slicers",
     "namespace": "TroopTracker\\Plugins\\Discord",
     "provider": "TroopTracker\\Plugins\\Discord\\DiscordServiceProvider",
     "settings": [
