@@ -537,3 +537,7 @@ Plugin tests extend core's `Tests\TestCase` and can use its helpers and fixtures
 $plugins = app(PluginManager::class);
 $plugins->load($plugins->findOrFail('discord'));
 ```
+
+A plugin whose packages may not be installed skips its tests when they are missing (see the Google Sheets plugin's `setUp()`).
+
+CI (`.github/workflows/tests.yml`) runs every suite on PHP 8.4 twice: once with only bundled plugins, which checks the app and core tests work with no Composer plugins installed, and once with the Composer-managed plugins installed, so their tests run. A PHP 8.5 run is an early warning and does not block a pull request.
