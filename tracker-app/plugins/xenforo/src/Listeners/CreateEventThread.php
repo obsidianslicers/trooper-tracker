@@ -10,6 +10,7 @@ use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 use TroopTracker\Plugins\Xenforo\Services\ForumThreadMessageService;
 
 /**
@@ -26,18 +27,19 @@ class CreateEventThread implements ShouldQueue
     {
         $event = $posted->event;
         $organization = $event->organization;
+        $forum_id = OrganizationForum::forOrganization($organization?->id)?->event_forum_id;
         $thread = EventThread::forEvent($event->id);
 
         if (
             !TroopTrackerFacade::isXenforoIntegrationConfigured()
-            || empty($organization?->related_forum)
+            || empty($forum_id)
             || ($thread !== null && (!$thread->should_create_thread || !empty($thread->thread_id)))
         ) {
             return;
         }
 
         $result = $this->xenforo->create_thread(
-            (int) $organization->related_forum,
+            $forum_id,
             $event->name,
             $this->messages->buildThreadMessage($event),
             $this->xenforo->resolve_user_id_for_trooper($event->created_id),

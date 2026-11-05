@@ -159,6 +159,17 @@ abstract class PluginServiceProvider extends ServiceProvider
     }
 
     /**
+     * Offer a forum's user groups on the permission request page. One provider
+     * per site; a later plugin replaces an earlier one.
+     *
+     * @param  class-string<\App\Contracts\ForumGroupProvider>  $provider_class
+     */
+    protected function setForumGroupProvider(string $provider_class): void
+    {
+        $this->app->make(PluginForumGroups::class)->set($provider_class);
+    }
+
+    /**
      * Run a middleware on every web request, after core's own web middleware.
      */
     protected function addWebMiddleware(string $middleware_class): void

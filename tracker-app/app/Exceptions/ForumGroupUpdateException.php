@@ -7,6 +7,6 @@ namespace App\Exceptions;
 use RuntimeException;
 
 /**
- * Thrown when a trooper's XenForo user groups could not be changed.
+ * Thrown when a trooper's forum user groups could not be changed.
  */
 class ForumGroupUpdateException extends RuntimeException {}

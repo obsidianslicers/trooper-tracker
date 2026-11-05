@@ -24,7 +24,7 @@
 
 <SlimCard>
     <p class="text-muted">
-        Ask an administrator to change a trooper's role{vm.is_xenforo_configured
+        Ask an administrator to change a trooper's role{vm.has_forum_groups
             ? " or forum user groups"
             : ""}. Nothing changes until an administrator approves it.
     </p>
@@ -47,7 +47,7 @@
                 <OrganizationSelection {vm} />
             {/if}
 
-            {#if vm.is_xenforo_configured}
+            {#if vm.has_forum_groups}
                 <ForumGroupSelection {vm} />
             {/if}
 

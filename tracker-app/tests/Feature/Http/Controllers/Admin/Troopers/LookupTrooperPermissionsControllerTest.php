@@ -11,11 +11,21 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
 use Tests\TestCase;
 
 class LookupTrooperPermissionsControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesXenforoPlugin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Forum groups come from the XenForo plugin.
+        $this->enableXenforo();
+    }
 
     public function test_invoke_returns_role_moderated_organizations_and_forum_groups(): void
     {

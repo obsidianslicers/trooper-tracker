@@ -291,6 +291,10 @@ Donations recorded somewhere else, such as paid forum subscriptions, can count t
 
 Months from every source and from local donation records are merged, so a month counts once; totals add up.
 
+### Forum groups
+
+The Request Permissions page can offer a forum's user groups next to role changes. Implement `App\Contracts\ForumGroupProvider` (`isAvailable`, `requestableGroups`, `hasAccount`, `currentGroupIds`, `updateGroups`) and register it with `$this->setForumGroupProvider(MyGroups::class)`. Requested groups are saved on the permission request and applied through `updateGroups` when it is approved; throw `App\Exceptions\ForumGroupUpdateException` to stop the approval. A site has one provider; the page hides the forum group section while there is none or `isAvailable()` is false.
+
 ### Settings
 
 Each entry in `settings` becomes a field on the plugin's Settings page. Types: `text`, `url`, `email`, `number`, `boolean`, `secret`. Values are validated by type, and stored encrypted in `tt_plugins.settings`. A `secret` is never shown back; leaving it empty keeps the saved value. Read settings with `$this->setting('key')` in the provider, or `app(PluginManager::class)->setting('slug', 'key')` elsewhere.
@@ -346,13 +350,15 @@ php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\Flori
 - the event page's Forum Comments section, reply box (`events.forum-reply-htmx`), forum attachments (`events.forum-attachment`), the View Forum Post button, and forum smilies in the event comments editor
 - watching an event also watches its forum thread
 - the forum webhook (`/webhooks/xenforo`) and the "new forum reply" and "notify command staff" notifications
+- each organization's forum settings (event forum, archive forum, and the active, reserve and retired user groups), on the organization edit form; stored in `tt_xenforo_organization_forums`, copied from the old `tt_organizations` columns on enable. `FloridaGarrisonForumSeeder` seeds the Florida Garrison values
+- forum groups on the Request Permissions page (the forum group provider)
 - forum upgrades as a donation source (donation months, total donated, donor milestones and the active donor badge), plus the service record's forum group banners, Forum Profile button and upgrade history table
 
 **Require a linked forum account** only applies while the plugin is enabled. With the plugin off, the site runs without XenForo: the XenForo login button is hidden, email and Google login work, and nobody is sent to the link page.
 
 Core's login flow still knows the name "xenforo" (the provider value stored on `oauth_logins`, the login and sign-up buttons, and the OAuth callback's XenForo-only steps). Making login providers fully pluggable is a separate, larger change.
 
-Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. The rest of XenForo (forum groups, and the XenForo API client `App\Services\Forums\XenforoService`) is still core and reads the same config, so the settings page applies to it too while the plugin is enabled.
+Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. The XenForo API client (`App\Services\Forums\XenforoService`) and the login provider are still core and reads the same config, so the settings page applies to it too while the plugin is enabled.
 
 Each event's thread lives in the plugin's `tt_xenforo_event_threads` table. Enabling the plugin copies `tt_events.thread_id`, `post_id` and `create_forum_thread` there; core no longer reads those columns, and a later core migration drops them. The Florida Garrison legacy event import still writes the old columns, so run it before enabling the plugin.
 

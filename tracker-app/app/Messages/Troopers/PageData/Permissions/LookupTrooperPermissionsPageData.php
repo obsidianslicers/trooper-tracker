@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\PageData\Permissions;
 
-use App\Facades\TroopTrackerFacade;
 use App\Messages\Troopers\Queries\Permissions\GetTrooperForumGroupIds;
 use App\Messages\Troopers\Resources\PermissionRequestsCollection;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
+use App\Plugins\PluginForumGroups;
 use Hyperdrive\Message;
 
 /**
@@ -25,10 +24,9 @@ final class LookupTrooperPermissionsPageData extends Message
     /**
      * @return array<string, mixed>
      */
-    public function handle(XenforoService $xenforo): array
+    public function handle(PluginForumGroups $forum_groups): array
     {
-        $has_forum_account = TroopTrackerFacade::isXenforoIntegrationConfigured()
-            && $xenforo->resolve_user_id_for_trooper($this->trooper->id) !== null;
+        $has_forum_account = $forum_groups->provider()?->hasAccount($this->trooper) ?? false;
 
         $forum_group_ids = GetTrooperForumGroupIds::call(trooper: $this->trooper);
         $moderated_ids = array_map('intval', $this->trooper->resolveModeratorOrgIds() ?? []);

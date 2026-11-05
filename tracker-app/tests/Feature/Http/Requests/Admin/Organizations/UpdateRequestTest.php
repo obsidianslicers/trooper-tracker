@@ -140,44 +140,6 @@ class UpdateRequestTest extends TestCase
         $this->assertArrayNotHasKey('discord_mention', $rules);
     }
 
-    public function test_rules_related_forum_is_nullable(): void
-    {
-        $subject = new UpdateRequest;
-        $this->setupMockedRoute($subject, $this->organization);
-        $rules = $subject->rules();
-
-        $this->assertArrayHasKey(Organization::RELATED_FORUM, $rules);
-        $this->assertContains('nullable', $rules[Organization::RELATED_FORUM]);
-    }
-
-    public function test_rules_validates_related_forum_is_integer(): void
-    {
-        $subject = new UpdateRequest;
-        $this->setupMockedRoute($subject, $this->organization);
-        $rules = $subject->rules();
-
-        $this->assertContains('integer', $rules[Organization::RELATED_FORUM]);
-    }
-
-    public function test_rules_related_forum_archive_is_nullable(): void
-    {
-        $subject = new UpdateRequest;
-        $this->setupMockedRoute($subject, $this->organization);
-        $rules = $subject->rules();
-
-        $this->assertArrayHasKey(Organization::RELATED_FORUM_ARCHIVE, $rules);
-        $this->assertContains('nullable', $rules[Organization::RELATED_FORUM_ARCHIVE]);
-    }
-
-    public function test_rules_validates_related_forum_archive_is_integer(): void
-    {
-        $subject = new UpdateRequest;
-        $this->setupMockedRoute($subject, $this->organization);
-        $rules = $subject->rules();
-
-        $this->assertContains('integer', $rules[Organization::RELATED_FORUM_ARCHIVE]);
-    }
-
     public function test_rules_accepts_valid_update_data(): void
     {
         $subject = new UpdateRequest;
@@ -187,8 +149,6 @@ class UpdateRequestTest extends TestCase
             [
                 Organization::NAME => 'Updated Organization',
                 Organization::SYNC_SHEET_ID => 'sheet-123',
-                Organization::RELATED_FORUM => 42,
-                Organization::RELATED_FORUM_ARCHIVE => 84,
             ],
             $subject->rules()
         );

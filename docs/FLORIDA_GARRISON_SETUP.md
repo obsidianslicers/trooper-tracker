@@ -343,15 +343,15 @@ If the trooper has the mobile app installed and has granted notification permiss
 
 ## 11. XenForo Forum Node IDs, Discord Mentions, and XenForo Group IDs
 
-For full XenForo setup (env vars, OAuth, add-ons, API key) see [XENFORO_OAUTH.md](XENFORO_OAUTH.md). This section lists the Florida Garrison-specific values that `FloridaGarrisonSeeder` pre-seeds so you do not need to enter them manually.
+For full XenForo setup (env vars, OAuth, add-ons, API key) see [XENFORO_OAUTH.md](XENFORO_OAUTH.md). This section lists the Florida Garrison-specific values, so you do not need to enter them manually. The forum values belong to the XenForo plugin: enable it (`php artisan plugins:enable xenforo`) after `FloridaGarrisonSeeder`, then seed them with `php artisan db:seed --class="TroopTracker\Plugins\Xenforo\Database\Seeders\FloridaGarrisonForumSeeder"`. That seeder also sets the clubs' groups (Rebel Legion 1486, Mandalorian Mercs 1488, Dark Empire 1511, Droid Builders 1487, Saber Guild 1491).
 
 ### Forum Node IDs
 
-When an event is created, Troop Tracker posts a XenForo thread in the squad's `related_forum`. When the event closes, the thread is moved to `related_forum_archive`.
+When an event is created, the XenForo plugin posts a thread in the squad's event forum. When the event closes, the thread is moved to the archive forum.
 
-The following values are seeded automatically:
+`FloridaGarrisonForumSeeder` sets:
 
-| Squad              | Active Forum (`related_forum`) | Archive Forum (`related_forum_archive`) |
+| Squad              | Event Forum                    | Archive Forum                            |
 |--------------------|-------------------------------|----------------------------------------|
 | Everglades Squad   | 9                             | 107                                    |
 | Makaze Squad       | 8                             | 109                                    |
@@ -362,12 +362,6 @@ The following values are seeded automatically:
 To find a node ID on your own: browse to the forum board in XenForo — the URL contains something like `forums/name.7/` where `7` is the node ID.
 
 To update a value or set one for a non-Florida organization: `Command Staff > Organizations > [org] > edit` → **Related Forum (Node ID)** / **Related Forum Archive (Node ID)**.
-
-Test thread creation with:
-
-```bash
-php artisan tracker:xenforo-test-thread {node_id}
-```
 
 ### Discord Mentions
 
@@ -387,7 +381,7 @@ If a role ID changes: go to Discord → Server Settings → Roles → right-clic
 
 ### XenForo Secondary Group IDs
 
-Troop Tracker synchronizes XenForo secondary group memberships based on the group IDs stored on each organization. The following values are seeded automatically:
+The XenForo plugin synchronizes XenForo secondary group memberships based on the group IDs set on each organization. `FloridaGarrisonForumSeeder` sets:
 
 | Organization       | Active group ID | Retired group ID |
 |--------------------|-----------------|-----------------|

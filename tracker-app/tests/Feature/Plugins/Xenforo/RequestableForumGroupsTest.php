@@ -2,18 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Messages\Troopers\Queries\Permissions;
+namespace Tests\Feature\Plugins\Xenforo;
 
 use App\Messages\Troopers\Queries\Permissions\GetRequestableForumGroups;
 use App\Models\Organization;
-use App\Services\Forums\XenforoService;
+use App\Plugins\PluginForumGroups;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
+use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 
-class GetRequestableForumGroupsTest extends TestCase
+class RequestableForumGroupsTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesXenforoPlugin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->enableXenforo();
+    }
 
     public function test_handle_returns_empty_when_xenforo_not_configured(): void
     {
@@ -22,7 +31,7 @@ class GetRequestableForumGroupsTest extends TestCase
 
         $subject = new GetRequestableForumGroups;
 
-        $this->assertTrue($subject->handle(new XenforoService)->isEmpty());
+        $this->assertTrue($subject->handle(app(PluginForumGroups::class))->isEmpty());
 
         Http::assertNothingSent();
     }
@@ -34,9 +43,10 @@ class GetRequestableForumGroupsTest extends TestCase
             'services.xenforo.api_key' => 'key',
         ]);
 
-        Organization::factory()->asOrganization()->withNodePath('100:')->create([
-            Organization::XENFORO_GROUP_ACTIVE_ID => 30,
-        ]);
+        OrganizationForum::store(
+            Organization::factory()->asOrganization()->withNodePath('100:')->create()->id,
+            [OrganizationForum::ACTIVE_GROUP_ID => 30],
+        );
 
         Http::fake([
             'https://xf.test/index.php?api/user-groups' => Http::response([
@@ -49,7 +59,7 @@ class GetRequestableForumGroupsTest extends TestCase
         ]);
 
         $subject = new GetRequestableForumGroups;
-        $result = $subject->handle(new XenforoService);
+        $result = $subject->handle(app(PluginForumGroups::class));
 
         $this->assertSame([
             ['id' => 20, 'title' => 'Event Coordinators', 'banner_image_url' => null],
@@ -70,8 +80,8 @@ class GetRequestableForumGroupsTest extends TestCase
 
         $subject = new GetRequestableForumGroups;
 
-        $this->assertTrue($subject->handle(new XenforoService)->isEmpty());
-        $this->assertSame([20], $subject->handle(new XenforoService)->pluck('id')->all());
+        $this->assertTrue($subject->handle(app(PluginForumGroups::class))->isEmpty());
+        $this->assertSame([20], $subject->handle(app(PluginForumGroups::class))->pluck('id')->all());
     }
 
     public function test_handle_excludes_groups_granted_by_user_upgrades(): void
@@ -97,7 +107,7 @@ class GetRequestableForumGroupsTest extends TestCase
 
         $subject = new GetRequestableForumGroups;
 
-        $this->assertSame([20], $subject->handle(new XenforoService)->pluck('id')->all());
+        $this->assertSame([20], $subject->handle(app(PluginForumGroups::class))->pluck('id')->all());
     }
 
     public function test_handle_returns_groups_when_upgrade_lookup_fails(): void
@@ -116,6 +126,6 @@ class GetRequestableForumGroupsTest extends TestCase
 
         $subject = new GetRequestableForumGroups;
 
-        $this->assertSame([20], $subject->handle(new XenforoService)->pluck('id')->all());
+        $this->assertSame([20], $subject->handle(app(PluginForumGroups::class))->pluck('id')->all());
     }
 }

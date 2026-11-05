@@ -12,10 +12,14 @@ use App\Models\TrooperCostume;
 use App\Services\Forums\XenforoService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 
 class XenforoUserSyncService
 {
     private ?Collection $managed_group_ids_cache = null;
+
+    /** @var Collection<int, OrganizationForum>|null */
+    private ?Collection $forums_by_organization = null;
 
     public function __construct(private readonly XenforoService $xenforo) {}
 
@@ -255,25 +259,7 @@ class XenforoUserSyncService
             return $this->managed_group_ids_cache;
         }
 
-        $this->managed_group_ids_cache = Organization::query()
-            ->select([
-                Organization::XENFORO_GROUP_ACTIVE_ID,
-                Organization::XENFORO_GROUP_RESERVE_ID,
-                Organization::XENFORO_GROUP_RETIRED_ID,
-            ])
-            ->get()
-            ->flatMap(static function (Organization $org)
-            {
-                return [
-                    $org->xenforo_group_active_id,
-                    $org->xenforo_group_reserve_id,
-                    $org->xenforo_group_retired_id,
-                ];
-            })
-            ->filter(static fn ($id) => ! is_null($id))
-            ->map(static fn ($id) => (int) $id)
-            ->unique()
-            ->values();
+        $this->managed_group_ids_cache = OrganizationForum::managedGroupIds();
 
         return $this->managed_group_ids_cache;
     }
@@ -332,25 +318,20 @@ class XenforoUserSyncService
         return $orgMembershipStatus ?? 'active';
     }
 
-    /** Returns the XenForo group ID configured on an org for the given membership status. */
+    /** Returns the forum group configured on an org for the given membership status. */
     private function resolveGroupIdForStatus(Organization $org, string $status): ?int
     {
-        if ($status === 'active' && $org->xenforo_group_active_id !== null)
-        {
-            return (int) $org->xenforo_group_active_id;
-        }
+        $this->forums_by_organization ??= OrganizationForum::allByOrganization();
 
-        if ($status === 'reserve' && $org->xenforo_group_reserve_id !== null)
-        {
-            return (int) $org->xenforo_group_reserve_id;
-        }
+        $forum = $this->forums_by_organization->get($org->id);
 
-        if ($status === 'retired' && $org->xenforo_group_retired_id !== null)
+        return match ($status)
         {
-            return (int) $org->xenforo_group_retired_id;
-        }
-
-        return null;
+            'active' => $forum?->active_group_id,
+            'reserve' => $forum?->reserve_group_id,
+            'retired' => $forum?->retired_group_id,
+            default => null,
+        };
     }
 
     /** Returns the formatted TKID to sync to XenForo (e.g. "TK52233"), or null. */

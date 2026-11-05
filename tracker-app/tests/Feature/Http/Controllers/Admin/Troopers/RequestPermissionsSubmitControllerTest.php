@@ -16,11 +16,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
+use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
 use Tests\TestCase;
 
 class RequestPermissionsSubmitControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesXenforoPlugin;
 
     private Trooper $moderator;
 
@@ -29,6 +31,9 @@ class RequestPermissionsSubmitControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Forum groups come from the XenForo plugin.
+        $this->enableXenforo();
 
         Bus::fake([SendPermissionRequestNotificationsJob::class]);
 

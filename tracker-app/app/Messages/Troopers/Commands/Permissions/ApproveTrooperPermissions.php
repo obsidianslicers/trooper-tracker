@@ -19,7 +19,7 @@ use RuntimeException;
 
 /**
  * Approves a permission request: applies the requested role and moderated
- * organizations, then updates the trooper's XenForo user groups.
+ * organizations, then updates the trooper's forum user groups.
  *
  * The forum change runs last, inside the transaction, so a forum failure
  * rolls back the role change and leaves the request pending.

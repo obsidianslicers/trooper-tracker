@@ -9,6 +9,7 @@ use App\Facades\TroopTrackerFacade;
 use App\Services\Forums\XenforoService;
 use Illuminate\Support\Facades\Log;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 
 /**
  * Moves a closed event's forum thread to its organization's archive forum.
@@ -28,13 +29,13 @@ class ArchiveEventThread
         }
 
         $organization = $event->organization ?? $event->primary_organization;
+        $target_node_id = OrganizationForum::forOrganization($organization?->id)?->archive_forum_id;
 
-        if (!$organization || empty($organization->related_forum_archive))
+        if (empty($target_node_id))
         {
             return;
         }
 
-        $target_node_id = (int) $organization->related_forum_archive;
         $result = $this->xenforo->move_thread((int) $thread->thread_id, $target_node_id);
         $status = (int) ($result['status'] ?? 0);
 

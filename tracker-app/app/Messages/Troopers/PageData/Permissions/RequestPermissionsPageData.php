@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\PageData\Permissions;
 
-use App\Facades\TroopTrackerFacade;
 use App\Messages\Troopers\Queries\Permissions\GetRequestableForumGroups;
 use App\Messages\Troopers\Queries\Permissions\GetRequestableOrganizations;
 use App\Messages\Troopers\Queries\Permissions\GetRequestedPermissionRequests;
 use App\Messages\Troopers\Resources\PermissionRequestsCollection;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Plugins\PluginForumGroups;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 
@@ -31,14 +31,12 @@ final class RequestPermissionsPageData extends Message
      */
     public function handle(): array
     {
-        $is_xenforo_configured = TroopTrackerFacade::isXenforoIntegrationConfigured();
+        $has_forum_groups = app(PluginForumGroups::class)->provider() !== null;
 
         return [
             'organizations' => $this->getOrganizations(),
-            'is_xenforo_configured' => $is_xenforo_configured,
-            'forum_groups' => $is_xenforo_configured
-                ? GetRequestableForumGroups::call()->all()
-                : [],
+            'has_forum_groups' => $has_forum_groups,
+            'forum_groups' => $has_forum_groups ? GetRequestableForumGroups::call()->all() : [],
             'permission_requests' => new PermissionRequestsCollection(
                 GetRequestedPermissionRequests::call(requester: $this->actor)
             ),

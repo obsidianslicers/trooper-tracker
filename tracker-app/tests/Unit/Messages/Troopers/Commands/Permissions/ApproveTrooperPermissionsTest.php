@@ -21,17 +21,22 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event as EventFacade;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
+use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
 use Tests\TestCase;
 
 class ApproveTrooperPermissionsTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesXenforoPlugin;
 
     private Trooper $admin;
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Forum groups come from the XenForo plugin.
+        $this->enableXenforo();
 
         config([
             'services.xenforo.base_url' => 'https://xf.test',

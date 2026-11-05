@@ -14,11 +14,21 @@ use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
+use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
 use Tests\TestCase;
 
 class RequestTrooperPermissionsTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesXenforoPlugin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Forum groups come from the XenForo plugin.
+        $this->enableXenforo();
+    }
 
     public function test_handle_records_request_and_notifies_admins(): void
     {

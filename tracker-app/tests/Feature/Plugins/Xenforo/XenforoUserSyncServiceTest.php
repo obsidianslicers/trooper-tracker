@@ -14,6 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
+use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 use TroopTracker\Plugins\Xenforo\Services\XenforoUserSyncService;
 
 class XenforoUserSyncServiceTest extends TestCase
@@ -54,9 +55,9 @@ class XenforoUserSyncServiceTest extends TestCase
 
     public function test_sync_trooper_uses_retired_group_when_global_status_is_retired(): void
     {
-        $org = Organization::factory()->create([
-            Organization::XENFORO_GROUP_ACTIVE_ID => 10,
-            Organization::XENFORO_GROUP_RETIRED_ID => 20,
+        $org = $this->createForumOrganization([
+            OrganizationForum::ACTIVE_GROUP_ID => 10,
+            OrganizationForum::RETIRED_GROUP_ID => 20,
         ]);
         $trooper = Trooper::factory()->create([Trooper::MEMBERSHIP_STATUS => MembershipStatus::RETIRED->value]);
         $trooper->organizations()->attach($org->id, ['membership_status' => 'active']);
@@ -84,7 +85,7 @@ class XenforoUserSyncServiceTest extends TestCase
 
     public function test_sync_trooper_does_not_send_secondary_group_ids_when_api_fails(): void
     {
-        $org = Organization::factory()->create([Organization::XENFORO_GROUP_ACTIVE_ID => 10]);
+        $org = $this->createForumOrganization([OrganizationForum::ACTIVE_GROUP_ID => 10]);
         $trooper = Trooper::factory()->create([Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE->value]);
         $trooper->organizations()->attach($org->id, ['membership_status' => 'active']);
 
@@ -103,7 +104,7 @@ class XenforoUserSyncServiceTest extends TestCase
 
     public function test_sync_trooper_does_not_send_secondary_group_ids_when_no_change(): void
     {
-        $org = Organization::factory()->create([Organization::XENFORO_GROUP_ACTIVE_ID => 10]);
+        $org = $this->createForumOrganization([OrganizationForum::ACTIVE_GROUP_ID => 10]);
         $trooper = Trooper::factory()->create([Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE->value]);
         $trooper->organizations()->attach($org->id, ['membership_status' => 'active']);
 
@@ -123,7 +124,7 @@ class XenforoUserSyncServiceTest extends TestCase
 
     public function test_sync_trooper_preserves_external_groups_when_change_needed(): void
     {
-        $org = Organization::factory()->create([Organization::XENFORO_GROUP_ACTIVE_ID => 10]);
+        $org = $this->createForumOrganization([OrganizationForum::ACTIVE_GROUP_ID => 10]);
         $trooper = Trooper::factory()->create([Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE->value]);
         $trooper->organizations()->attach($org->id, ['membership_status' => 'active']);
 
@@ -149,19 +150,19 @@ class XenforoUserSyncServiceTest extends TestCase
     public function test_desired_group_ids_includes_all_ancestor_groups(): void
     {
         // Three-level hierarchy: club → garrison → squad
-        $club = Organization::factory()->create([
+        $club = $this->createForumOrganization([
             Organization::TYPE => OrganizationType::ORGANIZATION,
-            Organization::XENFORO_GROUP_ACTIVE_ID => 100,
+            OrganizationForum::ACTIVE_GROUP_ID => 100,
         ]);
-        $garrison = Organization::factory()->create([
+        $garrison = $this->createForumOrganization([
             Organization::TYPE => OrganizationType::REGION,
             Organization::PARENT_ID => $club->id,
-            Organization::XENFORO_GROUP_ACTIVE_ID => 200,
+            OrganizationForum::ACTIVE_GROUP_ID => 200,
         ]);
-        $squad = Organization::factory()->create([
+        $squad = $this->createForumOrganization([
             Organization::TYPE => OrganizationType::UNIT,
             Organization::PARENT_ID => $garrison->id,
-            Organization::XENFORO_GROUP_ACTIVE_ID => 300,
+            OrganizationForum::ACTIVE_GROUP_ID => 300,
         ]);
 
         $trooper = Trooper::factory()->create([Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE->value]);
@@ -179,15 +180,15 @@ class XenforoUserSyncServiceTest extends TestCase
 
     public function test_retired_global_status_removes_active_assignment_groups(): void
     {
-        $club = Organization::factory()->create([
+        $club = $this->createForumOrganization([
             Organization::TYPE => OrganizationType::ORGANIZATION,
-            Organization::XENFORO_GROUP_ACTIVE_ID => 100,
-            Organization::XENFORO_GROUP_RETIRED_ID => 200,
+            OrganizationForum::ACTIVE_GROUP_ID => 100,
+            OrganizationForum::RETIRED_GROUP_ID => 200,
         ]);
-        $unit = Organization::factory()->create([
+        $unit = $this->createForumOrganization([
             Organization::TYPE => OrganizationType::UNIT,
             Organization::PARENT_ID => $club->id,
-            Organization::XENFORO_GROUP_ACTIVE_ID => 300,
+            OrganizationForum::ACTIVE_GROUP_ID => 300,
         ]);
 
         $trooper = Trooper::factory()->create([Trooper::MEMBERSHIP_STATUS => MembershipStatus::RETIRED->value]);

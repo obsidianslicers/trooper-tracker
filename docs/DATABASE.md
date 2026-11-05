@@ -447,11 +447,11 @@ Purpose: Hierarchical organization nodes.
 | service_class | varchar(128) | yes |  |
 | sync_sheet_id | varchar(128) | yes |  |
 | discord_mention | varchar(128) | yes | Legacy. Copied into the Discord plugin's table; a later core migration drops it. |
-| related_forum | bigint unsigned | yes |  |
-| related_forum_archive | bigint unsigned | yes |  |
-| xenforo_group_active_id | bigint unsigned | yes |  |
-| xenforo_group_reserve_id | bigint unsigned | yes |  |
-| xenforo_group_retired_id | bigint unsigned | yes |  |
+| related_forum | bigint unsigned | yes | no longer used (XenForo plugin's `tt_xenforo_organization_forums`) |
+| related_forum_archive | bigint unsigned | yes | no longer used (XenForo plugin's `tt_xenforo_organization_forums`) |
+| xenforo_group_active_id | bigint unsigned | yes | no longer used (XenForo plugin's `tt_xenforo_organization_forums`) |
+| xenforo_group_reserve_id | bigint unsigned | yes | no longer used (XenForo plugin's `tt_xenforo_organization_forums`) |
+| xenforo_group_retired_id | bigint unsigned | yes | no longer used (XenForo plugin's `tt_xenforo_organization_forums`) |
 | synchronized_at | datetime | yes |  |
 | description | varchar(512) | yes |  |
 | created_at | timestamp | yes | timestamps helper |

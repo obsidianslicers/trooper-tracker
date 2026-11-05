@@ -9,7 +9,6 @@ use App\Enums\EventType;
 use App\Events\EventClosed;
 use App\Events\EventPosted;
 use App\Models\Event;
-use App\Models\Organization;
 use App\Models\Trooper;
 use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,6 +19,7 @@ use Tests\TestCase;
 use TroopTracker\Plugins\Xenforo\Listeners\ArchiveEventThread;
 use TroopTracker\Plugins\Xenforo\Listeners\CreateEventThread;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 use TroopTracker\Plugins\Xenforo\Services\ForumThreadMessageService;
 
 class EventThreadsTest extends TestCase
@@ -40,7 +40,7 @@ class EventThreadsTest extends TestCase
 
     public function test_posting_an_event_creates_its_thread(): void
     {
-        $organization = Organization::factory()->withRelatedForum('42')->create();
+        $organization = $this->createForumOrganization([OrganizationForum::EVENT_FORUM_ID => 42]);
         $creator = Trooper::factory()->create();
         $event = Event::factory()->withOrganization($organization)->withCreatedByTrooper($creator)->create();
 
@@ -63,7 +63,7 @@ class EventThreadsTest extends TestCase
 
     public function test_posting_skips_events_that_opted_out_or_already_have_a_thread(): void
     {
-        $organization = Organization::factory()->withRelatedForum('42')->create();
+        $organization = $this->createForumOrganization([OrganizationForum::EVENT_FORUM_ID => 42]);
         $opted_out = $this->linkThread(Event::factory()->withOrganization($organization)->create(), null, null, false);
         $linked = $this->linkThread(Event::factory()->withOrganization($organization)->create(), 5, 6);
 
@@ -77,7 +77,7 @@ class EventThreadsTest extends TestCase
 
     public function test_closing_an_event_moves_its_thread_to_the_archive_forum(): void
     {
-        $organization = Organization::factory()->create([Organization::RELATED_FORUM_ARCHIVE => 77]);
+        $organization = $this->createForumOrganization([OrganizationForum::ARCHIVE_FORUM_ID => 77]);
         $event = $this->linkThread(Event::factory()->withOrganization($organization)->create(), 321, 654);
 
         $xenforo = Mockery::mock(XenforoService::class);

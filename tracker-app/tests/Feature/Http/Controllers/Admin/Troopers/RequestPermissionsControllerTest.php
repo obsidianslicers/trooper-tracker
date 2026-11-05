@@ -9,11 +9,21 @@ use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
 use Tests\TestCase;
 
 class RequestPermissionsControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesXenforoPlugin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Forum groups come from the XenForo plugin.
+        $this->enableXenforo();
+    }
 
     public function test_invoke_shows_moderated_organizations_and_own_requests(): void
     {
@@ -34,7 +44,7 @@ class RequestPermissionsControllerTest extends TestCase
             ->component('admin/troopers/RequestPermissions')
             ->has('organizations', 1)
             ->where('organizations.0.id', $moderated->id)
-            ->where('is_xenforo_configured', false)
+            ->where('has_forum_groups', false)
             ->has('permission_requests', 1));
     }
 

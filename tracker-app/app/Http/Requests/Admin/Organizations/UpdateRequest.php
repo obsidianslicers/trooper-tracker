@@ -65,26 +65,6 @@ class UpdateRequest extends FormRequest
                 'string',
                 'max:128',
             ],
-            Organization::RELATED_FORUM => [
-                'nullable',
-                'integer',
-            ],
-            Organization::RELATED_FORUM_ARCHIVE => [
-                'nullable',
-                'integer',
-            ],
-            Organization::XENFORO_GROUP_ACTIVE_ID => [
-                'nullable',
-                'integer',
-            ],
-            Organization::XENFORO_GROUP_RESERVE_ID => [
-                'nullable',
-                'integer',
-            ],
-            Organization::XENFORO_GROUP_RETIRED_ID => [
-                'nullable',
-                'integer',
-            ],
         ];
 
         return [...$rules, ...app(PluginForms::class)->rules(PluginForms::ORGANIZATION_UPDATE)];

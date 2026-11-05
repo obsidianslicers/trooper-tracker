@@ -14,7 +14,7 @@ export type RequestableOrganization = {
 
 export type RequestPermissionsPageData = {
     organizations: RequestableOrganization[];
-    is_xenforo_configured: boolean;
+    has_forum_groups: boolean;
     forum_groups: ForumGroup[];
     permission_requests: PermissionRequest[];
 };
@@ -67,7 +67,7 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
 > {
     organizations: RequestableOrganization[];
     forum_groups: ForumGroup[];
-    is_xenforo_configured: boolean;
+    has_forum_groups: boolean;
     permission_requests: PermissionRequest[];
 
     #trooper = $state<Trooper | null | undefined>(null);
@@ -78,7 +78,7 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
         super();
         this.organizations = pageData.organizations ?? [];
         this.forum_groups = pageData.forum_groups ?? [];
-        this.is_xenforo_configured = pageData.is_xenforo_configured ?? false;
+        this.has_forum_groups = pageData.has_forum_groups ?? false;
         this.permission_requests = pageData.permission_requests ?? [];
         this.form = createRequestPermissionsForm();
     }
@@ -127,7 +127,7 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
     }
 
     get can_request_forum_groups(): boolean {
-        return this.is_xenforo_configured && (this.lookup?.has_forum_account ?? false);
+        return this.has_forum_groups && (this.lookup?.has_forum_account ?? false);
     }
 
     get current_forum_groups(): ForumGroup[] {

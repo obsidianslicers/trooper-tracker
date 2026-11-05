@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Plugins\Xenforo;
 
 use App\Models\Event;
+use App\Models\Organization;
 use App\Plugins\PluginManager;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Route;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 
 trait UsesXenforoPlugin
 {
@@ -38,5 +40,21 @@ trait UsesXenforoPlugin
         ]);
 
         return $event;
+    }
+
+    /**
+     * Create an organization; OrganizationForum keys in the attributes become its
+     * forum settings.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    protected function createForumOrganization(array $attributes = []): Organization
+    {
+        $forum = array_intersect_key($attributes, array_flip(OrganizationForum::SETTINGS));
+        $organization = Organization::factory()->create(array_diff_key($attributes, $forum));
+
+        OrganizationForum::store($organization->id, $forum);
+
+        return $organization;
     }
 }

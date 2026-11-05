@@ -11,6 +11,7 @@ use App\Http\Middleware\CheckVisitorAccessMiddleware;
 use App\Http\Middleware\TrooperSetupRequiredMiddleware;
 use App\Models\Event;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Plugins\PluginForms;
 use App\Plugins\PluginServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
@@ -21,6 +22,7 @@ use TroopTracker\Plugins\Xenforo\Console\SyncUserCommand;
 use TroopTracker\Plugins\Xenforo\Console\SyncUsersCommand;
 use TroopTracker\Plugins\Xenforo\Donations\XenforoDonationSource;
 use TroopTracker\Plugins\Xenforo\Donations\XenforoProfile;
+use TroopTracker\Plugins\Xenforo\ForumGroups\XenforoForumGroups;
 use TroopTracker\Plugins\Xenforo\Http\Controllers\AccountLinkController;
 use TroopTracker\Plugins\Xenforo\Http\Controllers\AccountLinkRequiredController;
 use TroopTracker\Plugins\Xenforo\Http\Controllers\ForumReplyController;
@@ -32,6 +34,7 @@ use TroopTracker\Plugins\Xenforo\Listeners\ArchiveEventThread;
 use TroopTracker\Plugins\Xenforo\Listeners\CreateEventThread;
 use TroopTracker\Plugins\Xenforo\Listeners\SyncThreadWatch;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 use TroopTracker\Plugins\Xenforo\Observers\EventThreadObserver;
 use TroopTracker\Plugins\Xenforo\Observers\EventTrooperThreadObserver;
 use TroopTracker\Plugins\Xenforo\Socialite\XenforoProvider;
@@ -77,6 +80,8 @@ class XenforoServiceProvider extends PluginServiceProvider
         $this->registerAccountRoutes();
         $this->registerServiceRecord();
         $this->registerEventThreads();
+        $this->registerOrganizationFields();
+        $this->setForumGroupProvider(XenforoForumGroups::class);
 
         $this->schedule(function (Schedule $schedule): void
         {
@@ -169,6 +174,45 @@ class XenforoServiceProvider extends PluginServiceProvider
                 CheckVisitorAccessMiddleware::class,
             ])
             ->name('webhooks.xenforo');
+    }
+
+    private function registerOrganizationFields(): void
+    {
+        $this->addToSlot(
+            'admin.organizations.update.fields',
+            'xenforo::admin.organization-fields',
+            fn (array $context): array => [
+                'xenforo_forum' => OrganizationForum::forOrganization($context['organization']->id),
+            ],
+        );
+
+        $fields = [];
+
+        foreach (OrganizationForum::SETTINGS as $setting)
+        {
+            $fields['xenforo_'.$setting] = ['nullable', 'integer', 'min:1'];
+        }
+
+        $this->extendForm(PluginForms::ORGANIZATION_UPDATE,
+            rules: $fields,
+            saved: function (Organization $organization, array $validated): void
+            {
+                $values = [];
+
+                foreach (OrganizationForum::SETTINGS as $setting)
+                {
+                    if (array_key_exists('xenforo_'.$setting, $validated))
+                    {
+                        $values[$setting] = $validated['xenforo_'.$setting];
+                    }
+                }
+
+                if ($values !== [])
+                {
+                    OrganizationForum::store($organization->id, $values);
+                }
+            },
+        );
     }
 
     /**

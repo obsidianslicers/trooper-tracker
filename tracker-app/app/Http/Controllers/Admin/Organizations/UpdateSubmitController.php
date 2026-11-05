@@ -41,31 +41,6 @@ class UpdateSubmitController extends MagicBusController
             $organization->sync_sheet_id = $request->validated('sync_sheet_id');
         }
 
-        if ($request->has(Organization::RELATED_FORUM))
-        {
-            $organization->related_forum = $request->validated(Organization::RELATED_FORUM);
-        }
-
-        if ($request->has(Organization::RELATED_FORUM_ARCHIVE))
-        {
-            $organization->related_forum_archive = $request->validated(Organization::RELATED_FORUM_ARCHIVE);
-        }
-
-        if ($request->has(Organization::XENFORO_GROUP_ACTIVE_ID))
-        {
-            $organization->xenforo_group_active_id = $request->validated(Organization::XENFORO_GROUP_ACTIVE_ID);
-        }
-
-        if ($request->has(Organization::XENFORO_GROUP_RESERVE_ID))
-        {
-            $organization->xenforo_group_reserve_id = $request->validated(Organization::XENFORO_GROUP_RESERVE_ID);
-        }
-
-        if ($request->has(Organization::XENFORO_GROUP_RETIRED_ID))
-        {
-            $organization->xenforo_group_retired_id = $request->validated(Organization::XENFORO_GROUP_RETIRED_ID);
-        }
-
         DB::transaction(function () use ($organization, $request, $plugin_forms): void
         {
             $organization->save();

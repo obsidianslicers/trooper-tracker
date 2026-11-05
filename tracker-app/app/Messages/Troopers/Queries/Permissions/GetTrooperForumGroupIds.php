@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\Queries\Permissions;
 
-use App\Facades\TroopTrackerFacade;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
+use App\Plugins\PluginForumGroups;
 use Hyperdrive\Message;
 
 /**
- * Reads a trooper's current XenForo secondary group IDs.
+ * Reads a trooper's current forum group IDs.
  *
- * Returns null when XenForo is not configured, the trooper has no linked
- * forum account, or the forum could not be read.
+ * Returns null when no forum group provider is available, the trooper has no
+ * linked forum account, or the forum could not be read.
  *
  * @method static array<int, int>|null call(Trooper $trooper)
  */
@@ -24,20 +23,8 @@ final class GetTrooperForumGroupIds extends Message
     /**
      * @return array<int, int>|null
      */
-    public function handle(XenforoService $xenforo): ?array
+    public function handle(PluginForumGroups $forum_groups): ?array
     {
-        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
-        {
-            return null;
-        }
-
-        $xenforo_user_id = $xenforo->resolve_user_id_for_trooper($this->trooper->id);
-
-        if ($xenforo_user_id === null)
-        {
-            return null;
-        }
-
-        return $xenforo->getUserSecondaryGroupIds($xenforo_user_id);
+        return $forum_groups->provider()?->currentGroupIds($this->trooper);
     }
 }

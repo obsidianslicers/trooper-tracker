@@ -11,7 +11,7 @@ use App\Messages\Troopers\Queries\Permissions\GetRequestableForumGroups;
 use App\Messages\Troopers\Queries\Permissions\GetRequestableOrganizations;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
+use App\Plugins\PluginForumGroups;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -179,9 +179,9 @@ class RequestPermissionsRequest extends FormRequest
         }
 
         $trooper = $this->targetTrooper();
-        $xenforo = app(XenforoService::class);
+        $provider = app(PluginForumGroups::class)->provider();
 
-        if ($trooper !== null && $xenforo->resolve_user_id_for_trooper($trooper->id) === null)
+        if ($trooper !== null && !$provider?->hasAccount($trooper))
         {
             $validator->errors()->add(self::GROUPS_TO_ADD, 'This trooper has no forum account.');
         }
