@@ -39,6 +39,11 @@ class EnablePluginCommand extends Command
 
         $this->info("Plugin [{$slug}] enabled.");
 
+        foreach ($plugins->findOrFail($slug)->capabilities as $capability)
+        {
+            $this->line("  It {$capability->description()}.");
+        }
+
         return self::SUCCESS;
     }
 }

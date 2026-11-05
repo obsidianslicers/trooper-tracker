@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Plugins;
 
+use App\Enums\PluginCapability;
 use App\Plugins\PluginManifest;
 use App\Plugins\PluginSetting;
 use InvalidArgumentException;
@@ -53,6 +54,23 @@ class PluginManifestTest extends TestCase
         $this->assertSame(['xenforo' => '^1.0'], $manifest->plugin_requires);
     }
 
+    public function test_from_array_reads_capabilities(): void
+    {
+        $manifest = PluginManifest::fromArray([
+            'slug' => 'ok',
+            'provider' => 'A\\B',
+            'namespace' => 'A',
+            'capabilities' => ['login', 'events'],
+        ], '/tmp/ok', false);
+
+        $this->assertSame(
+            [PluginCapability::LOGIN, PluginCapability::EVENTS],
+            $manifest->capabilities,
+        );
+        $this->assertTrue($manifest->can(PluginCapability::LOGIN));
+        $this->assertFalse($manifest->can(PluginCapability::MIDDLEWARE));
+    }
+
     public function test_requirements_default_to_none(): void
     {
         $manifest = PluginManifest::fromArray(
@@ -99,6 +117,12 @@ class PluginManifestTest extends TestCase
                 'provider' => 'A\\B',
                 'namespace' => 'A',
                 'settings' => [['key' => 'x', 'type' => 'color']],
+            ]],
+            'unknown capability' => [[
+                'slug' => 'ok',
+                'provider' => 'A\\B',
+                'namespace' => 'A',
+                'capabilities' => ['root-access'],
             ]],
             'requires not an object' => [[
                 'slug' => 'ok',

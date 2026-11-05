@@ -6,6 +6,7 @@
     "author": "Obsidian Slicers",
     "namespace": "TroopTracker\\Plugins\\Discord",
     "provider": "TroopTracker\\Plugins\\Discord\\DiscordServiceProvider",
+    "capabilities": ["events", "forms"],
     "requires": {
         "trooptracker": "^1.0"
     },

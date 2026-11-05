@@ -37,6 +37,11 @@
                     @if($manifest->author !== '')
                         <div class="small text-muted">By {{ $manifest->author }}</div>
                     @endif
+                    @if($manifest->capabilities !== [])
+                        <div class="small text-muted">
+                            It {{ $plugin['capability_summary'] }}.
+                        </div>
+                    @endif
                 </td>
                 <td>
                     {{ $manifest->version }}
@@ -82,7 +87,11 @@
                     @endphp
                     <form method="POST"
                           class="d-inline"
-                          action="{{ route($toggle_route, ['slug' => $manifest->slug]) }}">
+                          action="{{ route($toggle_route, ['slug' => $manifest->slug]) }}"
+                          @if(!$plugin['is_enabled'] && $manifest->capabilities !== [])
+                              data-confirm="Turn on {{ $manifest->name }}? It {{ $plugin['capability_summary'] }}."
+                              onsubmit="return confirm(this.dataset.confirm);"
+                          @endif>
                         @csrf
                         @if($plugin['is_enabled'])
                             <button type="submit"

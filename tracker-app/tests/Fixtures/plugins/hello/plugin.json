@@ -6,6 +6,7 @@
     "author": "Tests",
     "namespace": "HelloPlugin",
     "provider": "HelloPlugin\\HelloServiceProvider",
+    "capabilities": ["events"],
     "settings": [
         { "key": "greeting", "label": "Greeting", "type": "text", "default": "Hello" },
         { "key": "api_key", "label": "API key", "type": "secret" },

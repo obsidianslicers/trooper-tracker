@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Plugins;
 
+use App\Enums\PluginCapability;
 use App\Http\Middleware\IsolatePluginMiddleware;
 use Closure;
 use Hyperdrive\Events\MessageHandled;
@@ -23,12 +24,26 @@ use Throwable;
  * Before bootPlugin() runs, the plugin's conventional folders are loaded:
  *
  * - config/config.php        merged into config("plugins.<slug>")
- * - routes/web.php           under /plugins/<slug>, named "plugins.<slug>."
+ * - routes/web.php           /plugins/<slug>, "plugins.<slug>.", signed-in active troopers
+ * - routes/admin.php         /plugins/<slug>/admin, "plugins.<slug>.admin.", administrators
+ * - routes/public.php        /plugins/<slug>, "plugins.<slug>.", anyone
  * - resources/views          as the "<slug>::" view namespace
  * - database/migrations      included in "php artisan migrate"
  */
 abstract class PluginServiceProvider extends ServiceProvider
 {
+    public const PUBLIC_MIDDLEWARE = ['web'];
+
+    public const TROOPER_MIDDLEWARE = ['web', 'auth', 'verified', 'check.active'];
+
+    public const ADMINISTRATOR_MIDDLEWARE = [
+        'web',
+        'auth',
+        'verified',
+        'check.active',
+        'check.role:administrator',
+    ];
+
     public function __construct(Application $app, protected readonly PluginManifest $plugin)
     {
         parent::__construct($app);
@@ -76,6 +91,7 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function listen(string $event, Closure|string|array $listener): void
     {
+        $this->requireCapability(PluginCapability::EVENTS);
         $is_wildcard = str_contains($event, '*');
         $handler = $this->app['events']->makeListener($listener, $is_wildcard);
         $what = "handle [{$event}] in plugin [{$this->plugin->slug}]";
@@ -93,6 +109,7 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function beforeMessage(string $message_class, Closure $callback): void
     {
+        $this->requireCapability(PluginCapability::EVENTS);
         Event::listen(
             MessageHandling::class,
             function (MessageHandling $event) use ($message_class, $callback): void
@@ -112,6 +129,7 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function afterMessage(string $message_class, Closure $callback): void
     {
+        $this->requireCapability(PluginCapability::EVENTS);
         Event::listen(
             MessageHandled::class,
             function (MessageHandled $event) use ($message_class, $callback): void
@@ -149,6 +167,7 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function extendForm(string $form, array $rules = [], ?Closure $saved = null): void
     {
+        $this->requireCapability(PluginCapability::FORMS);
         $this->app->make(PluginForms::class)->add($form, $rules, $saved);
     }
 
@@ -170,6 +189,7 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function addDonationSource(string $source_class): void
     {
+        $this->requireCapability(PluginCapability::DONATIONS);
         $this->app->make(PluginDonations::class)->add($source_class);
     }
 
@@ -180,6 +200,7 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function setSheetSource(string $source_class): void
     {
+        $this->requireCapability(PluginCapability::CLUB_DATA);
         $this->app->make(PluginSheetSource::class)->set($source_class);
     }
 
@@ -195,6 +216,7 @@ abstract class PluginServiceProvider extends ServiceProvider
         string $label,
         string $synchronizer_class,
     ): void {
+        $this->requireCapability(PluginCapability::CLUB_DATA);
         $this->app->make(PluginClubSynchronizers::class)->add($key, $label, $synchronizer_class);
     }
 
@@ -205,6 +227,7 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function addPermissionRequestExtension(string $extension_class): void
     {
+        $this->requireCapability(PluginCapability::FORMS);
         $this->app->make(PluginPermissionRequests::class)->add($extension_class);
     }
 
@@ -216,6 +239,7 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function addLoginProvider(string $provider_class): void
     {
+        $this->requireCapability(PluginCapability::LOGIN);
         $this->app->make(PluginLoginProviders::class)->add($provider_class);
     }
 
@@ -240,6 +264,7 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function addWebMiddleware(string $middleware_class): void
     {
+        $this->requireCapability(PluginCapability::MIDDLEWARE);
         $this->app['router']->pushMiddlewareToGroup(
             'web',
             IsolatePluginMiddleware::class.':'.$middleware_class,
@@ -253,6 +278,7 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function schedule(Closure $callback): void
     {
+        $this->requireCapability(PluginCapability::SCHEDULE);
         $this->callAfterResolving(Schedule::class, $callback);
     }
 
@@ -281,12 +307,47 @@ abstract class PluginServiceProvider extends ServiceProvider
             $this->loadMigrationsFrom($path.'/database/migrations');
         }
 
-        if (is_file($path.'/routes/web.php') && !$this->app->routesAreCached())
+        if (!$this->app->routesAreCached())
         {
-            Route::middleware('web')
-                ->prefix("plugins/{$slug}")
-                ->name("plugins.{$slug}.")
-                ->group($path.'/routes/web.php');
+            $this->loadConventionalRoutes();
+        }
+    }
+
+    /**
+     * Plugin pages need a signed-in, active trooper unless the plugin puts them
+     * in routes/public.php on purpose. routes/admin.php is for administrators.
+     */
+    private function loadConventionalRoutes(): void
+    {
+        $slug = $this->plugin->slug;
+        $files = [
+            'public.php' => [self::PUBLIC_MIDDLEWARE, '', ''],
+            'web.php' => [self::TROOPER_MIDDLEWARE, '', ''],
+            'admin.php' => [self::ADMINISTRATOR_MIDDLEWARE, '/admin', 'admin.'],
+        ];
+
+        foreach ($files as $file => [$middleware, $prefix, $name])
+        {
+            $route_file = "{$this->plugin->path}/routes/{$file}";
+
+            if (is_file($route_file))
+            {
+                Route::middleware($middleware)
+                    ->prefix("plugins/{$slug}{$prefix}")
+                    ->name("plugins.{$slug}.{$name}")
+                    ->group($route_file);
+            }
+        }
+    }
+
+    /**
+     * @throws PluginCapabilityException
+     */
+    private function requireCapability(PluginCapability $capability): void
+    {
+        if (!$this->plugin->can($capability))
+        {
+            throw PluginCapabilityException::notDeclared($this->plugin, $capability);
         }
     }
 

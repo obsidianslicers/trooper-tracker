@@ -20,6 +20,7 @@ class IsolationProvider extends PluginServiceProvider
             'slug' => 'isolation',
             'provider' => self::class,
             'namespace' => 'Tests\\Fixtures\\Isolation',
+            'capabilities' => ['events', 'middleware'],
         ], base_path('tests/Fixtures/Isolation'), false));
     }
 

@@ -6,6 +6,7 @@
     "author": "Obsidian Slicers",
     "namespace": "TroopTracker\\Plugins\\GoogleSheets",
     "provider": "TroopTracker\\Plugins\\GoogleSheets\\GoogleSheetsServiceProvider",
+    "capabilities": ["forms", "club-data"],
     "requires": {
         "trooptracker": "^1.0"
     },

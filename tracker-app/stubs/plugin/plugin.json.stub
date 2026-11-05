@@ -6,6 +6,7 @@
     "author": "",
     "namespace": "{{ namespace_json }}",
     "provider": "{{ namespace_json }}\\{{ class }}ServiceProvider",
+    "capabilities": ["events"],
     "requires": {
         "trooptracker": "^1.0"
     },

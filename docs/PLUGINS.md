@@ -111,7 +111,9 @@ It writes a working plugin with an example setting, an `EventPosted` listener, a
 plugins/hello/
 ├── plugin.json
 ├── config/config.php              # optional, merged into config('plugins.hello')
-├── routes/web.php                 # optional, under /plugins/hello, named plugins.hello.*
+├── routes/web.php                 # optional, /plugins/hello, plugins.hello.*, signed-in troopers
+├── routes/admin.php               # optional, /plugins/hello/admin, plugins.hello.admin.*, administrators
+├── routes/public.php              # optional, /plugins/hello, plugins.hello.*, anyone
 ├── resources/views/               # optional, as the hello:: view namespace
 ├── database/migrations/           # optional, run on enable and by php artisan migrate
 └── src/
@@ -129,6 +131,7 @@ plugins/hello/
     "author": "Your Garrison",
     "namespace": "Acme\\Hello",
     "provider": "Acme\\Hello\\HelloServiceProvider",
+    "capabilities": ["events", "forms"],
     "requires": {
         "trooptracker": "^1.0",
         "php": ">=8.2",
@@ -149,7 +152,28 @@ plugins/hello/
 | `namespace` | local plugins | PSR-4 namespace for the plugin's `src/` folder. Composer packages use their own autoload instead. |
 | `name`, `version`, `description`, `author` | no | Shown on the Plugins page. |
 | `settings` | no | Admin-editable settings (see below). |
+| `capabilities` | if it uses those hooks | What the plugin does to the site, shown on the Plugins page and confirmed when it is turned on (see [Capabilities](#capabilities)). |
 | `requires` | no | What the plugin needs before it can be turned on. `trooptracker` is the plugin API range it works with (the app's is `App\Plugins\PluginApi::VERSION`, currently 1.0.0); also `php`, `ext-*` and Composer packages, each with a Composer version constraint, and `plugins`, other plugins' slugs with the versions it works with. A plugin folder's `composer.json` `require` list is checked the same way. |
+
+### Capabilities
+
+A plugin lists in `capabilities` the hooks that change what the site does, so an administrator can see that before turning it on. The Plugins page shows them under the plugin, and Enable asks first. A hook the plugin did not list refuses to run, and the plugin fails to load with a log error naming the missing capability.
+
+| Capability | Hooks | Shown as |
+|------------|-------|----------|
+| `middleware` | `addWebMiddleware` | runs on every page request |
+| `events` | `listen`, `beforeMessage`, `afterMessage` | reacts when things happen |
+| `forms` | `extendForm`, `addPermissionRequestExtension` | adds fields to core forms and permission requests |
+| `login` | `addLoginProvider` | adds a way to sign in |
+| `donations` | `addDonationSource` | adds donations from another system |
+| `club-data` | `addClubSynchronizer`, `setSheetSource` | changes club rosters and costumes |
+| `schedule` | `schedule` | runs scheduled tasks |
+
+Slots, System Check rows, notification categories and settings need no capability. This is disclosure and a guardrail, not a sandbox: a plugin is PHP code running with the app's full access, so only install plugins you trust.
+
+### Plugin pages
+
+Pages in `routes/web.php` need a signed-in, verified, active trooper; `routes/admin.php` pages (under `/plugins/<slug>/admin`) also need an administrator; only `routes/public.php` pages are open to anyone. Check finer permissions in the controller with a policy. Routes a plugin registers itself in its provider (such as XenForo's account pages) set their own middleware.
 
 ### The service provider
 

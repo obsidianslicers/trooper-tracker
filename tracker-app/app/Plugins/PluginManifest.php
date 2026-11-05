@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Plugins;
 
+use App\Enums\PluginCapability;
 use InvalidArgumentException;
 
 /**
@@ -16,6 +17,7 @@ final readonly class PluginManifest
      * @param  array<string, string>  $requires  PHP, extensions, packages and the plugin
      *                                           API ("trooptracker"), each with a constraint
      * @param  array<string, string>  $plugin_requires  other plugins' slugs => version constraint
+     * @param  array<int, PluginCapability>  $capabilities
      */
     public function __construct(
         public string $slug,
@@ -31,7 +33,13 @@ final readonly class PluginManifest
         public array $settings = [],
         public array $requires = [],
         public array $plugin_requires = [],
+        public array $capabilities = [],
     ) {}
+
+    public function can(PluginCapability $capability): bool
+    {
+        return in_array($capability, $this->capabilities, true);
+    }
 
     /**
      * Build a manifest from decoded plugin.json data.
@@ -68,7 +76,31 @@ final readonly class PluginManifest
             ),
             requires: $requires['packages'],
             plugin_requires: $requires['plugins'],
+            capabilities: self::capabilities($data, $slug),
         );
+    }
+
+    /**
+     * @return array<int, PluginCapability>
+     */
+    private static function capabilities(array $data, string $slug): array
+    {
+        $values = $data['capabilities'] ?? [];
+
+        if (!is_array($values))
+        {
+            throw new InvalidArgumentException(
+                "Plugin [{$slug}] has \"capabilities\" that is not a list."
+            );
+        }
+
+        return array_values(array_map(
+            fn (mixed $value): PluginCapability => PluginCapability::tryFrom((string) $value)
+                ?? throw new InvalidArgumentException(
+                    "Plugin [{$slug}] lists an unknown capability [{$value}]."
+                ),
+            $values,
+        ));
     }
 
     /**
