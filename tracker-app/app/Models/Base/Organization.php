@@ -43,12 +43,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $image_path_sm
  * @property string|null $synchronizer
  * @property string|null $sync_sheet_id
- * @property string|null $discord_mention
- * @property int|null $related_forum
- * @property int|null $related_forum_archive
- * @property int|null $xenforo_group_active_id
- * @property int|null $xenforo_group_reserve_id
- * @property int|null $xenforo_group_retired_id
  * @property Carbon|null $synchronized_at
  * @property string|null $description
  * @property Carbon|null $created_at
@@ -90,12 +84,6 @@ class Organization extends Model
     const IMAGE_PATH_SM = 'image_path_sm';
     const SYNCHRONIZER = 'synchronizer';
     const SYNC_SHEET_ID = 'sync_sheet_id';
-    const DISCORD_MENTION = 'discord_mention';
-    const RELATED_FORUM = 'related_forum';
-    const RELATED_FORUM_ARCHIVE = 'related_forum_archive';
-    const XENFORO_GROUP_ACTIVE_ID = 'xenforo_group_active_id';
-    const XENFORO_GROUP_RESERVE_ID = 'xenforo_group_reserve_id';
-    const XENFORO_GROUP_RETIRED_ID = 'xenforo_group_retired_id';
     const SYNCHRONIZED_AT = 'synchronized_at';
     const DESCRIPTION = 'description';
     const CREATED_AT = 'created_at';
@@ -113,11 +101,6 @@ class Organization extends Model
         self::SEQUENCE => 'int',
         self::CAN_ATTEND_DEFAULT => 'bool',
         self::REQUIRES_GUARDIAN => 'bool',
-        self::RELATED_FORUM => 'int',
-        self::RELATED_FORUM_ARCHIVE => 'int',
-        self::XENFORO_GROUP_ACTIVE_ID => 'int',
-        self::XENFORO_GROUP_RESERVE_ID => 'int',
-        self::XENFORO_GROUP_RETIRED_ID => 'int',
         self::SYNCHRONIZED_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
@@ -141,12 +124,6 @@ class Organization extends Model
         self::IMAGE_PATH_SM,
         self::SYNCHRONIZER,
         self::SYNC_SHEET_ID,
-        self::DISCORD_MENTION,
-        self::RELATED_FORUM,
-        self::RELATED_FORUM_ARCHIVE,
-        self::XENFORO_GROUP_ACTIVE_ID,
-        self::XENFORO_GROUP_RESERVE_ID,
-        self::XENFORO_GROUP_RETIRED_ID,
         self::SYNCHRONIZED_AT,
         self::DESCRIPTION
     ];

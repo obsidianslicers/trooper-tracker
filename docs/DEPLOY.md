@@ -223,7 +223,7 @@ php artisan db:seed --force
 
 After `php artisan migrate`, `deploy.sh` runs `php artisan plugins:reconcile`, which brings every plugin back to the state an administrator chose (see [Plugin packages on deploy](#plugin-packages-on-deploy)). Deploying by hand, run it yourself.
 
-Plugins are off until enabled. If the site posts events to Discord, enable the Discord plugin once (it moved out of core). Enabling copies each organization's Discord mention into the plugin's own table; the old `tt_organizations.discord_mention` column is left alone until a later release drops it:
+Plugins are off until enabled. If the site posts events to Discord, enable the Discord plugin once (it moved out of core). Enabling copies each organization's Discord mention into the plugin's own table. Enable the Discord and XenForo plugins before deploying the release that drops the old core columns (`2026_11_06_000001_drop_plugin_columns_from_core_tables`); if a site has data in them and never enabled the plugin, that migration stops rather than lose it:
 
 ```bash
 php artisan plugins:enable discord

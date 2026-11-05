@@ -448,7 +448,7 @@ or use **Command Staff > Plugins > Enable**.
 Each organization's Discord mention used to live in core's `tt_organizations.discord_mention`. The move happens in two steps, each owned by whoever owns the data:
 
 1. **The plugin copies.** Enabling it runs its migration, which creates `tt_discord_organization_mentions` and copies every non-empty value into it. The plugin never changes core tables, and core no longer reads or writes the old column. Uninstalling drops only the plugin's table; enabling again copies from the old column once more.
-2. **Core drops the column, in a later release.** Once production has the plugin enabled, one ordinary core migration drops `tt_organizations.discord_mention`, with the regenerated `Organization` model committed alongside it. Before dropping, it copies any value the plugin table is missing. If a site has mentions but never enabled the plugin, it refuses to run rather than lose them.
+2. **Core drops the column.** The core migration `2026_11_06_000001_drop_plugin_columns_from_core_tables` drops `tt_organizations.discord_mention` (and the old XenForo columns below). Before dropping, it copies any value the plugin table is missing. If a site has mentions but never enabled the plugin, it refuses to run rather than lose them.
 
 A fresh database seeded with the Florida Garrison data no longer gets mentions from the core seeder. With the plugin enabled, seed them from the plugin:
 
@@ -461,7 +461,7 @@ php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\Flori
 
 ## The XenForo plugin
 
-`tracker-app/plugins/xenforo` holds the whole XenForo forum integration. Core code no longer refers to XenForo, apart from the old columns a later core migration drops (see below) and the FAQ text. It has:
+`tracker-app/plugins/xenforo` holds the whole XenForo forum integration. Core code no longer refers to XenForo, apart from the FAQ text. It has:
 
 - the settings page: forum URL and name, API key and user, OAuth client, webhook secret, and **Require a linked forum account**
 - the XenForo API client (`TroopTracker\Plugins\Xenforo\Services\XenforoService`) and its config, `config("plugins.xenforo.*")`
@@ -473,8 +473,8 @@ php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\Flori
 - the event page's Forum Comments section, reply box (`events.forum-reply-htmx`), forum attachments (`events.forum-attachment`), the View Forum Post button, and forum smilies in the event comments editor
 - watching an event also watches its forum thread
 - the forum webhook (`/webhooks/xenforo`) and the "new forum reply" and "notify command staff" notifications, with their two notification preference categories (`event_forum_post`, `forum_post_command_staff`; stored preferences keep working)
-- each organization's forum settings (event forum, archive forum, and the active, reserve and retired user groups), on the organization edit form; stored in `tt_xenforo_organization_forums`, copied from the old `tt_organizations` columns on enable. `FloridaGarrisonForumSeeder` seeds the Florida Garrison values
-- forum groups on the Request Permissions page (a permission request extension, key `xenforo`); requested groups are stored in `tt_xenforo_permission_request_groups`, copied from the old `tt_permission_requests.forum_groups_to_add` and `forum_groups_to_remove` columns on enable
+- each organization's forum settings (event forum, archive forum, and the active, reserve and retired user groups), on the organization edit form; stored in `tt_xenforo_organization_forums`, copied from the old `tt_organizations` columns on enable (core has since dropped them). `FloridaGarrisonForumSeeder` seeds the Florida Garrison values
+- forum groups on the Request Permissions page (a permission request extension, key `xenforo`); requested groups are stored in `tt_xenforo_permission_request_groups`, copied from the old `tt_permission_requests.forum_groups_to_add` and `forum_groups_to_remove` columns on enable (core has since dropped them)
 - forum upgrades as a donation source (donation months, total donated, donor milestones, the active donor badge and the support goal widget's monthly total), plus the service record's forum group banners, Forum Profile button and upgrade history table
 
 **Require a linked forum account** only applies while the plugin is enabled. With the plugin off, the site runs without XenForo: the XenForo login button is hidden, email and Google login work, and nobody is sent to the link page.
@@ -485,7 +485,7 @@ Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TR
 php artisan db:seed --class="TroopTracker\Plugins\Xenforo\Database\Seeders\XenforoTestThreadSeeder"
 ```
 
-Each event's thread lives in the plugin's `tt_xenforo_event_threads` table. Enabling the plugin copies `tt_events.thread_id`, `post_id` and `create_forum_thread` there; core no longer reads those columns, and a later core migration drops them. The Florida Garrison legacy event import still writes the old columns, so run it before enabling the plugin.
+Each event's thread lives in the plugin's `tt_xenforo_event_threads` table. Enabling the plugin copies `tt_events.thread_id`, `post_id` and `create_forum_thread` there when a site still has those columns. Core dropped them in `2026_11_06_000001_drop_plugin_columns_from_core_tables`, so the Florida Garrison legacy event import no longer brings over thread IDs.
 
 Sites that use XenForo must enable the plugin right after deploying. Until then the user sync stops and a linked forum account is not required:
 

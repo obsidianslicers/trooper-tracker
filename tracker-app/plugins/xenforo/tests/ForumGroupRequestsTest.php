@@ -14,6 +14,7 @@ use App\Messages\Troopers\Resources\PermissionRequestsCollection;
 use App\Models\OauthLogin;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
@@ -206,10 +207,12 @@ class ForumGroupRequestsTest extends TestCase
 
     public function test_enabling_copies_groups_from_the_old_columns(): void
     {
-        $this->assertTrue(Schema::hasColumns(
-            'tt_permission_requests',
-            ['forum_groups_to_add', 'forum_groups_to_remove'],
-        ));
+        // Core dropped these columns; sites upgrading from before the plugin still have them.
+        Schema::table('tt_permission_requests', function (Blueprint $table): void
+        {
+            $table->json('forum_groups_to_add')->nullable();
+            $table->json('forum_groups_to_remove')->nullable();
+        });
         $permission_request = PermissionRequest::factory()->create();
         DB::table('tt_permission_requests')->where('id', $permission_request->id)->update([
             'forum_groups_to_add' => json_encode([self::EVENT_COORDINATORS]),

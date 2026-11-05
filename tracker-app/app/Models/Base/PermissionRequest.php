@@ -22,8 +22,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $membership_role
  * @property array|null $moderated_organization_ids_to_add
  * @property array|null $moderated_organization_ids_to_remove
- * @property array|null $forum_groups_to_add
- * @property array|null $forum_groups_to_remove
  * @property string|null $note
  * @property string $status
  * @property string|null $denial_reason
@@ -49,8 +47,6 @@ class PermissionRequest extends Model
     const MEMBERSHIP_ROLE = 'membership_role';
     const MODERATED_ORGANIZATION_IDS_TO_ADD = 'moderated_organization_ids_to_add';
     const MODERATED_ORGANIZATION_IDS_TO_REMOVE = 'moderated_organization_ids_to_remove';
-    const FORUM_GROUPS_TO_ADD = 'forum_groups_to_add';
-    const FORUM_GROUPS_TO_REMOVE = 'forum_groups_to_remove';
     const NOTE = 'note';
     const STATUS = 'status';
     const DENIAL_REASON = 'denial_reason';
@@ -70,8 +66,6 @@ class PermissionRequest extends Model
         self::REVIEWER_TROOPER_ID => 'int',
         self::MODERATED_ORGANIZATION_IDS_TO_ADD => 'json',
         self::MODERATED_ORGANIZATION_IDS_TO_REMOVE => 'json',
-        self::FORUM_GROUPS_TO_ADD => 'json',
-        self::FORUM_GROUPS_TO_REMOVE => 'json',
         self::REVIEWED_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
@@ -87,8 +81,6 @@ class PermissionRequest extends Model
         self::MEMBERSHIP_ROLE,
         self::MODERATED_ORGANIZATION_IDS_TO_ADD,
         self::MODERATED_ORGANIZATION_IDS_TO_REMOVE,
-        self::FORUM_GROUPS_TO_ADD,
-        self::FORUM_GROUPS_TO_REMOVE,
         self::NOTE,
         self::STATUS,
         self::DENIAL_REASON,
