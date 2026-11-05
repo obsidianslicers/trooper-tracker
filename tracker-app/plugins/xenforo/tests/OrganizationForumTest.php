@@ -6,6 +6,7 @@ namespace TroopTracker\Plugins\Xenforo\Tests;
 
 use App\Models\Organization;
 use App\Models\Trooper;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -20,6 +21,15 @@ class OrganizationForumTest extends TestCase
 
     public function test_enabling_copies_the_organization_columns(): void
     {
+        // Core dropped these columns; sites upgrading from before the plugin still have them.
+        Schema::table('tt_organizations', function (Blueprint $table): void
+        {
+            foreach (['related_forum', 'related_forum_archive', 'xenforo_group_active_id',
+                'xenforo_group_reserve_id', 'xenforo_group_retired_id'] as $column)
+            {
+                $table->unsignedBigInteger($column)->nullable();
+            }
+        });
         $organization = Organization::factory()->create();
         DB::table('tt_organizations')->where('id', $organization->id)->update([
             'related_forum' => 9,

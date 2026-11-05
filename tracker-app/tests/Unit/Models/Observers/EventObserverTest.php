@@ -78,7 +78,7 @@ class EventObserverTest extends TestCase
         $event = Event::factory()->create();
         EventFacade::fake([EventDetailsChanged::class]);
 
-        $event->thread_id = 99;
+        $event->contact_name = 'Updated contact';
         $event->save();
 
         EventFacade::assertNotDispatched(EventDetailsChanged::class);

@@ -56,8 +56,6 @@ class CopySubmitController extends PageController
         $event_copy = $event->replicate([
             Event::CREATE_NOTIFICATIONS_SENT_AT,
             Event::CANCEL_NOTIFICATIONS_SENT_AT,
-            Event::THREAD_ID,
-            Event::POST_ID,
         ]);
         $event_copy->name = $request->validated(Event::NAME);
         $event_copy->event_start = $event->event_start->add($diff);

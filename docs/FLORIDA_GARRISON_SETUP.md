@@ -365,7 +365,7 @@ To update a value or set one for a non-Florida organization: `Command Staff > Or
 
 ### Discord Mentions
 
-When Troop Tracker sends a Discord event notification, it includes a `discord_mention` string to ping the relevant squad role.
+When Troop Tracker sends a Discord event notification, it includes the organization's mention string to ping the relevant squad role.
 
 Mentions belong to the Discord plugin. Enable it (`php artisan plugins:enable discord`), set its webhook under Command Staff > Plugins > Discord > Settings (or `DISCORD_WEBHOOK_URL` in `.env`), then seed these mention strings with `php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\FloridaGarrisonMentionSeeder"`:
 
@@ -442,7 +442,7 @@ After setup or migration, verify all of the following:
 - legacy migrated event photos load on existing events
 - newly uploaded event photos appear in the event uploads page
 - broken image icons do not appear in the public UI
-- a XenForo forum thread is created when a new event is saved (`tt_events.thread_id` is populated)
+- a XenForo forum thread is created when a new event is saved (the event has a row in `tt_xenforo_event_threads` with a `thread_id`)
 - a Discord notification includes the correct squad role mention
 - `xenforo:sync-users` applies the expected secondary group IDs to a test trooper (1415 + squad group + 18)
 - posting a reply in an event's forum thread causes event watchers to receive an **Event Forum Post** in-app notification
