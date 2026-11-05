@@ -18,6 +18,11 @@ return new class extends Migration {
             $table->id();
             $table->string('name', 128)->unique();
             $table->string('version_constraint', 64)->nullable();
+            $table->string('repository_url', 255)->nullable();
+            $table->string('update_policy', 16)->default('pinned');
+            $table->string('installed_version', 64)->nullable();
+            $table->text('last_error')->nullable();
+            $table->timestamp('checked_at')->nullable();
 
             $table->timestamps();
             $table->trooperstamps();
