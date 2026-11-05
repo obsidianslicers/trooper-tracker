@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Schema;
  * Moves each club's Google Sheet ID out of core's tt_organizations table into a
  * table the Google Sheets plugin owns.
  *
- * The plugin never changes core tables: tt_organizations.sync_sheet_id is left
- * alone and is dropped later by a core migration.
+ * The plugin never changes core tables: tt_organizations.sync_sheet_id, where a
+ * site still has it, is left for core to drop.
  */
 return new class extends Migration {
     private const TABLE = 'tt_organization_google_sheets';

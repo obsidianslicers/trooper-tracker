@@ -445,7 +445,6 @@ Purpose: Hierarchical organization nodes.
 | image_path_lg | varchar(128) | yes |  |
 | image_path_sm | varchar(128) | yes |  |
 | synchronizer | varchar(64) | yes |  |
-| sync_sheet_id | varchar(128) | yes |  |
 | synchronized_at | datetime | yes |  |
 | description | varchar(512) | yes |  |
 | created_at | timestamp | yes | timestamps helper |
