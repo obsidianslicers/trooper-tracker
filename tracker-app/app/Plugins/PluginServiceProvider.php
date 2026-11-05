@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Plugins;
 
+use App\Http\Middleware\IsolatePluginMiddleware;
 use Closure;
 use Hyperdrive\Events\MessageHandled;
 use Hyperdrive\Events\MessageHandling;
@@ -69,11 +70,20 @@ abstract class PluginServiceProvider extends ServiceProvider
     }
 
     /**
-     * Listen for an application event, such as App\Events\EventPosted.
+     * Listen for an application event, such as App\Events\EventPosted. If the
+     * listener throws, the error is logged and the event carries on without it.
+     * A queued listener (ShouldQueue) is only queued here; the queue retries it.
      */
     protected function listen(string $event, Closure|string|array $listener): void
     {
-        Event::listen($event, $listener);
+        $is_wildcard = str_contains($event, '*');
+        $handler = $this->app['events']->makeListener($listener, $is_wildcard);
+        $what = "handle [{$event}] in plugin [{$this->plugin->slug}]";
+
+        Event::listen($event, fn (mixed ...$args): mixed => PluginGuard::attempt(
+            $what,
+            fn (): mixed => $is_wildcard ? $handler(...$args) : $handler($event, $args),
+        ));
     }
 
     /**
@@ -230,7 +240,10 @@ abstract class PluginServiceProvider extends ServiceProvider
      */
     protected function addWebMiddleware(string $middleware_class): void
     {
-        $this->app['router']->pushMiddlewareToGroup('web', $middleware_class);
+        $this->app['router']->pushMiddlewareToGroup(
+            'web',
+            IsolatePluginMiddleware::class.':'.$middleware_class,
+        );
     }
 
     /**

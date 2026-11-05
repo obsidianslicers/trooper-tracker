@@ -56,7 +56,8 @@ class PluginRequirementsTest extends TestCase
         ]);
 
         $this->assertCount(5, $unmet);
-        $this->assertStringStartsWith('PHP >=99.0 (this server has '.PHP_MAJOR_VERSION.'.', $unmet[0]);
+        $php = 'PHP >=99.0 (this server has '.PHP_MAJOR_VERSION.'.';
+        $this->assertStringStartsWith($php, $unmet[0]);
         $this->assertSame('the not_a_real_extension PHP extension', $unmet[1]);
         $this->assertSame('the Composer package acme/not-installed ^1.0', $unmet[2]);
         $this->assertStringStartsWith('the Composer package laravel/framework ^1.0 (', $unmet[3]);

@@ -7,6 +7,7 @@ namespace App\Messages\Troopers\PageData\Permissions;
 use App\Messages\Troopers\Resources\PermissionRequestsCollection;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Plugins\PluginGuard;
 use App\Plugins\PluginPermissionRequests;
 use Hyperdrive\Message;
 
@@ -52,7 +53,11 @@ final class LookupTrooperPermissionsPageData extends Message
 
         foreach ($extensions->all() as $key => $extension)
         {
-            $html = $extension->formSection($this->trooper);
+            $html = PluginGuard::attempt(
+                "show permission request section [{$key}]",
+                fn (): string => $extension->formSection($this->trooper),
+                '',
+            );
 
             if ($html !== '')
             {

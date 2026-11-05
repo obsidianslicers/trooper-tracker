@@ -11,6 +11,8 @@ use App\Messages\Troopers\Queries\GetTrooperServiceRecord;
 use App\Models\Costume;
 use App\Models\Trooper;
 use App\Plugins\PluginDonations;
+use App\Plugins\PluginGuard;
+use App\Support\DonationSummary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -72,7 +74,10 @@ class TrooperController extends MagicBusController
 
         foreach (app(PluginDonations::class)->sources() as $source)
         {
-            $summary = $source->summaryFor($trooper);
+            $summary = PluginGuard::attempt(
+                'summarize donations',
+                fn (): ?DonationSummary => $source->summaryFor($trooper),
+            );
 
             if ($summary !== null)
             {

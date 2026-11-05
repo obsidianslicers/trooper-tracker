@@ -6,6 +6,7 @@ namespace App\Services\Support;
 
 use App\Models\TrooperDonation;
 use App\Plugins\PluginDonations;
+use App\Plugins\PluginGuard;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 
@@ -68,7 +69,10 @@ class SupportStatusService
 
         foreach (app(PluginDonations::class)->sources() as $source)
         {
-            $month_total = $source->monthTotal();
+            $month_total = PluginGuard::attempt(
+                'total this month\'s donations',
+                fn (): ?float => $source->monthTotal(),
+            );
 
             if ($month_total === null)
             {

@@ -8,6 +8,7 @@ use App\Enums\MembershipRole;
 use App\Models\Organization;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
+use App\Plugins\PluginGuard;
 use App\Plugins\PluginPermissionRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -70,7 +71,13 @@ class PermissionRequestsCollection extends ResourceCollection
 
         foreach (app(PluginPermissionRequests::class)->all() as $extension)
         {
-            foreach ($extension->summary($request) as $label => $value)
+            $summary = PluginGuard::attempt(
+                'summarize a permission request',
+                fn (): array => $extension->summary($request),
+                [],
+            );
+
+            foreach ($summary as $label => $value)
             {
                 if ($value !== '')
                 {

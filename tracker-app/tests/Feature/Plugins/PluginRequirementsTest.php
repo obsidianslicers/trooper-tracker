@@ -49,8 +49,9 @@ class PluginRequirementsTest extends TestCase
         }
         catch (PluginRequirementsException $e)
         {
-            $this->assertStringContainsString("Needs Php can't be turned on yet.", $e->getMessage());
-            $this->assertStringContainsString('PHP >=99.0', $e->getMessage());
+            $message = $e->getMessage();
+            $this->assertStringContainsString("Needs Php can't be turned on yet.", $message);
+            $this->assertStringContainsString('PHP >=99.0', $message);
         }
 
         $this->assertFalse($this->subject->isEnabled('needs-php'));
@@ -191,8 +192,11 @@ class PluginRequirementsTest extends TestCase
     /**
      * @param  array<string, mixed>  $requires
      */
-    private function writePlugin(string $slug, array $requires = [], string $version = '1.0.0'): void
-    {
+    private function writePlugin(
+        string $slug,
+        array $requires = [],
+        string $version = '1.0.0',
+    ): void {
         $name = ucwords(str_replace('-', ' ', $slug));
         $namespace = 'Requirements'.str_replace(' ', '', $name).'Plugin';
         $path = "{$this->plugins_path}/{$slug}";

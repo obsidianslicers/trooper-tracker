@@ -224,18 +224,27 @@ class PluginManager
 
         foreach ($manifest->plugin_requires as $slug => $constraint)
         {
-            $required = $this->find($slug);
-
-            $unmet[] = match (true)
-            {
-                $required === null => "the [{$slug}] plugin {$constraint}, which is not installed",
-                !$this->requirements->satisfies($required->version, $constraint) => "the {$required->name} plugin {$constraint} ({$required->version} is installed)",
-                !$this->isEnabled($slug) => "the {$required->name} plugin turned on first",
-                default => null,
-            };
+            $unmet[] = $this->unmetPluginRequirement($slug, $constraint);
         }
 
         return array_values(array_filter($unmet));
+    }
+
+    private function unmetPluginRequirement(string $slug, string $constraint): ?string
+    {
+        $required = $this->find($slug);
+
+        if ($required === null)
+        {
+            return "the [{$slug}] plugin {$constraint}, which is not installed";
+        }
+
+        if (!$this->requirements->satisfies($required->version, $constraint))
+        {
+            return "the {$required->name} plugin {$constraint} ({$required->version} is installed)";
+        }
+
+        return $this->isEnabled($slug) ? null : "the {$required->name} plugin turned on first";
     }
 
     /**

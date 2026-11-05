@@ -214,11 +214,11 @@ All of these fire after the database transaction commits, so a listener never se
 
 Plugins can also observe core models directly (`Event::observe(MyObserver::class)` in `bootPlugin`), for changes no app event covers.
 
-Listeners run in the same process as the code that fired the event. Catch and log your own errors (see the Discord plugin's listener) so a failure in your plugin does not break the core flow, or make the listener `ShouldQueue`. More events are easy to add: create the class in `app/Events/` and dispatch it where the thing happens.
+Listeners registered with `$this->listen()` run in the same process as the code that fired the event. If one throws, the error is logged and reported and the event carries on without it, so a plugin failure never breaks the core flow; for `EventWatchChanging` a failing listener does not stop the change. Make a listener `ShouldQueue` when it calls something slow or flaky, so the queue retries it. More events are easy to add: create the class in `app/Events/` and dispatch it where the thing happens.
 
 ### Hyperdrive message hooks
 
-Every Hyperdrive message fires `Hyperdrive\Events\MessageHandling` before `handle()` and `Hyperdrive\Events\MessageHandled` after it returns (after the commit for transactional messages). `beforeMessage()` and `afterMessage()` filter these by message class; pass `Hyperdrive\Message::class` to see every message. Code that still runs through the legacy MagicBus has no hooks; it gains them as it moves to Hyperdrive.
+Every Hyperdrive message fires `Hyperdrive\Events\MessageHandling` before `handle()` and `Hyperdrive\Events\MessageHandled` after it returns (after the commit for transactional messages). `beforeMessage()` and `afterMessage()` filter these by message class; pass `Hyperdrive\Message::class` to see every message. These callbacks are not isolated: an error in one stops the message, like an error in the message itself. Code that still runs through the legacy MagicBus has no hooks; it gains them as it moves to Hyperdrive.
 
 ### UI slots
 
@@ -309,7 +309,7 @@ Routes under `/webhooks/` skip the CSRF check, so a plugin can receive webhooks 
 
 ### Web middleware
 
-`$this->addWebMiddleware(EnsureSomething::class)` runs a middleware on every web request, after core's own. Skip routes that must stay open (login, logout, webhooks) inside the middleware.
+`$this->addWebMiddleware(EnsureSomething::class)` runs a middleware on every web request, after core's own. Skip routes that must stay open (login, logout, webhooks) inside the middleware. If the middleware throws before passing the request on, the error is logged and the request carries on without it, so a plugin outage (for example the forum being down) can't take every page down. Responses it throws on purpose, such as `abort(403)` or a redirect, still apply, and errors from later in the request are not caught.
 
 ### Scheduled tasks
 
@@ -383,6 +383,12 @@ Each entry in `settings` becomes a field on the plugin's Settings page. Types: `
 ### When the plugin is enabled
 
 Override `pluginEnabled()` in the provider to run something each time the plugin is turned on (from the Plugins page or `plugins:enable`), after its migrations and boot. A failure there is logged and does not stop the plugin from being enabled. The XenForo plugin uses it to copy its `.env` values onto its settings page.
+
+### When plugin code fails
+
+Plugin code that only adds to a page or reacts to something is isolated: a failure is logged and reported, and the rest of the request carries on. That covers loading and booting the plugin, slots, app event listeners, web middleware, System Check rows, `pluginEnabled()`, donation sources on the service record and support pages, and permission request sections and summaries. Scheduled tasks are isolated by the scheduler.
+
+Plugin code that is part of a change still stops the change when it fails, so nothing is half saved: `extendForm()` save callbacks, `beforeMessage()` / `afterMessage()`, permission request validation, storing and approval, donation sources while a trooper's rank is recalculated, and club synchronizers (each club's sync fails on its own).
 
 ---
 
@@ -482,6 +488,8 @@ Sites that sync clubs from Google Sheets must enable the plugin after deploying,
 ```bash
 php artisan plugins:enable google-sheets
 ```
+
+---
 
 ---
 
