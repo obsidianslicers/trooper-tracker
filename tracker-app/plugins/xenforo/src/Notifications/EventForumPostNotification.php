@@ -13,8 +13,10 @@ use TroopTracker\Plugins\Xenforo\Mail\EventForumPostMail;
 
 class EventForumPostNotification extends BaseNotification
 {
+    public const CATEGORY = 'event_forum_post';
+
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category =
-        TrooperNotifications::EVENT_FORUM_POST;
+        self::CATEGORY;
 
     public function __construct(
         private readonly Event $event,
@@ -25,7 +27,7 @@ class EventForumPostNotification extends BaseNotification
 
     public function toMail(Trooper $notifiable): EventForumPostMail
     {
-        $base_url = config('services.xenforo.base_url');
+        $base_url = config('plugins.xenforo.base_url');
         $post_url = $base_url !== '' ? $base_url.'/posts/'.$this->post_id.'/' : null;
 
         return (new EventForumPostMail($this->event, $this->username, $this->post_body, $post_url))

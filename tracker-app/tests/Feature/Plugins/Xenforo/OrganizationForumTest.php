@@ -42,8 +42,8 @@ class OrganizationForumTest extends TestCase
     public function test_organization_form_shows_and_saves_the_forum_settings(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://forums.example.com',
-            'services.xenforo.api_key' => 'abc',
+            'plugins.xenforo.base_url' => 'https://forums.example.com',
+            'plugins.xenforo.api_key' => 'abc',
         ]);
         $this->enableXenforo();
         $admin = Trooper::factory()->asAdministrator()->create();

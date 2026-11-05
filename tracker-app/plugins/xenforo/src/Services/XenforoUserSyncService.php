@@ -9,7 +9,6 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
-use App\Services\Forums\XenforoService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;

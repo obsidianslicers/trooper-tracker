@@ -156,7 +156,7 @@ Relevant config:
 - `XENFORO_REDIRECT_URI`
 - `XENFORO_BASE_URL`
 - each of these can be set on the plugin's settings page instead, which wins over `.env`
-- optional endpoint path overrides in `config/services.php`
+- optional endpoint path overrides (`XENFORO_AUTHORIZE_PATH`, `XENFORO_TOKEN_PATH`, `XENFORO_ME_PATH`) in the plugin's `config/config.php`
 
 ### XenForo-Required Accounts
 
@@ -352,7 +352,7 @@ Notes:
 
 ### 5. Optional: confirm endpoint path overrides
 
-Defaults in `config/services.php` assume XenForo 2.3 style endpoints:
+Defaults in the plugin's `config/config.php` (`tracker-app/plugins/xenforo/config/config.php`) assume XenForo 2.3 style endpoints:
 
 - `XENFORO_AUTHORIZE_PATH=/index.php?oauth2/authorize`
 - `XENFORO_TOKEN_PATH=/index.php?api/oauth2/token`

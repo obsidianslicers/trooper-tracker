@@ -29,8 +29,8 @@ class LookupTrooperPermissionsControllerTest extends TestCase
     public function test_invoke_returns_role_moderated_organizations_and_forum_groups(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key',
         ]);
 
         Http::fake([

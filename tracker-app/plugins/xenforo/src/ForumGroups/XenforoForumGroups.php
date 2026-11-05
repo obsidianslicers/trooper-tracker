@@ -6,12 +6,11 @@ namespace TroopTracker\Plugins\Xenforo\ForumGroups;
 
 use App\Contracts\ForumGroupProvider;
 use App\Exceptions\ForumGroupUpdateException;
-use App\Facades\TroopTrackerFacade;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
  * XenForo secondary user groups, for permission requests.
@@ -31,7 +30,7 @@ final class XenforoForumGroups implements ForumGroupProvider
 
     public function isAvailable(): bool
     {
-        return TroopTrackerFacade::isXenforoIntegrationConfigured();
+        return XenforoService::isConfigured();
     }
 
     public function requestableGroups(): Collection

@@ -27,10 +27,10 @@ class XenforoProviderTest extends TestCase
     public function test_get_auth_url_builds_authorize_url_with_state_and_scope(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.authorize_path' => '/index.php?oauth/authorize',
-            'services.xenforo.token_path' => '/index.php?oauth/token',
-            'services.xenforo.me_path' => '/api/me',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.authorize_path' => '/index.php?oauth/authorize',
+            'plugins.xenforo.token_path' => '/index.php?oauth/token',
+            'plugins.xenforo.me_path' => '/api/me',
         ]);
 
         $subject = new TestableXenforoProvider(
@@ -50,8 +50,8 @@ class XenforoProviderTest extends TestCase
     public function test_get_token_url_uses_configured_token_path(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.token_path' => '/oauth/token',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.token_path' => '/oauth/token',
         ]);
 
         $subject = new TestableXenforoProvider(

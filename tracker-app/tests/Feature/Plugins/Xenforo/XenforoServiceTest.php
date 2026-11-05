@@ -6,7 +6,6 @@ namespace Tests\Feature\Services\Forums;
 
 use App\Models\OauthLogin;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
 use Tests\TestCase;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class XenforoServiceTest extends TestCase
 {
@@ -45,9 +45,9 @@ class XenforoServiceTest extends TestCase
     public function test_create_thread_uses_resolved_user_id_when_not_explicitly_provided(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-1',
-            'services.xenforo.api_user' => '42',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-1',
+            'plugins.xenforo.api_user' => '42',
         ]);
 
         $trooper = Trooper::factory()->create();
@@ -83,9 +83,9 @@ class XenforoServiceTest extends TestCase
     public function test_create_thread_uses_explicit_user_and_prefix_and_extra_fields(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-2',
-            'services.xenforo.api_user' => '42',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-2',
+            'plugins.xenforo.api_user' => '42',
         ]);
 
         Http::fake([
@@ -110,9 +110,9 @@ class XenforoServiceTest extends TestCase
     public function test_get_user_groups_returns_payload_for_configured_user(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-3',
-            'services.xenforo.api_user' => '42',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-3',
+            'plugins.xenforo.api_user' => '42',
         ]);
 
         Http::fake([
@@ -142,8 +142,8 @@ class XenforoServiceTest extends TestCase
     public function test_get_all_user_groups_normalizes_and_sorts_groups(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-3',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-3',
         ]);
 
         Http::fake([
@@ -168,8 +168,8 @@ class XenforoServiceTest extends TestCase
     public function test_get_all_user_groups_extracts_banner_image_urls(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-3',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-3',
         ]);
 
         Http::fake([
@@ -198,8 +198,8 @@ class XenforoServiceTest extends TestCase
     public function test_get_upgrade_group_ids_parses_extra_group_ids(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-3',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-3',
         ]);
 
         Http::fake([
@@ -221,8 +221,8 @@ class XenforoServiceTest extends TestCase
     public function test_get_user_secondary_group_ids_parses_comma_separated_string(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-3',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-3',
         ]);
 
         Http::fake([
@@ -237,8 +237,8 @@ class XenforoServiceTest extends TestCase
     public function test_get_user_secondary_group_ids_returns_null_on_failure(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-3',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-3',
         ]);
 
         Http::fake(['*' => Http::response([], 500)]);
@@ -251,8 +251,8 @@ class XenforoServiceTest extends TestCase
     public function test_get_user_returns_zero_status_when_connection_fails(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-3',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-3',
         ]);
 
         Http::fake(['*' => fn () => throw new ConnectionException('cURL error 28: Operation timed out')]);
@@ -265,8 +265,8 @@ class XenforoServiceTest extends TestCase
     public function test_update_user_returns_zero_status_when_connection_fails(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-3',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-3',
         ]);
 
         Http::fake(['*' => fn () => throw new ConnectionException('cURL error 28: Operation timed out')]);
@@ -279,8 +279,8 @@ class XenforoServiceTest extends TestCase
     public function test_get_upgrade_group_ids_returns_null_on_failure(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-3',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-3',
         ]);
 
         Http::fake(['*' => Http::response([], 500)]);
@@ -293,8 +293,8 @@ class XenforoServiceTest extends TestCase
     public function test_get_all_user_groups_returns_null_when_response_has_no_group_list(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-3',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-3',
         ]);
 
         Http::fake(['*' => Http::response(['userId' => 0], 200)]);
@@ -307,8 +307,8 @@ class XenforoServiceTest extends TestCase
     public function test_get_all_user_groups_returns_null_on_failure(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-3',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-3',
         ]);
 
         Http::fake(['*' => Http::response([], 500)]);
@@ -321,9 +321,9 @@ class XenforoServiceTest extends TestCase
     public function test_update_thread_updates_title_for_configured_thread(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-4',
-            'services.xenforo.api_user' => '42',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-4',
+            'plugins.xenforo.api_user' => '42',
         ]);
 
         Http::fake([
@@ -349,8 +349,8 @@ class XenforoServiceTest extends TestCase
     public function test_watch_thread_posts_to_trooper_api_endpoint_with_thread_id_and_email_subscribe(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-5',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-5',
         ]);
 
         Http::fake(['https://xf.test/api/trooper-api/watch-thread' => Http::response(['success' => true, 'watching' => true, 'email_subscribe' => true], 200)]);
@@ -373,7 +373,7 @@ class XenforoServiceTest extends TestCase
 
     public function test_watch_thread_returns_zero_status_when_not_configured(): void
     {
-        config(['services.xenforo.base_url' => '', 'services.xenforo.api_key' => '']);
+        config(['plugins.xenforo.base_url' => '', 'plugins.xenforo.api_key' => '']);
 
         Http::fake();
 
@@ -386,7 +386,7 @@ class XenforoServiceTest extends TestCase
 
     public function test_watch_thread_returns_zero_status_for_invalid_ids(): void
     {
-        config(['services.xenforo.base_url' => 'https://xf.test', 'services.xenforo.api_key' => 'key']);
+        config(['plugins.xenforo.base_url' => 'https://xf.test', 'plugins.xenforo.api_key' => 'key']);
 
         Http::fake();
 
@@ -400,8 +400,8 @@ class XenforoServiceTest extends TestCase
     public function test_unwatch_thread_sends_delete_with_thread_id_to_trooper_api_endpoint(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-6',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-6',
         ]);
 
         Http::fake(['https://xf.test/api/trooper-api/watch-thread' => Http::response(['success' => true, 'watching' => false], 200)]);
@@ -423,7 +423,7 @@ class XenforoServiceTest extends TestCase
 
     public function test_unwatch_thread_returns_zero_status_when_not_configured(): void
     {
-        config(['services.xenforo.base_url' => '', 'services.xenforo.api_key' => '']);
+        config(['plugins.xenforo.base_url' => '', 'plugins.xenforo.api_key' => '']);
 
         Http::fake();
 
@@ -437,9 +437,9 @@ class XenforoServiceTest extends TestCase
     public function test_get_thread_posts_fetches_every_page_when_forum_page_size_is_smaller(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-5',
-            'services.xenforo.api_user' => '42',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-5',
+            'plugins.xenforo.api_user' => '42',
         ]);
 
         Cache::put('xenforo_smilies', [], 60);
@@ -466,8 +466,8 @@ class XenforoServiceTest extends TestCase
     public function test_get_thread_posts_stops_on_empty_page_without_pagination(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-6',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-6',
         ]);
 
         Cache::put('xenforo_smilies', [], 60);
@@ -492,8 +492,8 @@ class XenforoServiceTest extends TestCase
         $this->enableXenforo();
 
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-7',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-7',
         ]);
 
         Cache::put('xenforo_smilies', [], 60);
@@ -527,8 +527,8 @@ class XenforoServiceTest extends TestCase
     public function test_get_attachment_data_returns_file_contents(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-8',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-8',
         ]);
 
         Http::fake([
@@ -549,8 +549,8 @@ class XenforoServiceTest extends TestCase
     public function test_get_attachment_data_returns_null_on_failure(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-9',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-9',
         ]);
 
         Http::fake([

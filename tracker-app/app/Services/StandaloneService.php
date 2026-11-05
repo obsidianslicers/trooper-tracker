@@ -13,7 +13,7 @@
 
 // /**
 //  * Provides authentication and forum-related services for a standalone application instance
-//  * without an external forum integration like Xenforo.
+//  * without an external forum integration such as a forum plugin.
 //  */
 // class StandaloneService
 // {

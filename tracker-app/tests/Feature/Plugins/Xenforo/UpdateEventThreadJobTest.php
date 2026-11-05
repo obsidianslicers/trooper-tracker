@@ -7,12 +7,12 @@ namespace Tests\Feature\Plugins\Xenforo;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
 use TroopTracker\Plugins\Xenforo\Jobs\UpdateEventThreadJob;
 use TroopTracker\Plugins\Xenforo\Services\ForumThreadMessageService;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class UpdateEventThreadJobTest extends TestCase
 {
@@ -69,8 +69,8 @@ class UpdateEventThreadJobTest extends TestCase
             ->with(456, 'updated forum message', 42);
 
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'test-key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'test-key',
         ]);
 
         $subject = new UpdateEventThreadJob($target_event->id);

@@ -7,13 +7,13 @@ namespace Tests\Feature\Plugins\Xenforo;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Mockery\MockInterface;
 use Tests\TestCase;
 use TroopTracker\Plugins\Xenforo\Http\Controllers\ForumReplyController;
 use TroopTracker\Plugins\Xenforo\Jobs\SendForumPostCommandStaffNotificationsJob;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
  * @see ForumReplyController
@@ -33,8 +33,8 @@ class ForumReplyControllerTest extends TestCase
     private function configureXenforo(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://forums.example.com',
-            'services.xenforo.api_key' => 'test-api-key',
+            'plugins.xenforo.base_url' => 'https://forums.example.com',
+            'plugins.xenforo.api_key' => 'test-api-key',
         ]);
     }
 

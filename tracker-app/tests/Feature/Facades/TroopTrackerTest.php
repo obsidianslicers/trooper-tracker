@@ -30,12 +30,12 @@ class TroopTrackerTest extends TestCase
 
         $this->assertSame('xenforo', $subject->requiredLoginProvider()?->key());
 
-        config(['tracker.auth.require_xenforo' => false]);
+        config(['plugins.xenforo.require_xenforo' => false]);
         $this->assertNull($subject->requiredLoginProvider());
 
         config([
-            'tracker.auth.require_xenforo' => true,
-            'services.xenforo.client_secret' => null,
+            'plugins.xenforo.require_xenforo' => true,
+            'plugins.xenforo.client_secret' => null,
         ]);
         $this->assertNull($subject->requiredLoginProvider());
     }
@@ -56,25 +56,9 @@ class TroopTrackerTest extends TestCase
 
         $this->assertFalse($subject->isEmailPasswordAuthEnabled());
 
-        config(['tracker.auth.require_xenforo' => false]);
+        config(['plugins.xenforo.require_xenforo' => false]);
 
         $this->assertTrue($subject->isEmailPasswordAuthEnabled());
-    }
-
-    public function test_is_xenforo_integration_configured_requires_base_url_and_api_key(): void
-    {
-        config([
-            'services.xenforo.base_url' => 'https://forums.example.com',
-            'services.xenforo.api_key' => 'api-key',
-        ]);
-
-        $subject = new TroopTracker;
-
-        $this->assertTrue($subject->isXenforoIntegrationConfigured());
-
-        config(['services.xenforo.api_key' => null]);
-
-        $this->assertFalse($subject->isXenforoIntegrationConfigured());
     }
 
     public function test_is_support_goal_enabled_requires_a_positive_goal(): void
@@ -106,10 +90,10 @@ class TroopTrackerTest extends TestCase
     private function configureXenforoLogin(): void
     {
         config([
-            'tracker.auth.require_xenforo' => true,
-            'services.xenforo.client_id' => 'client-id',
-            'services.xenforo.client_secret' => 'secret',
-            'services.xenforo.redirect' => 'https://example.com/callback',
+            'plugins.xenforo.require_xenforo' => true,
+            'plugins.xenforo.client_id' => 'client-id',
+            'plugins.xenforo.client_secret' => 'secret',
+            'plugins.xenforo.redirect' => 'https://example.com/callback',
         ]);
     }
 }

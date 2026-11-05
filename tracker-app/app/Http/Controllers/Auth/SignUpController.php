@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  *
  * This controller renders the initial sign-up page where troopers can
  * choose between different registration methods (Email, Google OAuth,
- * XenForo OAuth) before proceeding to the registration form.
+ * a plugin's login provider) before proceeding to the registration form.
  */
 class SignUpController extends Controller
 {

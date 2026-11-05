@@ -8,7 +8,7 @@ namespace App\Contracts;
  * SynchronizerInterface
  *
  * Defines the contract for synchronizing trooper and costume data
- * from external sources (e.g., Google Sheets, XenForo forums).
+ * from external sources (e.g., Google Sheets).
  *
  * Implementations orchestrate data synchronization across one or more
  * organizations, updating trooper registrations, costume approvals,

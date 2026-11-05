@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Threads;
 
-use App\Facades\TroopTrackerFacade;
 use App\Models\Event;
-use App\Services\Forums\XenforoService;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
  * What the event page's Forum Comments section shows.
@@ -23,7 +22,7 @@ final class EventComments
 
     public function thread(Event $event): ?EventThread
     {
-        return TroopTrackerFacade::isXenforoIntegrationConfigured()
+        return XenforoService::isConfigured()
             ? EventThread::linked($event->id)
             : null;
     }
@@ -55,7 +54,7 @@ final class EventComments
      */
     public function smilies(): array
     {
-        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
+        if (!XenforoService::isConfigured())
         {
             return [];
         }
@@ -65,6 +64,6 @@ final class EventComments
 
     public function baseUrl(): string
     {
-        return rtrim((string) config('services.xenforo.base_url', ''), '/');
+        return rtrim((string) config('plugins.xenforo.base_url', ''), '/');
     }
 }

@@ -19,16 +19,4 @@ class TroopTrackerFacadeTest extends TestCase
 
         $this->assertTrue(TroopTrackerFacade::isEmailPasswordAuthEnabled());
     }
-
-    public function test_facade_returns_false_when_underlying_service_returns_false(): void
-    {
-        config([
-            'services.xenforo.base_url' => 'https://forums.example.com',
-            'services.xenforo.api_key' => null,
-        ]);
-
-        $this->instance(TroopTracker::class, new TroopTracker);
-
-        $this->assertFalse(TroopTrackerFacade::isXenforoIntegrationConfigured());
-    }
 }

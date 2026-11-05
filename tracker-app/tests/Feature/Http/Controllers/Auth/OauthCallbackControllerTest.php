@@ -28,9 +28,9 @@ class OauthCallbackControllerTest extends TestCase
         parent::setUp();
 
         config([
-            'services.xenforo.client_id' => 'client-id',
-            'services.xenforo.client_secret' => 'secret',
-            'services.xenforo.redirect' => 'https://example.com/callback',
+            'plugins.xenforo.client_id' => 'client-id',
+            'plugins.xenforo.client_secret' => 'secret',
+            'plugins.xenforo.redirect' => 'https://example.com/callback',
             'services.google.client_id' => 'google-id',
             'services.google.client_secret' => 'google-secret',
             'services.google.redirect' => 'https://example.com/google/callback',

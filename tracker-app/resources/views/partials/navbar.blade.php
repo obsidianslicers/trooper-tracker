@@ -38,11 +38,7 @@
                 @include('partials.inc.navbar-account')
                 @unless(Auth::user()->is_denied || Auth::user()->is_pending)
                 @include('partials.inc.navbar-notifications')
-                @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured())
-                    <x-nav-link :url="config('services.xenforo.base_url')">
-                        Forum
-                    </x-nav-link>
-                @endif
+                @pluginSlot('navbar.member-links')
                 @role(['administrator', 'moderator'])
                     <x-nav-link :url="route('admin.display')"
                                 :active="request()->routeIs('admin.*')">

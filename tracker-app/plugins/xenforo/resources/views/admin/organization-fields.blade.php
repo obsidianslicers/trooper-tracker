@@ -1,4 +1,4 @@
-@if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured())
+@if(TroopTracker\Plugins\Xenforo\Services\XenforoService::isConfigured())
     <x-input-container>
         <x-label>
             Related Forum (Node ID):

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Donations;
 
-use App\Facades\TroopTrackerFacade;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use Illuminate\Support\Collection;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
  * One trooper's forum account details, fetched at most once per request so the
@@ -29,7 +28,7 @@ final class XenforoProfile
 
     public function userId(Trooper $trooper): ?int
     {
-        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
+        if (!XenforoService::isConfigured())
         {
             return null;
         }
@@ -48,7 +47,7 @@ final class XenforoProfile
 
         return $user_id === null
             ? null
-            : config('services.xenforo.base_url').'/members/'.$user_id.'/';
+            : config('plugins.xenforo.base_url').'/members/'.$user_id.'/';
     }
 
     /**

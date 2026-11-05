@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace TroopTracker\Plugins\Xenforo\Listeners;
 
 use App\Events\EventClosed;
-use App\Facades\TroopTrackerFacade;
-use App\Services\Forums\XenforoService;
 use Illuminate\Support\Facades\Log;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
  * Moves a closed event's forum thread to its organization's archive forum.
@@ -23,7 +22,7 @@ class ArchiveEventThread
         $event = $closed->event;
         $thread = EventThread::linked($event->id);
 
-        if ($thread === null || !TroopTrackerFacade::isXenforoIntegrationConfigured())
+        if ($thread === null || !XenforoService::isConfigured())
         {
             return;
         }

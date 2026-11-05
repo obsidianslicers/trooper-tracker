@@ -6,12 +6,12 @@ namespace Tests\Feature\Plugins\Xenforo;
 
 use App\Models\OauthLogin;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Mockery;
 use Tests\TestCase;
 use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class AccountLinkTest extends TestCase
 {
@@ -28,7 +28,7 @@ class AccountLinkTest extends TestCase
 
     public function test_unlinked_trooper_is_sent_to_link_page_when_required(): void
     {
-        config(['tracker.auth.require_xenforo' => true]);
+        config(['plugins.xenforo.require_xenforo' => true]);
         $trooper = Trooper::factory()->asActive()->create();
 
         $this->actingAs($trooper)->get(route('account.index'))
@@ -41,7 +41,7 @@ class AccountLinkTest extends TestCase
 
     public function test_link_page_is_reachable_before_setup_is_finished(): void
     {
-        config(['tracker.auth.require_xenforo' => true]);
+        config(['plugins.xenforo.require_xenforo' => true]);
         $trooper = Trooper::factory()->asActive()->withSetupIncomplete()->create();
 
         $this->actingAs($trooper)->get(route('account.index'))
@@ -52,7 +52,7 @@ class AccountLinkTest extends TestCase
 
     public function test_unlinked_trooper_is_let_through_when_not_required(): void
     {
-        config(['tracker.auth.require_xenforo' => false]);
+        config(['plugins.xenforo.require_xenforo' => false]);
         $trooper = Trooper::factory()->asActive()->create();
 
         $this->actingAs($trooper)->get(route('account.index'))->assertOk();
@@ -60,7 +60,7 @@ class AccountLinkTest extends TestCase
 
     public function test_banned_forum_user_is_logged_out(): void
     {
-        config(['tracker.auth.require_xenforo' => true]);
+        config(['plugins.xenforo.require_xenforo' => true]);
         $trooper = Trooper::factory()->asActive()->create();
         OauthLogin::create([
             OauthLogin::TROOPER_ID => $trooper->id,

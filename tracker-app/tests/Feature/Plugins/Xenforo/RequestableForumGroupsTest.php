@@ -26,7 +26,7 @@ class RequestableForumGroupsTest extends TestCase
 
     public function test_handle_returns_empty_when_xenforo_not_configured(): void
     {
-        config(['services.xenforo.base_url' => '', 'services.xenforo.api_key' => null]);
+        config(['plugins.xenforo.base_url' => '', 'plugins.xenforo.api_key' => null]);
         Http::fake();
 
         $subject = new GetRequestableForumGroups;
@@ -39,8 +39,8 @@ class RequestableForumGroupsTest extends TestCase
     public function test_handle_excludes_groups_managed_by_organizations(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key',
         ]);
 
         OrganizationForum::store(
@@ -70,8 +70,8 @@ class RequestableForumGroupsTest extends TestCase
     public function test_handle_does_not_cache_empty_result(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key',
         ]);
 
         Http::fakeSequence('https://xf.test/index.php?api/user-groups')
@@ -87,8 +87,8 @@ class RequestableForumGroupsTest extends TestCase
     public function test_handle_excludes_groups_granted_by_user_upgrades(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key',
         ]);
 
         Http::fake([
@@ -113,8 +113,8 @@ class RequestableForumGroupsTest extends TestCase
     public function test_handle_returns_groups_when_upgrade_lookup_fails(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key',
         ]);
 
         Http::fake([

@@ -8,11 +8,11 @@ use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForDisplay;
 use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
 use App\Messages\Troopers\Queries\GetTrooperServiceRecord;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery\MockInterface;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class ServiceRecordTest extends TestCase
 {
@@ -29,8 +29,8 @@ class ServiceRecordTest extends TestCase
         parent::setUp();
 
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-1',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-1',
             'tracker.support.url' => 'https://support.test',
         ]);
 

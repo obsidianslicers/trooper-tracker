@@ -3,7 +3,7 @@
         ? \TroopTracker\Plugins\Xenforo\Models\EventThread::forEvent($event->id)
         : null;
 @endphp
-@if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured())
+@if(TroopTracker\Plugins\Xenforo\Services\XenforoService::isConfigured())
     <x-input-container>
         <x-label>Create XenForo Thread for this Event:</x-label>
         <x-input-yesno :property="'xenforo_create_thread'"

@@ -28,7 +28,7 @@ class WebhookControllerTest extends TestCase
 
     private function configureSecret(string $secret = 'test-secret'): void
     {
-        config(['services.xenforo.webhook_secret' => $secret]);
+        config(['plugins.xenforo.webhook_secret' => $secret]);
     }
 
     private function validPayload(int $thread_id = 100): array
@@ -69,7 +69,7 @@ class WebhookControllerTest extends TestCase
 
     public function test_invoke_returns_401_when_webhook_secret_is_not_configured(): void
     {
-        config(['services.xenforo.webhook_secret' => null]);
+        config(['plugins.xenforo.webhook_secret' => null]);
 
         $response = $this->postJson('/webhooks/xenforo', $this->validPayload(), [
             'xf-webhook-secret' => 'anything',

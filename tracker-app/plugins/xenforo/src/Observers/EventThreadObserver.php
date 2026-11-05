@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Observers;
 
-use App\Facades\TroopTrackerFacade;
 use App\Models\Event;
 use TroopTracker\Plugins\Xenforo\Jobs\DeleteEventThreadJob;
 use TroopTracker\Plugins\Xenforo\Jobs\UpdateEventThreadJob;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
  * Keeps an event's forum thread in step with the event.
@@ -40,7 +40,7 @@ class EventThreadObserver
 
     public function updated(Event $event): void
     {
-        if (!$event->wasChanged(self::THREAD_FIELDS) || !TroopTrackerFacade::isXenforoIntegrationConfigured())
+        if (!$event->wasChanged(self::THREAD_FIELDS) || !XenforoService::isConfigured())
         {
             return;
         }
@@ -53,7 +53,7 @@ class EventThreadObserver
 
     public function deleted(Event $event): void
     {
-        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
+        if (!XenforoService::isConfigured())
         {
             return;
         }

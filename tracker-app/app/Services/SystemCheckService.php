@@ -242,7 +242,6 @@ class SystemCheckService
         return $logins->merge([
             $this->toResult('Google Sync', $this->troop_tracker->isGoogleSyncConfigured()),
             $this->toResult('Google Maps API key', !empty(config('services.google.maps_api_key'))),
-            $this->toResult('XenForo integration', $this->troop_tracker->isXenforoIntegrationConfigured()),
             new SystemCheckResult(
                 "Mail transport ({$mail_mailer})",
                 $mail_warn ? SystemCheckStatus::WARN : SystemCheckStatus::PASS,

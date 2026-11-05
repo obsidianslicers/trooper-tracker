@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Http\Middleware;
 
-use App\Services\Forums\XenforoService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
  * Check whether the authenticated trooper's XenForo account is banned.
@@ -32,7 +32,7 @@ class CheckXenforoBan
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!config('tracker.auth.require_xenforo', false))
+        if (!config('plugins.xenforo.require_xenforo', false))
         {
             return $next($request);
         }

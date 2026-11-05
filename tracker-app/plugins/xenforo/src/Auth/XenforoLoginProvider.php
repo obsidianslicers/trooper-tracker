@@ -6,8 +6,8 @@ namespace TroopTracker\Plugins\Xenforo\Auth;
 
 use App\Contracts\LoginProvider;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
  * Sign in with a XenForo forum account. When the forum is required, it is
@@ -26,7 +26,7 @@ final class XenforoLoginProvider implements LoginProvider
 
     public function name(): string
     {
-        return (string) config('services.xenforo.name') ?: 'XenForo';
+        return (string) config('plugins.xenforo.name') ?: 'XenForo';
     }
 
     public function iconUrl(): string
@@ -36,14 +36,14 @@ final class XenforoLoginProvider implements LoginProvider
 
     public function isConfigured(): bool
     {
-        return filled(config('services.xenforo.client_id'))
-            && filled(config('services.xenforo.client_secret'))
-            && filled(config('services.xenforo.redirect'));
+        return filled(config('plugins.xenforo.client_id'))
+            && filled(config('plugins.xenforo.client_secret'))
+            && filled(config('plugins.xenforo.redirect'));
     }
 
     public function isRequired(): bool
     {
-        return (bool) config('tracker.auth.require_xenforo', false);
+        return (bool) config('plugins.xenforo.require_xenforo', false);
     }
 
     public function refusal(SocialiteUser $user): ?string

@@ -25,22 +25,6 @@ class TroopTracker
     }
 
     /**
-     * Determine if XenForo integration is properly configured.
-     *
-     * Checks that both the XenForo base URL and API key are present
-     * in the application configuration.
-     *
-     * @return bool True if XenForo integration is configured, false otherwise
-     */
-    public function isXenforoIntegrationConfigured(): bool
-    {
-        $base_url = (string) config('services.xenforo.base_url', '');
-        $api_key = config('services.xenforo.api_key');
-
-        return !empty($base_url) && !empty($api_key);
-    }
-
-    /**
      * Determine if Google Calendar sync is properly configured.
      *
      * Checks if the google-credentials.json file exists and is readable

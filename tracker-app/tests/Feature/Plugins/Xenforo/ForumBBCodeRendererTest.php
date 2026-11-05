@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Helpers;
 
-use App\Helpers\ForumBBCodeRenderer;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
+use TroopTracker\Plugins\Xenforo\Support\ForumBBCodeRenderer;
 
 class ForumBBCodeRendererTest extends TestCase
 {
@@ -45,7 +45,7 @@ class ForumBBCodeRendererTest extends TestCase
 
     public function test_user_mention_falls_back_to_forum_profile_when_trooper_is_not_linked(): void
     {
-        Config::set('services.xenforo.base_url', 'https://forum.example.com');
+        Config::set('plugins.xenforo.base_url', 'https://forum.example.com');
 
         $html = ForumBBCodeRenderer::toHtml('[USER=18076]@DownedDak[/USER]');
 
@@ -55,7 +55,7 @@ class ForumBBCodeRendererTest extends TestCase
 
     public function test_user_mention_renders_plain_text_when_xenforo_not_configured(): void
     {
-        Config::set('services.xenforo.base_url', '');
+        Config::set('plugins.xenforo.base_url', '');
 
         $html = ForumBBCodeRenderer::toHtml('[USER=18076]@DownedDak[/USER]');
 
@@ -65,7 +65,7 @@ class ForumBBCodeRendererTest extends TestCase
 
     public function test_user_mention_display_name_is_xss_safe(): void
     {
-        Config::set('services.xenforo.base_url', 'https://forum.example.com');
+        Config::set('plugins.xenforo.base_url', 'https://forum.example.com');
 
         $html = ForumBBCodeRenderer::toHtml('[USER=1]<script>alert(1)</script>[/USER]');
 

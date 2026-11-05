@@ -1,11 +1,9 @@
 <?php
 
-namespace App\Services\Forums;
+namespace TroopTracker\Plugins\Xenforo\Services;
 
-use App\Helpers\ForumBBCodeRenderer;
 use App\Helpers\SmiliesRenderer;
 use App\Models\OauthLogin;
-use App\Support\XenforoUpgradeHelper;
 use DOMDocument;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -14,6 +12,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Throwable;
+use TroopTracker\Plugins\Xenforo\Support\ForumBBCodeRenderer;
+use TroopTracker\Plugins\Xenforo\Support\XenforoUpgradeHelper;
 
 class XenforoService
 {
@@ -23,11 +23,19 @@ class XenforoService
 
     private ?string $api_user;
 
+    /**
+     * Whether the forum URL and API key are set, which every API feature needs.
+     */
+    public static function isConfigured(): bool
+    {
+        return filled(config('plugins.xenforo.base_url')) && filled(config('plugins.xenforo.api_key'));
+    }
+
     public function __construct()
     {
-        $this->base_url = rtrim((string) config('services.xenforo.base_url', ''), '/');
-        $this->api_key = config('services.xenforo.api_key');
-        $this->api_user = config('services.xenforo.api_user');
+        $this->base_url = rtrim((string) config('plugins.xenforo.base_url', ''), '/');
+        $this->api_key = config('plugins.xenforo.api_key');
+        $this->api_user = config('plugins.xenforo.api_user');
     }
 
     private function buildApiHeaders(?int $user_id = null): array

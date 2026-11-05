@@ -36,6 +36,8 @@ use TroopTracker\Plugins\Xenforo\Listeners\CreateEventThread;
 use TroopTracker\Plugins\Xenforo\Listeners\SyncThreadWatch;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
+use TroopTracker\Plugins\Xenforo\Notifications\EventForumPostNotification;
+use TroopTracker\Plugins\Xenforo\Notifications\ForumPostCommandStaffNotification;
 use TroopTracker\Plugins\Xenforo\Observers\EventThreadObserver;
 use TroopTracker\Plugins\Xenforo\Observers\EventTrooperThreadObserver;
 use TroopTracker\Plugins\Xenforo\Socialite\XenforoProvider;
@@ -47,15 +49,15 @@ class XenforoServiceProvider extends PluginServiceProvider
      * Settings saved on the plugin's page win over the matching .env values.
      */
     private const SETTING_CONFIG = [
-        'base_url' => 'services.xenforo.base_url',
-        'name' => 'services.xenforo.name',
-        'api_key' => 'services.xenforo.api_key',
-        'api_user' => 'services.xenforo.api_user',
-        'client_id' => 'services.xenforo.client_id',
-        'client_secret' => 'services.xenforo.client_secret',
-        'redirect' => 'services.xenforo.redirect',
-        'webhook_secret' => 'services.xenforo.webhook_secret',
-        'require_xenforo' => 'tracker.auth.require_xenforo',
+        'base_url' => 'plugins.xenforo.base_url',
+        'name' => 'plugins.xenforo.name',
+        'api_key' => 'plugins.xenforo.api_key',
+        'api_user' => 'plugins.xenforo.api_user',
+        'client_id' => 'plugins.xenforo.client_id',
+        'client_secret' => 'plugins.xenforo.client_secret',
+        'redirect' => 'plugins.xenforo.redirect',
+        'webhook_secret' => 'plugins.xenforo.webhook_secret',
+        'require_xenforo' => 'plugins.xenforo.require_xenforo',
     ];
 
     protected function registerPlugin(): void
@@ -73,10 +75,11 @@ class XenforoServiceProvider extends PluginServiceProvider
 
         Socialite::extend('xenforo', fn (): XenforoProvider => Socialite::buildProvider(
             XenforoProvider::class,
-            config('services.xenforo'),
+            config('plugins.xenforo'),
         ));
 
         $this->addLoginProvider(XenforoLoginProvider::class);
+        $this->addToSlot('navbar.member-links', 'xenforo::navbar.forum-link');
         $this->addWebMiddleware(EnsureXenforoLinked::class);
         $this->addWebMiddleware(CheckXenforoBan::class);
         $this->registerAccountRoutes();
@@ -92,8 +95,8 @@ class XenforoServiceProvider extends PluginServiceProvider
 
         $this->addSystemCheck(
             'XenForo API',
-            fn (): bool => filled(config('services.xenforo.base_url'))
-                && filled(config('services.xenforo.api_key')),
+            fn (): bool => filled(config('plugins.xenforo.base_url'))
+                && filled(config('plugins.xenforo.api_key')),
         );
     }
 
@@ -109,6 +112,13 @@ class XenforoServiceProvider extends PluginServiceProvider
     {
         Event::observe(EventThreadObserver::class);
         EventTrooper::observe(EventTrooperThreadObserver::class);
+
+        $this->addNotificationCategory(EventForumPostNotification::CATEGORY, 'Event Forum Post');
+        $this->addNotificationCategory(
+            ForumPostCommandStaffNotification::CATEGORY,
+            'Forum Post Command Staff',
+            for_command_staff: true,
+        );
 
         $this->listen(EventPosted::class, CreateEventThread::class);
         $this->listen(EventClosed::class, ArchiveEventThread::class);

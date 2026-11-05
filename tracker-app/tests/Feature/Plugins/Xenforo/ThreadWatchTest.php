@@ -27,7 +27,7 @@ class ThreadWatchTest extends TestCase
 
     public function test_invoke_skips_xenforo_when_integration_not_configured(): void
     {
-        config(['services.xenforo.base_url' => '', 'services.xenforo.api_key' => '']);
+        config(['plugins.xenforo.base_url' => '', 'plugins.xenforo.api_key' => '']);
 
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $event = $this->linkThread(Event::factory()->create(), 99);
@@ -42,7 +42,7 @@ class ThreadWatchTest extends TestCase
 
     public function test_invoke_skips_xenforo_when_event_has_no_thread_id(): void
     {
-        config(['services.xenforo.base_url' => 'https://xf.test', 'services.xenforo.api_key' => 'key']);
+        config(['plugins.xenforo.base_url' => 'https://xf.test', 'plugins.xenforo.api_key' => 'key']);
 
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $event = $this->linkThread(Event::factory()->create(), null);
@@ -57,7 +57,7 @@ class ThreadWatchTest extends TestCase
 
     public function test_invoke_skips_xenforo_when_trooper_has_no_linked_account(): void
     {
-        config(['services.xenforo.base_url' => 'https://xf.test', 'services.xenforo.api_key' => 'key']);
+        config(['plugins.xenforo.base_url' => 'https://xf.test', 'plugins.xenforo.api_key' => 'key']);
 
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $event = $this->linkThread(Event::factory()->create(), 55);
@@ -73,8 +73,8 @@ class ThreadWatchTest extends TestCase
     public function test_invoke_calls_xenforo_watch_when_creating_watch(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key',
         ]);
 
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
@@ -105,8 +105,8 @@ class ThreadWatchTest extends TestCase
     public function test_invoke_calls_xenforo_unwatch_when_removing_watch(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key',
         ]);
 
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
@@ -137,8 +137,8 @@ class ThreadWatchTest extends TestCase
     public function test_invoke_aborts_watch_creation_when_xenforo_returns_error(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key',
         ]);
 
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
@@ -160,8 +160,8 @@ class ThreadWatchTest extends TestCase
     public function test_invoke_aborts_watch_removal_when_xenforo_returns_error(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key',
         ]);
 
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();

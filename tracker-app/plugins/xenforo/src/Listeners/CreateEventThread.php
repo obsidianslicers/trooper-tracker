@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace TroopTracker\Plugins\Xenforo\Listeners;
 
 use App\Events\EventPosted;
-use App\Facades\TroopTrackerFacade;
-use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 use TroopTracker\Plugins\Xenforo\Services\ForumThreadMessageService;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
  * Opens a forum thread for a newly posted event in its organization's forum.
@@ -31,7 +30,7 @@ class CreateEventThread implements ShouldQueue
         $thread = EventThread::forEvent($event->id);
 
         if (
-            !TroopTrackerFacade::isXenforoIntegrationConfigured()
+            !XenforoService::isConfigured()
             || empty($forum_id)
             || ($thread !== null && (!$thread->should_create_thread || !empty($thread->thread_id)))
         ) {

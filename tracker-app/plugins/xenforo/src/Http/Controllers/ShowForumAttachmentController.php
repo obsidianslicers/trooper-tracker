@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Http\Controllers;
 
-use App\Services\Forums\XenforoService;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\HeaderUtils;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class ShowForumAttachmentController
 {

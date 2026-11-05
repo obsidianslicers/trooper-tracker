@@ -7,13 +7,13 @@ namespace Tests\Feature\Plugins\Xenforo;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Plugins\PluginLoginProviders;
-use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Mockery;
 use Tests\TestCase;
 use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class XenforoLoginTest extends TestCase
 {
@@ -25,10 +25,10 @@ class XenforoLoginTest extends TestCase
         parent::setUp();
 
         config([
-            'services.xenforo.name' => 'The Forum',
-            'services.xenforo.client_id' => 'client-id',
-            'services.xenforo.client_secret' => 'secret',
-            'services.xenforo.redirect' => 'https://example.com/callback',
+            'plugins.xenforo.name' => 'The Forum',
+            'plugins.xenforo.client_id' => 'client-id',
+            'plugins.xenforo.client_secret' => 'secret',
+            'plugins.xenforo.redirect' => 'https://example.com/callback',
             'services.google.client_id' => 'google-id',
             'services.google.client_secret' => 'google-secret',
             'services.google.redirect' => 'https://example.com/google/callback',
@@ -46,7 +46,7 @@ class XenforoLoginTest extends TestCase
 
     public function test_required_forum_login_is_the_only_one_available(): void
     {
-        config(['tracker.auth.require_xenforo' => true]);
+        config(['plugins.xenforo.require_xenforo' => true]);
 
         $subject = $this->app->make(PluginLoginProviders::class);
 
@@ -59,7 +59,7 @@ class XenforoLoginTest extends TestCase
 
     public function test_callback_refuses_google_while_the_forum_is_required(): void
     {
-        config(['tracker.auth.require_xenforo' => true]);
+        config(['plugins.xenforo.require_xenforo' => true]);
         Socialite::shouldReceive('driver')->never();
 
         $this->get(route('auth.oauth-callback', ['provider' => 'google']))
@@ -68,7 +68,7 @@ class XenforoLoginTest extends TestCase
 
     public function test_email_sign_up_is_off_while_the_forum_is_required(): void
     {
-        config(['tracker.auth.require_xenforo' => true]);
+        config(['plugins.xenforo.require_xenforo' => true]);
 
         $this->get(route('auth.signup-email'))
             ->assertRedirect(route('auth.signup'))
@@ -78,7 +78,7 @@ class XenforoLoginTest extends TestCase
 
     public function test_registration_needs_the_required_forum_login(): void
     {
-        config(['tracker.auth.require_xenforo' => true]);
+        config(['plugins.xenforo.require_xenforo' => true]);
         session(['registration_auth' => [
             'method' => 'google',
             'email' => 'a@example.com',

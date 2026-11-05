@@ -13,7 +13,9 @@ use TroopTracker\Plugins\Xenforo\Mail\ForumPostCommandStaffMail;
 
 class ForumPostCommandStaffNotification extends BaseNotification
 {
-    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'forum_post_command_staff';
+    public const CATEGORY = 'forum_post_command_staff';
+
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = self::CATEGORY;
 
     public function __construct(
         private readonly Event $event,

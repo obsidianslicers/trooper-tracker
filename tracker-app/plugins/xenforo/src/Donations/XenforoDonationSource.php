@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace TroopTracker\Plugins\Xenforo\Donations;
 
 use App\Contracts\DonationSource;
-use App\Facades\TroopTrackerFacade;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use App\Support\DonationSummary;
-use App\Support\XenforoUpgradeHelper;
 use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
+use TroopTracker\Plugins\Xenforo\Support\XenforoUpgradeHelper;
 
 /**
  * Forum account upgrades (paid subscriptions) count as donations.
@@ -36,7 +35,7 @@ final class XenforoDonationSource implements DonationSource
 
     public function summariesFor(array $trooper_ids): array
     {
-        if (!TroopTrackerFacade::isXenforoIntegrationConfigured() || $trooper_ids === [])
+        if (!XenforoService::isConfigured() || $trooper_ids === [])
         {
             return [];
         }
@@ -110,6 +109,18 @@ final class XenforoDonationSource implements DonationSource
             total: $total,
             is_active: $is_active,
         );
+    }
+
+    public function monthTotal(): ?float
+    {
+        if (!XenforoService::isConfigured())
+        {
+            return 0.0;
+        }
+
+        $stats = $this->xenforo->get_upgrade_stats();
+
+        return $stats === null ? null : UpgradeMonthTotal::fromStats($stats);
     }
 
     /**

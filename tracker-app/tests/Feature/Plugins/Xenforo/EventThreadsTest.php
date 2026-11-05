@@ -10,7 +10,6 @@ use App\Events\EventClosed;
 use App\Events\EventPosted;
 use App\Models\Event;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Mockery;
@@ -21,6 +20,7 @@ use TroopTracker\Plugins\Xenforo\Listeners\CreateEventThread;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 use TroopTracker\Plugins\Xenforo\Services\ForumThreadMessageService;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class EventThreadsTest extends TestCase
 {
@@ -33,8 +33,8 @@ class EventThreadsTest extends TestCase
 
         $this->enableXenforo();
         config([
-            'services.xenforo.base_url' => 'https://forums.example.com',
-            'services.xenforo.api_key' => 'abc',
+            'plugins.xenforo.base_url' => 'https://forums.example.com',
+            'plugins.xenforo.api_key' => 'abc',
         ]);
     }
 

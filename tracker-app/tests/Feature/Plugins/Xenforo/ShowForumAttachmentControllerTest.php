@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Plugins\Xenforo;
 
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\URL;
 use Mockery\MockInterface;
 use Tests\TestCase;
 use TroopTracker\Plugins\Xenforo\Http\Controllers\ShowForumAttachmentController;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
  * @see ShowForumAttachmentController

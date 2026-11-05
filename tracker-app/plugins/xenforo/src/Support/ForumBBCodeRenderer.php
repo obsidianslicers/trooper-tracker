@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Helpers;
+namespace TroopTracker\Plugins\Xenforo\Support;
 
 use App\Models\OauthLogin;
 use Illuminate\Support\Str;
@@ -261,7 +261,7 @@ final class ForumBBCodeRenderer
             return e(route('service-records.trooper', $trooper_id));
         }
 
-        $base = rtrim((string) config('services.xenforo.base_url', ''), '/');
+        $base = rtrim((string) config('plugins.xenforo.base_url', ''), '/');
 
         return $base !== '' ? e($base.'/index.php?members/'.$xenforo_id.'/') : null;
     }

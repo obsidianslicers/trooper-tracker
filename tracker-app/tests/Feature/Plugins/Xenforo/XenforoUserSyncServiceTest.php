@@ -9,12 +9,12 @@ use App\Enums\OrganizationType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 use TroopTracker\Plugins\Xenforo\Services\XenforoUserSyncService;
 
 class XenforoUserSyncServiceTest extends TestCase

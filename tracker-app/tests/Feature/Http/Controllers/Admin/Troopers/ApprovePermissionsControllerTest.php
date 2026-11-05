@@ -35,8 +35,8 @@ class ApprovePermissionsControllerTest extends TestCase
     public function test_invoke_leaves_request_pending_when_forum_update_fails(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key',
         ]);
 
         $admin = Trooper::factory()->asAdministrator()->create();

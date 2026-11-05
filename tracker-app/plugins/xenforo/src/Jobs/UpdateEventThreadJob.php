@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Jobs;
 
-use App\Facades\TroopTrackerFacade;
 use App\Models\Event;
-use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
 use TroopTracker\Plugins\Xenforo\Services\ForumThreadMessageService;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class UpdateEventThreadJob implements ShouldBeUnique, ShouldQueue
 {
@@ -28,7 +27,7 @@ class UpdateEventThreadJob implements ShouldBeUnique, ShouldQueue
 
     public function handle(XenforoService $xenforo, ForumThreadMessageService $forumThreadMessageService): void
     {
-        if (! TroopTrackerFacade::isXenforoIntegrationConfigured())
+        if (! XenforoService::isConfigured())
         {
             return;
         }

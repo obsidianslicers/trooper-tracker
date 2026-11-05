@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Database\Seeders\Scenarios;
+namespace TroopTracker\Plugins\Xenforo\Database\Seeders;
 
-use App\Services\Forums\XenforoService;
 use Illuminate\Database\Seeder;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class XenforoTestThreadSeeder extends Seeder
 {
@@ -53,7 +53,7 @@ class XenforoTestThreadSeeder extends Seeder
             $extra_fields
         );
 
-        $this->command->info('Status: ' . $result['status']);
+        $this->command->info('Status: '.$result['status']);
         $this->command->line('JSON Response:');
         $this->command->line(
             json_encode($result['body'], JSON_PRETTY_PRINT)

@@ -6,9 +6,8 @@ namespace TroopTracker\Plugins\Xenforo\Listeners;
 
 use App\Enums\FlashType;
 use App\Events\EventWatchChanging;
-use App\Facades\TroopTrackerFacade;
-use App\Services\Forums\XenforoService;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
  * Watching an event also watches its forum thread, for troopers with a linked
@@ -22,7 +21,7 @@ class SyncThreadWatch
     {
         $thread = EventThread::linked($changing->event->id);
 
-        if ($thread === null || !TroopTrackerFacade::isXenforoIntegrationConfigured())
+        if ($thread === null || !XenforoService::isConfigured())
         {
             return null;
         }

@@ -25,7 +25,7 @@ class EnsureXenforoLinked
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!config('tracker.auth.require_xenforo', false))
+        if (!config('plugins.xenforo.require_xenforo', false))
         {
             return $next($request);
         }

@@ -181,6 +181,22 @@ abstract class PluginServiceProvider extends ServiceProvider
     }
 
     /**
+     * Add a notification category troopers can turn on or off per channel on their
+     * account page. Set it as a notification's $notification_category. Command staff
+     * categories are shown to administrators and moderators only; administrator-only
+     * ones to administrators only.
+     */
+    protected function addNotificationCategory(
+        string $value,
+        string $label,
+        bool $for_command_staff = false,
+        bool $administrator_only = false,
+    ): void {
+        $this->app->make(PluginNotifications::class)
+            ->add($value, $label, $for_command_staff, $administrator_only);
+    }
+
+    /**
      * Run a middleware on every web request, after core's own web middleware.
      */
     protected function addWebMiddleware(string $middleware_class): void

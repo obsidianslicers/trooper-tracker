@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Http\Controllers;
 
-use App\Facades\TroopTrackerFacade;
 use App\Models\Event;
-use App\Services\Forums\XenforoService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use TroopTracker\Plugins\Xenforo\Jobs\SendForumPostCommandStaffNotificationsJob;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class ForumReplyController
 {
@@ -18,7 +17,7 @@ class ForumReplyController
     {
         $thread = EventThread::linked($event->id);
 
-        if (!TroopTrackerFacade::isXenforoIntegrationConfigured() || $thread === null)
+        if (!XenforoService::isConfigured() || $thread === null)
         {
             abort(422);
         }

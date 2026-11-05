@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Jobs;
 
-use App\Facades\TroopTrackerFacade;
-use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Throwable;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class DeleteEventThreadJob implements ShouldQueue
 {
@@ -22,7 +21,7 @@ class DeleteEventThreadJob implements ShouldQueue
 
     public function handle(XenforoService $xenforo): void
     {
-        if (! TroopTrackerFacade::isXenforoIntegrationConfigured())
+        if (! XenforoService::isConfigured())
         {
             return;
         }

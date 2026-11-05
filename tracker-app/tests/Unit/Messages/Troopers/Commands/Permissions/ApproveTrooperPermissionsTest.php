@@ -38,9 +38,9 @@ class ApproveTrooperPermissionsTest extends TestCase
         $this->enableXenforo();
 
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
-            'services.xenforo.api_user' => '1',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key',
+            'plugins.xenforo.api_user' => '1',
         ]);
 
         Bus::fake([SendPermissionRequestReviewedNotificationsJob::class]);

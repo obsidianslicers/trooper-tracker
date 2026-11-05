@@ -219,6 +219,7 @@ $this->addToSlot(
 | Slot | Where | Variables |
 |------|-------|-----------|
 | `navbar.links` | Main navbar, before Help. Render `<x-nav-link>` items. | |
+| `navbar.member-links` | Main navbar, before Command Staff; signed-in troopers who aren't denied or pending only. Render `<x-nav-link>` items. | |
 | `admin.dashboard.cards` | Command Staff dashboard. Render `<x-dashboard-card>` items. | |
 | `events.display.sections` | Event page, below the shifts. | `$event` |
 | `events.display.discussion` | Event page, at the bottom, below the photos. | `$event` |
@@ -288,6 +289,7 @@ Donations recorded somewhere else, such as paid forum subscriptions, can count t
 
 - `summariesFor(array $trooper_ids)` is called by the achievement recalculation, one chunk of troopers at a time. Return `App\Support\DonationSummary` objects keyed by trooper ID (`month_keys` as `'Y-m' => true`, `total`, `is_active`). A fresh instance is made for each run, so it can fetch once and reuse the result for every chunk.
 - `summaryFor(Trooper $trooper)` gives the live numbers on one trooper's service record. `is_active` shows the active donor badge.
+- `monthTotal()` is everything donated this calendar month, for the support goal widget. Return null when it couldn't be fetched, so the widget doesn't cache a passing outage. When the sources total more than zero, the widget shows their total instead of local donation records.
 
 Months from every source and from local donation records are merged, so a month counts once; totals add up.
 
@@ -305,6 +307,10 @@ Troopers can sign in through another site, such as a forum. Core has Google buil
 - `refusal($socialite_user)` returns a message to turn someone away (a ban, for example), or null.
 - `syncTrooper($trooper, $socialite_user)` runs after a successful sign-in, for example to copy the email address.
 - `missingEmailRoute()` is where someone whose account has no email address is sent.
+
+### Notification categories
+
+`$this->addNotificationCategory('forum_reply', 'Forum Reply')` adds a row to the account page's notification preferences, which troopers can turn on or off per channel like core's own. Use the same value as the notification's `$notification_category` (notifications extend `App\Notifications\BaseNotification`). Pass `for_command_staff: true` to show it to administrators and moderators only, or `administrator_only: true` for administrators only.
 
 Plugin pages a trooper must reach before finishing account setup, such as a page to link their account, opt in with `->defaults(TrooperSetupRequiredMiddleware::ALLOWED, true)` on the route.
 
@@ -353,23 +359,29 @@ php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\Flori
 
 ## The XenForo plugin
 
-`tracker-app/plugins/xenforo` is moving the XenForo forum integration out of core in phases (see the plan doc). So far it holds:
+`tracker-app/plugins/xenforo` holds the whole XenForo forum integration. Core code no longer refers to XenForo, apart from the old columns a later core migration drops (see below) and the FAQ text. It has:
 
 - the settings page: forum URL and name, API key and user, OAuth client, webhook secret, and **Require a linked forum account**
+- the XenForo API client (`TroopTracker\Plugins\Xenforo\Services\XenforoService`) and its config, `config("plugins.xenforo.*")`
+- the Forum link in the navbar (`navbar.member-links` slot)
 - the user sync (`xenforo:sync-users`, hourly, and `xenforo:sync-user`)
 - the account link pages (`/account/xenforo`, `/account/xenforo/required`) and the two checks that run on every request while a linked account is required: send unlinked troopers to the link page, and log out banned forum users
 - XenForo login: the login provider (`XenforoLoginProvider`, key `xenforo`) and its Socialite driver, including the ban check at sign-in, keeping the trooper's email in step with the forum, and **Require a linked forum account** making the forum the only way to sign in
 - event forum threads: a thread is opened when an event is posted (unless "Create XenForo Thread" is set to No on the event form), kept up to date when the event or its roster changes, moved to the archive forum when the event closes, and deleted with the event
 - the event page's Forum Comments section, reply box (`events.forum-reply-htmx`), forum attachments (`events.forum-attachment`), the View Forum Post button, and forum smilies in the event comments editor
 - watching an event also watches its forum thread
-- the forum webhook (`/webhooks/xenforo`) and the "new forum reply" and "notify command staff" notifications
+- the forum webhook (`/webhooks/xenforo`) and the "new forum reply" and "notify command staff" notifications, with their two notification preference categories (`event_forum_post`, `forum_post_command_staff`; stored preferences keep working)
 - each organization's forum settings (event forum, archive forum, and the active, reserve and retired user groups), on the organization edit form; stored in `tt_xenforo_organization_forums`, copied from the old `tt_organizations` columns on enable. `FloridaGarrisonForumSeeder` seeds the Florida Garrison values
 - forum groups on the Request Permissions page (the forum group provider)
-- forum upgrades as a donation source (donation months, total donated, donor milestones and the active donor badge), plus the service record's forum group banners, Forum Profile button and upgrade history table
+- forum upgrades as a donation source (donation months, total donated, donor milestones, the active donor badge and the support goal widget's monthly total), plus the service record's forum group banners, Forum Profile button and upgrade history table
 
 **Require a linked forum account** only applies while the plugin is enabled. With the plugin off, the site runs without XenForo: the XenForo login button is hidden, email and Google login work, and nobody is sent to the link page.
 
-Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. The XenForo API client (`App\Services\Forums\XenforoService`) is still core and reads the same config, so the settings page applies to it too while the plugin is enabled.
+Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. The `.env` names haven't changed; they are now read by the plugin's `config/config.php` instead of core's `config/services.php` and `config/tracker.php`. `XenforoTestThreadSeeder` (posts a test thread) moved to the plugin too:
+
+```bash
+php artisan db:seed --class="TroopTracker\Plugins\Xenforo\Database\Seeders\XenforoTestThreadSeeder"
+```
 
 Each event's thread lives in the plugin's `tt_xenforo_event_threads` table. Enabling the plugin copies `tt_events.thread_id`, `post_id` and `create_forum_thread` there; core no longer reads those columns, and a later core migration drops them. The Florida Garrison legacy event import still writes the old columns, so run it before enabling the plugin.
 

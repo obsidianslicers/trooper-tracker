@@ -30,8 +30,8 @@ class EventThreadObserverTest extends TestCase
         Queue::fake();
 
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'test-key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'test-key',
         ]);
 
         $organization = Organization::factory()->create();
@@ -67,8 +67,8 @@ class EventThreadObserverTest extends TestCase
         Queue::fake();
 
         config([
-            'services.xenforo.base_url' => null,
-            'services.xenforo.api_key' => null,
+            'plugins.xenforo.base_url' => null,
+            'plugins.xenforo.api_key' => null,
         ]);
 
         $organization = Organization::factory()->create();
@@ -87,8 +87,8 @@ class EventThreadObserverTest extends TestCase
         Queue::fake();
 
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'test-key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'test-key',
         ]);
 
         $organization = Organization::factory()->create();

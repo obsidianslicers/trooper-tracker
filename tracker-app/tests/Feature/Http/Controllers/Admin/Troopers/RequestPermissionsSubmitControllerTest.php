@@ -221,8 +221,8 @@ class RequestPermissionsSubmitControllerTest extends TestCase
     private function configureXenforo(): void
     {
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key',
         ]);
 
         Http::fake([

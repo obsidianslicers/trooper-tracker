@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Observers;
 
-use App\Facades\TroopTrackerFacade;
 use App\Models\EventTrooper;
 use TroopTracker\Plugins\Xenforo\Jobs\UpdateEventThreadJob;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
  * Refreshes the roster in an event's forum thread when its sign-ups change.
@@ -39,7 +39,7 @@ class EventTrooperThreadObserver
 
     private function queueThreadSync(EventTrooper $event_trooper): void
     {
-        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
+        if (!XenforoService::isConfigured())
         {
             return;
         }

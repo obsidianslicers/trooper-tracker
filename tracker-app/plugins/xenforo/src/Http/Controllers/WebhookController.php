@@ -53,7 +53,7 @@ class WebhookController
 
     private function signatureValid(Request $request): bool
     {
-        $secret = config('services.xenforo.webhook_secret');
+        $secret = config('plugins.xenforo.webhook_secret');
 
         if (empty($secret))
         {

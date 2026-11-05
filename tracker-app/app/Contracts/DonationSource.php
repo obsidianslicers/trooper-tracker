@@ -27,4 +27,10 @@ interface DonationSource
      * Used for live totals on one trooper's service record.
      */
     public function summaryFor(Trooper $trooper): ?DonationSummary;
+
+    /**
+     * Everything donated this calendar month, for the support goal widget. Return
+     * null when it couldn't be fetched, so a passing outage isn't cached.
+     */
+    public function monthTotal(): ?float;
 }

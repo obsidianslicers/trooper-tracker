@@ -6,7 +6,6 @@ namespace Tests\Feature\Plugins\Xenforo;
 
 use App\Models\OauthLogin;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
@@ -14,6 +13,7 @@ use Tests\TestCase;
 use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
 use TroopTracker\Plugins\Xenforo\Donations\XenforoDonationSource;
 use TroopTracker\Plugins\Xenforo\Donations\XenforoProfile;
+use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class XenforoDonationSourceTest extends TestCase
 {
@@ -30,8 +30,8 @@ class XenforoDonationSourceTest extends TestCase
 
         $this->enableXenforo();
         config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-1',
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'key-1',
         ]);
 
         $this->xenforo = Mockery::mock(XenforoService::class);
@@ -66,7 +66,7 @@ class XenforoDonationSourceTest extends TestCase
 
     public function test_summaries_are_empty_without_api_settings(): void
     {
-        config(['services.xenforo.api_key' => null]);
+        config(['plugins.xenforo.api_key' => null]);
         $this->xenforo->shouldNotReceive('get_upgrade_stats');
 
         $this->assertSame([], $this->subject->summariesFor([$this->linkedTrooper(77)->id]));
