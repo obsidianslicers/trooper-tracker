@@ -46,7 +46,10 @@ class PluginLoginProvidersTest extends TestCase
         config(['services.google.redirect' => null]);
 
         $this->assertSame([], $this->subject->available());
-        $this->assertSame('Google login is not available.', $this->subject->unavailableReason('google'));
+        $this->assertSame(
+            'Google login is not available.',
+            $this->subject->unavailableReason('google'),
+        );
     }
 
     public function test_add_rejects_a_class_that_is_not_a_login_provider(): void
@@ -93,7 +96,10 @@ class PluginLoginProvidersTest extends TestCase
 
     public function test_unknown_providers_are_unavailable(): void
     {
-        $this->assertSame('That login is not available.', $this->subject->unavailableReason('myspace'));
+        $this->assertSame(
+            'That login is not available.',
+            $this->subject->unavailableReason('myspace'),
+        );
     }
 
     /**

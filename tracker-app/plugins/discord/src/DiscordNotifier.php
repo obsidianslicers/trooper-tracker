@@ -107,7 +107,8 @@ final class DiscordNotifier
      * @param  int  $event_id  The ID of the event being notified about.
      * @param  string  $title  The event title to display in the Discord message.
      * @param  string|null  $description  Optional event description displayed in the embed.
-     * @param  Organization|int|string|null  $squad  The organization (preferred), its ID, or a name.
+     * @param  Organization|int|string|null  $squad  The organization (preferred), its ID,
+     *                                               or a name.
      * @return bool True when the webhook was posted, false when no webhook is configured.
      */
     public function sendEventNotification(

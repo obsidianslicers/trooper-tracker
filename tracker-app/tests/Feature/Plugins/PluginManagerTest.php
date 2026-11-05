@@ -128,13 +128,22 @@ class PluginManagerTest extends TestCase
     {
         $settings = $this->subject->settings('hello');
 
-        $this->assertSame(['greeting' => 'Hello', 'api_key' => null, 'is_loud' => false], $settings);
+        $this->assertSame(
+            ['greeting' => 'Hello', 'api_key' => null, 'is_loud' => false],
+            $settings,
+        );
     }
 
     public function test_update_settings_casts_values_and_keeps_an_empty_secret(): void
     {
-        $this->subject->updateSettings('hello', ['greeting' => ' Howdy ', 'api_key' => 'abc', 'is_loud' => '1']);
-        $this->subject->updateSettings('hello', ['greeting' => 'Hi', 'api_key' => '', 'extra' => 'ignored']);
+        $this->subject->updateSettings(
+            'hello',
+            ['greeting' => ' Howdy ', 'api_key' => 'abc', 'is_loud' => '1'],
+        );
+        $this->subject->updateSettings(
+            'hello',
+            ['greeting' => 'Hi', 'api_key' => '', 'extra' => 'ignored'],
+        );
 
         $settings = $this->subject->settings('hello');
 

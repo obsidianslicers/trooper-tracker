@@ -21,7 +21,9 @@ class FloridaGarrisonMentionSeederTest extends TestCase
         $plugins->enable('discord');
         $plugins->load($plugins->findOrFail('discord'));
 
-        $garrison = Organization::factory()->asRegion()->create([Organization::NAME => 'Florida Garrison']);
+        $garrison = Organization::factory()
+            ->asRegion()
+            ->create([Organization::NAME => 'Florida Garrison']);
         $makaze = Organization::factory()->asUnit()->create([
             Organization::NAME => 'Makaze Squad',
             Organization::PARENT_ID => $garrison->id,
@@ -30,7 +32,10 @@ class FloridaGarrisonMentionSeederTest extends TestCase
 
         $this->seed(FloridaGarrisonMentionSeeder::class);
 
-        $this->assertSame('<@&914343663474200597>', DiscordOrganizationMention::forOrganization($makaze->id));
+        $this->assertSame(
+            '<@&914343663474200597>',
+            DiscordOrganizationMention::forOrganization($makaze->id),
+        );
         $this->assertNull(DiscordOrganizationMention::forOrganization($elsewhere->id));
         $this->assertNull($makaze->fresh()->discord_mention);
     }

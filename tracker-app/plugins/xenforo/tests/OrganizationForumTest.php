@@ -55,7 +55,10 @@ class OrganizationForumTest extends TestCase
             ->assertSee('Related Forum (Node ID):')
             ->assertSee('name="xenforo_event_forum_id"', false);
 
-        $this->actingAs($admin)->post(route('admin.organizations.update', ['organization' => $organization]), [
+        $this->actingAs($admin)->post(route(
+            'admin.organizations.update',
+            ['organization' => $organization],
+        ), [
             Organization::NAME => $organization->name,
             'xenforo_event_forum_id' => 12,
             'xenforo_archive_forum_id' => '',

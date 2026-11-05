@@ -39,10 +39,11 @@ class EventTrooperThreadObserverTest extends TestCase
             ->forTrooper(Trooper::factory()->create())
             ->create();
 
-        Queue::assertPushed(UpdateEventThreadJob::class, function (UpdateEventThreadJob $job) use ($event): bool
-        {
-            return $job->uniqueId() === 'forum-thread-sync:event:'.$event->id;
-        });
+        Queue::assertPushed(
+            UpdateEventThreadJob::class,
+            fn (UpdateEventThreadJob $job): bool => $job->uniqueId()
+                === 'forum-thread-sync:event:'.$event->id,
+        );
     }
 
     public function test_updated_queues_forum_thread_sync_when_status_changes(): void
@@ -62,13 +63,14 @@ class EventTrooperThreadObserverTest extends TestCase
         $event_trooper->status = 'cancelled';
         $event_trooper->save();
 
-        Queue::assertPushed(UpdateEventThreadJob::class, function (UpdateEventThreadJob $job) use ($event): bool
-        {
-            return $job->uniqueId() === 'forum-thread-sync:event:'.$event->id;
-        });
+        Queue::assertPushed(
+            UpdateEventThreadJob::class,
+            fn (UpdateEventThreadJob $job): bool => $job->uniqueId()
+                === 'forum-thread-sync:event:'.$event->id,
+        );
     }
 
-    public function test_created_does_not_queue_forum_thread_sync_when_xenforo_is_not_configured(): void
+    public function test_created_skips_thread_sync_when_xenforo_is_not_configured(): void
     {
         Queue::fake();
 

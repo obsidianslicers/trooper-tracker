@@ -160,8 +160,29 @@ class PluginManager
         $record->save();
 
         $this->stateChanged();
+        $this->runEnabledHook($manifest);
 
         return $record;
+    }
+
+    private function runEnabledHook(PluginManifest $manifest): void
+    {
+        if (!$this->load($manifest))
+        {
+            return;
+        }
+
+        try
+        {
+            $this->loaded[$manifest->slug]->pluginEnabled();
+        }
+        catch (Throwable $e)
+        {
+            Log::error(
+                "Plugin [{$manifest->slug}] failed while being enabled: {$e->getMessage()}",
+                ['exception' => $e],
+            );
+        }
     }
 
     public function disable(string $slug): Plugin

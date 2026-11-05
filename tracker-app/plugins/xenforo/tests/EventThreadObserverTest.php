@@ -42,13 +42,14 @@ class EventThreadObserverTest extends TestCase
         $event->name = 'Updated Event Name';
         $event->save();
 
-        Queue::assertPushed(UpdateEventThreadJob::class, function (UpdateEventThreadJob $job) use ($event): bool
-        {
-            return $job->uniqueId() === 'forum-thread-sync:event:'.$event->id;
-        });
+        Queue::assertPushed(
+            UpdateEventThreadJob::class,
+            fn (UpdateEventThreadJob $job): bool => $job->uniqueId()
+                === 'forum-thread-sync:event:'.$event->id,
+        );
     }
 
-    public function test_updated_does_not_queue_forum_thread_sync_when_only_thread_identifiers_change(): void
+    public function test_updated_skips_thread_sync_when_only_thread_ids_change(): void
     {
         Queue::fake();
 
@@ -62,7 +63,7 @@ class EventThreadObserverTest extends TestCase
         Queue::assertNothingPushed();
     }
 
-    public function test_updated_does_not_queue_forum_thread_sync_when_xenforo_is_not_configured(): void
+    public function test_updated_skips_thread_sync_when_xenforo_is_not_configured(): void
     {
         Queue::fake();
 
@@ -82,7 +83,7 @@ class EventThreadObserverTest extends TestCase
         Queue::assertNotPushed(UpdateEventThreadJob::class);
     }
 
-    public function test_deleted_deletes_forum_thread_when_xenforo_is_configured_and_thread_exists(): void
+    public function test_deleted_deletes_forum_thread_when_configured_and_thread_exists(): void
     {
         Queue::fake();
 

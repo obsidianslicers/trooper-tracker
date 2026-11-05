@@ -71,38 +71,65 @@ final class XenforoForumGroups
      *
      * @throws PermissionApprovalException
      */
-    public function updateGroups(Trooper $trooper, array $group_ids_to_add, array $group_ids_to_remove): void
-    {
+    public function updateGroups(
+        Trooper $trooper,
+        array $group_ids_to_add,
+        array $group_ids_to_remove,
+    ): void {
         if ($group_ids_to_add === [] && $group_ids_to_remove === [])
         {
             return;
         }
 
-        $user_id = $this->xenforo->resolve_user_id_for_trooper($trooper->id);
-
-        if ($user_id === null)
-        {
-            throw new PermissionApprovalException("{$trooper->display_name} has no linked forum account.");
-        }
-
+        $user_id = $this->linkedUserId($trooper);
         $current = $this->xenforo->getUserSecondaryGroupIds($user_id);
 
         if ($current === null)
         {
-            throw new PermissionApprovalException('Could not read the forum account\'s current user groups.');
+            throw new PermissionApprovalException(
+                'Could not read the forum account\'s current user groups.'
+            );
         }
 
-        $desired = collect($current)
-            ->diff($group_ids_to_remove)
-            ->merge($group_ids_to_add)
-            ->map(fn (int|string $id): int => (int) $id)
-            ->unique()
-            ->values();
+        $desired = $this->desiredGroupIds($current, $group_ids_to_add, $group_ids_to_remove);
 
         if ($desired->sort()->values()->all() !== collect($current)->sort()->values()->all())
         {
             $this->send($user_id, $desired->all());
         }
+    }
+
+    /**
+     * @throws PermissionApprovalException
+     */
+    private function linkedUserId(Trooper $trooper): int
+    {
+        $user_id = $this->xenforo->resolve_user_id_for_trooper($trooper->id);
+
+        if ($user_id === null)
+        {
+            throw new PermissionApprovalException(
+                "{$trooper->display_name} has no linked forum account."
+            );
+        }
+
+        return $user_id;
+    }
+
+    /**
+     * @param  array<int, int|string>  $current
+     * @param  array<int, int>  $to_add
+     * @param  array<int, int>  $to_remove
+     * @return Collection<int, int>
+     */
+    private function desiredGroupIds(array $current, array $to_add, array $to_remove): Collection
+    {
+        return collect($current)
+            ->diff($to_remove)
+            ->merge($to_add)
+            ->map(fn (int|string $id): int => (int) $id)
+            ->unique()
+            ->values();
     }
 
     /**

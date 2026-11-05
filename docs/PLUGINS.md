@@ -345,6 +345,10 @@ Plugin pages a trooper must reach before finishing account setup, such as a page
 
 Each entry in `settings` becomes a field on the plugin's Settings page. Types: `text`, `url`, `email`, `number`, `boolean`, `secret`. Values are validated by type, and stored encrypted in `tt_plugins.settings`. A `secret` is never shown back; leaving it empty keeps the saved value. Read settings with `$this->setting('key')` in the provider, or `app(PluginManager::class)->setting('slug', 'key')` elsewhere.
 
+### When the plugin is enabled
+
+Override `pluginEnabled()` in the provider to run something each time the plugin is turned on (from the Plugins page or `plugins:enable`), after its migrations and boot. A failure there is logged and does not stop the plugin from being enabled. The XenForo plugin uses it to copy its `.env` values onto its settings page.
+
 ---
 
 ## Example: the Discord plugin
@@ -404,7 +408,7 @@ php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\Flori
 
 **Require a linked forum account** only applies while the plugin is enabled. With the plugin off, the site runs without XenForo: the XenForo login button is hidden, email and Google login work, and nobody is sent to the link page.
 
-Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. The `.env` names haven't changed; they are now read by the plugin's `config/config.php` instead of core's `config/services.php` and `config/tracker.php`. `XenforoTestThreadSeeder` (posts a test thread) moved to the plugin too:
+Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. Enabling the plugin copies those `.env` values onto the settings page, skipping anything already saved, so the `.env` lines can be removed afterwards. Run `php artisan xenforo:import-env` to copy them again (for example after editing `.env`), or `xenforo:import-env --force` to replace saved settings too. The `.env` names haven't changed; they are now read by the plugin's `config/config.php` instead of core's `config/services.php` and `config/tracker.php`. `XenforoTestThreadSeeder` (posts a test thread) moved to the plugin too:
 
 ```bash
 php artisan db:seed --class="TroopTracker\Plugins\Xenforo\Database\Seeders\XenforoTestThreadSeeder"

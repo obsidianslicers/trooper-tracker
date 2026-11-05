@@ -22,8 +22,14 @@ final class MessageDispatcherEventsTest extends TestCase
         $result = TestEchoMessage::call(value: 'hi');
 
         $this->assertSame('hi!', $result);
-        Event::assertDispatched(MessageHandling::class, fn (MessageHandling $e): bool => $e->message instanceof TestEchoMessage);
-        Event::assertDispatched(MessageHandled::class, fn (MessageHandled $e): bool => $e->result === 'hi!');
+        Event::assertDispatched(
+            MessageHandling::class,
+            fn (MessageHandling $e): bool => $e->message instanceof TestEchoMessage,
+        );
+        Event::assertDispatched(
+            MessageHandled::class,
+            fn (MessageHandled $e): bool => $e->result === 'hi!',
+        );
     }
 
     public function test_handled_fires_after_a_transactional_message_commits(): void

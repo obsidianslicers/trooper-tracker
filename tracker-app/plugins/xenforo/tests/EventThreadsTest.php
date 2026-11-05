@@ -42,17 +42,26 @@ class EventThreadsTest extends TestCase
     {
         $organization = $this->createForumOrganization([OrganizationForum::EVENT_FORUM_ID => 42]);
         $creator = Trooper::factory()->create();
-        $event = Event::factory()->withOrganization($organization)->withCreatedByTrooper($creator)->create();
+        $event = Event::factory()
+            ->withOrganization($organization)
+            ->withCreatedByTrooper($creator)
+            ->create();
 
         $messages = Mockery::mock(ForumThreadMessageService::class);
         $messages->shouldReceive('buildThreadMessage')->once()->andReturn('[b]Thread[/b]');
 
         $xenforo = Mockery::mock(XenforoService::class);
-        $xenforo->shouldReceive('resolve_user_id_for_trooper')->once()->with($creator->id)->andReturn(9876);
+        $xenforo->shouldReceive('resolve_user_id_for_trooper')
+            ->once()
+            ->with($creator->id)
+            ->andReturn(9876);
         $xenforo->shouldReceive('create_thread')
             ->once()
             ->with(42, $event->name, '[b]Thread[/b]', 9876)
-            ->andReturn(['status' => 201, 'body' => ['thread' => ['thread_id' => 321, 'first_post_id' => 654]]]);
+            ->andReturn([
+                'status' => 201,
+                'body' => ['thread' => ['thread_id' => 321, 'first_post_id' => 654]],
+            ]);
 
         (new CreateEventThread($xenforo, $messages))->handle(new EventPosted($event));
 
@@ -64,8 +73,17 @@ class EventThreadsTest extends TestCase
     public function test_posting_skips_events_that_opted_out_or_already_have_a_thread(): void
     {
         $organization = $this->createForumOrganization([OrganizationForum::EVENT_FORUM_ID => 42]);
-        $opted_out = $this->linkThread(Event::factory()->withOrganization($organization)->create(), null, null, false);
-        $linked = $this->linkThread(Event::factory()->withOrganization($organization)->create(), 5, 6);
+        $opted_out = $this->linkThread(
+            Event::factory()->withOrganization($organization)->create(),
+            null,
+            null,
+            false,
+        );
+        $linked = $this->linkThread(
+            Event::factory()->withOrganization($organization)->create(),
+            5,
+            6,
+        );
 
         $xenforo = Mockery::mock(XenforoService::class);
         $xenforo->shouldNotReceive('create_thread');
@@ -78,7 +96,11 @@ class EventThreadsTest extends TestCase
     public function test_closing_an_event_moves_its_thread_to_the_archive_forum(): void
     {
         $organization = $this->createForumOrganization([OrganizationForum::ARCHIVE_FORUM_ID => 77]);
-        $event = $this->linkThread(Event::factory()->withOrganization($organization)->create(), 321, 654);
+        $event = $this->linkThread(
+            Event::factory()->withOrganization($organization)->create(),
+            321,
+            654,
+        );
 
         $xenforo = Mockery::mock(XenforoService::class);
         $xenforo->shouldReceive('move_thread')->once()->with(321, 77)->andReturn(['status' => 200]);

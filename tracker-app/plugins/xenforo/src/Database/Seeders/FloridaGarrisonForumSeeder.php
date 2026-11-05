@@ -28,11 +28,31 @@ class FloridaGarrisonForumSeeder extends Seeder
         [null, 'Droid Builders', ['active_group_id' => 1487]],
         [null, 'Saber Guild', ['active_group_id' => 1491]],
         ['501st Legion', 'Florida Garrison', ['active_group_id' => 18]],
-        ['Florida Garrison', 'Everglades Squad', ['event_forum_id' => 9, 'archive_forum_id' => 107, 'active_group_id' => 44]],
-        ['Florida Garrison', 'Makaze Squad', ['event_forum_id' => 8, 'archive_forum_id' => 109, 'active_group_id' => 45]],
-        ['Florida Garrison', 'Tampa Bay Squad', ['event_forum_id' => 73, 'archive_forum_id' => 115, 'active_group_id' => 43]],
-        ['Florida Garrison', 'Squad 7', ['event_forum_id' => 7, 'archive_forum_id' => 113, 'active_group_id' => 683]],
-        ['Florida Garrison', 'Parjai Squad', ['event_forum_id' => 186, 'archive_forum_id' => 111, 'active_group_id' => 250]],
+        ['Florida Garrison', 'Everglades Squad', [
+            'event_forum_id' => 9,
+            'archive_forum_id' => 107,
+            'active_group_id' => 44,
+        ]],
+        ['Florida Garrison', 'Makaze Squad', [
+            'event_forum_id' => 8,
+            'archive_forum_id' => 109,
+            'active_group_id' => 45,
+        ]],
+        ['Florida Garrison', 'Tampa Bay Squad', [
+            'event_forum_id' => 73,
+            'archive_forum_id' => 115,
+            'active_group_id' => 43,
+        ]],
+        ['Florida Garrison', 'Squad 7', [
+            'event_forum_id' => 7,
+            'archive_forum_id' => 113,
+            'active_group_id' => 683,
+        ]],
+        ['Florida Garrison', 'Parjai Squad', [
+            'event_forum_id' => 186,
+            'archive_forum_id' => 111,
+            'active_group_id' => 250,
+        ]],
     ];
 
     public function run(): void
@@ -59,6 +79,8 @@ class FloridaGarrisonForumSeeder extends Seeder
 
         $parent = Organization::query()->where(Organization::NAME, $parent_name)->first();
 
-        return $parent === null ? null : $query->where(Organization::PARENT_ID, $parent->id)->first();
+        return $parent === null
+            ? null
+            : $query->where(Organization::PARENT_ID, $parent->id)->first();
     }
 }

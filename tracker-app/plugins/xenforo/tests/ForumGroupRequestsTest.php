@@ -74,7 +74,10 @@ class ForumGroupRequestsTest extends TestCase
         $this->fakeForum();
 
         $html = $this->actingAs(Trooper::factory()->asModerator()->create())
-            ->getJson(route('admin.troopers.permissions.lookup', Trooper::factory()->asMember()->create()))
+            ->getJson(route(
+                'admin.troopers.permissions.lookup',
+                Trooper::factory()->asMember()->create(),
+            ))
             ->json('extension_sections.0.html');
 
         $this->assertStringContainsString('no linked forum account', $html);
@@ -85,7 +88,10 @@ class ForumGroupRequestsTest extends TestCase
         config(['plugins.xenforo.api_key' => null]);
 
         $this->actingAs(Trooper::factory()->asModerator()->create())
-            ->getJson(route('admin.troopers.permissions.lookup', Trooper::factory()->asMember()->create()))
+            ->getJson(route(
+                'admin.troopers.permissions.lookup',
+                Trooper::factory()->asMember()->create(),
+            ))
             ->assertJson(['extension_sections' => []]);
     }
 
@@ -119,14 +125,19 @@ class ForumGroupRequestsTest extends TestCase
         $this->fakeForum();
 
         $this->submit(Trooper::factory()->asMember()->create(), ['groups_to_add' => [20]])
-            ->assertSessionHasErrors(['extensions.xenforo.groups_to_add' => 'This trooper has no forum account.']);
+            ->assertSessionHasErrors([
+                'extensions.xenforo.groups_to_add' => 'This trooper has no forum account.',
+            ]);
     }
 
     public function test_submitting_rejects_adding_and_removing_the_same_group(): void
     {
         $this->fakeForum();
 
-        $this->submit($this->linkedTrooper('77'), ['groups_to_add' => [20], 'groups_to_remove' => [20]])
+        $this->submit(
+            $this->linkedTrooper('77'),
+            ['groups_to_add' => [20], 'groups_to_remove' => [20]],
+        )
             ->assertSessionHasErrors('extensions.xenforo.groups_to_add');
     }
 
@@ -138,7 +149,12 @@ class ForumGroupRequestsTest extends TestCase
                 ->push(['user' => ['secondary_group_ids' => [5, 9, 12]]], 200)
                 ->push(['success' => true], 200),
         ]);
-        $permission_request = $this->requestWithGroups($trooper, null, [self::EVENT_COORDINATORS], [self::RECRUITERS]);
+        $permission_request = $this->requestWithGroups(
+            $trooper,
+            null,
+            [self::EVENT_COORDINATORS],
+            [self::RECRUITERS],
+        );
 
         ApproveTrooperPermissions::call(permission_request: $permission_request);
 
@@ -156,7 +172,11 @@ class ForumGroupRequestsTest extends TestCase
                 ->push(['user' => ['secondary_group_ids' => []]], 200)
                 ->push(['errors' => []], 500),
         ]);
-        $permission_request = $this->requestWithGroups($trooper, MembershipRole::MODERATOR, [self::EVENT_COORDINATORS]);
+        $permission_request = $this->requestWithGroups(
+            $trooper,
+            MembershipRole::MODERATOR,
+            [self::EVENT_COORDINATORS],
+        );
 
         try
         {
@@ -186,7 +206,10 @@ class ForumGroupRequestsTest extends TestCase
 
     public function test_enabling_copies_groups_from_the_old_columns(): void
     {
-        $this->assertTrue(Schema::hasColumns('tt_permission_requests', ['forum_groups_to_add', 'forum_groups_to_remove']));
+        $this->assertTrue(Schema::hasColumns(
+            'tt_permission_requests',
+            ['forum_groups_to_add', 'forum_groups_to_remove'],
+        ));
         $permission_request = PermissionRequest::factory()->create();
         DB::table('tt_permission_requests')->where('id', $permission_request->id)->update([
             'forum_groups_to_add' => json_encode([self::EVENT_COORDINATORS]),
@@ -195,9 +218,8 @@ class ForumGroupRequestsTest extends TestCase
         PermissionRequest::factory()->create();
         Schema::drop('tt_xenforo_permission_request_groups');
 
-        $migration = require base_path(
-            'plugins/xenforo/database/migrations/2026_11_05_000003_create_xenforo_permission_request_groups_table.php'
-        );
+        $migration = require base_path('plugins/xenforo/database/migrations/'
+            .'2026_11_05_000003_create_xenforo_permission_request_groups_table.php');
         $migration->up();
 
         $this->assertSame(1, PermissionRequestGroups::count());
@@ -231,7 +253,10 @@ class ForumGroupRequestsTest extends TestCase
     ): PermissionRequest {
         $this->actingAs(Trooper::factory()->asAdministrator()->create());
 
-        $permission_request = PermissionRequest::factory()->forTrooper($trooper)->withRole($role)->create();
+        $permission_request = PermissionRequest::factory()
+            ->forTrooper($trooper)
+            ->withRole($role)
+            ->create();
 
         PermissionRequestGroups::create([
             PermissionRequestGroups::PERMISSION_REQUEST_ID => $permission_request->id,

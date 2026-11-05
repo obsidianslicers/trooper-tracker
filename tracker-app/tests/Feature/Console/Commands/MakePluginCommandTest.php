@@ -58,7 +58,10 @@ class MakePluginCommandTest extends TestCase
 
     public function test_the_generated_plugin_loads_and_hooks_in(): void
     {
-        $this->artisan('make:plugin', ['name' => 'Starter Check', '--namespace' => 'Acme\\StarterCheck'])
+        $this->artisan(
+            'make:plugin',
+            ['name' => 'Starter Check', '--namespace' => 'Acme\\StarterCheck'],
+        )
             ->assertSuccessful();
 
         $plugins = new PluginManager(
@@ -82,12 +85,21 @@ class MakePluginCommandTest extends TestCase
 
     public function test_composer_option_writes_a_composer_package_file(): void
     {
-        $this->artisan('make:plugin', ['name' => 'Shared Thing', '--composer' => true])->assertSuccessful();
+        $this->artisan(
+            'make:plugin',
+            ['name' => 'Shared Thing', '--composer' => true],
+        )->assertSuccessful();
 
-        $composer = json_decode(file_get_contents($this->plugins_path.'/shared-thing/composer.json'), true);
+        $composer = json_decode(
+            file_get_contents($this->plugins_path.'/shared-thing/composer.json'),
+            true,
+        );
 
         $this->assertSame('trooptracker-plugin', $composer['type']);
-        $this->assertSame(['TroopTracker\\Plugins\\SharedThing\\' => 'src/'], $composer['autoload']['psr-4']);
+        $this->assertSame(
+            ['TroopTracker\\Plugins\\SharedThing\\' => 'src/'],
+            $composer['autoload']['psr-4'],
+        );
     }
 
     public function test_it_refuses_to_overwrite_an_existing_plugin(): void

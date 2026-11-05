@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Messages\Plugins\Commands\ScaffoldPlugin;
+use App\Messages\Plugins\Commands\MakePlugin;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
 
@@ -21,7 +21,7 @@ class MakePluginCommand extends Command
     {
         try
         {
-            $path = ScaffoldPlugin::call(
+            $path = MakePlugin::call(
                 name: (string) $this->argument('name'),
                 namespace: $this->option('namespace'),
                 with_composer: (bool) $this->option('composer'),

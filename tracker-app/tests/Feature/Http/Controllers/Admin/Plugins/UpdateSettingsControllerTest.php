@@ -20,7 +20,10 @@ class UpdateSettingsControllerTest extends TestCase
         $plugins->updateSettings('hello', ['greeting' => 'Howdy', 'api_key' => 'super-secret']);
         $trooper = Trooper::factory()->asAdministrator()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.plugins.settings', ['slug' => 'hello']));
+        $response = $this->actingAs($trooper)->get(route(
+            'admin.plugins.settings',
+            ['slug' => 'hello'],
+        ));
 
         $response->assertOk();
         $response->assertViewIs('pages.admin.plugins.update-settings');
@@ -34,6 +37,9 @@ class UpdateSettingsControllerTest extends TestCase
         $this->useFixturePlugins();
         $trooper = Trooper::factory()->asAdministrator()->create();
 
-        $this->actingAs($trooper)->get(route('admin.plugins.settings', ['slug' => 'nope']))->assertNotFound();
+        $this->actingAs($trooper)->get(route(
+            'admin.plugins.settings',
+            ['slug' => 'nope'],
+        ))->assertNotFound();
     }
 }

@@ -19,7 +19,10 @@ class EnableSubmitControllerTest extends TestCase
         $plugins = $this->useFixturePlugins();
         $trooper = Trooper::factory()->asAdministrator()->create();
 
-        $response = $this->actingAs($trooper)->post(route('admin.plugins.enable', ['slug' => 'hello']));
+        $response = $this->actingAs($trooper)->post(route(
+            'admin.plugins.enable',
+            ['slug' => 'hello'],
+        ));
 
         $response->assertRedirect(route('admin.plugins.list'));
         $response->assertSessionHas('success');
@@ -32,7 +35,10 @@ class EnableSubmitControllerTest extends TestCase
         $this->useFixturePlugins();
         $trooper = Trooper::factory()->asAdministrator()->create();
 
-        $response = $this->actingAs($trooper)->post(route('admin.plugins.enable', ['slug' => 'nope']));
+        $response = $this->actingAs($trooper)->post(route(
+            'admin.plugins.enable',
+            ['slug' => 'nope'],
+        ));
 
         $response->assertNotFound();
     }

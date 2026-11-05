@@ -94,8 +94,11 @@ class PluginSlots
      *
      * @param  array<string, mixed>  $context
      */
-    public function renderPage(string $slot, array $context = [], ?string $route_name = null): string
-    {
+    public function renderPage(
+        string $slot,
+        array $context = [],
+        ?string $route_name = null,
+    ): string {
         $route_name ??= Route::currentRouteName();
         $entries = [];
 

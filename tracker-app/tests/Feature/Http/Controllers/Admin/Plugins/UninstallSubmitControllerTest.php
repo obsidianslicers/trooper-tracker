@@ -21,7 +21,10 @@ class UninstallSubmitControllerTest extends TestCase
         $plugins->enable('hello');
         $trooper = Trooper::factory()->asAdministrator()->create();
 
-        $response = $this->actingAs($trooper)->post(route('admin.plugins.uninstall', ['slug' => 'hello']));
+        $response = $this->actingAs($trooper)->post(route(
+            'admin.plugins.uninstall',
+            ['slug' => 'hello'],
+        ));
 
         $response->assertRedirect(route('admin.plugins.list'));
         $response->assertSessionHas('success');

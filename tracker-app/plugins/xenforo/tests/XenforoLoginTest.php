@@ -159,7 +159,11 @@ class XenforoLoginTest extends TestCase
      */
     private function forumUser(string $id, ?string $email, array $raw): SocialiteUser
     {
-        return (new SocialiteUser)->setRaw($raw)->map(['id' => $id, 'email' => $email, 'name' => 'Forum User']);
+        return (new SocialiteUser)->setRaw($raw)->map([
+            'id' => $id,
+            'email' => $email,
+            'name' => 'Forum User',
+        ]);
     }
 
     /**

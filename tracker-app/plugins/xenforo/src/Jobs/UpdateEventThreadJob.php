@@ -25,40 +25,26 @@ class UpdateEventThreadJob implements ShouldBeUnique, ShouldQueue
         $this->event_id = $event_id;
     }
 
-    public function handle(XenforoService $xenforo, ForumThreadMessageService $forumThreadMessageService): void
+    public function handle(XenforoService $xenforo, ForumThreadMessageService $messages): void
     {
         if (! XenforoService::isConfigured())
         {
             return;
         }
 
-        if ($this->event_id !== null)
+        if ($this->event_id === null)
         {
-            $thread = EventThread::linked($this->event_id);
-
-            if ($thread !== null && $thread->hasFirstPost())
-            {
-                $this->syncEvent($thread, $xenforo, $forumThreadMessageService);
-            }
+            $this->syncRecentEvents($xenforo, $messages);
 
             return;
         }
 
-        $cutoff = now()->subMinute();
+        $thread = EventThread::linked($this->event_id);
 
-        EventThread::query()
-            ->with('event')
-            ->where(EventThread::SHOULD_CREATE_THREAD, true)
-            ->whereNotNull(EventThread::THREAD_ID)
-            ->whereNotNull(EventThread::POST_ID)
-            ->whereHas('event', fn ($query) => $query->where(Event::EVENT_END, '>=', $cutoff))
-            ->chunkById(50, function ($threads) use ($forumThreadMessageService, $xenforo): void
-            {
-                foreach ($threads as $thread)
-                {
-                    $this->syncEvent($thread, $xenforo, $forumThreadMessageService);
-                }
-            });
+        if ($thread !== null && $thread->hasFirstPost())
+        {
+            $this->syncEvent($thread, $xenforo, $messages);
+        }
     }
 
     public function uniqueId(): string
@@ -68,17 +54,37 @@ class UpdateEventThreadJob implements ShouldBeUnique, ShouldQueue
             : 'forum-thread-sync:event:'.$this->event_id;
     }
 
+    private function syncRecentEvents(
+        XenforoService $xenforo,
+        ForumThreadMessageService $messages
+    ): void {
+        $cutoff = now()->subMinute();
+
+        EventThread::query()
+            ->with('event')
+            ->where(EventThread::SHOULD_CREATE_THREAD, true)
+            ->whereNotNull(EventThread::THREAD_ID)
+            ->whereNotNull(EventThread::POST_ID)
+            ->whereHas('event', fn ($query) => $query->where(Event::EVENT_END, '>=', $cutoff))
+            ->chunkById(50, function ($threads) use ($messages, $xenforo): void
+            {
+                foreach ($threads as $thread)
+                {
+                    $this->syncEvent($thread, $xenforo, $messages);
+                }
+            });
+    }
+
     private function syncEvent(
         EventThread $thread,
         XenforoService $xenforo,
-        ForumThreadMessageService $forumThreadMessageService
+        ForumThreadMessageService $messages
     ): void {
         $event = $thread->event;
-        $message = $forumThreadMessageService->buildThreadMessage($event);
-
-        $userId = $xenforo->resolve_user_id_for_trooper($event->created_id);
+        $message = $messages->buildThreadMessage($event);
+        $user_id = $xenforo->resolve_user_id_for_trooper($event->created_id);
 
         $xenforo->update_thread((int) $thread->thread_id, (string) $event->name);
-        $xenforo->update_post((int) $thread->post_id, $message, $userId);
+        $xenforo->update_post((int) $thread->post_id, $message, $user_id);
     }
 }

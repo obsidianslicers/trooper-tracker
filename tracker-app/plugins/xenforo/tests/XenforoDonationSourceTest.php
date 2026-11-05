@@ -35,7 +35,10 @@ class XenforoDonationSourceTest extends TestCase
         ]);
 
         $this->xenforo = Mockery::mock(XenforoService::class);
-        $this->subject = new XenforoDonationSource($this->xenforo, new XenforoProfile($this->xenforo));
+        $this->subject = new XenforoDonationSource(
+            $this->xenforo,
+            new XenforoProfile($this->xenforo),
+        );
     }
 
     public function test_summaries_price_each_month_at_the_upgrade_cost(): void
@@ -60,7 +63,10 @@ class XenforoDonationSourceTest extends TestCase
 
         $this->assertSame([$linked->id], array_keys($summaries));
         $this->assertSame(15.0, $summaries[$linked->id]->total);
-        $this->assertSame(['2025-01', '2025-02', '2025-03'], array_keys($summaries[$linked->id]->month_keys));
+        $this->assertSame(
+            ['2025-01', '2025-02', '2025-03'],
+            array_keys($summaries[$linked->id]->month_keys),
+        );
         $this->assertFalse($summaries[$linked->id]->is_active);
     }
 
@@ -77,7 +83,12 @@ class XenforoDonationSourceTest extends TestCase
         $trooper = $this->linkedTrooper(77);
         $this->xenforo->shouldReceive('resolve_user_id_for_trooper')->once()->andReturn(77);
         $this->xenforo->shouldReceive('get_user_upgrade_history')->once()->with(77)->andReturn([
-            ['start_date' => strtotime('2025-05-01'), 'end_date' => strtotime('2025-06-20'), 'is_active' => true, 'total_amount' => 9.5],
+            [
+                'start_date' => strtotime('2025-05-01'),
+                'end_date' => strtotime('2025-06-20'),
+                'is_active' => true,
+                'total_amount' => 9.5,
+            ],
         ]);
 
         $summary = $this->subject->summaryFor($trooper);

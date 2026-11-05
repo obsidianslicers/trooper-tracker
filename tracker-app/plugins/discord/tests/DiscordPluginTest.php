@@ -100,12 +100,18 @@ class DiscordPluginTest extends TestCase
             ->assertSee('Discord Mention:')
             ->assertSee('&lt;@&amp;111&gt;', false);
 
-        $this->actingAs($admin)->post(route('admin.organizations.update', ['organization' => $organization]), [
+        $this->actingAs($admin)->post(route(
+            'admin.organizations.update',
+            ['organization' => $organization],
+        ), [
             Organization::NAME => $organization->name,
             'discord_mention' => '<@&222>',
         ])->assertRedirect(route('admin.organizations.list'));
 
-        $this->assertSame('<@&222>', DiscordOrganizationMention::forOrganization($organization->id));
+        $this->assertSame(
+            '<@&222>',
+            DiscordOrganizationMention::forOrganization($organization->id),
+        );
     }
 
     public function test_organization_form_validates_the_mention_length(): void
@@ -114,7 +120,10 @@ class DiscordPluginTest extends TestCase
         $admin = Trooper::factory()->asAdministrator()->create();
         $organization = Organization::factory()->create();
 
-        $this->actingAs($admin)->post(route('admin.organizations.update', ['organization' => $organization]), [
+        $this->actingAs($admin)->post(route(
+            'admin.organizations.update',
+            ['organization' => $organization],
+        ), [
             Organization::NAME => $organization->name,
             'discord_mention' => str_repeat('a', 129),
         ])->assertSessionHasErrors('discord_mention');

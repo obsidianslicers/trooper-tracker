@@ -99,7 +99,8 @@ final class XenforoDonationSource implements DonationSource
 
             if ($start > 0 && $cost > 0.0)
             {
-                $months = XenforoUpgradeHelper::countMonthsForRecord($start, (int) ($row['end_date'] ?? 0));
+                $end = (int) ($row['end_date'] ?? 0);
+                $months = XenforoUpgradeHelper::countMonthsForRecord($start, $end);
                 $total += $months * $cost;
             }
         }
@@ -143,16 +144,7 @@ final class XenforoDonationSource implements DonationSource
             return [];
         }
 
-        $cost_map = [];
-
-        foreach ($stats['userUpgrades'] ?? [] as $upgrade)
-        {
-            if (is_array($upgrade) && isset($upgrade['user_upgrade_id']))
-            {
-                $cost_map[(int) $upgrade['user_upgrade_id']] = (float) ($upgrade['cost_amount'] ?? 0);
-            }
-        }
-
+        $cost_map = $this->costMap($stats);
         $by_user = [];
 
         foreach (['userUpgradeActive' => true, 'userUpgradeExpired' => false] as $key => $is_active)
@@ -169,5 +161,25 @@ final class XenforoDonationSource implements DonationSource
         }
 
         return $by_user;
+    }
+
+    /**
+     * @param  array<string, mixed>  $stats
+     * @return array<int, float>
+     */
+    private function costMap(array $stats): array
+    {
+        $cost_map = [];
+
+        foreach ($stats['userUpgrades'] ?? [] as $upgrade)
+        {
+            if (is_array($upgrade) && isset($upgrade['user_upgrade_id']))
+            {
+                $cost = (float) ($upgrade['cost_amount'] ?? 0);
+                $cost_map[(int) $upgrade['user_upgrade_id']] = $cost;
+            }
+        }
+
+        return $cost_map;
     }
 }

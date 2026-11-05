@@ -55,7 +55,10 @@ class PluginCommandsTest extends TestCase
         $plugins->enable('hello');
 
         $this->artisan('plugins:uninstall', ['slug' => 'hello'])
-            ->expectsConfirmation('Uninstall [hello]? This deletes its tables and settings and cannot be undone.', 'no')
+            ->expectsConfirmation(
+                'Uninstall [hello]? This deletes its tables and settings and cannot be undone.',
+                'no',
+            )
             ->expectsOutput('Cancelled.')
             ->assertSuccessful();
         $this->assertTrue($plugins->isInstalled('hello'));

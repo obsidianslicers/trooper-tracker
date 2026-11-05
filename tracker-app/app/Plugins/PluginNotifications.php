@@ -54,7 +54,11 @@ final class PluginNotifications
     }
 
     /**
-     * @param  callable(array{label: string, for_command_staff: bool, administrator_only: bool}): bool  $filter
+     * @param  callable(array{
+     *     label: string,
+     *     for_command_staff: bool,
+     *     administrator_only: bool,
+     * }): bool  $filter
      * @return array<string, string>
      */
     private function labels(callable $filter): array

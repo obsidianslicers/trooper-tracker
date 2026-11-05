@@ -38,7 +38,11 @@ class PluginManifestTest extends TestCase
 
     public function test_composer_packages_do_not_need_a_namespace(): void
     {
-        $subject = PluginManifest::fromArray(['slug' => 'pkg', 'provider' => 'Acme\\Provider'], '/vendor/acme/pkg', true);
+        $subject = PluginManifest::fromArray(
+            ['slug' => 'pkg', 'provider' => 'Acme\\Provider'],
+            '/vendor/acme/pkg',
+            true,
+        );
 
         $this->assertNull($subject->namespace);
         $this->assertNull($subject->source_path);
@@ -61,8 +65,18 @@ class PluginManifestTest extends TestCase
             'bad slug' => [['slug' => 'Bad Slug', 'provider' => 'A\\B', 'namespace' => 'A']],
             'missing provider' => [['slug' => 'ok', 'namespace' => 'A']],
             'local without namespace' => [['slug' => 'ok', 'provider' => 'A\\B']],
-            'bad setting type' => [['slug' => 'ok', 'provider' => 'A\\B', 'namespace' => 'A', 'settings' => [['key' => 'x', 'type' => 'color']]]],
-            'bad setting key' => [['slug' => 'ok', 'provider' => 'A\\B', 'namespace' => 'A', 'settings' => [['key' => 'Bad-Key']]]],
+            'bad setting type' => [[
+                'slug' => 'ok',
+                'provider' => 'A\\B',
+                'namespace' => 'A',
+                'settings' => [['key' => 'x', 'type' => 'color']],
+            ]],
+            'bad setting key' => [[
+                'slug' => 'ok',
+                'provider' => 'A\\B',
+                'namespace' => 'A',
+                'settings' => [['key' => 'Bad-Key']],
+            ]],
         ];
     }
 

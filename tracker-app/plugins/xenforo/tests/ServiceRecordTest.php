@@ -105,14 +105,19 @@ class ServiceRecordTest extends TestCase
             $mock->shouldReceive('get_user_groups')->once()->with(15802)->andReturn([
                 'userGroups' => [
                     ['title' => 'Reserve', 'order' => 20, 'isPrimary' => false,
-                        'bannerText' => '<span class="userBanner userBanner--reserve">Reserve</span>'],
+                        'bannerText' => '<span class="userBanner userBanner--reserve">'
+                            .'Reserve</span>'],
                     ['title' => 'Primary', 'order' => 10, 'isPrimary' => true,
-                        'bannerText' => '<span class="userBanner userBanner--primary">Primary</span>'],
+                        'bannerText' => '<span class="userBanner userBanner--primary">'
+                            .'Primary</span>'],
                     ['title' => 'Empty', 'order' => 30, 'isPrimary' => false, 'bannerText' => ''],
                 ],
             ]);
 
-            $mock->shouldReceive('get_user_upgrade_history')->once()->with(15802)->andReturn($upgrades);
+            $mock->shouldReceive('get_user_upgrade_history')
+                ->once()
+                ->with(15802)
+                ->andReturn($upgrades);
         });
     }
 

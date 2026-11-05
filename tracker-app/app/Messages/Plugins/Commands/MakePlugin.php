@@ -14,7 +14,7 @@ use InvalidArgumentException;
  *
  * @method static string call(string $name, ?string $namespace = null, bool $with_composer = false)
  */
-final class ScaffoldPlugin extends Message
+final class MakePlugin extends Message
 {
     private const FILES = [
         'plugin.json.stub' => 'plugin.json',

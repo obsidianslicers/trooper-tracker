@@ -32,28 +32,18 @@ class SupportGoalTest extends TestCase
             'plugins.xenforo.api_key' => 'test-key',
         ]);
 
-        $start_date = now()->startOfMonth()->addDay()->timestamp;
-        $end_date = now()->startOfMonth()->addDays(2)->timestamp;
-
         $xenforo = Mockery::mock(XenforoService::class);
         $xenforo->shouldReceive('get_upgrade_stats')
             ->once()
             ->andReturn([
                 'userUpgradeActive' => [],
-                'userUpgradeExpired' => [
-                    [
-                        'start_date' => $start_date,
-                        'end_date' => $end_date,
-                        'user_upgrade_id' => 2,
-                        'extra' => '{"cost_amount":"15.00"}',
-                    ],
-                ],
-                'userUpgrades' => [
-                    [
-                        'user_upgrade_id' => 2,
-                        'cost_amount' => 15.0,
-                    ],
-                ],
+                'userUpgradeExpired' => [[
+                    'start_date' => now()->startOfMonth()->addDay()->timestamp,
+                    'end_date' => now()->startOfMonth()->addDays(2)->timestamp,
+                    'user_upgrade_id' => 2,
+                    'extra' => '{"cost_amount":"15.00"}',
+                ]],
+                'userUpgrades' => [['user_upgrade_id' => 2, 'cost_amount' => 15.0]],
             ]);
 
         app()->instance(XenforoService::class, $xenforo);

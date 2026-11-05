@@ -24,13 +24,12 @@ class XenforoPluginTest extends TestCase
             'plugins.xenforo.require_xenforo' => true,
         ]);
         $plugins = $this->app->make(\App\Plugins\PluginManager::class);
-        $plugins->enable('xenforo');
         $plugins->updateSettings('xenforo', [
             'base_url' => 'https://forum.example.com/',
             'require_xenforo' => '0',
         ]);
 
-        $plugins->load($plugins->findOrFail('xenforo'));
+        $plugins->enable('xenforo');
 
         $this->assertSame('https://forum.example.com', config('plugins.xenforo.base_url'));
         $this->assertSame('env-key', config('plugins.xenforo.api_key'));
@@ -39,7 +38,10 @@ class XenforoPluginTest extends TestCase
 
     public function test_env_config_is_kept_until_settings_are_saved(): void
     {
-        config(['plugins.xenforo.base_url' => 'https://env.example.com', 'plugins.xenforo.require_xenforo' => true]);
+        config([
+            'plugins.xenforo.base_url' => 'https://env.example.com',
+            'plugins.xenforo.require_xenforo' => true,
+        ]);
 
         $this->enableXenforo();
 
@@ -52,7 +54,10 @@ class XenforoPluginTest extends TestCase
         $this->enableXenforo();
 
         $events = collect($this->app->make(Schedule::class)->events())
-            ->filter(fn ($event): bool => str_contains((string) $event->command, 'xenforo:sync-users'));
+            ->filter(fn ($event): bool => str_contains(
+                (string) $event->command,
+                'xenforo:sync-users',
+            ));
 
         $this->assertCount(1, $events);
         $this->assertSame('0 * * * *', $events->first()->expression);

@@ -41,11 +41,12 @@ final class ForumGroupRequests implements PermissionRequestExtension
 
         $groups = $this->forum_groups->requestableGroups();
         $current_ids = $this->forum_groups->currentGroupIds($trooper) ?? [];
+        $is_current = fn (array $group): bool => in_array($group['id'], $current_ids, true);
 
         return View::make('xenforo::admin.permission-request-groups', [
             'has_account' => $this->forum_groups->hasAccount($trooper),
-            'addable' => $groups->reject(fn (array $group): bool => in_array($group['id'], $current_ids, true)),
-            'current' => $groups->filter(fn (array $group): bool => in_array($group['id'], $current_ids, true)),
+            'addable' => $groups->reject($is_current),
+            'current' => $groups->filter($is_current),
             'prefix' => 'extensions['.self::KEY.']',
         ])->render();
     }
@@ -70,8 +71,9 @@ final class ForumGroupRequests implements PermissionRequestExtension
         }
 
         $field = 'extensions.'.self::KEY.'.'.self::TO_ADD;
+        $to_add = $this->ids($input, self::TO_ADD);
 
-        if (array_intersect($this->ids($input, self::TO_ADD), $this->ids($input, self::TO_REMOVE)) !== [])
+        if (array_intersect($to_add, $this->ids($input, self::TO_REMOVE)) !== [])
         {
             $validator->errors()->add($field, 'A forum group cannot be added and removed.');
         }
@@ -84,7 +86,8 @@ final class ForumGroupRequests implements PermissionRequestExtension
 
     public function requestsChange(array $input): bool
     {
-        return $this->ids($input, self::TO_ADD) !== [] || $this->ids($input, self::TO_REMOVE) !== [];
+        return $this->ids($input, self::TO_ADD) !== []
+            || $this->ids($input, self::TO_REMOVE) !== [];
     }
 
     public function store(PermissionRequest $permission_request, array $input): void
@@ -98,8 +101,9 @@ final class ForumGroupRequests implements PermissionRequestExtension
 
         PermissionRequestGroups::create([
             PermissionRequestGroups::PERMISSION_REQUEST_ID => $permission_request->id,
-            PermissionRequestGroups::GROUPS_TO_ADD => $this->pick($groups, $this->ids($input, self::TO_ADD)),
-            PermissionRequestGroups::GROUPS_TO_REMOVE => $this->pick($groups, $this->ids($input, self::TO_REMOVE)),
+            PermissionRequestGroups::GROUPS_TO_ADD => $this->pick($groups, $input, self::TO_ADD),
+            PermissionRequestGroups::GROUPS_TO_REMOVE => $this
+                ->pick($groups, $input, self::TO_REMOVE),
         ]);
     }
 
@@ -142,11 +146,13 @@ final class ForumGroupRequests implements PermissionRequestExtension
 
     /**
      * @param  Collection<int, array{id:int,title:string,banner_image_url:?string}>  $groups
-     * @param  array<int, int>  $ids
+     * @param  array<string, mixed>  $input
      * @return array<int, array{id:int,title:string}>
      */
-    private function pick(Collection $groups, array $ids): array
+    private function pick(Collection $groups, array $input, string $field): array
     {
+        $ids = $this->ids($input, $field);
+
         return $groups
             ->filter(fn (array $group): bool => in_array($group['id'], $ids, true))
             ->map(fn (array $group): array => ['id' => $group['id'], 'title' => $group['title']])

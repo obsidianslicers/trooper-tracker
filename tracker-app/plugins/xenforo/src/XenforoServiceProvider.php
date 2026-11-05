@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Laravel\Socialite\Facades\Socialite;
 use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
+use TroopTracker\Plugins\Xenforo\Console\ImportEnvCommand;
 use TroopTracker\Plugins\Xenforo\Console\SyncUserCommand;
 use TroopTracker\Plugins\Xenforo\Console\SyncUsersCommand;
 use TroopTracker\Plugins\Xenforo\Donations\XenforoDonationSource;
@@ -34,6 +35,7 @@ use TroopTracker\Plugins\Xenforo\Http\Middleware\EnsureXenforoLinked;
 use TroopTracker\Plugins\Xenforo\Listeners\ArchiveEventThread;
 use TroopTracker\Plugins\Xenforo\Listeners\CreateEventThread;
 use TroopTracker\Plugins\Xenforo\Listeners\SyncThreadWatch;
+use TroopTracker\Plugins\Xenforo\Messages\ImportXenforoEnv;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 use TroopTracker\Plugins\Xenforo\Notifications\EventForumPostNotification;
@@ -48,7 +50,7 @@ class XenforoServiceProvider extends PluginServiceProvider
     /**
      * Settings saved on the plugin's page win over the matching .env values.
      */
-    private const SETTING_CONFIG = [
+    public const SETTING_CONFIG = [
         'base_url' => 'plugins.xenforo.base_url',
         'name' => 'plugins.xenforo.name',
         'api_key' => 'plugins.xenforo.api_key',
@@ -71,14 +73,13 @@ class XenforoServiceProvider extends PluginServiceProvider
 
     public function bootPlugin(): void
     {
-        $this->commands([SyncUserCommand::class, SyncUsersCommand::class]);
+        $this->commands([
+            ImportEnvCommand::class,
+            SyncUserCommand::class,
+            SyncUsersCommand::class,
+        ]);
 
-        Socialite::extend('xenforo', fn (): XenforoProvider => Socialite::buildProvider(
-            XenforoProvider::class,
-            config('plugins.xenforo'),
-        ));
-
-        $this->addLoginProvider(XenforoLoginProvider::class);
+        $this->registerLogin();
         $this->addToSlot('navbar.member-links', 'xenforo::navbar.forum-link');
         $this->addWebMiddleware(EnsureXenforoLinked::class);
         $this->addWebMiddleware(CheckXenforoBan::class);
@@ -100,12 +101,36 @@ class XenforoServiceProvider extends PluginServiceProvider
         );
     }
 
+    private function registerLogin(): void
+    {
+        Socialite::extend('xenforo', fn (): XenforoProvider => Socialite::buildProvider(
+            XenforoProvider::class,
+            config('plugins.xenforo'),
+        ));
+
+        $this->addLoginProvider(XenforoLoginProvider::class);
+    }
+
+    /**
+     * Saves the .env values on the settings page, so the .env lines can go.
+     */
+    public function pluginEnabled(): void
+    {
+        ImportXenforoEnv::call();
+    }
+
     private function registerServiceRecord(): void
     {
         $this->addDonationSource(XenforoDonationSource::class);
         $this->addToSlot('service-records.trooper.badges', 'xenforo::service-records.banners');
-        $this->addToSlot('service-records.trooper.actions', 'xenforo::service-records.profile-link');
-        $this->addToSlot('service-records.trooper.donations', 'xenforo::service-records.donations');
+        $this->addToSlot(
+            'service-records.trooper.actions',
+            'xenforo::service-records.profile-link'
+        );
+        $this->addToSlot(
+            'service-records.trooper.donations',
+            'xenforo::service-records.donations'
+        );
     }
 
     private function registerEventThreads(): void
@@ -124,6 +149,12 @@ class XenforoServiceProvider extends PluginServiceProvider
         $this->listen(EventClosed::class, ArchiveEventThread::class);
         $this->listen(EventWatchChanging::class, SyncThreadWatch::class);
 
+        $this->registerEventViews();
+        $this->registerEventRoutes();
+    }
+
+    private function registerEventViews(): void
+    {
         $this->addToSlot('events.display.discussion', 'xenforo::events.comments');
         $this->addToSlot('events.display.share-buttons', 'xenforo::events.forum-post-button');
         $this->addToSlot('admin.events.form.fields', 'xenforo::admin.event-fields');
@@ -134,15 +165,16 @@ class XenforoServiceProvider extends PluginServiceProvider
                 'xenforo_thread_id' => ['nullable', 'integer', 'min:1'],
                 'xenforo_post_id' => ['nullable', 'integer', 'min:1'],
             ],
-            saved: fn (Event $event, array $validated) => $this->saveEventThread($event, $validated),
+            saved: fn (Event $event, array $validated) => $this->saveEventThread(
+                $event,
+                $validated
+            ),
         );
 
         View::composer(
             ['pages.admin.events.inc.miscellaneous', 'pages.events.event-display'],
             fn ($view) => $view->with('smilies', app(EventComments::class)->smilies()),
         );
-
-        $this->registerEventRoutes();
     }
 
     /**
@@ -172,8 +204,12 @@ class XenforoServiceProvider extends PluginServiceProvider
             ->name('events.')
             ->group(function (): void
             {
-                Route::post('/forum-reply/{event}', ForumReplyController::class)->name('forum-reply-htmx');
-                Route::get('/forum-attachments/{attachment_id}', ShowForumAttachmentController::class)
+                Route::post('/forum-reply/{event}', ForumReplyController::class)
+                    ->name('forum-reply-htmx');
+                Route::get(
+                    '/forum-attachments/{attachment_id}',
+                    ShowForumAttachmentController::class
+                )
                     ->whereNumber('attachment_id')
                     ->middleware('signed')
                     ->name('forum-attachment');
@@ -207,24 +243,30 @@ class XenforoServiceProvider extends PluginServiceProvider
 
         $this->extendForm(PluginForms::ORGANIZATION_UPDATE,
             rules: $fields,
-            saved: function (Organization $organization, array $validated): void
-            {
-                $values = [];
-
-                foreach (OrganizationForum::SETTINGS as $setting)
-                {
-                    if (array_key_exists('xenforo_'.$setting, $validated))
-                    {
-                        $values[$setting] = $validated['xenforo_'.$setting];
-                    }
-                }
-
-                if ($values !== [])
-                {
-                    OrganizationForum::store($organization->id, $values);
-                }
-            },
+            saved: fn (Organization $organization, array $validated) => $this
+                ->saveOrganizationForum($organization, $validated),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function saveOrganizationForum(Organization $organization, array $validated): void
+    {
+        $values = [];
+
+        foreach (OrganizationForum::SETTINGS as $setting)
+        {
+            if (array_key_exists('xenforo_'.$setting, $validated))
+            {
+                $values[$setting] = $validated['xenforo_'.$setting];
+            }
+        }
+
+        if ($values !== [])
+        {
+            OrganizationForum::store($organization->id, $values);
+        }
     }
 
     /**

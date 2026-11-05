@@ -25,7 +25,10 @@ class PluginFormsTest extends TestCase
     {
         $subject = new PluginForms;
         $calls = [];
-        $subject->add('form', saved: function (Organization $model, array $validated) use (&$calls): void
+        $subject->add('form', saved: function (
+            Organization $model,
+            array $validated,
+        ) use (&$calls): void
         {
             $calls[] = $validated['a'];
         });

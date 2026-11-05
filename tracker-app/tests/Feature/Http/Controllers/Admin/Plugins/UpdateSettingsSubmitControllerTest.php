@@ -19,7 +19,10 @@ class UpdateSettingsSubmitControllerTest extends TestCase
         $plugins = $this->useFixturePlugins();
         $trooper = Trooper::factory()->asAdministrator()->create();
 
-        $response = $this->actingAs($trooper)->post(route('admin.plugins.settings', ['slug' => 'hello']), [
+        $response = $this->actingAs($trooper)->post(route(
+            'admin.plugins.settings',
+            ['slug' => 'hello'],
+        ), [
             'settings' => ['greeting' => 'Howdy', 'api_key' => 'abc', 'is_loud' => '1'],
         ]);
 
@@ -35,7 +38,10 @@ class UpdateSettingsSubmitControllerTest extends TestCase
         $plugins = $this->useFixturePlugins();
         $trooper = Trooper::factory()->asAdministrator()->create();
 
-        $response = $this->actingAs($trooper)->post(route('admin.plugins.settings', ['slug' => 'hello']), [
+        $response = $this->actingAs($trooper)->post(route(
+            'admin.plugins.settings',
+            ['slug' => 'hello'],
+        ), [
             'settings' => ['is_loud' => 'not-a-boolean'],
         ]);
 

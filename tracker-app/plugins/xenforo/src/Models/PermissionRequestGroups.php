@@ -26,7 +26,11 @@ class PermissionRequestGroups extends Model
 
     protected $table = 'tt_xenforo_permission_request_groups';
 
-    protected $fillable = [self::PERMISSION_REQUEST_ID, self::GROUPS_TO_ADD, self::GROUPS_TO_REMOVE];
+    protected $fillable = [
+        self::PERMISSION_REQUEST_ID,
+        self::GROUPS_TO_ADD,
+        self::GROUPS_TO_REMOVE,
+    ];
 
     protected $casts = [
         self::PERMISSION_REQUEST_ID => 'int',

@@ -35,7 +35,8 @@ final class XenforoProfile
 
         if (!array_key_exists($trooper->id, $this->user_ids))
         {
-            $this->user_ids[$trooper->id] = $this->xenforo->resolve_user_id_for_trooper($trooper->id);
+            $this->user_ids[$trooper->id] = $this->xenforo
+                ->resolve_user_id_for_trooper($trooper->id);
         }
 
         return $this->user_ids[$trooper->id];

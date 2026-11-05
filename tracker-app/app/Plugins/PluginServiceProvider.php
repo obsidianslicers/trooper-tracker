@@ -56,6 +56,11 @@ abstract class PluginServiceProvider extends ServiceProvider
     public function bootPlugin(): void {}
 
     /**
+     * Runs each time the plugin is turned on, after its migrations and boot.
+     */
+    public function pluginEnabled(): void {}
+
+    /**
      * Read one of this plugin's admin-editable settings.
      */
     protected function setting(string $key, mixed $default = null): mixed

@@ -119,8 +119,10 @@ class InstallSubmitControllerTest extends TestCase
         ])];
 
         $this->postArchive($files)
-            ->assertSessionHasErrors(['archive' => 'This plugin needs packages the app does not have: '
-                .'acme/not-installed ^1.0. Install it with Composer instead of uploading it.']);
+            ->assertSessionHasErrors([
+                'archive' => 'This plugin needs packages the app does not have: '
+                    .'acme/not-installed ^1.0. Install it with Composer instead of uploading it.',
+            ]);
 
         $this->assertDirectoryDoesNotExist($this->uploads_path.'/greeter');
     }

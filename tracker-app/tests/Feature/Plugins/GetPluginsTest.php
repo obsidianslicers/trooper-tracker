@@ -26,7 +26,8 @@ class GetPluginsTest extends TestCase
         ]));
         $this->useFixturePlugins($uploads_path)->enable('hello');
 
-        $plugins = collect(GetPlugins::call())->keyBy(fn (array $plugin): string => $plugin['manifest']->slug);
+        $plugins = collect(GetPlugins::call())
+            ->keyBy(fn (array $plugin): string => $plugin['manifest']->slug);
 
         $this->assertSame('local', $plugins['hello']['source']);
         $this->assertTrue($plugins['hello']['is_enabled']);

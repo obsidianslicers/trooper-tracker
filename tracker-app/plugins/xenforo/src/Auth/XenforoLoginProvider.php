@@ -53,7 +53,8 @@ final class XenforoLoginProvider implements LoginProvider
             return null;
         }
 
-        return 'You are currently banned. Please refer to command staff for additional information.';
+        return 'You are currently banned. '
+            .'Please refer to command staff for additional information.';
     }
 
     /**

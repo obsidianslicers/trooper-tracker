@@ -20,7 +20,10 @@ class DisableSubmitControllerTest extends TestCase
         $plugins->enable('hello');
         $trooper = Trooper::factory()->asAdministrator()->create();
 
-        $response = $this->actingAs($trooper)->post(route('admin.plugins.disable', ['slug' => 'hello']));
+        $response = $this->actingAs($trooper)->post(route(
+            'admin.plugins.disable',
+            ['slug' => 'hello'],
+        ));
 
         $response->assertRedirect(route('admin.plugins.list'));
         $this->assertFalse($plugins->isEnabled('hello'));

@@ -24,7 +24,10 @@ class MentionMigrationTest extends TestCase
 
         app(PluginManager::class)->enable('discord');
 
-        $this->assertSame('<@&501>', DiscordOrganizationMention::forOrganization($with_mention->id));
+        $this->assertSame(
+            '<@&501>',
+            DiscordOrganizationMention::forOrganization($with_mention->id),
+        );
         $this->assertNull(DiscordOrganizationMention::forOrganization($empty->id));
         $this->assertNull(DiscordOrganizationMention::forOrganization($without->id));
         $this->assertSame(1, DiscordOrganizationMention::query()->count());

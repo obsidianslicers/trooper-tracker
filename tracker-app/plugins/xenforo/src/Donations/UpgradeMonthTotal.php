@@ -17,8 +17,6 @@ final class UpgradeMonthTotal
      */
     public static function fromStats(array $stats): float
     {
-        $active_records = $stats['userUpgradeActive'] ?? null;
-        $expired_records = $stats['userUpgradeExpired'] ?? null;
         $upgrades = $stats['userUpgrades'] ?? null;
 
         if (!is_array($upgrades))
@@ -26,50 +24,47 @@ final class UpgradeMonthTotal
             return 0.0;
         }
 
-        $records = [];
-
-        if (is_array($active_records))
-        {
-            $records = array_merge($records, $active_records);
-        }
-
-        if (is_array($expired_records))
-        {
-            $records = array_merge($records, $expired_records);
-        }
-
-        if (empty($records))
-        {
-            return 0.0;
-        }
-
-        $upgrade_amounts = self::buildUpgradeCostMap($upgrades);
+        $amounts = self::buildUpgradeCostMap($upgrades);
         $monthly_total = 0.0;
 
-        foreach ($records as $record)
+        foreach (self::records($stats) as $record)
         {
-            if (!is_array($record))
+            if (self::isCurrentMonthRecord($record))
             {
-                continue;
+                $monthly_total += XenforoUpgradeHelper::resolveRecordCost($record, $amounts);
             }
-
-            if (!isset($record['start_date'], $record['end_date'], $record['user_upgrade_id'])
-                || !is_numeric($record['start_date'])
-                || !is_numeric($record['end_date'])
-                || !is_numeric($record['user_upgrade_id']))
-            {
-                continue;
-            }
-
-            if (!self::isRecordInCurrentMonth((int) $record['start_date'], (int) $record['end_date']))
-            {
-                continue;
-            }
-
-            $monthly_total += XenforoUpgradeHelper::resolveRecordCost($record, $upgrade_amounts);
         }
 
         return $monthly_total;
+    }
+
+    /**
+     * @param  array<string,mixed>  $stats
+     * @return array<int,mixed>
+     */
+    private static function records(array $stats): array
+    {
+        $active_records = $stats['userUpgradeActive'] ?? null;
+        $expired_records = $stats['userUpgradeExpired'] ?? null;
+
+        return array_merge(
+            is_array($active_records) ? array_values($active_records) : [],
+            is_array($expired_records) ? array_values($expired_records) : [],
+        );
+    }
+
+    private static function isCurrentMonthRecord(mixed $record): bool
+    {
+        if (!is_array($record)
+            || !isset($record['start_date'], $record['end_date'], $record['user_upgrade_id'])
+            || !is_numeric($record['start_date'])
+            || !is_numeric($record['end_date'])
+            || !is_numeric($record['user_upgrade_id']))
+        {
+            return false;
+        }
+
+        return self::isRecordInCurrentMonth((int) $record['start_date'], (int) $record['end_date']);
     }
 
     /**

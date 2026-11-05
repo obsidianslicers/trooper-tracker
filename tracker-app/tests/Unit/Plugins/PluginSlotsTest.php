@@ -44,15 +44,18 @@ class PluginSlotsTest extends TestCase
 
     public function test_render_page_shows_every_page_and_matching_route_entries(): void
     {
-        $this->subject->add('page.top', 'slot-test::greeting', ['greeting' => 'Everywhere'], order: 30);
-        $this->subject->add('page.top:events.display', 'slot-test::greeting', ['greeting' => 'Event'], order: 10);
-        $this->subject->add('page.top:events.*', 'slot-test::greeting', ['greeting' => 'Events'], order: 20);
-        $this->subject->add('page.top:account.index', 'slot-test::greeting', ['greeting' => 'Account']);
-        $this->subject->add('page.topping', 'slot-test::greeting', ['greeting' => 'Other slot']);
+        $this->addGreeting('page.top', 'Everywhere', 30);
+        $this->addGreeting('page.top:events.display', 'Event', 10);
+        $this->addGreeting('page.top:events.*', 'Events', 20);
+        $this->addGreeting('page.top:account.index', 'Account');
+        $this->addGreeting('page.topping', 'Other slot');
 
         $html = $this->subject->renderPage('page.top', [], 'events.display');
 
-        $this->assertMatchesRegularExpression('/Event, nobody!.*Events, nobody!.*Everywhere, nobody!/s', $html);
+        $this->assertMatchesRegularExpression(
+            '/Event, nobody!.*Events, nobody!.*Everywhere, nobody!/s',
+            $html,
+        );
         $this->assertStringNotContainsString('Account', $html);
         $this->assertStringNotContainsString('Other slot', $html);
     }
@@ -70,7 +73,12 @@ class PluginSlotsTest extends TestCase
 
     public function test_render_skips_entries_whose_condition_fails(): void
     {
-        $this->subject->add('slot', 'slot-test::greeting', ['greeting' => 'Hidden'], fn (): bool => false);
+        $this->subject->add(
+            'slot',
+            'slot-test::greeting',
+            ['greeting' => 'Hidden'],
+            fn (): bool => false,
+        );
 
         $this->assertSame('', $this->subject->render('slot'));
     }
@@ -109,11 +117,21 @@ class PluginSlotsTest extends TestCase
     public function test_render_many_returns_only_slots_with_output(): void
     {
         $this->subject->add('filled', 'slot-test::greeting', ['greeting' => 'Hi']);
-        $this->subject->add('hidden', 'slot-test::greeting', ['greeting' => 'No'], fn (): bool => false);
+        $this->subject->add(
+            'hidden',
+            'slot-test::greeting',
+            ['greeting' => 'No'],
+            fn (): bool => false,
+        );
 
         $result = $this->subject->renderMany(['filled', 'hidden', 'empty'], ['name' => 'Rex']);
 
         $this->assertSame(['filled'], array_keys($result));
         $this->assertStringContainsString('Hi, Rex!', $result['filled']);
+    }
+
+    private function addGreeting(string $slot, string $greeting, int $order = 100): void
+    {
+        $this->subject->add($slot, 'slot-test::greeting', ['greeting' => $greeting], order: $order);
     }
 }
