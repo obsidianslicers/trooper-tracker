@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Messages\Plugins\Commands\EnablePlugin;
+use App\Plugins\PluginDeployPackages;
 use App\Plugins\PluginException;
 use App\Plugins\PluginManager;
 use Illuminate\Console\Command;
@@ -15,7 +16,7 @@ class EnablePluginCommand extends Command
 
     protected $description = 'Enable a plugin for the whole site and run its migrations.';
 
-    public function handle(PluginManager $plugins): int
+    public function handle(PluginManager $plugins, PluginDeployPackages $packages): int
     {
         $slug = (string) $this->argument('slug');
 
@@ -28,13 +29,23 @@ class EnablePluginCommand extends Command
 
         try
         {
-            EnablePlugin::call(slug: $slug);
+            $record = EnablePlugin::call(slug: $slug);
         }
         catch (PluginException $e)
         {
             $this->error($e->getMessage());
 
             return self::FAILURE;
+        }
+
+        if ($record->is_enable_pending)
+        {
+            $this->warn("Plugin [{$slug}] needs Composer packages. It turns on with the next "
+                .'deploy, which installs them. To do it now: composer require '
+                .$packages->packageName($plugins->findOrFail($slug)).' && php artisan '
+                .'plugins:enable-pending');
+
+            return self::SUCCESS;
         }
 
         $this->info("Plugin [{$slug}] enabled.");

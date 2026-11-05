@@ -19,11 +19,19 @@ class EnableSubmitController extends Controller
 
         try
         {
-            EnablePlugin::call(slug: $slug);
+            $record = EnablePlugin::call(slug: $slug);
         }
         catch (PluginException $e)
         {
             FlashType::danger($e->getMessage());
+
+            return redirect()->route('admin.plugins.list');
+        }
+
+        if ($record->is_enable_pending)
+        {
+            FlashType::info("\"{$manifest->name}\" needs packages that are installed on deploy. "
+                .'It turns on with the next deploy.');
 
             return redirect()->route('admin.plugins.list');
         }

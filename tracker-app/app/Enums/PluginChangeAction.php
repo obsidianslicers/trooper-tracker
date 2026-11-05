@@ -13,6 +13,7 @@ enum PluginChangeAction: string
 
     case INSTALLED = 'installed';
     case UPGRADED = 'upgraded';
+    case ENABLE_QUEUED = 'enable_queued';
     case ENABLED = 'enabled';
     case DISABLED = 'disabled';
     case UNINSTALLED = 'uninstalled';

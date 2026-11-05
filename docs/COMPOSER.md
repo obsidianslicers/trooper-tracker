@@ -51,4 +51,4 @@ You specifically highlighted the `reliese/laravel` package.
 
 ## Plugin packages
 
-Plugins declare their own packages in their own `composer.json`; this file never lists them. For example `google/apiclient` comes with the google-sheets plugin, installed with `composer require trooptracker/google-sheets`. See [Packages a plugin needs](PLUGINS.md#packages-a-plugin-needs).
+Plugins declare their own packages in their own `composer.json`; this file never lists them. For example `google/apiclient` comes with the google-sheets plugin, which the deploy installs when the plugin is enabled. See [Packages a plugin needs](PLUGINS.md#packages-a-plugin-needs).

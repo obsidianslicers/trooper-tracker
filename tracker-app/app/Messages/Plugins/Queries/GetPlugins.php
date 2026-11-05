@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\Plugins\Queries;
 
 use App\Enums\PluginCapability;
+use App\Plugins\PluginDeployPackages;
 use App\Plugins\PluginDiscovery;
 use App\Plugins\PluginManager;
 use App\Plugins\PluginManifest;
@@ -28,11 +29,16 @@ final class GetPlugins extends Message
      *     installed_version: ?string,
      *     has_pending_upgrade: bool,
      *     unmet_requirements: array<int, string>,
-     *     capability_summary: string
+     *     capability_summary: string,
+     *     is_enable_pending: bool,
+     *     can_install_on_deploy: bool
      * }>
      */
-    public function handle(PluginManager $plugins, PluginDiscovery $discovery): array
-    {
+    public function handle(
+        PluginManager $plugins,
+        PluginDiscovery $discovery,
+        PluginDeployPackages $packages,
+    ): array {
         return array_values(array_map(fn (PluginManifest $manifest): array => [
             'manifest' => $manifest,
             'source' => $this->source($manifest, $discovery),
@@ -43,6 +49,8 @@ final class GetPlugins extends Message
             'has_pending_upgrade' => $plugins->hasPendingUpgrade($manifest->slug),
             'unmet_requirements' => $plugins->unmetRequirements($manifest->slug),
             'capability_summary' => $this->capabilitySummary($manifest),
+            'is_enable_pending' => $plugins->isEnablePending($manifest->slug),
+            'can_install_on_deploy' => $packages->canInstallOnDeploy($manifest->slug),
         ], $plugins->all()));
     }
 

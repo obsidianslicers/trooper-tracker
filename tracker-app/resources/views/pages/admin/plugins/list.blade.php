@@ -63,10 +63,20 @@
                               title="Enabled, but it failed to load. Check the logs.">
                             Failed to load
                         </span>
+                    @elseif($plugin['is_enable_pending'])
+                        <span class="badge text-bg-info"
+                              title="The next deploy installs its packages and turns it on.">
+                            Turns on at next deploy
+                        </span>
                     @else
                         <span class="badge text-bg-secondary">Disabled</span>
                     @endif
-                    @if($plugin['unmet_requirements'] !== [])
+                    @if($plugin['can_install_on_deploy'] && !$plugin['is_enable_pending'])
+                        <div class="small text-muted">
+                            Its packages ({{ implode('; ', $plugin['unmet_requirements']) }})
+                            are installed by the next deploy after you enable it.
+                        </div>
+                    @elseif($plugin['unmet_requirements'] !== [] && !$plugin['is_enable_pending'])
                         <div class="small text-danger">
                             Needs {{ implode('; ', $plugin['unmet_requirements']) }}.
                         </div>
@@ -81,14 +91,14 @@
                         </a>
                     @endif
                     @php
-                        $toggle_route = $plugin['is_enabled']
+                        $toggle_route = $plugin['is_enabled'] || $plugin['is_enable_pending']
                             ? 'admin.plugins.disable'
                             : 'admin.plugins.enable';
                     @endphp
                     <form method="POST"
                           class="d-inline"
                           action="{{ route($toggle_route, ['slug' => $manifest->slug]) }}"
-                          @if(!$plugin['is_enabled'] && $manifest->capabilities !== [])
+                          @if($toggle_route === 'admin.plugins.enable' && $manifest->capabilities !== [])
                               data-confirm="Turn on {{ $manifest->name }}? It {{ $plugin['capability_summary'] }}."
                               onsubmit="return confirm(this.dataset.confirm);"
                           @endif>
@@ -98,10 +108,16 @@
                                     class="btn btn-sm btn-outline-danger">
                                 Disable
                             </button>
+                        @elseif($plugin['is_enable_pending'])
+                            <button type="submit"
+                                    class="btn btn-sm btn-outline-secondary">
+                                Cancel
+                            </button>
                         @else
                             <button type="submit"
                                     class="btn btn-sm btn-outline-success"
-                                    @disabled($plugin['unmet_requirements'] !== [])>
+                                    @disabled($plugin['unmet_requirements'] !== []
+                                        && !$plugin['can_install_on_deploy'])>
                                 Enable
                             </button>
                         @endif

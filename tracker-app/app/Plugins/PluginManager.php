@@ -97,6 +97,37 @@ class PluginManager
         return (bool) ($this->rows()[$slug][Plugin::IS_ENABLED] ?? false);
     }
 
+    /**
+     * Turned on by an administrator, waiting for a deploy to install its packages.
+     */
+    public function isEnablePending(string $slug): bool
+    {
+        return (bool) ($this->rows()[$slug][Plugin::IS_ENABLE_PENDING] ?? false);
+    }
+
+    /**
+     * Mark a plugin to be turned on by the next deploy, once its packages are in.
+     */
+    public function markEnablePending(string $slug): Plugin
+    {
+        $manifest = $this->findOrFail($slug);
+
+        $record = Plugin::firstOrNew([Plugin::SLUG => $slug]);
+        $record->is_enable_pending = true;
+        $record->save();
+
+        PluginChange::record(
+            $slug,
+            PluginChangeAction::ENABLE_QUEUED,
+            $record->installed_version,
+            $manifest->version,
+        );
+
+        $this->stateChanged();
+
+        return $record;
+    }
+
     public function isLoaded(string $slug): bool
     {
         return isset($this->loaded[$slug]);
@@ -201,28 +232,9 @@ class PluginManager
      */
     private function composerRequires(PluginManifest $manifest): array
     {
-        $require = $this->composerJson($manifest)['require'] ?? [];
+        $require = $manifest->composerJson()['require'] ?? [];
 
         return is_array($require) ? $require : [];
-    }
-
-    /**
-     * The composer.json of a plugin folder that is not installed through Composer.
-     *
-     * @return array<string, mixed>
-     */
-    private function composerJson(PluginManifest $manifest): array
-    {
-        $file = $manifest->path.'/composer.json';
-
-        if ($manifest->is_composer_package || !is_file($file))
-        {
-            return [];
-        }
-
-        $composer = json_decode((string) file_get_contents($file), true);
-
-        return is_array($composer) ? $composer : [];
     }
 
     /**
@@ -230,8 +242,7 @@ class PluginManager
      */
     private function installHint(PluginManifest $manifest): ?string
     {
-        $name = $this->composerJson($manifest)['name'] ?? null;
-
+        $name = $manifest->composerJson()['name'] ?? null;
         $missing = $this->requirements->unmet($this->composerRequires($manifest));
 
         if (!is_string($name) || $missing === [])
@@ -338,6 +349,7 @@ class PluginManager
 
         $record = Plugin::firstOrNew([Plugin::SLUG => $slug]);
         $record->is_enabled = true;
+        $record->is_enable_pending = false;
         $record->installed_version = $manifest->version;
         $record->enabled_at = now();
         $record->save();
@@ -493,6 +505,7 @@ class PluginManager
 
         $record = Plugin::firstOrNew([Plugin::SLUG => $slug]);
         $record->is_enabled = false;
+        $record->is_enable_pending = false;
         $record->save();
 
         PluginChange::record($slug, PluginChangeAction::DISABLED, $record->installed_version);

@@ -19,6 +19,8 @@ php artisan plugins:enable <slug>      # also runs the plugin's migrations
 php artisan plugins:disable <slug>     # keeps the plugin's data and settings
 php artisan plugins:uninstall <slug>   # disables it and deletes its data (asks first)
 php artisan plugins:upgrade [slug]     # runs new migrations after a deploy brought new plugin files
+php artisan plugins:packages           # Composer packages enabled plugins need (deploy.sh uses it)
+php artisan plugins:enable-pending     # turns on plugins that were waiting for their packages
 ```
 
 **Enable** first checks the plugin's requirements (see `requires` under [plugin.json](#pluginjson)): the PHP version, PHP extensions, Composer packages, the plugin API version, and any other plugins it needs, which must be installed at the right version and turned on first. If anything is missing nothing runs, and the Plugins page and `plugins:enable` say what is missing; the Plugins page also shows it next to the plugin and greys out Enable. A plugin another enabled plugin needs can't be disabled or uninstalled until that one is turned off. If an enabled plugin's requirements stop being met, for example after a PHP change or because a plugin it needs failed to load, it is skipped with a log warning instead of loaded, and plugins load after the plugins they need.
@@ -77,9 +79,8 @@ To update an uploaded plugin, upload the newer version. Its `version` must be hi
 
 There are three ways to install a plugin. Packages are only ever installed by Composer during a deploy, never from a web request.
 
-- **Bundled plugins** live in `tracker-app/plugins/` and are found automatically. One with no packages of its own needs nothing else. One that needs outside PHP packages declares them in its own `composer.json` and is installed with `composer require trooptracker/<slug>` (the app's `composer.json` has a path repository for `plugins/*`), which pulls in its packages and symlinks the folder into `vendor/`. Until then, enabling it is refused and names the missing packages. Keep a `version` in the plugin's `composer.json` so the lock file does not depend on the branch name.
-- A server lists the Composer plugins it uses in `TRACKER_COMPOSER_PLUGINS` in `.env`, and `deploy.sh` requires them after `composer install` (see DEPLOY.md). This works for bundled plugins with packages and for Composer-managed ones.
-- **Composer-managed plugins** live in their own repository, declare their packages in their `composer.json`, and are installed with `composer require vendor/plugin`. Composer resolves them into the app's shared `vendor/` as one set, so a plugin can't pull in a version that clashes with the app's. Install and remove them with a deploy.
+- **Bundled plugins** live in `tracker-app/plugins/` and are found automatically. One with no packages of its own needs nothing else. One that needs outside PHP packages declares them in its own `composer.json` (with a `name`, such as `trooptracker/<slug>`). Enabling it before they are installed marks it **Turns on at next deploy**: the deploy requires it through the app's path repository for `plugins/*`, which pulls in its packages and symlinks the folder into `vendor/`, and then turns it on (see [DEPLOY.md](DEPLOY.md#plugin-packages-on-deploy)). Cancel shown in its place stops that. To do it by hand, run `composer require trooptracker/<slug>` and `php artisan plugins:enable-pending`. Keep a `version` in the plugin's `composer.json` so the lock file does not depend on the branch name.
+- **Composer-managed plugins** live in their own repository, declare their packages in their `composer.json`, and are installed with `composer require vendor/plugin`. Composer resolves them into the app's shared `vendor/` as one set, so a plugin can't pull in a version that clashes with the app's. Install and remove them with a deploy; list them in `TRACKER_COMPOSER_PLUGINS` in `.env` so `deploy.sh` requires them.
 - **Uploaded plugins** (Plugins page) can only use what the app already has. On upload, the plugin's `composer.json` `require` list is checked against the installed packages, PHP extensions and PHP version, and the zip is refused with the list of what is missing.
 
 The app's own `composer.json` never lists a plugin's packages. Removing a plugin and its packages leaves the app booting and its tests passing; only that plugin's features go away.
@@ -506,17 +507,11 @@ php artisan plugins:enable xenforo
 php artisan db:seed --class="TroopTracker\Plugins\GoogleSheets\Database\Seeders\ClubSheetsSeeder"
 ```
 
-The plugin declares `google/apiclient` in its own `composer.json`; the app does not require it. A site that uses it adds `TRACKER_COMPOSER_PLUGINS="trooptracker/google-sheets"` to its `.env` so `deploy.sh` installs it on every deploy (or runs `composer require trooptracker/google-sheets` itself), then enables it. Without that, enabling it is refused with "needs the Composer package google/apiclient ^2.18", and its tests are skipped. CI installs it before running the tests.
+The plugin declares `google/apiclient` in its own `composer.json`; the app does not require it. When a site enables it, the next deploy installs the package and turns the plugin on. Without the package, its tests are skipped. CI installs it before running the tests.
 
 Google Maps geocoding of event addresses stays in core (`GoogleService`, `GOOGLE_MAPS_API_KEY`).
 
-Sites that sync clubs from Google Sheets must install and enable the plugin, or those syncs read nothing:
-
-```bash
-# .env, then deploy
-TRACKER_COMPOSER_PLUGINS="trooptracker/google-sheets"
-php artisan plugins:enable google-sheets
-```
+Sites that sync clubs from Google Sheets must enable the plugin (Admin > Plugins, or `php artisan plugins:enable google-sheets`) and deploy once, or those syncs read nothing.
 
 ---
 

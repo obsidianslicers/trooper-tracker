@@ -36,6 +36,26 @@ final readonly class PluginManifest
         public array $capabilities = [],
     ) {}
 
+    /**
+     * The composer.json of a plugin folder. Empty for a plugin installed through
+     * Composer, whose packages Composer already checked, or one without the file.
+     *
+     * @return array<string, mixed>
+     */
+    public function composerJson(): array
+    {
+        $file = $this->path.'/composer.json';
+
+        if ($this->is_composer_package || !is_file($file))
+        {
+            return [];
+        }
+
+        $composer = json_decode((string) file_get_contents($file), true);
+
+        return is_array($composer) ? $composer : [];
+    }
+
     public function can(PluginCapability $capability): bool
     {
         return in_array($capability, $this->capabilities, true);
