@@ -1,5 +1,7 @@
 #!/bin/bash
 set -Eeuo pipefail
+# The web server writes plugin files in storage too, so let the group write what we create.
+umask 002
 
 APP_DIR="/home/admin/trooper-tracker/tracker-app"
 

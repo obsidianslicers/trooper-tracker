@@ -113,9 +113,13 @@ final class PluginDeployPackages
         if (!is_dir(dirname($path)))
         {
             mkdir(dirname($path), 0775, true);
+            // The web server and the deploy user both write here, so keep the
+            // folder's group on new files and let that group write them.
+            @chmod(dirname($path), 02775);
         }
 
         file_put_contents($path, $json);
+        @chmod($path, 0664);
 
         return true;
     }
