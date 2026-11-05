@@ -313,9 +313,16 @@ Donations recorded somewhere else, such as paid forum subscriptions, can count t
 
 Months from every source and from local donation records are merged, so a month counts once; totals add up.
 
-### Forum groups
+### Permission requests
 
-The Request Permissions page can offer a forum's user groups next to role changes. Implement `App\Contracts\ForumGroupProvider` (`isAvailable`, `requestableGroups`, `hasAccount`, `currentGroupIds`, `updateGroups`) and register it with `$this->setForumGroupProvider(MyGroups::class)`. Requested groups are saved on the permission request and applied through `updateGroups` when it is approved; throw `App\Exceptions\ForumGroupUpdateException` to stop the approval. A site has one provider; the page hides the forum group section while there is none or `isAvailable()` is false.
+The Request Permissions page can ask for more than a role change, such as forum user groups. Implement `App\Contracts\PermissionRequestExtension` and register it with `$this->addPermissionRequestExtension(MyRequests::class)`. Each extension has a `key()` and:
+
+- `formSection($trooper)` returns the HTML for its part of the form, or `''` to show nothing. Name its inputs `extensions[<key>][<field>]` (or `[<field>][]` for a list); the page sends them back on submit.
+- `rules()` gives Laravel rules per field, without the `extensions.<key>.` prefix, and `validate($validator, $trooper, $input)` runs any cross-field checks. Add errors as `extensions.<key>.<field>`.
+- `requestsChange($input)` says whether the input asks for anything, so a request can be just the extension's change.
+- `store($permission_request, $input)` saves the request's part in the plugin's own table.
+- `summary($permission_request)` returns label => value lines for the pending request list and the email.
+- `approve($permission_request)` applies it. It runs inside the approval's transaction; throw `App\Exceptions\PermissionApprovalException` to roll back the whole approval and show the message.
 
 ### Login providers
 
@@ -392,7 +399,7 @@ php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\Flori
 - watching an event also watches its forum thread
 - the forum webhook (`/webhooks/xenforo`) and the "new forum reply" and "notify command staff" notifications, with their two notification preference categories (`event_forum_post`, `forum_post_command_staff`; stored preferences keep working)
 - each organization's forum settings (event forum, archive forum, and the active, reserve and retired user groups), on the organization edit form; stored in `tt_xenforo_organization_forums`, copied from the old `tt_organizations` columns on enable. `FloridaGarrisonForumSeeder` seeds the Florida Garrison values
-- forum groups on the Request Permissions page (the forum group provider)
+- forum groups on the Request Permissions page (a permission request extension, key `xenforo`); requested groups are stored in `tt_xenforo_permission_request_groups`, copied from the old `tt_permission_requests.forum_groups_to_add` and `forum_groups_to_remove` columns on enable
 - forum upgrades as a donation source (donation months, total donated, donor milestones, the active donor badge and the support goal widget's monthly total), plus the service record's forum group banners, Forum Profile button and upgrade history table
 
 **Require a linked forum account** only applies while the plugin is enabled. With the plugin off, the site runs without XenForo: the XenForo login button is hidden, email and Google login work, and nobody is sent to the link page.
@@ -415,7 +422,14 @@ php artisan plugins:enable xenforo
 
 ## Testing plugins
 
-Tests live in `tracker-app/tests`. `Tests\Feature\Plugins\UsesFixturePlugins` points the plugin manager at `tests/Fixtures/plugins`, which holds a small `hello` plugin that uses every hook. To test a real plugin, load it in `setUp()`:
+A plugin's tests live in its own `tests` folder, such as `plugins/xenforo/tests`, under the namespace `<plugin namespace>\Tests` (for example `TroopTracker\Plugins\Xenforo\Tests`). `tests/bootstrap.php` maps that namespace, and the plugin's `src` classes, for every `plugins/*/plugin.json`, so they load before the plugin is enabled. `phpunit.xml` has a `Plugins` suite that picks them up, and `php artisan test` runs them with the rest:
+
+```bash
+php artisan test --testsuite=Plugins
+php artisan test plugins/xenforo/tests
+```
+
+Plugin tests extend core's `Tests\TestCase` and can use its helpers and fixtures. Core tests stay in `tracker-app/tests` and must not depend on a real plugin. `Tests\Feature\Plugins\UsesFixturePlugins` points the plugin manager at `tests/Fixtures/plugins`, which holds a small `hello` plugin that uses every hook. To test a real plugin, load it in `setUp()`:
 
 ```php
 $plugins = app(PluginManager::class);

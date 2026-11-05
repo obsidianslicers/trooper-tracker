@@ -8,6 +8,7 @@ use App\Enums\MembershipRole;
 use App\Models\Organization;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
+use App\Plugins\PluginPermissionRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Collection;
@@ -37,8 +38,7 @@ class PermissionRequestsCollection extends ResourceCollection
                     ->only($permission_request->moderated_organization_ids_to_remove ?? [])
                     ->values()
                     ->all(),
-                'forum_groups_to_add' => $permission_request->forum_groups_to_add ?? [],
-                'forum_groups_to_remove' => $permission_request->forum_groups_to_remove ?? [],
+                'extension_changes' => self::extensionChanges($permission_request),
                 'note' => $permission_request->note,
                 'denial_reason' => $permission_request->denial_reason,
                 'created' => $permission_request->created_at?->diffForHumans(),
@@ -60,11 +60,26 @@ class PermissionRequestsCollection extends ResourceCollection
     }
 
     /**
-     * @param  array<int, array{id:int,title:string}>|null  $groups
+     * What plugins' extensions add to a request, such as forum groups.
+     *
+     * @return array<int, array{label:string,value:string}>
      */
-    public static function groupTitles(?array $groups): string
+    public static function extensionChanges(PermissionRequest $request): array
     {
-        return collect($groups ?? [])->pluck('title')->implode(', ');
+        $changes = [];
+
+        foreach (app(PluginPermissionRequests::class)->all() as $extension)
+        {
+            foreach ($extension->summary($request) as $label => $value)
+            {
+                if ($value !== '')
+                {
+                    $changes[] = ['label' => $label, 'value' => $value];
+                }
+            }
+        }
+
+        return $changes;
     }
 
     /**
@@ -80,17 +95,21 @@ class PermissionRequestsCollection extends ResourceCollection
 
         $names = fn (?array $ids): string => $organizations->only($ids ?? [])->implode(', ');
 
-        return collect([
+        $lines = collect([
             'Role' => (string) self::roleLabel($request->membership_role),
             'Now moderates' => $names($request->moderated_organization_ids_to_add),
             'No longer moderates' => $names($request->moderated_organization_ids_to_remove),
-            'Forum groups added' => self::groupTitles($request->forum_groups_to_add),
-            'Forum groups removed' => self::groupTitles($request->forum_groups_to_remove),
         ])
             ->filter(fn (string $value): bool => $value !== '')
             ->map(fn (string $value, string $label): string => "{$label}: {$value}")
-            ->values()
-            ->all();
+            ->values();
+
+        foreach (self::extensionChanges($request) as $change)
+        {
+            $lines->push("{$change['label']}: {$change['value']}");
+        }
+
+        return $lines->all();
     }
 
     /**

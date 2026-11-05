@@ -13,21 +13,20 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Http;
-use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
+use Tests\Concerns\UsesBadgeRequests;
+use Tests\Fixtures\PermissionRequests\BadgeRequests;
 use Tests\TestCase;
 
 class RequestTrooperPermissionsTest extends TestCase
 {
     use RefreshDatabase;
-    use UsesXenforoPlugin;
+    use UsesBadgeRequests;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Forum groups come from the XenForo plugin.
-        $this->enableXenforo();
+        $this->addBadgeRequests();
     }
 
     public function test_handle_records_request_and_notifies_admins(): void
@@ -140,36 +139,18 @@ class RequestTrooperPermissionsTest extends TestCase
         $this->assertSame([], $result->moderated_organization_ids_to_add);
     }
 
-    public function test_handle_snapshots_forum_group_titles(): void
+    public function test_handle_stores_plugin_extension_inputs(): void
     {
         Bus::fake([SendPermissionRequestNotificationsJob::class]);
-
-        config([
-            'plugins.xenforo.base_url' => 'https://xf.test',
-            'plugins.xenforo.api_key' => 'key',
-        ]);
-
-        Http::fake([
-            'https://xf.test/index.php?api/user-groups' => Http::response([
-                'userGroups' => [
-                    ['groupID' => 9, 'title' => 'Recruiters'],
-                    ['groupID' => 20, 'title' => 'Event Coordinators'],
-                ],
-            ], 200),
-        ]);
 
         $subject = new RequestTrooperPermissions(
             actor: Trooper::factory()->asModerator()->create(),
             trooper: Trooper::factory()->asMember()->create(),
-            forum_group_ids_to_add: ['20'],
-            forum_group_ids_to_remove: [9],
+            extensions: ['badges' => ['names' => ['gold']]],
         );
         $result = $subject->handle();
 
-        $event_coordinators = [['id' => 20, 'title' => 'Event Coordinators']];
-
         $this->assertNull($result->membership_role);
-        $this->assertSame($event_coordinators, $result->forum_groups_to_add);
-        $this->assertSame([['id' => 9, 'title' => 'Recruiters']], $result->forum_groups_to_remove);
+        $this->assertSame([$result->id => ['gold']], BadgeRequests::$stored);
     }
 }

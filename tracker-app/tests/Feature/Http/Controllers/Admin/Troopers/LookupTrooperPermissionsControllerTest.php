@@ -4,42 +4,27 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
-use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
-use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
+use Tests\Concerns\UsesBadgeRequests;
 use Tests\TestCase;
 
 class LookupTrooperPermissionsControllerTest extends TestCase
 {
     use RefreshDatabase;
-    use UsesXenforoPlugin;
+    use UsesBadgeRequests;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Forum groups come from the XenForo plugin.
-        $this->enableXenforo();
+        $this->addBadgeRequests();
     }
 
-    public function test_invoke_returns_role_moderated_organizations_and_forum_groups(): void
+    public function test_invoke_returns_role_moderated_organizations_and_extension_sections(): void
     {
-        config([
-            'plugins.xenforo.base_url' => 'https://xf.test',
-            'plugins.xenforo.api_key' => 'key',
-        ]);
-
-        Http::fake([
-            'https://xf.test/api/users/77' => Http::response(
-                ['user' => ['secondary_group_ids' => [5, 20]]],
-                200
-            ),
-        ]);
-
         $moderator = Trooper::factory()->asModerator()->create();
         $trooper = Trooper::factory()->asModerator()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
@@ -48,11 +33,6 @@ class LookupTrooperPermissionsControllerTest extends TestCase
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->create([
             TrooperAssignment::IS_MODERATOR => true,
         ]);
-        OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => 'xenforo',
-            OauthLogin::PROVIDER_ID => '77',
-        ]);
-
         $response = $this->actingAs($moderator)
             ->getJson(route('admin.troopers.permissions.lookup', $trooper));
 
@@ -64,8 +44,10 @@ class LookupTrooperPermissionsControllerTest extends TestCase
                 'membership_role_label' => 'Moderator',
             ],
             'moderated_organization_ids' => [$organization->id],
-            'has_forum_account' => true,
-            'forum_group_ids' => [5, 20],
+            'extension_sections' => [[
+                'key' => 'badges',
+                'html' => '<input type="checkbox" name="extensions[badges][names][]" value="gold">',
+            ]],
         ]);
         $this->assertEqualsCanonicalizing(
             [$organization->id, $child->id],
@@ -73,8 +55,10 @@ class LookupTrooperPermissionsControllerTest extends TestCase
         );
     }
 
-    public function test_invoke_reports_no_forum_account_when_xenforo_not_configured(): void
+    public function test_invoke_leaves_out_empty_extension_sections(): void
     {
+        $this->app->forgetInstance(\App\Plugins\PluginPermissionRequests::class);
+
         $moderator = Trooper::factory()->asModerator()->create();
         $trooper = Trooper::factory()->asMember()->create();
 
@@ -84,8 +68,7 @@ class LookupTrooperPermissionsControllerTest extends TestCase
         $response->assertOk();
         $response->assertJson([
             'trooper' => ['membership_role_label' => 'Regular Trooper'],
-            'has_forum_account' => false,
-            'forum_group_ids' => [],
+            'extension_sections' => [],
         ]);
     }
 }

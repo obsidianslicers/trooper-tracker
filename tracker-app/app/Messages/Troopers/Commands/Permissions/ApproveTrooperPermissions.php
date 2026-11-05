@@ -7,11 +7,12 @@ namespace App\Messages\Troopers\Commands\Permissions;
 use App\Enums\MembershipRole;
 use App\Enums\PermissionRequestStatus;
 use App\Events\TrooperPermissionsApproved;
-use App\Exceptions\ForumGroupUpdateException;
+use App\Exceptions\PermissionApprovalException;
 use App\Jobs\SendPermissionRequestReviewedNotificationsJob;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Plugins\PluginPermissionRequests;
 use Hyperdrive\Concerns\ShouldBeTransactional;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
@@ -19,9 +20,9 @@ use RuntimeException;
 
 /**
  * Approves a permission request: applies the requested role and moderated
- * organizations, then updates the trooper's forum user groups.
+ * organizations, then anything plugins added, such as forum user groups.
  *
- * The forum change runs last, inside the transaction, so a forum failure
+ * The plugins' changes run last, inside the transaction, so a failure there
  * rolls back the role change and leaves the request pending.
  *
  * @method static void call(PermissionRequest $permission_request)
@@ -39,7 +40,7 @@ final class ApproveTrooperPermissions extends Message
     ) {}
 
     /**
-     * @throws ForumGroupUpdateException
+     * @throws PermissionApprovalException
      */
     public function handle(): void
     {
@@ -52,11 +53,10 @@ final class ApproveTrooperPermissions extends Message
 
         $this->applyMembershipRole($trooper);
 
-        UpdateTrooperForumGroups::call(
-            trooper: $trooper,
-            group_ids_to_add: $this->groupIds($this->permission_request->forum_groups_to_add),
-            group_ids_to_remove: $this->groupIds($this->permission_request->forum_groups_to_remove),
-        );
+        foreach (app(PluginPermissionRequests::class)->all() as $extension)
+        {
+            $extension->approve($this->permission_request);
+        }
 
         $this->permission_request->status = PermissionRequestStatus::APPROVED;
         $this->permission_request->reviewer_trooper_id = $this->actor->id;
@@ -150,17 +150,5 @@ final class ApproveTrooperPermissions extends Message
         $trooper->trooper_assignments()
             ->whereIn(TrooperAssignment::ORGANIZATION_ID, $organization_ids)
             ->update([TrooperAssignment::IS_MODERATOR => false]);
-    }
-
-    /**
-     * @param  array<int, array{id:int,title:string}>|null  $groups
-     * @return array<int, int>
-     */
-    private function groupIds(?array $groups): array
-    {
-        return collect($groups ?? [])
-            ->pluck('id')
-            ->map(fn (int|string $id): int => (int) $id)
-            ->all();
     }
 }

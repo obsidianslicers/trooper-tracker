@@ -9,43 +9,51 @@ use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Plugins\PluginLoginProviders;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
 use Mockery;
-use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
+use Tests\Fixtures\Auth\ForumLoginProvider;
 use Tests\TestCase;
 
 class OauthCallbackControllerTest extends TestCase
 {
     use RefreshDatabase;
-    use UsesXenforoPlugin;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         config([
-            'plugins.xenforo.client_id' => 'client-id',
-            'plugins.xenforo.client_secret' => 'secret',
-            'plugins.xenforo.redirect' => 'https://example.com/callback',
             'services.google.client_id' => 'google-id',
             'services.google.client_secret' => 'google-secret',
             'services.google.redirect' => 'https://example.com/google/callback',
         ]);
-        $this->enableXenforo();
-        Route::getRoutes()->refreshNameLookups();
+        $this->app->make(PluginLoginProviders::class)->add(ForumLoginProvider::class);
     }
 
-    public function test_invoke_refuses_xenforo_while_the_plugin_is_disabled(): void
+    protected function tearDown(): void
     {
-        $this->app->make(\App\Plugins\PluginManager::class)->disable('xenforo');
-        $this->app->forgetInstance(PluginLoginProviders::class);
+        ForumLoginProvider::reset();
+
+        parent::tearDown();
+    }
+
+    public function test_invoke_refuses_an_unknown_provider(): void
+    {
         Socialite::shouldReceive('driver')->never();
 
-        $this->get(route('auth.oauth-callback', ['provider' => 'xenforo']))
+        $this->get(route('auth.oauth-callback', ['provider' => 'myspace']))
+            ->assertRedirect(route('auth.login'));
+    }
+
+    public function test_invoke_refuses_other_providers_while_one_is_required(): void
+    {
+        ForumLoginProvider::$required = true;
+        Socialite::shouldReceive('driver')->never();
+
+        $this->get(route('auth.oauth-callback', ['provider' => 'google']))
             ->assertRedirect(route('auth.login'));
     }
 
@@ -171,12 +179,12 @@ class OauthCallbackControllerTest extends TestCase
     public function test_invoke_redirects_to_login_on_invalid_state(): void
     {
         Socialite::shouldReceive('driver')
-            ->with('xenforo')
+            ->with('forum')
             ->andReturn(Mockery::self())
             ->shouldReceive('user')
             ->andThrow(new InvalidStateException);
 
-        $response = $this->get(route('auth.oauth-callback', ['provider' => 'xenforo']));
+        $response = $this->get(route('auth.oauth-callback', ['provider' => 'forum']));
 
         $response->assertRedirect(route('auth.login'));
         $this->assertGuest();
@@ -185,17 +193,17 @@ class OauthCallbackControllerTest extends TestCase
     public function test_invoke_rejects_oauth_without_email(): void
     {
         $socialite_user = Mockery::mock(SocialiteUser::class);
-        $socialite_user->shouldReceive('getId')->andReturn('xenforo-456');
+        $socialite_user->shouldReceive('getId')->andReturn('forum-456');
         $socialite_user->shouldReceive('getEmail')->andReturn(null);
         $socialite_user->shouldReceive('getRaw')->andReturn([]);
 
         Socialite::shouldReceive('driver')
-            ->with('xenforo')
+            ->with('forum')
             ->andReturn(Mockery::self())
             ->shouldReceive('user')
             ->andReturn($socialite_user);
 
-        $response = $this->get(route('auth.oauth-callback', ['provider' => 'xenforo']));
+        $response = $this->get(route('auth.oauth-callback', ['provider' => 'forum']));
 
         $response->assertRedirect();
         $response->assertSessionHasErrors(['oauth']);

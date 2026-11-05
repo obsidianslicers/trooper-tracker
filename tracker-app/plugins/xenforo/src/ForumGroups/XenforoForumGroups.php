@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\ForumGroups;
 
-use App\Contracts\ForumGroupProvider;
-use App\Exceptions\ForumGroupUpdateException;
+use App\Exceptions\PermissionApprovalException;
 use App\Models\Trooper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -20,7 +19,7 @@ use TroopTracker\Plugins\Xenforo\Services\XenforoService;
  * user upgrades are left out for the same reason: XenForo adds and removes them
  * as upgrades start and expire.
  */
-final class XenforoForumGroups implements ForumGroupProvider
+final class XenforoForumGroups
 {
     public const CACHE_KEY = 'xenforo_requestable_user_groups_v3';
 
@@ -33,6 +32,11 @@ final class XenforoForumGroups implements ForumGroupProvider
         return XenforoService::isConfigured();
     }
 
+    /**
+     * Groups a moderator may request.
+     *
+     * @return Collection<int, array{id:int,title:string,banner_image_url:?string}>
+     */
     public function requestableGroups(): Collection
     {
         $managed_ids = OrganizationForum::managedGroupIds();
@@ -47,6 +51,11 @@ final class XenforoForumGroups implements ForumGroupProvider
         return $this->xenforo->resolve_user_id_for_trooper($trooper->id) !== null;
     }
 
+    /**
+     * The trooper's current group IDs, or null when they cannot be read.
+     *
+     * @return array<int, int>|null
+     */
     public function currentGroupIds(Trooper $trooper): ?array
     {
         $user_id = $this->xenforo->resolve_user_id_for_trooper($trooper->id);
@@ -54,6 +63,14 @@ final class XenforoForumGroups implements ForumGroupProvider
         return $user_id === null ? null : $this->xenforo->getUserSecondaryGroupIds($user_id);
     }
 
+    /**
+     * Add and remove groups. Groups in neither list are left alone.
+     *
+     * @param  array<int, int>  $group_ids_to_add
+     * @param  array<int, int>  $group_ids_to_remove
+     *
+     * @throws PermissionApprovalException
+     */
     public function updateGroups(Trooper $trooper, array $group_ids_to_add, array $group_ids_to_remove): void
     {
         if ($group_ids_to_add === [] && $group_ids_to_remove === [])
@@ -65,14 +82,14 @@ final class XenforoForumGroups implements ForumGroupProvider
 
         if ($user_id === null)
         {
-            throw new ForumGroupUpdateException("{$trooper->display_name} has no linked forum account.");
+            throw new PermissionApprovalException("{$trooper->display_name} has no linked forum account.");
         }
 
         $current = $this->xenforo->getUserSecondaryGroupIds($user_id);
 
         if ($current === null)
         {
-            throw new ForumGroupUpdateException('Could not read the forum account\'s current user groups.');
+            throw new PermissionApprovalException('Could not read the forum account\'s current user groups.');
         }
 
         $desired = collect($current)
@@ -101,7 +118,7 @@ final class XenforoForumGroups implements ForumGroupProvider
 
         if ($result['status'] < 200 || $result['status'] >= 300)
         {
-            throw new ForumGroupUpdateException(
+            throw new PermissionApprovalException(
                 "The forum rejected the user group change (HTTP {$result['status']})."
             );
         }

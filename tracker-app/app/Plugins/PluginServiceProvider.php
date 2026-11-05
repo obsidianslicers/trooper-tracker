@@ -159,14 +159,13 @@ abstract class PluginServiceProvider extends ServiceProvider
     }
 
     /**
-     * Offer a forum's user groups on the permission request page. One provider
-     * per site; a later plugin replaces an earlier one.
+     * Let permission requests ask for something more, such as forum user groups.
      *
-     * @param  class-string<\App\Contracts\ForumGroupProvider>  $provider_class
+     * @param  class-string<\App\Contracts\PermissionRequestExtension>  $extension_class
      */
-    protected function setForumGroupProvider(string $provider_class): void
+    protected function addPermissionRequestExtension(string $extension_class): void
     {
-        $this->app->make(PluginForumGroups::class)->set($provider_class);
+        $this->app->make(PluginPermissionRequests::class)->add($extension_class);
     }
 
     /**

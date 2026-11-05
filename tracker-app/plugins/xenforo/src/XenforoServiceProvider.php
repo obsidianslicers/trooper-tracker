@@ -23,7 +23,7 @@ use TroopTracker\Plugins\Xenforo\Console\SyncUserCommand;
 use TroopTracker\Plugins\Xenforo\Console\SyncUsersCommand;
 use TroopTracker\Plugins\Xenforo\Donations\XenforoDonationSource;
 use TroopTracker\Plugins\Xenforo\Donations\XenforoProfile;
-use TroopTracker\Plugins\Xenforo\ForumGroups\XenforoForumGroups;
+use TroopTracker\Plugins\Xenforo\ForumGroups\ForumGroupRequests;
 use TroopTracker\Plugins\Xenforo\Http\Controllers\AccountLinkController;
 use TroopTracker\Plugins\Xenforo\Http\Controllers\AccountLinkRequiredController;
 use TroopTracker\Plugins\Xenforo\Http\Controllers\ForumReplyController;
@@ -86,7 +86,7 @@ class XenforoServiceProvider extends PluginServiceProvider
         $this->registerServiceRecord();
         $this->registerEventThreads();
         $this->registerOrganizationFields();
-        $this->setForumGroupProvider(XenforoForumGroups::class);
+        $this->addPermissionRequestExtension(ForumGroupRequests::class);
 
         $this->schedule(function (Schedule $schedule): void
         {

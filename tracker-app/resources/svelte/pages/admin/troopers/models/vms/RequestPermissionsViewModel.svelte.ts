@@ -2,7 +2,7 @@ import type { Trooper } from "$lib/components/models/TrooperPickerViewModel.svel
 import { SubmitableViewModel, type Option } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 import { useForm, type InertiaForm } from "@inertiajs/svelte";
-import type { ForumGroup, PermissionRequest } from "./PendingPermissionRequestViewModel.svelte";
+import type { PermissionRequest } from "./PendingPermissionRequestViewModel.svelte";
 
 export type RequestableOrganization = {
     id: number;
@@ -14,10 +14,16 @@ export type RequestableOrganization = {
 
 export type RequestPermissionsPageData = {
     organizations: RequestableOrganization[];
-    has_forum_groups: boolean;
-    forum_groups: ForumGroup[];
     permission_requests: PermissionRequest[];
 };
+
+/** A form section a plugin adds, rendered on the server for the picked trooper. */
+export type PermissionExtensionSection = {
+    key: string;
+    html: string;
+};
+
+type ExtensionInputs = Record<string, Record<string, string | string[]>>;
 
 export type TrooperPermissionsLookup = {
     trooper: {
@@ -29,17 +35,15 @@ export type TrooperPermissionsLookup = {
     };
     moderated_organization_ids: number[];
     covered_organization_ids: number[];
-    has_forum_account: boolean;
-    forum_group_ids: number[];
+    extension_sections: PermissionExtensionSection[];
 };
 
 type RequestPermissionsFormData = {
     trooper_id: string | number | null;
     membership_role: "" | "moderator" | "member";
     moderated_organization_ids: number[];
-    forum_group_ids_to_add: number[];
-    forum_group_ids_to_remove: number[];
     note: string | null;
+    extensions: ExtensionInputs;
 };
 
 function createRequestPermissionsForm(): InertiaForm<RequestPermissionsFormData> {
@@ -47,14 +51,42 @@ function createRequestPermissionsForm(): InertiaForm<RequestPermissionsFormData>
         trooper_id: null,
         membership_role: "",
         moderated_organization_ids: [],
-        forum_group_ids_to_add: [],
-        forum_group_ids_to_remove: [],
         note: null,
+        extensions: {},
     });
 }
 
 function toggle(ids: number[], id: number): number[] {
     return ids.includes(id) ? ids.filter((i) => i !== id) : [...ids, id];
+}
+
+/**
+ * Reads the inputs of the plugins' form sections, which are named
+ * "extensions[key][field]" or "extensions[key][field][]".
+ */
+function collectExtensionInputs(container: HTMLElement | null): ExtensionInputs {
+    const inputs: ExtensionInputs = {};
+    const fields = container?.querySelectorAll<HTMLInputElement>("input, select, textarea") ?? [];
+
+    for (const field of fields) {
+        const match = /^extensions\[([^\]]+)\]\[([^\]]+)\](\[\])?$/.exec(field.name);
+        const unchecked = (field.type === "checkbox" || field.type === "radio") && !field.checked;
+
+        if (!match || field.disabled || unchecked) {
+            continue;
+        }
+
+        const [, key, name, is_list] = match;
+        const section = (inputs[key] ??= {});
+
+        if (is_list) {
+            section[name] = [...((section[name] as string[] | undefined) ?? []), field.value];
+        } else {
+            section[name] = field.value;
+        }
+    }
+
+    return inputs;
 }
 
 function isDescendant(child: RequestableOrganization, parent: RequestableOrganization): boolean {
@@ -66,9 +98,10 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
     RequestPermissionsFormData
 > {
     organizations: RequestableOrganization[];
-    forum_groups: ForumGroup[];
-    has_forum_groups: boolean;
     permission_requests: PermissionRequest[];
+
+    /** The element holding the plugins' form sections. */
+    extensions_element = $state<HTMLElement | null>(null);
 
     #trooper = $state<Trooper | null | undefined>(null);
     lookup = $state<TrooperPermissionsLookup | null>(null);
@@ -77,8 +110,6 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
     constructor(pageData: RequestPermissionsPageData) {
         super();
         this.organizations = pageData.organizations ?? [];
-        this.forum_groups = pageData.forum_groups ?? [];
-        this.has_forum_groups = pageData.has_forum_groups ?? false;
         this.permission_requests = pageData.permission_requests ?? [];
         this.form = createRequestPermissionsForm();
     }
@@ -92,8 +123,7 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
         this.form.trooper_id = trooper?.id ?? null;
         this.form.membership_role = "";
         this.form.moderated_organization_ids = [];
-        this.form.forum_group_ids_to_add = [];
-        this.form.forum_group_ids_to_remove = [];
+        this.form.extensions = {};
         this.lookup = null;
 
         if (trooper) {
@@ -124,20 +154,6 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
         }
 
         return options;
-    }
-
-    get can_request_forum_groups(): boolean {
-        return this.has_forum_groups && (this.lookup?.has_forum_account ?? false);
-    }
-
-    get current_forum_groups(): ForumGroup[] {
-        const ids = this.lookup?.forum_group_ids ?? [];
-        return this.forum_groups.filter((g) => ids.includes(g.id));
-    }
-
-    get addable_forum_groups(): ForumGroup[] {
-        const ids = this.lookup?.forum_group_ids ?? [];
-        return this.forum_groups.filter((g) => !ids.includes(g.id));
     }
 
     /** Organizations the trooper moderates directly that this requester can change. */
@@ -192,12 +208,11 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
                 : ids;
     }
 
-    toggleGroupToAdd(id: number) {
-        this.form.forum_group_ids_to_add = toggle(this.form.forum_group_ids_to_add, id);
-    }
-
-    toggleGroupToRemove(id: number) {
-        this.form.forum_group_ids_to_remove = toggle(this.form.forum_group_ids_to_remove, id);
+    /** Validation errors for the plugins' form sections. */
+    get extension_errors(): string[] {
+        return Object.entries(this.errors)
+            .filter(([field]) => field.startsWith("extensions."))
+            .flatMap(([, messages]) => messages);
     }
 
     lookupTrooper = async (trooper_id: string | number) => {
@@ -220,6 +235,8 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
         e.preventDefault();
 
         const url = getRoute('admin.troopers.permissions.request');
+
+        this.form.extensions = collectExtensionInputs(this.extensions_element);
 
         this.form.post(url, { preserveScroll: true, preserveState: 'errors' });
     };

@@ -7,24 +7,19 @@ namespace App\Http\Requests\Admin\Troopers;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Messages\Troopers\Queries\Permissions\GetModerationChanges;
-use App\Messages\Troopers\Queries\Permissions\GetRequestableForumGroups;
 use App\Messages\Troopers\Queries\Permissions\GetRequestableOrganizations;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Plugins\PluginForumGroups;
+use App\Plugins\PluginPermissionRequests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 /**
- * Validates a moderator's request to change a trooper's role or forum groups.
+ * Validates a moderator's request to change a trooper's role, or anything a plugin adds.
  */
 class RequestPermissionsRequest extends FormRequest
 {
-    private const GROUPS_TO_ADD = 'forum_group_ids_to_add';
-
-    private const GROUPS_TO_REMOVE = 'forum_group_ids_to_remove';
-
     public function authorize(): bool
     {
         return $this->user()->is_moderator || $this->user()->is_administrator;
@@ -36,9 +31,9 @@ class RequestPermissionsRequest extends FormRequest
     public function rules(): array
     {
         $organization_ids = $this->requestableOrganizationIds();
-        $group_ids = $this->requestableGroupIds();
 
         return [
+            ...$this->extensionRules(),
             'trooper_id' => [
                 'required',
                 'integer',
@@ -52,10 +47,7 @@ class RequestPermissionsRequest extends FormRequest
             ],
             'moderated_organization_ids' => ['array', 'required_if:membership_role,moderator'],
             'moderated_organization_ids.*' => ['integer', Rule::in($organization_ids)],
-            self::GROUPS_TO_ADD => ['array'],
-            self::GROUPS_TO_ADD.'.*' => ['integer', Rule::in($group_ids)],
-            self::GROUPS_TO_REMOVE => ['array'],
-            self::GROUPS_TO_REMOVE.'.*' => ['integer', Rule::in($group_ids)],
+            'extensions' => ['array'],
             'note' => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -65,16 +57,12 @@ class RequestPermissionsRequest extends FormRequest
      */
     public function messages(): array
     {
-        $group_message = 'One of the selected forum groups cannot be requested.';
-
         return [
             'trooper_id.required' => 'Pick the trooper this request is for.',
             'trooper_id.not_in' => 'You cannot request permission changes for yourself.',
             'trooper_id.exists' => 'The selected trooper does not exist (or is not active).',
             'moderated_organization_ids.required_if' => 'Pick an organization to moderate.',
             'moderated_organization_ids.*.in' => 'You can only pick organizations you moderate.',
-            self::GROUPS_TO_ADD.'.*.in' => $group_message,
-            self::GROUPS_TO_REMOVE.'.*.in' => $group_message,
         ];
     }
 
@@ -97,19 +85,19 @@ class RequestPermissionsRequest extends FormRequest
                 $this->validateSomethingRequested($validator);
                 $this->validateRoleChange($validator);
                 $this->validateModerationChange($validator);
-                $this->validateForumGroups($validator);
+                $this->validateExtensions($validator);
             },
         ];
     }
 
     private function validateSomethingRequested(Validator $validator): void
     {
-        if ($this->filled('membership_role') || $this->hasForumGroups())
+        if ($this->filled('membership_role') || $this->extensionsRequestChange())
         {
             return;
         }
 
-        $validator->errors()->add('membership_role', 'Choose a role change or a forum group.');
+        $validator->errors()->add('membership_role', 'Choose a change to request.');
     }
 
     private function validateRoleChange(Validator $validator): void
@@ -141,7 +129,7 @@ class RequestPermissionsRequest extends FormRequest
 
         if ($trooper?->membership_role !== MembershipRole::MODERATOR
             || $this->input('membership_role') !== MembershipRole::MODERATOR->value
-            || $this->hasForumGroups())
+            || $this->extensionsRequestChange())
         {
             return;
         }
@@ -161,36 +149,68 @@ class RequestPermissionsRequest extends FormRequest
         }
     }
 
-    private function validateForumGroups(Validator $validator): void
+    private function validateExtensions(Validator $validator): void
     {
-        if (!$this->hasForumGroups())
+        $trooper = $this->targetTrooper();
+
+        if ($trooper === null)
         {
             return;
         }
 
-        $overlap = array_intersect(
-            $this->input(self::GROUPS_TO_ADD, []),
-            $this->input(self::GROUPS_TO_REMOVE, [])
-        );
-
-        if ($overlap !== [])
+        foreach ($this->extensions() as $key => $extension)
         {
-            $validator->errors()->add(self::GROUPS_TO_ADD, 'A group cannot be added and removed.');
-        }
-
-        $trooper = $this->targetTrooper();
-        $provider = app(PluginForumGroups::class)->provider();
-
-        if ($trooper !== null && !$provider?->hasAccount($trooper))
-        {
-            $validator->errors()->add(self::GROUPS_TO_ADD, 'This trooper has no forum account.');
+            $extension->validate($validator, $trooper, $this->extensionInput($key));
         }
     }
 
-    private function hasForumGroups(): bool
+    private function extensionsRequestChange(): bool
     {
-        return !empty($this->input(self::GROUPS_TO_ADD))
-            || !empty($this->input(self::GROUPS_TO_REMOVE));
+        foreach ($this->extensions() as $key => $extension)
+        {
+            if ($extension->requestsChange($this->extensionInput($key)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function extensionRules(): array
+    {
+        $rules = [];
+
+        foreach ($this->extensions() as $key => $extension)
+        {
+            foreach ($extension->rules() as $field => $field_rules)
+            {
+                $rules["extensions.{$key}.{$field}"] = $field_rules;
+            }
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function extensionInput(string $key): array
+    {
+        $input = $this->input("extensions.{$key}", []);
+
+        return is_array($input) ? $input : [];
+    }
+
+    /**
+     * @return array<string, \App\Contracts\PermissionRequestExtension>
+     */
+    private function extensions(): array
+    {
+        return app(PluginPermissionRequests::class)->all();
     }
 
     private function targetTrooper(): ?Trooper
@@ -206,18 +226,5 @@ class RequestPermissionsRequest extends FormRequest
         return GetRequestableOrganizations::call(requester: $this->user())
             ->map(fn (Organization $organization): int => $organization->id)
             ->all();
-    }
-
-    /**
-     * @return array<int, int>
-     */
-    private function requestableGroupIds(): array
-    {
-        if (!$this->hasForumGroups())
-        {
-            return [];
-        }
-
-        return GetRequestableForumGroups::call()->pluck('id')->all();
     }
 }

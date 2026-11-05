@@ -7,10 +7,9 @@ namespace Tests\Unit\Messages\Troopers\Commands\Permissions;
 use App\Enums\MembershipRole;
 use App\Enums\PermissionRequestStatus;
 use App\Events\TrooperPermissionsApproved;
-use App\Exceptions\ForumGroupUpdateException;
+use App\Exceptions\PermissionApprovalException;
 use App\Jobs\SendPermissionRequestReviewedNotificationsJob;
 use App\Messages\Troopers\Commands\Permissions\ApproveTrooperPermissions;
-use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
@@ -18,15 +17,15 @@ use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event as EventFacade;
-use Illuminate\Support\Facades\Http;
 use RuntimeException;
-use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
+use Tests\Concerns\UsesBadgeRequests;
+use Tests\Fixtures\PermissionRequests\BadgeRequests;
 use Tests\TestCase;
 
 class ApproveTrooperPermissionsTest extends TestCase
 {
     use RefreshDatabase;
-    use UsesXenforoPlugin;
+    use UsesBadgeRequests;
 
     private Trooper $admin;
 
@@ -34,14 +33,7 @@ class ApproveTrooperPermissionsTest extends TestCase
     {
         parent::setUp();
 
-        // Forum groups come from the XenForo plugin.
-        $this->enableXenforo();
-
-        config([
-            'plugins.xenforo.base_url' => 'https://xf.test',
-            'plugins.xenforo.api_key' => 'key',
-            'plugins.xenforo.api_user' => '1',
-        ]);
+        $this->addBadgeRequests();
 
         Bus::fake([SendPermissionRequestReviewedNotificationsJob::class]);
 
@@ -196,83 +188,43 @@ class ApproveTrooperPermissionsTest extends TestCase
         ]);
     }
 
-    public function test_handle_updates_forum_groups_keeping_unrelated_groups(): void
+    public function test_handle_applies_plugin_extensions(): void
     {
-        $trooper = $this->createLinkedTrooper('77');
-
-        Http::fake([
-            'https://xf.test/api/users/77' => Http::sequence()
-                ->push(['user' => ['secondary_group_ids' => [5, 9, 12]]], 200)
-                ->push(['success' => true], 200),
-        ]);
-
         $permission_request = PermissionRequest::factory()
-            ->forTrooper($trooper)
+            ->forTrooper(Trooper::factory()->asMember()->create())
             ->withRole(null)
-            ->withForumGroups(
-                add: [['id' => 20, 'title' => 'Event Coordinators']],
-                remove: [['id' => 9, 'title' => 'Recruiters']],
-            )
             ->create();
 
         $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
         $subject->handle();
 
-        Http::assertSent(function ($request): bool
-        {
-            return $request->method() === 'POST'
-                && $request->url() === 'https://xf.test/api/users/77'
-                && $request['secondary_group_ids'] == [5, 12, 20];
-        });
-
+        $this->assertSame([$permission_request->id], BadgeRequests::$approved);
         $this->assertSame(PermissionRequestStatus::APPROVED, $permission_request->fresh()->status);
     }
 
-    public function test_handle_rolls_back_role_change_when_forum_update_fails(): void
+    public function test_handle_rolls_back_role_change_when_an_extension_fails(): void
     {
-        $trooper = $this->createLinkedTrooper('77');
-
-        Http::fake([
-            'https://xf.test/api/users/77' => Http::sequence()
-                ->push(['user' => ['secondary_group_ids' => []]], 200)
-                ->push(['errors' => []], 500),
-        ]);
+        $trooper = Trooper::factory()->asMember()->create();
+        BadgeRequests::$approval_failure = 'The badge office is closed.';
 
         $permission_request = PermissionRequest::factory()
             ->forTrooper($trooper)
             ->withRole(MembershipRole::MODERATOR)
-            ->withForumGroups(add: [['id' => 20, 'title' => 'Event Coordinators']])
             ->create();
 
         try
         {
             //  dispatching through the bus wraps the approval in its transaction
             ApproveTrooperPermissions::call(permission_request: $permission_request);
-            $this->fail('Expected the forum failure to be thrown.');
+            $this->fail('Expected the extension failure to be thrown.');
         }
-        catch (ForumGroupUpdateException)
+        catch (PermissionApprovalException $e)
         {
+            $this->assertSame('The badge office is closed.', $e->getMessage());
         }
 
         $this->assertSame(MembershipRole::MEMBER, $trooper->fresh()->membership_role);
         $this->assertSame(PermissionRequestStatus::PENDING, $permission_request->fresh()->status);
-    }
-
-    public function test_handle_throws_when_trooper_has_no_forum_account(): void
-    {
-        $trooper = Trooper::factory()->asMember()->create();
-
-        $permission_request = PermissionRequest::factory()
-            ->forTrooper($trooper)
-            ->withRole(null)
-            ->withForumGroups(add: [['id' => 20, 'title' => 'Event Coordinators']])
-            ->create();
-
-        $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
-
-        $this->expectException(ForumGroupUpdateException::class);
-
-        $subject->handle();
     }
 
     public function test_handle_refuses_to_change_an_administrator(): void
@@ -300,18 +252,6 @@ class ApproveTrooperPermissionsTest extends TestCase
         $this->expectException(RuntimeException::class);
 
         $subject->handle();
-    }
-
-    private function createLinkedTrooper(string $xenforo_user_id): Trooper
-    {
-        $trooper = Trooper::factory()->asMember()->create();
-
-        OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => 'xenforo',
-            OauthLogin::PROVIDER_ID => $xenforo_user_id,
-        ]);
-
-        return $trooper;
     }
 
     public function test_handle_fires_trooper_permissions_approved(): void

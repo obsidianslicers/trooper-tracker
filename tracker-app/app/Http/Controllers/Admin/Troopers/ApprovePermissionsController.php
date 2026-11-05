@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\FlashType;
-use App\Exceptions\ForumGroupUpdateException;
+use App\Exceptions\PermissionApprovalException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Troopers\ApprovePermissionsRequest;
 use App\Messages\Troopers\Commands\Permissions\ApproveTrooperPermissions;
@@ -13,7 +13,7 @@ use App\Models\PermissionRequest;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * Approves a permission request and applies it to the trooper and their forum account.
+ * Approves a permission request and applies it to the trooper.
  */
 class ApprovePermissionsController extends Controller
 {
@@ -27,7 +27,7 @@ class ApprovePermissionsController extends Controller
 
             FlashType::success('Permission request approved.');
         }
-        catch (ForumGroupUpdateException $e)
+        catch (PermissionApprovalException $e)
         {
             FlashType::danger("Nothing was changed: {$e->getMessage()}");
         }

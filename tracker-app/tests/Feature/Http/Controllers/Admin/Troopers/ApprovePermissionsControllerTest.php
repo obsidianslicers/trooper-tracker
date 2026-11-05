@@ -9,11 +9,14 @@ use App\Enums\PermissionRequestStatus;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\UsesBadgeRequests;
+use Tests\Fixtures\PermissionRequests\BadgeRequests;
 use Tests\TestCase;
 
 class ApprovePermissionsControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesBadgeRequests;
 
     public function test_invoke_approves_request(): void
     {
@@ -32,23 +35,19 @@ class ApprovePermissionsControllerTest extends TestCase
         $this->assertSame(MembershipRole::MODERATOR, $trooper->fresh()->membership_role);
     }
 
-    public function test_invoke_leaves_request_pending_when_forum_update_fails(): void
+    public function test_invoke_leaves_request_pending_when_an_extension_fails(): void
     {
-        config([
-            'plugins.xenforo.base_url' => 'https://xf.test',
-            'plugins.xenforo.api_key' => 'key',
-        ]);
+        $this->addBadgeRequests();
+        BadgeRequests::$approval_failure = 'The badge office is closed.';
 
         $admin = Trooper::factory()->asAdministrator()->create();
-        $permission_request = PermissionRequest::factory()
-            ->withRole(null)
-            ->withForumGroups(add: [['id' => 20, 'title' => 'Event Coordinators']])
-            ->create();
+        $permission_request = PermissionRequest::factory()->withRole(null)->create();
 
         $response = $this->actingAs($admin)
             ->post(route('admin.troopers.permissions.approve', $permission_request));
 
         $response->assertRedirect(route('admin.troopers.permissions.approvals'));
+        $response->assertSessionHas('danger', 'Nothing was changed: The badge office is closed.');
         $this->assertSame(PermissionRequestStatus::PENDING, $permission_request->fresh()->status);
     }
 
