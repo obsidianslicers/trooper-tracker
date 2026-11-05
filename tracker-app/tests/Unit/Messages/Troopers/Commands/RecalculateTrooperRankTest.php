@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Troopers\Commands;
 
+use App\Contracts\DonationSource;
 use App\Enums\AchievementType;
 use App\Enums\EventTrooperStatus;
 use App\Jobs\SendTrooperMilestoneNotificationsJob;
@@ -14,8 +15,12 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
+use App\Models\TrooperDonation;
+use App\Plugins\PluginDonations;
+use App\Support\DonationSummary;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
+use Mockery;
 use Tests\TestCase;
 
 class RecalculateTrooperRankTest extends TestCase
@@ -513,5 +518,42 @@ class RecalculateTrooperRankTest extends TestCase
         $event = Event::factory()->asClosed()->create();
 
         return EventShift::factory()->forEvent($event)->create();
+    }
+
+    public function test_handle_adds_donation_source_months_and_total_to_local_donations(): void
+    {
+        $trooper = Trooper::factory()->create();
+        TrooperDonation::factory()->create([
+            TrooperDonation::TROOPER_ID => $trooper->id,
+            TrooperDonation::AMOUNT => 40,
+            TrooperDonation::CREATED_AT => '2025-01-15 12:00:00',
+        ]);
+
+        $source = Mockery::mock(DonationSource::class);
+        $source->shouldReceive('summariesFor')
+            ->once()
+            ->andReturn([$trooper->id => new DonationSummary(
+                month_keys: ['2025-01' => true, '2025-02' => true],
+                total: 75.0,
+            )]);
+        $this->app->instance($source::class, $source);
+        $this->app->make(PluginDonations::class)->add($source::class);
+
+        (new RecalculateTrooperRank(trooper_id: $trooper->id))->handle();
+
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => AchievementType::DONATION_MONTHS->value,
+            TrooperAchievement::VALUE => 2,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => AchievementType::TOTAL_DONATED->value,
+            TrooperAchievement::VALUE => 115,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => AchievementType::DONATED_100->value,
+        ]);
     }
 }

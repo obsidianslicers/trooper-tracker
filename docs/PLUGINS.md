@@ -217,6 +217,9 @@ $this->addToSlot(
 | `admin.dashboard.cards` | Command Staff dashboard. Render `<x-dashboard-card>` items. | |
 | `events.display.sections` | Event page, below the shifts. | `$event` |
 | `admin.organizations.update.fields` | Organization edit form, inside the `<form>`. Pair with `extendForm`. | `$organization` |
+| `service-records.trooper.badges` | Service record, under the trooper's name. | `$trooper` |
+| `service-records.trooper.actions` | Service record, in the button group at the top right. Render buttons. | `$trooper` |
+| `service-records.trooper.donations` | Service record, Donations tab, above the local donation records. | `$trooper` |
 
 Svelte pages have slots too. Their names are listed in `App\Plugins\PluginSlots::SVELTE_SLOTS`; the server renders them to HTML on every Inertia request and the page shows them with `<PluginSlot name="..." />` (`resources/svelte/lib/components/PluginSlot.svelte`). The views get `$request` and `$actor` (the signed-in trooper) instead of page variables. The markup is inserted as plain HTML, so `<script>` tags in it do not run; use links and forms.
 
@@ -266,6 +269,15 @@ $this->schedule(function (Schedule $schedule): void {
 ```
 
 adds tasks to Laravel's scheduler. They run only while the plugin is enabled.
+
+### Donation sources
+
+Donations recorded somewhere else, such as paid forum subscriptions, can count toward a trooper's donation months, total donated and donor milestones. Implement `App\Contracts\DonationSource` and register it with `$this->addDonationSource(MySource::class)`.
+
+- `summariesFor(array $trooper_ids)` is called by the achievement recalculation, one chunk of troopers at a time. Return `App\Support\DonationSummary` objects keyed by trooper ID (`month_keys` as `'Y-m' => true`, `total`, `is_active`). A fresh instance is made for each run, so it can fetch once and reuse the result for every chunk.
+- `summaryFor(Trooper $trooper)` gives the live numbers on one trooper's service record. `is_active` shows the active donor badge.
+
+Months from every source and from local donation records are merged, so a month counts once; totals add up.
 
 ### Settings
 
@@ -318,12 +330,13 @@ php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\Flori
 - the user sync (`xenforo:sync-users`, hourly, and `xenforo:sync-user`)
 - the account link pages (`/account/xenforo`, `/account/xenforo/required`) and the two checks that run on every request while a linked account is required: send unlinked troopers to the link page, and log out banned forum users
 - the XenForo login driver (the Socialite provider behind "Sign in with XenForo")
+- forum upgrades as a donation source (donation months, total donated, donor milestones and the active donor badge), plus the service record's forum group banners, Forum Profile button and upgrade history table
 
 **Require a linked forum account** only applies while the plugin is enabled. With the plugin off, the site runs without XenForo: the XenForo login button is hidden, email and Google login work, and nobody is sent to the link page.
 
 Core's login flow still knows the name "xenforo" (the provider value stored on `oauth_logins`, the login and sign-up buttons, and the OAuth callback's XenForo-only steps). Making login providers fully pluggable is a separate, larger change.
 
-Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. The rest of XenForo (login, account link and bans, event threads, forum groups, donations) is still core and reads the same config, so the settings page applies to it too while the plugin is enabled.
+Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. The rest of XenForo (event threads and forum groups) is still core and reads the same config, so the settings page applies to it too while the plugin is enabled.
 
 Sites that use XenForo must enable the plugin right after deploying. Until then the user sync stops and a linked forum account is not required:
 

@@ -149,6 +149,16 @@ abstract class PluginServiceProvider extends ServiceProvider
     }
 
     /**
+     * Count donations from another system toward troopers' donation totals and milestones.
+     *
+     * @param  class-string<\App\Contracts\DonationSource>  $source_class
+     */
+    protected function addDonationSource(string $source_class): void
+    {
+        $this->app->make(PluginDonations::class)->add($source_class);
+    }
+
+    /**
      * Run a middleware on every web request, after core's own web middleware.
      */
     protected function addWebMiddleware(string $middleware_class): void

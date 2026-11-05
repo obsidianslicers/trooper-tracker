@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\Commands;
 
+use App\Contracts\DonationSource;
 use App\Enums\AchievementType;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Enums\OauthProvider;
 use App\Models\Event;
 use App\Models\EventTrooper;
-use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperDonation;
-use App\Services\Forums\XenforoService;
-use App\Support\XenforoUpgradeHelper;
+use App\Plugins\PluginDonations;
+use App\Support\DonationSummary;
 use Hyperdrive\Message;
 use Illuminate\Support\Collection;
 
@@ -77,10 +76,10 @@ final class RecalculateTrooperRank extends Message
             $q->where(Trooper::ID, $this->trooper_id);
         }
 
-        // One API call for the entire run — all users' upgrade records.
-        $xenforo_upgrades = $this->prefetchXenforoUpgrades();
+        // Fresh sources per run, so each can fetch its data once for the whole run.
+        $donation_sources = app(PluginDonations::class)->sources();
 
-        $q->chunk(200, function ($troopers) use ($xenforo_upgrades)
+        $q->chunk(200, function ($troopers) use ($donation_sources)
         {
             //  only process rank if we're processing all troopers, otherwise
             //  the rank won't be accurate since we're not reordering all the
@@ -90,7 +89,7 @@ final class RecalculateTrooperRank extends Message
             $this->processChunk(
                 troopers: $troopers,
                 process_rank: $process_rank,
-                xenforo_upgrades: $xenforo_upgrades,
+                donation_sources: $donation_sources,
                 send_milestone_notifications: $this->send_milestone_notifications,
             );
         });
@@ -128,17 +127,13 @@ final class RecalculateTrooperRank extends Message
     private function processChunk(
         Collection $troopers,
         bool $process_rank,
-        array $xenforo_upgrades,
+        array $donation_sources,
         bool $send_milestone_notifications,
     ): void {
-        // One query per chunk to map trooper_id → xenforo_user_id.
-        $trooper_ids = $troopers->pluck('id')->all();
-
-        $xenforo_id_map = OauthLogin::where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
-            ->whereIn(OauthLogin::TROOPER_ID, $trooper_ids)
-            ->pluck(OauthLogin::PROVIDER_ID, OauthLogin::TROOPER_ID)
-            ->map(fn ($id) => (int) $id)
-            ->all();
+        $external_donations = $this->externalDonations(
+            $donation_sources,
+            $troopers->pluck('id')->all(),
+        );
 
         foreach ($troopers as $trooper)
         {
@@ -155,8 +150,10 @@ final class RecalculateTrooperRank extends Message
             $this->updateAchievement($trooper, AchievementType::DIRECT_FUNDS, $metrics['total_direct']);
             $this->updateAchievement($trooper, AchievementType::INDIRECT_FUNDS, $metrics['total_indirect']);
 
-            $xenforo_user_id = $xenforo_id_map[$trooper->id] ?? null;
-            $donation_metrics = $this->computeDonationMetrics($trooper, $xenforo_user_id, $xenforo_upgrades);
+            $donation_metrics = $this->computeDonationMetrics(
+                $trooper,
+                $external_donations[$trooper->id] ?? [],
+            );
             $this->updateAchievement($trooper, AchievementType::DONATION_MONTHS, $donation_metrics['donation_months']);
             $this->updateAchievement($trooper, AchievementType::TOTAL_DONATED, $donation_metrics['total_donated']);
             $this->storeDonationMilestoneAchievements($trooper, $donation_metrics, $send_milestone_notifications);
@@ -237,95 +234,52 @@ final class RecalculateTrooperRank extends Message
     }
 
     /**
-     * Fetch all upgrade records from XenForo once and return a lookup keyed
-     * by xenforo user_id: ['active' => [...], 'expired' => [...]].
+     * Each donation source's summaries for a chunk of troopers.
      *
-     * Embeds the resolved per-period cost_amount into each record so callers
-     * do not need to re-derive it. Returns an empty array when XenForo is
-     * unavailable or the API call fails.
-     *
-     * @return array<int,array{active:array<mixed>,expired:array<mixed>}>
+     * @param  array<int, DonationSource>  $sources
+     * @param  array<int, int>  $trooper_ids
+     * @return array<int, array<int, DonationSummary>> Keyed by trooper ID.
      */
-    private function prefetchXenforoUpgrades(): array
+    private function externalDonations(array $sources, array $trooper_ids): array
     {
-        $stats = app(XenforoService::class)->get_upgrade_stats();
+        $by_trooper = [];
 
-        if ($stats === null)
+        foreach ($sources as $source)
         {
-            return [];
-        }
-
-        // Build cost_amount lookup keyed by user_upgrade_id.
-        $cost_map = [];
-
-        foreach ($stats['userUpgrades'] ?? [] as $upgrade)
-        {
-            if (is_array($upgrade) && isset($upgrade['user_upgrade_id']))
+            foreach ($source->summariesFor($trooper_ids) as $trooper_id => $summary)
             {
-                $cost_map[(int) $upgrade['user_upgrade_id']] = (float) ($upgrade['cost_amount'] ?? 0);
+                $by_trooper[$trooper_id][] = $summary;
             }
         }
 
-        $lookup = [];
-
-        foreach ($stats['userUpgradeActive'] ?? [] as $row)
-        {
-            if (is_array($row) && isset($row['user_id']))
-            {
-                $row['cost_amount'] = XenforoUpgradeHelper::resolveRecordCost($row, $cost_map);
-                $lookup[(int) $row['user_id']]['active'][] = $row;
-            }
-        }
-
-        foreach ($stats['userUpgradeExpired'] ?? [] as $row)
-        {
-            if (is_array($row) && isset($row['user_id']))
-            {
-                $row['cost_amount'] = XenforoUpgradeHelper::resolveRecordCost($row, $cost_map);
-                $lookup[(int) $row['user_id']]['expired'][] = $row;
-            }
-        }
-
-        return $lookup;
+        return $by_trooper;
     }
 
     /**
      * Compute donation metrics for a trooper.
      *
-     * Donation months use XenForo upgrade history when available — this handles
-     * both monthly (one record ≈ one month) and annual subscriptions correctly.
-     * Falls back to distinct calendar months from local donation records when
-     * the trooper has no XenForo link or XenForo data is unavailable.
+     * Months are the distinct calendar months with a donation, across local records
+     * and every donation source (for example forum subscriptions). The total adds
+     * them all, so no source is left out.
      *
-     * Total donated combines XenForo subscription costs (months × per-period price)
-     * with local TrooperDonation records so neither source is excluded.
-     *
-     * @param  array<int,array{active:array<mixed>,expired:array<mixed>}>  $xenforo_upgrades
+     * @param  array<int, DonationSummary>  $external
      * @return array{donation_months: int, total_donated: float}
      */
-    private function computeDonationMetrics(Trooper $trooper, ?int $xenforo_user_id, array $xenforo_upgrades): array
+    private function computeDonationMetrics(Trooper $trooper, array $external): array
     {
         $donations = $this->loadLocalDonations($trooper);
-        $local_total = (float) $donations->sum(fn ($d) => (float) $d->amount);
-        $local_keys = $this->buildLocalMonthKeys($donations);
+        $month_keys = $this->buildLocalMonthKeys($donations);
+        $total = (float) $donations->sum(fn (TrooperDonation $d): float => (float) $d->amount);
 
-        if ($xenforo_user_id !== null && isset($xenforo_upgrades[$xenforo_user_id]))
+        foreach ($external as $summary)
         {
-            $active = $xenforo_upgrades[$xenforo_user_id]['active'] ?? [];
-            $expired = $xenforo_upgrades[$xenforo_user_id]['expired'] ?? [];
-
-            $merged_months = count(array_merge($local_keys, XenforoUpgradeHelper::monthKeysFromUpgrades($active, $expired)));
-            $xenforo_total = $this->computeTotalFromUpgrades($active, $expired);
-
-            return [
-                'donation_months' => $merged_months,
-                'total_donated' => $xenforo_total + $local_total,
-            ];
+            $month_keys = array_merge($month_keys, $summary->month_keys);
+            $total += $summary->total;
         }
 
         return [
-            'donation_months' => count($local_keys),
-            'total_donated' => $local_total,
+            'donation_months' => count($month_keys),
+            'total_donated' => $total,
         ];
     }
 
@@ -359,35 +313,6 @@ final class RecalculateTrooperRank extends Message
         }
 
         return $month_keys;
-    }
-
-    /**
-     * Sum the total amount donated across all upgrade records.
-     *
-     * cost_amount is the per-period price — multiply by months covered per record.
-     *
-     * @param  array<mixed>  $active
-     * @param  array<mixed>  $expired
-     */
-    private function computeTotalFromUpgrades(array $active, array $expired): float
-    {
-        $total = 0.0;
-
-        foreach (array_merge($active, $expired) as $row)
-        {
-            $cost = (float) ($row['cost_amount'] ?? 0);
-            $start = (int) ($row['start_date'] ?? 0);
-            $end = (int) ($row['end_date'] ?? 0);
-
-            if ($start <= 0 || $cost <= 0.0)
-            {
-                continue;
-            }
-
-            $total += XenforoUpgradeHelper::countMonthsForRecord($start, $end) * $cost;
-        }
-
-        return $total;
     }
 
     /**

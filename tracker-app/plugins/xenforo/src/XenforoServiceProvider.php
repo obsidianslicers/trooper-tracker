@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Socialite\Facades\Socialite;
 use TroopTracker\Plugins\Xenforo\Console\SyncUserCommand;
 use TroopTracker\Plugins\Xenforo\Console\SyncUsersCommand;
+use TroopTracker\Plugins\Xenforo\Donations\XenforoDonationSource;
+use TroopTracker\Plugins\Xenforo\Donations\XenforoProfile;
 use TroopTracker\Plugins\Xenforo\Http\Controllers\AccountLinkController;
 use TroopTracker\Plugins\Xenforo\Http\Controllers\AccountLinkRequiredController;
 use TroopTracker\Plugins\Xenforo\Http\Middleware\CheckXenforoBan;
@@ -36,6 +38,9 @@ class XenforoServiceProvider extends PluginServiceProvider
     protected function registerPlugin(): void
     {
         $this->applySettingsToConfig();
+
+        // Per request, so the service record's slots and totals share one lookup.
+        $this->app->scoped(XenforoProfile::class);
     }
 
     public function bootPlugin(): void
@@ -50,6 +55,7 @@ class XenforoServiceProvider extends PluginServiceProvider
         $this->addWebMiddleware(EnsureXenforoLinked::class);
         $this->addWebMiddleware(CheckXenforoBan::class);
         $this->registerAccountRoutes();
+        $this->registerServiceRecord();
 
         $this->schedule(function (Schedule $schedule): void
         {
@@ -61,6 +67,14 @@ class XenforoServiceProvider extends PluginServiceProvider
             fn (): bool => filled(config('services.xenforo.base_url'))
                 && filled(config('services.xenforo.api_key')),
         );
+    }
+
+    private function registerServiceRecord(): void
+    {
+        $this->addDonationSource(XenforoDonationSource::class);
+        $this->addToSlot('service-records.trooper.badges', 'xenforo::service-records.banners');
+        $this->addToSlot('service-records.trooper.actions', 'xenforo::service-records.profile-link');
+        $this->addToSlot('service-records.trooper.donations', 'xenforo::service-records.donations');
     }
 
     /**
