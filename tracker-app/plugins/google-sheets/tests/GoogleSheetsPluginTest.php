@@ -172,7 +172,7 @@ class GoogleSheetsPluginTest extends TestCase
     {
         $this->enablePlugin();
 
-        foreach (Schema::getIndexes('tt_google_sheets_organization_sheets') as $index)
+        foreach (Schema::getIndexes('tt_organization_google_sheets') as $index)
         {
             $this->assertLessThanOrEqual(64, strlen($index['name']), $index['name']);
         }

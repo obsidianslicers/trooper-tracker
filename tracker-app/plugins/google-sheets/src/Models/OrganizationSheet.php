@@ -21,7 +21,7 @@ class OrganizationSheet extends Model
 
     public const SHEET_ID = 'sheet_id';
 
-    protected $table = 'tt_google_sheets_organization_sheets';
+    protected $table = 'tt_organization_google_sheets';
 
     protected $fillable = [self::ORGANIZATION_ID, self::SHEET_ID];
 

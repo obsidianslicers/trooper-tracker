@@ -501,7 +501,7 @@ php artisan plugins:enable xenforo
 `tracker-app/plugins/google-sheets` is the sheet source for the clubs whose rosters are Google Sheets (Rebel Legion, Droid Builders, Saber Guild and Mandalorian Mercs lookups). It has:
 
 - the Google Sheets API client, with retries on transient Google errors
-- the **Google Sync Sheet ID** field on a club's organization form, stored in `tt_google_sheets_organization_sheets` (copied from the old `tt_organizations.sync_sheet_id` column on enable; a later core migration drops the column)
+- the **Google Sync Sheet ID** field on a club's organization form, stored in `tt_organization_google_sheets` (copied from the old `tt_organizations.sync_sheet_id` column on enable; a later core migration drops the column)
 - the **Service account credentials file** setting, `google-credentials.json` in `tracker-app` by default
 - a System Check row for the credentials file
 - `ClubSheetsSeeder`, which stores the known clubs' sheet IDs:

@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Schema;
  * alone and is dropped later by a core migration.
  */
 return new class extends Migration {
-    private const TABLE = 'tt_google_sheets_organization_sheets';
+    private const TABLE = 'tt_organization_google_sheets';
 
     public function up(): void
     {
@@ -27,8 +27,8 @@ return new class extends Migration {
         {
             $table->id();
             $table->unsignedBigInteger('organization_id');
-            $table->unique('organization_id', 'tt_gs_org_sheets_organization_unique');
-            $table->foreign('organization_id', 'tt_gs_org_sheets_organization_foreign')
+            $table->unique('organization_id', 'tt_org_google_sheets_organization_unique');
+            $table->foreign('organization_id', 'tt_org_google_sheets_organization_foreign')
                 ->references('id')
                 ->on('tt_organizations')
                 ->cascadeOnDelete();
