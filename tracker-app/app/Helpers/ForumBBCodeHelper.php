@@ -15,77 +15,65 @@ class ForumBBCodeHelper
      */
     public static function threadTemplate(Event $event, string $roster = ''): string
     {
-        $bb = '';
-        $bb .= "\n[b]Event Name:[/b] ".e($event->name);
-        $bb .= "\n[b]Venue:[/b] ".e($event->venue);
-        $bb .= "\n[b]Venue address:[/b] ".e($event->venue_address);
-        $bb .= "\n[b]Event Start:[/b] ".$event->event_start->format('m/d/y h:i A');
-        $bb .= "\n[b]Event End:[/b] ".$event->event_end->format('m/d/y h:i A');
+        $bb = '[size=6][b]'.e($event->name).'[/b][/size]';
 
-        // Add more fields as needed, e.g. website, attendees, amenities, comments, referred by, etc.
+        if ($event->venue)
+        {
+            $bb .= "\n[size=4][i]".e($event->venue).'[/i][/size]';
+        }
+
+        $bb .= "\n\n[hr][/hr]\n";
+
+        if ($event->venue_address)
+        {
+            $bb .= "\n[b]📍 Location:[/b] ".e($event->venue_address);
+        }
+        $bb .= "\n[b]🗓️ Schedule:[/b] ".self::schedule($event);
+
         if ($event->event_website)
         {
-            $bb .= "\n[b]Event Website:[/b] ".e($event->event_website);
+            $bb .= "\n[b]🔗 Website:[/b] ".self::website($event->event_website);
         }
-        if ($event->expected_attendees)
-        {
-            $bb .= "\n[b]Expected number of attendees:[/b] ".$event->expected_attendees;
-        }
-        if ($event->requested_number_characters)
-        {
-            $bb .= "\n[b]Requested number of characters:[/b] ".$event->requested_number_characters;
-        }
+
+        $bb .= self::detailsTable($event);
+
         if ($event->requested_character_types)
         {
-            $bb .= "\n[b]Requested character types:[/b] ".e($event->requested_character_types);
+            $bb .= "\n[b]Character Types:[/b] ".e($event->requested_character_types);
         }
-        if ($event->secure_staging_area !== null)
-        {
-            $bb .= "\n[b]Secure changing/staging area:[/b] ".($event->secure_staging_area ? 'Yes' : 'No');
-        }
-        if ($event->allow_blasters !== null)
-        {
-            $bb .= "\n[b]Can troopers carry blasters:[/b] ".($event->allow_blasters ? 'Yes' : 'No');
-        }
-        if ($event->allow_props !== null)
-        {
-            $bb .= "\n[b]Can troopers carry/bring props like lightsabers and staffs:[/b] ".($event->allow_props ? 'Yes' : 'No');
-        }
-        if ($event->parking_available !== null)
-        {
-            $bb .= "\n[b]Is parking available:[/b] ".($event->parking_available ? 'Yes' : 'No');
-        }
-        if ($event->accessible !== null)
-        {
-            $bb .= "\n[b]Is venue accessible to those with limited mobility:[/b] ".($event->accessible ? 'Yes' : 'No');
-        }
+        $bb .= "\n[b]Secure Changing Area:[/b] ".($event->secure_staging_area ? 'Yes' : 'No');
+
         if ($event->amenities)
         {
-            $bb .= "\n[b]Amenities available at venue:[/b] ".e($event->amenities);
+            $bb .= "\n[b]Changing Area & Amenities:[/b]";
+            $bb .= "\n[quote]".e($event->amenities).'[/quote]';
         }
-        $bb .= "\n[b]Comments:[/b]\n".($event->comments ? e($event->comments) : 'No comments for this event.');
-        $bb .= "\n[b]Referred by:[/b] ".($event->referred_by ?? 'Not available');
+
+        $bb .= "\n[hr][/hr]";
+        $bb .= "\n[size=5][b]📢 Organizer Comments[/b][/size]";
+        $bb .= "\n\n[indent][size=4]".($event->comments ? e($event->comments) : 'No additional comments provided.').'[/size][/indent]';
+        $bb .= "\n\n[color=#777777][i]Referred by: ".($event->referred_by ? e($event->referred_by) : 'N/A').'[/i][/color]';
 
         if ($roster)
         {
+            $bb .= "\n\n[hr][/hr]";
+            $bb .= "\n[size=5][b]👥 Event Roster[/b][/size]";
             $bb .= "\n".$roster;
         }
 
         // Add sign-up link
-        $bb .= "\n[b][u]Sign Up / Event Roster:[/u][/b]\n";
-        $bb .= '[url]'.url('/events/details/'.$event->id).'[/url]';
+        $bb .= "\n\n[hr][/hr]";
+        $bb .= "\n[center][size=6][url=\"".url('/events/details/'.$event->id).'"]👉 CLICK HERE TO SIGN UP 👈[/url][/size][/center]';
 
         return $bb;
     }
 
     /**
-     * Generate a detailed, auto-updated roster listing for an event.
+     * Generate a detailed, auto-updated roster for an event.
      *
-     *  - Header: [b]Roster:[/b]
-     *  - Single-shift events: one line per signup in signup order (legacy format):
-     *      -[i]Status[/i]: Name (Costume)
-     *  - Multi-shift events: signups grouped per shift, each section headed by
-     *    the shift's time display, shifts in start-time order.
+     *  - Single-shift events: one table of signups in signup order.
+     *  - Multi-shift events: one table per shift, each headed by the shift's
+     *    time display, shifts in start-time order.
      *  - Fallback when there are no signups.
      */
     public static function rosterSummary(Event $event): string
@@ -94,47 +82,98 @@ class ForumBBCodeHelper
 
         $shifts = $event->event_shifts->sortBy(EventShift::SHIFT_STARTS_AT)->values();
 
-        $bb = '[b]Roster:[/b]';
-
         if ($shifts->every(fn (EventShift $shift) => $shift->event_troopers->isEmpty()))
         {
-            $bb .= "\n-No troopers are signed up for this event.";
-
-            return $bb;
+            return '[center]No troopers are signed up for this event.[/center]';
         }
 
         if ($shifts->count() === 1)
         {
-            return $bb.self::rosterLines($shifts->first()->event_troopers);
+            return self::rosterTable($shifts->first()->event_troopers);
         }
+
+        $sections = [];
 
         foreach ($shifts as $shift)
         {
-            $bb .= "\n[b][u]".$shift->time_display.'[/u][/b]';
+            $section = '[b][u]'.$shift->time_display."[/u][/b]\n";
 
-            if ($shift->event_troopers->isEmpty())
-            {
-                $bb .= "\n-No troopers are signed up for this shift.";
+            $section .= $shift->event_troopers->isEmpty()
+                ? '[center]No troopers are signed up for this shift.[/center]'
+                : self::rosterTable($shift->event_troopers);
 
-                continue;
-            }
-
-            $bb .= self::rosterLines($shift->event_troopers);
+            $sections[] = $section;
         }
 
-        return $bb;
+        return implode("\n", $sections);
     }
 
     /**
-     * Render one roster line per signup, ordered by signup time.
+     * The event's start and end. The end repeats the date only when it falls on another day.
      */
-    private static function rosterLines(Collection $event_troopers): string
+    private static function schedule(Event $event): string
+    {
+        $end_format = $event->event_start->isSameDay($event->event_end) ? 'h:i A' : 'D m/d/y h:i A';
+
+        return $event->event_start->format('D m/d/y h:i A').' – '.$event->event_end->format($end_format);
+    }
+
+    /**
+     * Link to the event's website. The field is free text, so anything that
+     * isn't a plain http(s) URL is shown as text instead of a broken link.
+     */
+    private static function website(string $website): string
+    {
+        if (preg_match('#^https?://[^\s"\[\]<>]+$#i', $website))
+        {
+            return '[url="'.$website.'"]Click here to view[/url]';
+        }
+
+        return e($website);
+    }
+
+    /**
+     * The event's short details as a three-column table, leaving out unset values.
+     */
+    private static function detailsTable(Event $event): string
+    {
+        $details = array_filter([
+            'Attendees' => $event->expected_attendees,
+            'Requested' => $event->requested_number_characters,
+        ]) + [
+            'Parking' => $event->parking_available ? 'Yes' : 'No',
+            'Blasters' => $event->allow_blasters ? 'Yes' : 'No',
+            'Props/Sabers' => $event->allow_props ? 'Yes' : 'No',
+            'Accessible' => $event->accessible ? 'Yes' : 'No',
+        ];
+
+        $bb = "\n\n[table]";
+
+        foreach (array_chunk($details, 3, true) as $row)
+        {
+            $bb .= "\n[tr]";
+
+            foreach ($row as $label => $value)
+            {
+                $bb .= '[td][b]'.$label.':[/b] '.$value.'[/td]';
+            }
+
+            $bb .= str_repeat('[td][/td]', 3 - count($row)).'[/tr]';
+        }
+
+        return $bb."\n[/table]";
+    }
+
+    /**
+     * Render a table with one row per signup, ordered by signup time.
+     */
+    private static function rosterTable(Collection $event_troopers): string
     {
         $event_troopers = $event_troopers
             ->sortBy(fn (EventTrooper $event_trooper) => $event_trooper->signed_up_at)
             ->values();
 
-        $bb = '';
+        $bb = '[table][tr][td][b]Trooper Name[/b][/td][td][b]Costume[/b][/td][td][b]Status[/b][/td][/tr]';
 
         foreach ($event_troopers as $event_trooper)
         {
@@ -159,9 +198,9 @@ class ForumBBCodeHelper
                 $costume_label = 'No Costume Selected';
             }
 
-            $bb .= "\n-[i]".$status_label.'[/i]: '.$name.' ('.$costume_label.')';
+            $bb .= "\n[tr][td]".$name.'[/td][td]'.$costume_label.'[/td][td][i]'.$status_label.'[/i][/td][/tr]';
         }
 
-        return $bb;
+        return $bb."\n[/table]";
     }
 }

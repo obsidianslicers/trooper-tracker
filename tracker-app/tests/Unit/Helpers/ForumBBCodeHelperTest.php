@@ -25,19 +25,26 @@ class ForumBBCodeHelperTest extends TestCase
 
         $result = ForumBBCodeHelper::threadTemplate($event);
 
-        $this->assertStringContainsString('[b]Event Name:[/b] '.e($event->name), $result);
-        $this->assertStringContainsString('[b]Venue:[/b] '.e($event->venue), $result);
-        $this->assertStringContainsString('[b]Venue address:[/b] '.e($event->venue_address), $result);
+        $this->assertStringContainsString('[size=6][b]'.e($event->name).'[/b][/size]', $result);
+        $this->assertStringContainsString('[size=4][i]'.e($event->venue).'[/i][/size]', $result);
+        $this->assertStringContainsString('[b]📍 Location:[/b] '.e($event->venue_address), $result);
+        $this->assertStringContainsString('[b]🗓️ Schedule:[/b] Tue 03/10/26 02:30 PM – 06:00 PM', $result);
         $this->assertStringContainsString(
-            '[b]Event Start:[/b] '.$event->event_start->format('m/d/y h:i A'),
+            '[center][size=6][url="'.url('/events/details/'.$event->id).'"]👉 CLICK HERE TO SIGN UP 👈[/url][/size][/center]',
             $result
         );
-        $this->assertStringContainsString(
-            '[b]Event End:[/b] '.$event->event_end->format('m/d/y h:i A'),
-            $result
-        );
-        $this->assertStringContainsString('[b][u]Sign Up / Event Roster:[/u][/b]', $result);
-        $this->assertStringContainsString('[url]'.url('/events/details/'.$event->id).'[/url]', $result);
+    }
+
+    public function test_thread_template_shows_the_end_date_when_an_event_runs_past_one_day(): void
+    {
+        $event = Event::factory()
+            ->forForumBbcodeTemplate()
+            ->state([Event::EVENT_END => now()->setDate(2026, 3, 11)->setTime(1, 0, 0)])
+            ->create();
+
+        $result = ForumBBCodeHelper::threadTemplate($event);
+
+        $this->assertStringContainsString('[b]🗓️ Schedule:[/b] Tue 03/10/26 02:30 PM – Wed 03/11/26 01:00 AM', $result);
     }
 
     public function test_thread_template_escapes_bbcode_text_fields(): void
@@ -49,16 +56,43 @@ class ForumBBCodeHelperTest extends TestCase
 
         $result = ForumBBCodeHelper::threadTemplate($event);
 
-        $this->assertStringContainsString('[b]Event Name:[/b] '.e($event->name), $result);
-        $this->assertStringContainsString('[b]Venue:[/b] '.e($event->venue), $result);
-        $this->assertStringContainsString('[b]Venue address:[/b] '.e($event->venue_address), $result);
-        $this->assertStringContainsString('[b]Event Website:[/b] '.e($event->event_website), $result);
+        $this->assertStringContainsString('[size=6][b]'.e($event->name).'[/b][/size]', $result);
+        $this->assertStringContainsString('[size=4][i]'.e($event->venue).'[/i][/size]', $result);
+        $this->assertStringContainsString('[b]📍 Location:[/b] '.e($event->venue_address), $result);
         $this->assertStringContainsString(
-            '[b]Requested character types:[/b] '.e($event->requested_character_types),
+            '[b]Character Types:[/b] '.e($event->requested_character_types),
             $result
         );
-        $this->assertStringContainsString('[b]Amenities available at venue:[/b] '.e($event->amenities), $result);
-        $this->assertStringContainsString('[b]Comments:[/b]'."\n".e($event->comments), $result);
+        $this->assertStringContainsString('[quote]'.e($event->amenities).'[/quote]', $result);
+        $this->assertStringContainsString('[indent][size=4]'.e($event->comments).'[/size][/indent]', $result);
+    }
+
+    public function test_thread_template_links_a_website_url_without_escaping_it(): void
+    {
+        $event = Event::factory()
+            ->forForumBbcodeTemplate()
+            ->state([Event::EVENT_WEBSITE => 'https://example.org/troop?faction=empire&rank=tk'])
+            ->create();
+
+        $result = ForumBBCodeHelper::threadTemplate($event);
+
+        $this->assertStringContainsString(
+            '[b]🔗 Website:[/b] [url="https://example.org/troop?faction=empire&rank=tk"]Click here to view[/url]',
+            $result
+        );
+    }
+
+    public function test_thread_template_shows_a_website_that_is_not_a_url_as_text(): void
+    {
+        $event = Event::factory()
+            ->forForumBbcodeTemplate()
+            ->state([Event::EVENT_WEBSITE => 'see the "flyer" [attached]'])
+            ->create();
+
+        $result = ForumBBCodeHelper::threadTemplate($event);
+
+        $this->assertStringContainsString('[b]🔗 Website:[/b] '.e($event->event_website), $result);
+        $this->assertStringNotContainsString('Click here to view', $result);
     }
 
     public function test_thread_template_omits_optional_sections_when_values_are_missing(): void
@@ -70,16 +104,16 @@ class ForumBBCodeHelperTest extends TestCase
 
         $result = ForumBBCodeHelper::threadTemplate($event);
 
-        $this->assertStringNotContainsString('[b]Event Website:[/b]', $result);
-        $this->assertStringNotContainsString('[b]Expected number of attendees:[/b]', $result);
-        $this->assertStringNotContainsString('[b]Requested number of characters:[/b]', $result);
-        $this->assertStringNotContainsString('[b]Requested character types:[/b]', $result);
-        $this->assertStringNotContainsString('[b]Amenities available at venue:[/b]', $result);
-        $this->assertStringContainsString('[b]Comments:[/b]'."\n".'No comments for this event.', $result);
-        $this->assertStringContainsString('[b]Referred by:[/b] Not available', $result);
+        $this->assertStringNotContainsString('Website:', $result);
+        $this->assertStringNotContainsString('Attendees:', $result);
+        $this->assertStringNotContainsString('Requested:', $result);
+        $this->assertStringNotContainsString('Character Types:', $result);
+        $this->assertStringNotContainsString('Amenities:', $result);
+        $this->assertStringContainsString('[indent][size=4]No additional comments provided.[/size][/indent]', $result);
+        $this->assertStringContainsString('[color=#777777][i]Referred by: N/A[/i][/color]', $result);
     }
 
-    public function test_thread_template_renders_boolean_sections_as_yes_or_no(): void
+    public function test_thread_template_puts_details_in_a_three_column_table(): void
     {
         $event = Event::factory()
             ->forForumBbcodeTemplate()
@@ -87,17 +121,30 @@ class ForumBBCodeHelperTest extends TestCase
 
         $result = ForumBBCodeHelper::threadTemplate($event);
 
-        $this->assertStringContainsString('[b]Secure changing/staging area:[/b] Yes', $result);
-        $this->assertStringContainsString('[b]Can troopers carry blasters:[/b] No', $result);
         $this->assertStringContainsString(
-            '[b]Can troopers carry/bring props like lightsabers and staffs:[/b] Yes',
+            "[table]\n"
+            .'[tr][td][b]Attendees:[/b] 250[/td][td][b]Requested:[/b] 12[/td][td][b]Parking:[/b] Yes[/td][/tr]'."\n"
+            .'[tr][td][b]Blasters:[/b] No[/td][td][b]Props/Sabers:[/b] Yes[/td][td][b]Accessible:[/b] No[/td][/tr]'."\n"
+            .'[/table]',
             $result
         );
-        $this->assertStringContainsString('[b]Is parking available:[/b] Yes', $result);
+        $this->assertStringContainsString('[b]Secure Changing Area:[/b] Yes', $result);
+    }
+
+    public function test_thread_template_pads_the_last_table_row_when_details_are_missing(): void
+    {
+        $event = Event::factory()
+            ->forForumBbcodeTemplate()
+            ->withForumBbcodeOptionalFieldsMissing()
+            ->create();
+
+        $result = ForumBBCodeHelper::threadTemplate($event);
+
         $this->assertStringContainsString(
-            '[b]Is venue accessible to those with limited mobility:[/b] No',
+            '[tr][td][b]Parking:[/b] Yes[/td][td][b]Blasters:[/b] No[/td][td][b]Props/Sabers:[/b] Yes[/td][/tr]',
             $result
         );
+        $this->assertStringContainsString('[tr][td][b]Accessible:[/b] No[/td][td][/td][td][/td][/tr]', $result);
     }
 
     public function test_thread_template_appends_roster_when_provided(): void
@@ -106,11 +153,22 @@ class ForumBBCodeHelperTest extends TestCase
             ->forForumBbcodeTemplate()
             ->create();
 
-        $roster = "[b]Roster[/b]\n- TK-12345\n- DZ-54321";
+        $roster = "[table][tr][td]TK-12345[/td][/tr]\n[/table]";
 
         $result = ForumBBCodeHelper::threadTemplate($event, $roster);
 
-        $this->assertStringContainsString($roster, $result);
+        $this->assertStringContainsString('[size=5][b]👥 Event Roster[/b][/size]'."\n".$roster, $result);
+    }
+
+    public function test_thread_template_leaves_out_the_roster_heading_without_a_roster(): void
+    {
+        $event = Event::factory()
+            ->forForumBbcodeTemplate()
+            ->create();
+
+        $result = ForumBBCodeHelper::threadTemplate($event);
+
+        $this->assertStringNotContainsString('Event Roster', $result);
     }
 
     public function test_roster_summary_returns_fallback_when_no_signups(): void
@@ -120,10 +178,7 @@ class ForumBBCodeHelperTest extends TestCase
 
         $result = ForumBBCodeHelper::rosterSummary($event);
 
-        $this->assertSame(
-            "[b]Roster:[/b]\n-No troopers are signed up for this event.",
-            $result
-        );
+        $this->assertSame('[center]No troopers are signed up for this event.[/center]', $result);
     }
 
     public function test_roster_summary_lists_single_shift_signups_without_shift_headers(): void
@@ -151,7 +206,7 @@ class ForumBBCodeHelperTest extends TestCase
 
         $this->assertStringNotContainsString($shift->time_display, $result);
         $this->assertStringContainsString(
-            '-[i]Going[/i]: '.$first_trooper->display_name,
+            '[tr][td]'.$first_trooper->display_name.'[/td]',
             $result
         );
 
@@ -193,10 +248,11 @@ class ForumBBCodeHelperTest extends TestCase
 
         $result = ForumBBCodeHelper::rosterSummary($event);
 
-        $expected_earlier_section = '[b][u]'.$earlier_shift->time_display."[/u][/b]\n"
-            .'-[i]Going[/i]: '.$earlier_trooper->display_name;
-        $expected_later_section = '[b][u]'.$later_shift->time_display."[/u][/b]\n"
-            .'-[i]Going[/i]: '.$later_trooper->display_name;
+        $table_head = '[table][tr][td][b]Trooper Name[/b][/td][td][b]Costume[/b][/td][td][b]Status[/b][/td][/tr]';
+        $expected_earlier_section = '[b][u]'.$earlier_shift->time_display."[/u][/b]\n".$table_head."\n"
+            .'[tr][td]'.$earlier_trooper->display_name.'[/td]';
+        $expected_later_section = '[b][u]'.$later_shift->time_display."[/u][/b]\n".$table_head."\n"
+            .'[tr][td]'.$later_trooper->display_name.'[/td]';
 
         $this->assertStringContainsString($expected_earlier_section, $result);
         $this->assertStringContainsString($expected_later_section, $result);
@@ -231,7 +287,7 @@ class ForumBBCodeHelperTest extends TestCase
         $result = ForumBBCodeHelper::rosterSummary($event);
 
         $this->assertStringContainsString(
-            '[b][u]'.$empty_shift->time_display."[/u][/b]\n-No troopers are signed up for this shift.",
+            '[b][u]'.$empty_shift->time_display."[/u][/b]\n[center]No troopers are signed up for this shift.[/center]",
             $result
         );
     }
