@@ -221,6 +221,8 @@ php artisan db:seed --force
 
 #### Plugins
 
+After `php artisan migrate`, run `php artisan plugins:upgrade` so enabled plugins whose files changed record their new version (and run any migrations left).
+
 Plugins are off until enabled. If the site posts events to Discord, enable the Discord plugin once (it moved out of core). Enabling copies each organization's Discord mention into the plugin's own table; the old `tt_organizations.discord_mention` column is left alone until a later release drops it:
 
 ```bash

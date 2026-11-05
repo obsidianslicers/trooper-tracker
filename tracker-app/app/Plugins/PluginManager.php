@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Plugins;
 
+use App\Enums\PluginChangeAction;
 use App\Models\Plugin;
+use App\Models\PluginChange;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -147,11 +149,17 @@ class PluginManager
         }
     }
 
+    /**
+     * Run the plugin's migrations and turn it on. If a migration fails, the ones
+     * that ran are rolled back and the plugin stays off.
+     *
+     * @throws PluginMigrationException
+     */
     public function enable(string $slug): Plugin
     {
         $manifest = $this->findOrFail($slug);
-
-        $this->migrate($manifest);
+        $from_version = $this->record($slug)?->installed_version;
+        $migrations = $this->migrateOrRecordFailure($manifest, $from_version);
 
         $record = Plugin::firstOrNew([Plugin::SLUG => $slug]);
         $record->is_enabled = true;
@@ -159,10 +167,87 @@ class PluginManager
         $record->enabled_at = now();
         $record->save();
 
+        PluginChange::record(
+            $slug,
+            PluginChangeAction::ENABLED,
+            $from_version,
+            $manifest->version,
+            $migrations,
+        );
+
         $this->stateChanged();
         $this->runEnabledHook($manifest);
 
         return $record;
+    }
+
+    /**
+     * Whether the plugin's files are a different version from the one whose
+     * migrations last ran, for example after a deploy brought new files.
+     */
+    public function hasPendingUpgrade(string $slug): bool
+    {
+        $installed = $this->record($slug)?->installed_version;
+
+        return $this->isEnabled($slug)
+            && $installed !== null
+            && $installed !== $this->findOrFail($slug)->version;
+    }
+
+    /**
+     * Bring an enabled plugin's database up to its current files: run new
+     * migrations and record the new version. Settings and data are kept.
+     *
+     * @throws PluginMigrationException
+     */
+    public function upgrade(string $slug): Plugin
+    {
+        $manifest = $this->findOrFail($slug);
+        $record = $this->record($slug) ?? throw new InvalidArgumentException(
+            "Plugin [{$slug}] is not installed."
+        );
+        $from_version = $record->installed_version;
+        $migrations = $this->migrateOrRecordFailure($manifest, $from_version);
+
+        $record->installed_version = $manifest->version;
+        $record->save();
+
+        PluginChange::record(
+            $slug,
+            PluginChangeAction::UPGRADED,
+            $from_version,
+            $manifest->version,
+            $migrations,
+        );
+
+        $this->stateChanged();
+
+        return $record;
+    }
+
+    /**
+     * @return array<int, string>
+     *
+     * @throws PluginMigrationException
+     */
+    private function migrateOrRecordFailure(PluginManifest $manifest, ?string $from_version): array
+    {
+        try
+        {
+            return $this->migrator()->migrate($manifest);
+        }
+        catch (PluginMigrationException $e)
+        {
+            PluginChange::record(
+                $manifest->slug,
+                PluginChangeAction::FAILED,
+                $from_version,
+                $manifest->version,
+                message: $e->getMessage(),
+            );
+
+            throw $e;
+        }
     }
 
     private function runEnabledHook(PluginManifest $manifest): void
@@ -193,6 +278,8 @@ class PluginManager
         $record->is_enabled = false;
         $record->save();
 
+        PluginChange::record($slug, PluginChangeAction::DISABLED, $record->installed_version);
+
         $this->stateChanged();
 
         return $record;
@@ -206,9 +293,16 @@ class PluginManager
     public function uninstall(string $slug): void
     {
         $manifest = $this->findOrFail($slug);
+        $migrations = $this->migrator()->ran($manifest);
 
-        $this->rollbackMigrations($manifest);
+        $this->migrator()->reset($manifest);
 
+        PluginChange::record(
+            $slug,
+            PluginChangeAction::UNINSTALLED,
+            $this->record($slug)?->installed_version,
+            migrations: $migrations,
+        );
         Plugin::query()->where(Plugin::SLUG, $slug)->delete();
 
         $this->stateChanged();
@@ -275,38 +369,9 @@ class PluginManager
         return $record;
     }
 
-    /**
-     * Run a plugin's migrations, if it ships any.
-     */
-    public function migrate(PluginManifest $manifest): void
+    private function migrator(): PluginMigrator
     {
-        if (!is_dir($manifest->migrationsPath()))
-        {
-            return;
-        }
-
-        Artisan::call('migrate', [
-            '--path' => $manifest->migrationsPath(),
-            '--realpath' => true,
-            '--force' => true,
-        ]);
-    }
-
-    /**
-     * Roll back every migration the plugin has run, newest first.
-     */
-    public function rollbackMigrations(PluginManifest $manifest): void
-    {
-        if (!is_dir($manifest->migrationsPath()))
-        {
-            return;
-        }
-
-        Artisan::call('migrate:reset', [
-            '--path' => $manifest->migrationsPath(),
-            '--realpath' => true,
-            '--force' => true,
-        ]);
+        return $this->app->make(PluginMigrator::class);
     }
 
     public function forgetState(): void

@@ -22,7 +22,9 @@ final class GetPlugins extends Message
      *     source: string,
      *     is_enabled: bool,
      *     is_installed: bool,
-     *     is_loaded: bool
+     *     is_loaded: bool,
+     *     installed_version: ?string,
+     *     has_pending_upgrade: bool
      * }>
      */
     public function handle(PluginManager $plugins, PluginDiscovery $discovery): array
@@ -33,6 +35,8 @@ final class GetPlugins extends Message
             'is_enabled' => $plugins->isEnabled($manifest->slug),
             'is_installed' => $plugins->isInstalled($manifest->slug),
             'is_loaded' => $plugins->isLoaded($manifest->slug),
+            'installed_version' => $plugins->record($manifest->slug)?->installed_version,
+            'has_pending_upgrade' => $plugins->hasPendingUpgrade($manifest->slug),
         ], $plugins->all()));
     }
 

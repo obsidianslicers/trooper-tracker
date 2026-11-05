@@ -10,6 +10,7 @@ use App\Plugins\PluginDonations;
 use App\Plugins\PluginForms;
 use App\Plugins\PluginLoginProviders;
 use App\Plugins\PluginManager;
+use App\Plugins\PluginMigrator;
 use App\Plugins\PluginNotifications;
 use App\Plugins\PluginPermissionRequests;
 use App\Plugins\PluginSheetSource;
@@ -33,6 +34,10 @@ class PluginsServiceProvider extends ServiceProvider
         $this->app->singleton(PluginDonations::class);
         $this->app->singleton(PluginPermissionRequests::class);
         $this->app->singleton(PluginSheetSource::class);
+        $this->app->singleton(
+            PluginMigrator::class,
+            fn ($app): PluginMigrator => new PluginMigrator($app['migrator']),
+        );
         $this->app->singleton(PluginLoginProviders::class);
         $this->app->singleton(PluginNotifications::class);
         $this->app->singleton(PluginSystemChecks::class);

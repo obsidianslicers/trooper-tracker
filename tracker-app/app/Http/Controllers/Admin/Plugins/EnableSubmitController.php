@@ -8,6 +8,7 @@ use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
 use App\Messages\Plugins\Commands\EnablePlugin;
 use App\Plugins\PluginManager;
+use App\Plugins\PluginMigrationException;
 use Illuminate\Http\RedirectResponse;
 
 class EnableSubmitController extends Controller
@@ -16,7 +17,16 @@ class EnableSubmitController extends Controller
     {
         $manifest = $plugins->find($slug) ?? abort(404);
 
-        EnablePlugin::call(slug: $slug);
+        try
+        {
+            EnablePlugin::call(slug: $slug);
+        }
+        catch (PluginMigrationException $e)
+        {
+            FlashType::danger($e->getMessage());
+
+            return redirect()->route('admin.plugins.list');
+        }
 
         FlashType::success("Plugin \"{$manifest->name}\" was enabled.");
 

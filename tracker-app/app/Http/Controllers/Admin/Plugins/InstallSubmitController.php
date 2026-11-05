@@ -12,7 +12,7 @@ use App\Plugins\PluginInstallException;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * Installs a plugin from an uploaded zip. The plugin is left disabled.
+ * Installs a plugin from an uploaded zip (left disabled), or upgrades an uploaded one.
  */
 class InstallSubmitController extends Controller
 {
@@ -20,7 +20,7 @@ class InstallSubmitController extends Controller
     {
         try
         {
-            $manifest = InstallPlugin::call(
+            $result = InstallPlugin::call(
                 actor: $request->user(),
                 archive_path: (string) $request->file('archive')->getRealPath(),
             );
@@ -30,10 +30,13 @@ class InstallSubmitController extends Controller
             return back()->withErrors(['archive' => $e->getMessage()]);
         }
 
-        FlashType::success(
-            "Plugin \"{$manifest->name}\" {$manifest->version} was installed. "
-            .'Enable it to turn it on.'
-        );
+        $manifest = $result['manifest'];
+
+        FlashType::success($result['previous_version'] === null
+            ? "Plugin \"{$manifest->name}\" {$manifest->version} was installed. "
+                .'Enable it to turn it on.'
+            : "Plugin \"{$manifest->name}\" was upgraded from {$result['previous_version']} "
+                ."to {$manifest->version}. Its settings and data were kept.");
 
         return redirect()->route('admin.plugins.list');
     }

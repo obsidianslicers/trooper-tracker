@@ -18,7 +18,14 @@ php artisan plugins:list
 php artisan plugins:enable <slug>      # also runs the plugin's migrations
 php artisan plugins:disable <slug>     # keeps the plugin's data and settings
 php artisan plugins:uninstall <slug>   # disables it and deletes its data (asks first)
+php artisan plugins:upgrade [slug]     # runs new migrations after a deploy brought new plugin files
 ```
+
+**Enable** runs the plugin's migrations as one unit. If one fails, the migrations that already ran in that attempt are rolled back, the plugin stays disabled, and the Plugins page shows the error. Fix the plugin and enable it again. MySQL can't undo the half-run migration itself, so a plugin migration should start by dropping anything an earlier failed run of it may have left (`Schema::dropIfExists(...)` before `Schema::create(...)`).
+
+**Upgrade** applies a newer version of a plugin's files without touching its settings or data. `tt_plugins.installed_version` is the version whose migrations last ran; when the files are newer, the Plugins page shows the update as pending. Run `php artisan plugins:upgrade` after each deploy (the deploy's `php artisan migrate` already runs enabled plugins' new migrations; `plugins:upgrade` runs any that are left and records the new version). A failed upgrade is rolled back the same way as a failed enable.
+
+Every install, upgrade, enable, disable, uninstall and failure is recorded in `tt_plugin_changes`, with the versions and the migrations that ran.
 
 **Disable** keeps everything, so re-enabling picks up where it left off. **Uninstall** rolls back the plugin's migrations (its `down()` methods drop its tables) and deletes its settings; this cannot be undone. Uninstall deletes the files of a plugin that was uploaded from the app. It leaves the files of a deployed plugin alone, because the next deploy would bring them back.
 
@@ -56,11 +63,13 @@ Before anything is written, the upload is refused if it:
 - is not a zip, or is bigger than the size limit, before or after unzipping, or holds too many files
 - has an absolute path, a `..` segment, a backslash or a symbolic link
 - has no valid `plugin.json`, or has files outside the plugin folder
-- uses a slug that is already installed (uninstall the old one first)
+- uses the slug of a plugin that came with a deploy or Composer, or is not newer than the uploaded version already installed
 
 Files are unpacked into a temporary folder and moved into place only once every file is written. The plugin is installed **disabled**, so none of its code runs until an administrator enables it. Each upload is written to the log with the administrator's trooper ID.
 
-Uploaded plugins go to `storage/app/plugins`, outside the git checkout, so a deploy (`git reset --hard`) never removes or overwrites them. The Plugins page lists them with the source "Uploaded". To update one, uninstall it and upload the new version; uninstalling deletes its data.
+Uploaded plugins go to `storage/app/plugins`, outside the git checkout, so a deploy (`git reset --hard`) never removes or overwrites them. The Plugins page lists them with the source "Uploaded".
+
+To update an uploaded plugin, upload the newer version. Its `version` must be higher than the installed one. The old files are set aside in `.previous/<slug>`, the new ones are moved in, and, if the plugin is enabled, its new migrations run. If they fail, they are rolled back and the old files are put back, so the site keeps running the old version. Settings and data are kept either way. A disabled plugin's migrations run when it is next enabled.
 
 ### Packages a plugin needs
 

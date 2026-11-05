@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Messages\Plugins\Commands\EnablePlugin;
 use App\Plugins\PluginManager;
+use App\Plugins\PluginMigrationException;
 use Illuminate\Console\Command;
 
 class EnablePluginCommand extends Command
@@ -25,7 +26,16 @@ class EnablePluginCommand extends Command
             return self::FAILURE;
         }
 
-        EnablePlugin::call(slug: $slug);
+        try
+        {
+            EnablePlugin::call(slug: $slug);
+        }
+        catch (PluginMigrationException $e)
+        {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
 
         $this->info("Plugin [{$slug}] enabled.");
 
