@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Features\Events\Commands\DeleteEventUploadCommand;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Events\Commands\DeleteEventUpload;
 use App\Models\Event;
 use App\Models\EventUpload;
 use Illuminate\Contracts\View\View;
@@ -29,7 +29,7 @@ class DeleteUploadController extends MagicBusController
 
         $was_administrative = (bool) $event_upload->is_administrative;
 
-        $this->bus->send(new DeleteEventUploadCommand($event_upload));
+        DeleteEventUpload::call(event_upload: $event_upload);
 
         if ($was_administrative)
         {

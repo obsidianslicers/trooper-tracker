@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
-use App\Features\Organizations\Queries\GetOrganizationsQuery;
-use App\Features\Reports\Queries\GetEventSummaryQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Organizations\Queries\GetOrganizations;
+use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
+use App\Messages\Reports\Queries\GetEventSummary;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -30,18 +30,16 @@ class ClosedController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $events_query = new GetEventSummaryQuery(
+        $events = GetEventSummary::call(
             moderator: $trooper,
             lookback: null,
             show_all: true,
             page_size: 25,
         );
 
-        $events = $this->bus->send($events_query);
+        $costume_organizations = GetOrganizations::call();
 
-        $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
-
-        $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery($trooper, []));
+        $hosting_organizations = GetOrganizationsForPicker::call(trooper: $trooper, data: []);
 
         $data = compact('events', 'costume_organizations', 'hosting_organizations');
 

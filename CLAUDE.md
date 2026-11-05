@@ -270,6 +270,7 @@ Do not edit anything in `app/Models/Base/` — it is overwritten on regeneration
 | Policies | Unit | Authorization logic in isolation |
 | Rules | Unit | Validation logic in isolation |
 | Services | Unit | Isolated, no framework infrastructure |
+| Front-end modules (`resources/js`) | Vitest | Plain JS logic such as the request parsers; `tests/js` mirrors `resources/js` |
 
 ### Conventions
 
@@ -277,6 +278,7 @@ Do not edit anything in `app/Models/Base/` — it is overwritten on regeneration
 - Mocking: Mockery with `shouldReceive()` chain
 - Factory states for setup: `asAdministrator()`, `asActive()`, etc.
 - Test DB: SQLite in-memory (configured in `phpunit.xml`)
+- Front-end: `npm test` runs Vitest (`vitest.config.js`, `tests/js/**/*.test.js`)
 
 ```php
 public function test_invoke_creates_event(): void
@@ -311,6 +313,7 @@ Inject via constructor or `__invoke` parameter:
 # Run tests
 php artisan test
 php artisan test --filter=TestClassName
+npm test                                  # Front-end unit tests (Vitest)
 
 # Code quality
 ./vendor/bin/pint                         # Format code

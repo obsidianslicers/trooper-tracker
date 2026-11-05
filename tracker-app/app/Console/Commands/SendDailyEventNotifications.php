@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Bus\MagicBus;
-use App\Features\Events\Commands\SendEventDailyNotificationCommand;
-use App\Features\Events\Queries\GetTroopersForDailyEventNotificationsQuery;
+use App\Messages\Events\Commands\SendEventDailyNotification;
+use App\Messages\Events\Queries\GetTroopersForDailyEventNotifications;
 use Illuminate\Console\Command;
 
 /**
@@ -38,16 +37,14 @@ class SendDailyEventNotifications extends Command
      * Orchestrates the daily notification process by:
      * 1. Dispatching GetTroopersForDailyEventNotificationsQuery to retrieve troopers
      * 2. Dispatching SendEventDailyNotificationCommand for each trooper
-     *
-     * @param  MagicBus  $bus  The message bus for dispatching queries and commands
      */
-    public function handle(MagicBus $bus): void
+    public function handle(): void
     {
-        $troopers = $bus->send(new GetTroopersForDailyEventNotificationsQuery);
+        $troopers = GetTroopersForDailyEventNotifications::call();
 
         foreach ($troopers as $trooper)
         {
-            $bus->send(new SendEventDailyNotificationCommand($trooper));
+            SendEventDailyNotification::call(trooper: $trooper);
         }
     }
 }

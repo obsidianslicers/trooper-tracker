@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Search;
 
-use App\Bus\MagicBus;
-use App\Features\Search\Queries\GlobalSearchQuery;
+use App\Messages\Search\Queries\GlobalSearch;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
-use Mockery\MockInterface;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class SearchControllerTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_invoke_requires_authentication(): void
@@ -27,15 +27,14 @@ class SearchControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
 
-        $this->mock(MagicBus::class, function (MockInterface $mock): void
-        {
-            $mock->shouldReceive('send')->never();
-        });
+        $messages = $this->fakeMessages([GlobalSearch::class => null]);
 
         $response = $this->actingAs($trooper)->get(route('search.all', [
             'q' => 'a',
             'type' => 'invalid',
         ]));
+
+        $messages->assertNotCalled(GlobalSearch::class);
 
         $response->assertOk();
         $response->assertViewIs('pages.search.results');
@@ -53,21 +52,14 @@ class SearchControllerTest extends TestCase
             'events' => collect(),
         ];
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($payload): void
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GlobalSearchQuery $query): bool
-                {
-                    return $query->term === 'Vader' && $query->type === 'troopers';
-                })
-                ->andReturn($payload);
-        });
+        $messages = $this->fakeMessages([GlobalSearch::class => $payload]);
 
         $response = $this->actingAs($trooper)->get(route('search.all', [
             'q' => 'Vader',
             'type' => 'troopers',
         ]));
+
+        $messages->assertCalled(GlobalSearch::class, fn (array $params): bool => $params['term'] === 'Vader' && $params['type'] === 'troopers');
 
         $response->assertOk();
         $response->assertViewIs('pages.search.results');
@@ -90,21 +82,14 @@ class SearchControllerTest extends TestCase
             'events' => collect(),
         ];
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($payload): void
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GlobalSearchQuery $query): bool
-                {
-                    return $query->term === 'Legion' && $query->type === 'all';
-                })
-                ->andReturn($payload);
-        });
+        $messages = $this->fakeMessages([GlobalSearch::class => $payload]);
 
         $response = $this->actingAs($trooper)->get(route('search.all', [
             'q' => 'Legion',
             'type' => 'unknown',
         ]));
+
+        $messages->assertCalled(GlobalSearch::class, fn (array $params): bool => $params['term'] === 'Legion' && $params['type'] === 'all');
 
         $response->assertOk();
         $response->assertViewHas('type', 'all');

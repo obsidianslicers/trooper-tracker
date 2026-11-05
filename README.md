@@ -24,7 +24,7 @@ Currently Used By:
 - Backend migration is moving domain operations from `app/Features` handlers dispatched through MagicBus to single-file Hyperdrive Messages in `app/Messages`.
 - Authentication supports Email, Google OAuth, and XenForo OAuth; all new accounts go through pending/admin approval.
 - Local development basics: install with Composer/NPM, migrate and seed, then run `composer dev` from `tracker-app/`.
-- Contribution gates before PR: run tests (`php artisan test`), and formatting (`composer pint:format`)
+- Contribution gates before PR: run tests (`php artisan test`, `npm test`), and formatting (`composer pint:format`)
 - Best docs to read first: [Architecture](docs/ARCHITECTURE.md), [Coding Conventions](docs/CODING_CONVENTIONS.md), [Project Structure](docs/PROJECT_STRUCTURE.md), and [Database](docs/DATABASE.md).
 - Collaboration workflow: open an issue first, use branch naming `<type>-<issue-number>`, and use conventional commits that include the issue number.
 
@@ -176,11 +176,14 @@ php artisan test
 
 # Run specific test file
 #php artisan test tests/Feature/Http/Controllers/Events/EventDisplayControllerTest.php
+
+# Run front-end unit tests (Vitest, tests/js)
+npm test
 ```
 
 **Before submitting PRs:**
 - New/Updated Code must be tested
-- All tests must pass: `php artisan test`
+- All tests must pass: `php artisan test` and `npm test`
 - Code must pass formatting: `composer pint:format`
 - Code must pass static analysis: `composer stan`
 - Follow conventions in `docs/CODING_CONVENTIONS.md`

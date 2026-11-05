@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Features\Reports\Queries\GetStatusChangeLogQuery;
+use App\Messages\Reports\Queries\GetStatusChangeLog;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -32,9 +32,7 @@ class StatusChangeLogController extends BaseReportsController
 
         $lookback = 30;
 
-        $changes_query = new GetStatusChangeLogQuery($trooper, $lookback);
-
-        $changes = $this->bus->send($changes_query);
+        $changes = GetStatusChangeLog::call(moderator: $trooper, lookback: $lookback);
 
         $data = compact('changes', 'lookback');
 

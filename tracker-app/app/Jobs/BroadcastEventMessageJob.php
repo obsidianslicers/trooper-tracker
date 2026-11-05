@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Bus\MagicBus;
-use App\Features\Events\Queries\GetTroopersForEventCancelledQuery;
+use App\Messages\Events\Queries\GetTroopersForEventCancelled;
 use App\Models\Event;
 use App\Notifications\Events\BroadcastEventMessageNotification;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -18,13 +17,11 @@ class BroadcastEventMessageJob implements ShouldBeUnique, ShouldQueue
 
     public function __construct(public readonly Event $event, public readonly string $message) {}
 
-    public function handle(MagicBus $bus): void
+    public function handle(): void
     {
         //  not for a cancelled event, but gets a list of troopers "GOING"
         //  to the event
-        $query = new GetTroopersForEventCancelledQuery($this->event);
-
-        $troopers = $bus->send($query);
+        $troopers = GetTroopersForEventCancelled::call(event: $this->event);
 
         foreach ($troopers as $trooper)
         {

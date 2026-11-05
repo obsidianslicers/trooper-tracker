@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\ServiceRecords;
 
-use App\Bus\MagicBus;
-use App\Features\Reports\Queries\GetLeaderboardMetricsQuery;
+use App\Messages\Reports\Queries\GetLeaderboardMetrics;
 use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
-use Mockery\MockInterface;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class LeaderboardControllerTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_invoke_requires_authentication(): void
@@ -36,25 +36,19 @@ class LeaderboardControllerTest extends TestCase
             'operatives' => collect(),
         ]);
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($leaderboard): void {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetLeaderboardMetricsQuery $query): bool {
-                    return $query->lookback === 90
-                        && $query->organization === null
-                        && $query->limit === 30;
-                })
-                ->andReturn($leaderboard);
-        });
+        $messages = $this->fakeMessages([GetLeaderboardMetrics::class => $leaderboard]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.leaderboard', ['days' => 90]));
+
+        $messages->assertCalled(GetLeaderboardMetrics::class, fn (array $params): bool => $params['lookback'] === 90 && $params['organization'] === null && $params['limit'] === 30);
 
         $response->assertOk();
         $response->assertViewIs('pages.service-records.leaderboard');
         $response->assertViewHas('days', 90);
         $response->assertViewHas('organization_id', null);
-        $response->assertViewHas('leaderboard', function (Collection $result): bool {
+        $response->assertViewHas('leaderboard', function (Collection $result): bool
+        {
             return $result->get('dominance') instanceof Collection
                 && $result->get('diversity') instanceof Collection
                 && $result->get('operatives') instanceof Collection;
@@ -71,19 +65,12 @@ class LeaderboardControllerTest extends TestCase
             'operatives' => collect(),
         ]);
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($leaderboard): void {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetLeaderboardMetricsQuery $query): bool {
-                    return $query->lookback === null
-                        && $query->organization === null
-                        && $query->limit === 30;
-                })
-                ->andReturn($leaderboard);
-        });
+        $messages = $this->fakeMessages([GetLeaderboardMetrics::class => $leaderboard]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.leaderboard'));
+
+        $messages->assertCalled(GetLeaderboardMetrics::class, fn (array $params): bool => $params['lookback'] === null && $params['organization'] === null && $params['limit'] === 30);
 
         $response->assertOk();
         $response->assertViewHas('days', null);
@@ -103,32 +90,21 @@ class LeaderboardControllerTest extends TestCase
             'operatives' => collect(),
         ]);
 
-        $this->mock(
-            MagicBus::class,
-            function (MockInterface $mock) use ($leaderboard, $organization): void {
-                $query_matches = function (
-                    GetLeaderboardMetricsQuery $query
-                ) use ($organization): bool {
-                    return $query->lookback === null
-                        && $query->organization?->id === $organization->id
-                        && $query->limit === 30;
-                };
-
-                $mock->shouldReceive('send')
-                    ->once()
-                    ->withArgs($query_matches)
-                    ->andReturn($leaderboard);
-            }
-        );
+        $messages = $this->fakeMessages([GetLeaderboardMetrics::class => $leaderboard]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.leaderboard', ['organization_id' => $organization->id]));
+
+        $messages->assertCalled(GetLeaderboardMetrics::class, fn (array $params): bool => $params['lookback'] === null
+                && $params['organization']?->id === $organization->id
+                && $params['limit'] === 30);
 
         $response->assertOk();
         $response->assertViewHas('organization_id', $organization->id);
         $response->assertViewHas(
             'organization',
-            function (?Organization $selected_organization) use ($organization): bool {
+            function (?Organization $selected_organization) use ($organization): bool
+            {
                 return $selected_organization?->id === $organization->id
                     && $selected_organization->image_path_lg === 'organizations/florida-128x128.png'
                     && $selected_organization->image_path_sm === 'organizations/florida-32x32.png';
@@ -136,7 +112,8 @@ class LeaderboardControllerTest extends TestCase
         );
         $response->assertViewHas(
             'organizations',
-            function (Collection $organizations) use ($organization): bool {
+            function (Collection $organizations) use ($organization): bool
+            {
                 $selected_organization = $organizations->firstWhere('id', $organization->id);
 
                 return $selected_organization !== null
@@ -163,14 +140,12 @@ class LeaderboardControllerTest extends TestCase
             'operatives' => collect(),
         ]);
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($leaderboard): void {
-            $mock->shouldReceive('send')
-                ->once()
-                ->andReturn($leaderboard);
-        });
+        $messages = $this->fakeMessages([GetLeaderboardMetrics::class => $leaderboard]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.leaderboard', ['organization_id' => $organization->id]));
+
+        $messages->assertCalled(GetLeaderboardMetrics::class);
 
         $response->assertOk();
         $response->assertSee('Florida Garrison');
@@ -188,17 +163,16 @@ class LeaderboardControllerTest extends TestCase
             'operatives' => collect(),
         ]);
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($leaderboard): void {
-            $mock->shouldReceive('send')
-                ->once()
-                ->andReturn($leaderboard);
-        });
+        $messages = $this->fakeMessages([GetLeaderboardMetrics::class => $leaderboard]);
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.leaderboard'));
 
+        $messages->assertCalled(GetLeaderboardMetrics::class);
+
         $response->assertOk();
-        $response->assertViewHas('costume_list', function (Collection $costume_list) use ($costume): bool {
+        $response->assertViewHas('costume_list', function (Collection $costume_list) use ($costume): bool
+        {
             return $costume_list->contains('name', $costume->name);
         });
     }

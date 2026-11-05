@@ -1,0 +1,310 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Messages\Troopers\Queries;
+
+use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
+use App\Models\Event;
+use App\Models\EventShift;
+use App\Models\EventTrooper;
+use App\Models\Organization;
+use App\Models\Trooper;
+use App\Models\TrooperAssignment;
+use App\Models\TrooperOrganization;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class GetEventTroopersMissingCreditTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_handle_finds_shift_with_null_credit_columns(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event_trooper = $this->makeAttendedEventTrooper($trooper);
+        $event_trooper->updateQuietly([
+            EventTrooper::ORGANIZATION_ID => null,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+        ]);
+
+        ['rows' => $result] = (new GetEventTroopersMissingCredit(actor: $admin))->handle();
+
+        $this->assertSame([$event_trooper->id], $result->pluck('event_trooper_id')->all());
+        $this->assertFalse($result->first()['has_orphaned_db_value']);
+    }
+
+    public function test_handle_detects_orphaned_credit_pointing_at_missing_organization(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        $event_trooper = $this->makeAttendedEventTrooper($trooper);
+        $event_trooper->updateQuietly([
+            EventTrooper::ORGANIZATION_ID => null,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => [999999],
+        ]);
+
+        ['rows' => $result] = (new GetEventTroopersMissingCredit(actor: $admin))->handle();
+
+        $this->assertSame([$event_trooper->id], $result->pluck('event_trooper_id')->all());
+        $this->assertTrue($result->first()['has_orphaned_db_value']);
+    }
+
+    public function test_handle_does_not_flag_shift_credited_to_club_the_trooper_left(): void
+    {
+        // Credit is historical: leaving a club (or never having a tt_trooper_organizations row
+        // for it) must not turn that club's troops into "missing credit".
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $former_org = $this->makeRootOrganization();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($former_org)
+            ->create()->delete();
+
+        $event_trooper = $this->makeAttendedEventTrooper($trooper);
+        $event_trooper->updateQuietly([
+            EventTrooper::COSTUME_ORGANIZATION_IDS => [$former_org->id],
+        ]);
+
+        ['total' => $total] = (new GetEventTroopersMissingCredit(actor: $admin))->handle();
+
+        $this->assertSame(0, $total);
+    }
+
+    public function test_handle_does_not_flag_shift_with_resolvable_credit(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org = $this->makeRootOrganization();
+
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
+
+        $event_trooper = $this->makeAttendedEventTrooper($trooper);
+        $event_trooper->updateQuietly([
+            EventTrooper::ORGANIZATION_ID => null,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => [$org->id],
+        ]);
+
+        ['rows' => $result, 'total' => $total] = (new GetEventTroopersMissingCredit(actor: $admin))->handle();
+
+        $this->assertCount(0, $result);
+        $this->assertSame(0, $total);
+    }
+
+    public function test_handle_flags_trooper_with_no_club_membership_at_all(): void
+    {
+        // Fallback options come from current memberships, so with none the UI needs this flag
+        // to explain why there's nothing to pick until the trooper is added to a club.
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event_trooper = $this->makeAttendedEventTrooper($trooper);
+        $event_trooper->updateQuietly([
+            EventTrooper::ORGANIZATION_ID => null,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+        ]);
+
+        ['rows' => $result] = (new GetEventTroopersMissingCredit(actor: $admin))->handle();
+
+        $this->assertTrue($result->first()['trooper_has_no_club_membership']);
+    }
+
+    public function test_handle_does_not_flag_trooper_with_some_club_membership(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org = $this->makeRootOrganization();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
+
+        $event_trooper = $this->makeAttendedEventTrooper($trooper);
+        $event_trooper->updateQuietly([
+            EventTrooper::ORGANIZATION_ID => null,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+        ]);
+
+        ['rows' => $result] = (new GetEventTroopersMissingCredit(actor: $admin))->handle();
+
+        $this->assertFalse($result->first()['trooper_has_no_club_membership']);
+    }
+
+    public function test_handle_scopes_results_to_moderator_authority(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $allowed_org = $this->makeRootOrganization();
+        $blocked_org = $this->makeRootOrganization();
+
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($allowed_org)->asModerator()->create();
+
+        $in_scope_trooper = Trooper::factory()->asActive()->create();
+        TrooperAssignment::factory()->forTrooper($in_scope_trooper)->forOrganization($allowed_org)->asMember()->create();
+        $in_scope_row = $this->makeAttendedEventTrooper($in_scope_trooper);
+
+        $out_of_scope_trooper = Trooper::factory()->asActive()->create();
+        TrooperAssignment::factory()->forTrooper($out_of_scope_trooper)->forOrganization($blocked_org)->asMember()->create();
+        $this->makeAttendedEventTrooper($out_of_scope_trooper);
+
+        ['rows' => $result] = (new GetEventTroopersMissingCredit(actor: $moderator))->handle();
+
+        $this->assertSame([$in_scope_row->id], $result->pluck('event_trooper_id')->all());
+    }
+
+    public function test_handle_filters_to_single_trooper_when_given(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper_one = Trooper::factory()->asActive()->create();
+        $trooper_two = Trooper::factory()->asActive()->create();
+        $this->makeAttendedEventTrooper($trooper_one);
+        $row_two = $this->makeAttendedEventTrooper($trooper_two);
+
+        ['rows' => $result] = (new GetEventTroopersMissingCredit(actor: $admin, trooper_id: $trooper_two->id))->handle();
+
+        $this->assertSame([$row_two->id], $result->pluck('event_trooper_id')->all());
+    }
+
+    public function test_handle_exposes_fallback_org_options_scoped_to_trooper_membership_and_actor_authority(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $root_org = $this->makeRootOrganization();
+        $other_org = $this->makeRootOrganization();
+
+        $authorized_moderator = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($authorized_moderator)->forOrganization($root_org)->asModerator()->create();
+
+        $unauthorized_moderator = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($unauthorized_moderator)->forOrganization($other_org)->asModerator()->create();
+
+        // Trooper is currently a member of root_org (so credit assigned there CAN display), but
+        // has no TrooperAssignment at all, so getEligibleCreditOrganizations() (org_options) is
+        // empty — this is what makes the fallback picker appear in the first place.
+        $trooper = Trooper::factory()->asActive()->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($root_org)->create();
+        $this->makeAttendedEventTrooper($trooper);
+
+        ['rows' => $admin_result] = (new GetEventTroopersMissingCredit(actor: $admin, trooper_id: $trooper->id))->handle();
+        ['rows' => $authorized_result] = (new GetEventTroopersMissingCredit(actor: $authorized_moderator, trooper_id: $trooper->id))->handle();
+        ['rows' => $unauthorized_result] = (new GetEventTroopersMissingCredit(actor: $unauthorized_moderator, trooper_id: $trooper->id))->handle();
+
+        $this->assertFalse($admin_result->first()['has_eligible_options']);
+        $this->assertSame([$root_org->id], collect($admin_result->first()['fallback_org_options'])->pluck('id')->all());
+
+        $this->assertSame([$root_org->id], collect($authorized_result->first()['fallback_org_options'])->pluck('id')->all());
+
+        // Moderator is authorized elsewhere, but not over the club the trooper actually belongs
+        // to, so there's nothing they can correctly offer — same as the true dead-end case.
+        $this->assertSame([], $unauthorized_result->first()['fallback_org_options']);
+    }
+
+    public function test_handle_fallback_org_options_never_offers_a_club_the_trooper_is_not_in(): void
+    {
+        // The fallback list is limited to the trooper's current clubs; it must never offer an
+        // unrelated club.
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper_org = $this->makeRootOrganization();
+        $other_org = $this->makeRootOrganization();
+
+        $trooper = Trooper::factory()->asActive()->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($trooper_org)->create();
+        $this->makeAttendedEventTrooper($trooper);
+
+        ['rows' => $result] = (new GetEventTroopersMissingCredit(actor: $admin, trooper_id: $trooper->id))->handle();
+
+        $ids = collect($result->first()['fallback_org_options'])->pluck('id')->all();
+        $this->assertContains($trooper_org->id, $ids);
+        $this->assertNotContains($other_org->id, $ids);
+    }
+
+    public function test_handle_fallback_org_options_requires_actor_authority_over_trooper_root_club(): void
+    {
+        // tt_trooper_organizations only ever stores root/primary-club membership (enforced by
+        // TrooperOrganizationObserver), so a trooper's fallback options are already root-level by
+        // construction — this just confirms actor authority is still the gating factor when the
+        // moderator's own authority is scoped to a sub-org/unit under that same club.
+        $root_org = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+        $child_org = Organization::factory()->asUnit()->withParent($root_org)->withNodePath('100:200:')->create();
+
+        $moderator = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($child_org)->asModerator()->create();
+
+        $trooper = Trooper::factory()->asActive()->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($root_org)->create();
+        $this->makeAttendedEventTrooper($trooper);
+
+        ['rows' => $result] = (new GetEventTroopersMissingCredit(actor: $moderator, trooper_id: $trooper->id))->handle();
+
+        $this->assertSame([], $result->first()['fallback_org_options']);
+    }
+
+    public function test_handle_paginates_results_and_reports_total(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        $event_trooper_ids = collect(range(1, 3))
+            ->map(fn () => $this->makeAttendedEventTrooper($trooper)->id)
+            ->sort()
+            ->values()
+            ->all();
+
+        $first_page = (new GetEventTroopersMissingCredit(actor: $admin, offset: 0))->handle();
+        $second_page = (new GetEventTroopersMissingCredit(actor: $admin, offset: 1))->handle();
+
+        // total reflects the full unsliced count regardless of which page is requested.
+        $this->assertSame(3, $first_page['total']);
+        $this->assertSame(3, $second_page['total']);
+
+        $this->assertCount(3, $first_page['rows']);
+        $this->assertCount(2, $second_page['rows']);
+
+        // Skipping 1 via offset should land on rows [1, 2] of the full ordered set.
+        $this->assertSame(
+            $first_page['rows']->pluck('event_trooper_id')->slice(1)->values()->all(),
+            $second_page['rows']->pluck('event_trooper_id')->values()->all()
+        );
+
+        $this->assertSame(
+            $event_trooper_ids,
+            $first_page['rows']->pluck('event_trooper_id')->sort()->values()->all()
+        );
+    }
+
+    public function test_handle_caps_page_size(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        collect(range(1, GetEventTroopersMissingCredit::PAGE_SIZE + 5))
+            ->each(fn () => $this->makeAttendedEventTrooper($trooper));
+
+        $result = (new GetEventTroopersMissingCredit(actor: $admin))->handle();
+
+        $this->assertSame(GetEventTroopersMissingCredit::PAGE_SIZE + 5, $result['total']);
+        $this->assertCount(GetEventTroopersMissingCredit::PAGE_SIZE, $result['rows']);
+    }
+
+    private function makeRootOrganization(): Organization
+    {
+        $organization = Organization::factory()->create();
+        $organization->update([Organization::NODE_PATH => (string) $organization->id]);
+
+        return $organization->fresh();
+    }
+
+    private function makeAttendedEventTrooper(Trooper $trooper): EventTrooper
+    {
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->asClosed()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->asAttended()
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        $event_trooper->updateQuietly([
+            EventTrooper::ORGANIZATION_ID => null,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+        ]);
+
+        return $event_trooper;
+    }
+}

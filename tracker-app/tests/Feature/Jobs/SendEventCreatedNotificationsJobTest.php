@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Jobs;
 
-use App\Bus\MagicBus;
 use App\Events\EventPosted;
-use App\Features\Events\Commands\SendEventCreatedNotificationCommand;
-use App\Features\Events\Queries\GetTroopersForEventCreatedQuery;
 use App\Jobs\SendEventCreatedNotificationsJob;
+use App\Messages\Events\Commands\SendEventCreatedNotification;
+use App\Messages\Events\Queries\GetTroopersForEventCreated;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -18,10 +17,12 @@ use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event as EventFacade;
 use Mockery;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class SendEventCreatedNotificationsJobTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_handle_sends_created_notifications_and_marks_timestamp(): void
@@ -31,29 +32,14 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $trooper_one = Trooper::factory()->create();
         $trooper_two = Trooper::factory()->create();
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersForEventCreatedQuery)
-            ->andReturn(collect([$trooper_one, $trooper_two]));
-
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(function (object $command) use ($event, $trooper_one): bool
+        $messages = $this->fakeMessages([
+            GetTroopersForEventCreated::class => collect([$trooper_one, $trooper_two]),
+            SendEventCreatedNotification::class => fn (array $params): mixed => match (true)
             {
-                return $command instanceof SendEventCreatedNotificationCommand
-                    && $command->event->id === $event->id
-                    && $command->trooper->id === $trooper_one->id;
-            });
-
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(function (object $command) use ($event, $trooper_two): bool
-            {
-                return $command instanceof SendEventCreatedNotificationCommand
-                    && $command->event->id === $event->id
-                    && $command->trooper->id === $trooper_two->id;
-            });
+                $params['event']->id === $event->id && $params['trooper']->id === $trooper_one->id => null,
+                $params['event']->id === $event->id && $params['trooper']->id === $trooper_two->id => null,
+            },
+        ]);
 
         $forumThreadMessageService = Mockery::mock(ForumThreadMessageService::class);
         $forumThreadMessageService->shouldNotReceive('buildThreadMessage');
@@ -63,7 +49,17 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $xenforo->shouldNotReceive('create_thread');
 
         $subject = new SendEventCreatedNotificationsJob($event);
-        $subject->handle($bus, $forumThreadMessageService, $xenforo);
+        $subject->handle($forumThreadMessageService, $xenforo);
+
+        $messages->assertCalled(GetTroopersForEventCreated::class);
+        $messages->assertCalled(
+            SendEventCreatedNotification::class,
+            fn (array $params): bool => $params['event']->id === $event->id && $params['trooper']->id === $trooper_one->id
+        );
+        $messages->assertCalled(
+            SendEventCreatedNotification::class,
+            fn (array $params): bool => $params['event']->id === $event->id && $params['trooper']->id === $trooper_two->id
+        );
 
         $this->assertNotNull($event->fresh()->create_notifications_sent_at);
     }
@@ -73,11 +69,9 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $organization = Organization::factory()->create();
         $event = Event::factory()->withOrganization($organization)->withForumThreadDisabled()->create();
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersForEventCreatedQuery)
-            ->andThrow(new Exception('query failed'));
+        $messages = $this->fakeMessages([
+            GetTroopersForEventCreated::class => fn (array $params): never => throw new Exception('query failed'),
+        ]);
 
         $forumThreadMessageService = Mockery::mock(ForumThreadMessageService::class);
         $xenforo = Mockery::mock(XenforoService::class);
@@ -88,7 +82,7 @@ class SendEventCreatedNotificationsJobTest extends TestCase
 
         try
         {
-            $subject->handle($bus, $forumThreadMessageService, $xenforo);
+            $subject->handle($forumThreadMessageService, $xenforo);
         }
         finally
         {
@@ -106,8 +100,7 @@ class SendEventCreatedNotificationsJobTest extends TestCase
             ->withForumThreadDisabled()
             ->create();
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldNotReceive('send');
+        $messages = $this->fakeMessages([]);
 
         $forumThreadMessageService = Mockery::mock(ForumThreadMessageService::class);
         $forumThreadMessageService->shouldNotReceive('buildThreadMessage');
@@ -117,7 +110,10 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $xenforo->shouldNotReceive('create_thread');
 
         $subject = new SendEventCreatedNotificationsJob($event);
-        $subject->handle($bus, $forumThreadMessageService, $xenforo);
+        $subject->handle($forumThreadMessageService, $xenforo);
+
+        $messages->assertNotCalled(GetTroopersForEventCreated::class);
+        $messages->assertNotCalled(SendEventCreatedNotification::class);
 
         $this->assertNotNull($event->fresh()->create_notifications_sent_at);
     }
@@ -134,8 +130,7 @@ class SendEventCreatedNotificationsJobTest extends TestCase
             ->withForumThreadEnabled()
             ->create();
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldNotReceive('send');
+        $messages = $this->fakeMessages([]);
 
         config([
             'services.xenforo.base_url' => 'https://forums.example.com',
@@ -168,7 +163,10 @@ class SendEventCreatedNotificationsJobTest extends TestCase
             ]);
 
         $subject = new SendEventCreatedNotificationsJob($event);
-        $subject->handle($bus, $forumThreadMessageService, $xenforo);
+        $subject->handle($forumThreadMessageService, $xenforo);
+
+        $messages->assertNotCalled(GetTroopersForEventCreated::class);
+        $messages->assertNotCalled(SendEventCreatedNotification::class);
 
         $event = $event->fresh();
 
@@ -182,12 +180,18 @@ class SendEventCreatedNotificationsJobTest extends TestCase
 
         $event = Event::factory()->withCreateNotificationsSent()->create();
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldNotReceive('send');
+        $messages = $this->fakeMessages([]);
 
         $subject = new SendEventCreatedNotificationsJob($event);
-        $subject->handle($bus, Mockery::mock(ForumThreadMessageService::class), Mockery::mock(XenforoService::class));
+        $subject->handle(
+            Mockery::mock(ForumThreadMessageService::class),
+            Mockery::mock(XenforoService::class),
+        );
 
-        EventFacade::assertDispatched(EventPosted::class, fn (EventPosted $posted): bool => $posted->event->is($event));
+        $messages->assertNotCalled(SendEventCreatedNotification::class);
+        EventFacade::assertDispatched(
+            EventPosted::class,
+            fn (EventPosted $posted): bool => $posted->event->is($event),
+        );
     }
 }

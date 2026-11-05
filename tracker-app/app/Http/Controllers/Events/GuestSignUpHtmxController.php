@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
-use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Events\Queries\GetEventShiftDisplay;
 use App\Models\EventGuest;
 use App\Models\EventShift;
 use Illuminate\Http\Request;
@@ -83,8 +83,7 @@ class GuestSignUpHtmxController extends MagicBusController
 
     private function shiftContainerResponse(EventShift $event_shift, $trooper, bool $can_moderate): Response
     {
-        $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);
-        $event_shift = $this->bus->send($event_shift_query);
+        $event_shift = GetEventShiftDisplay::call(event_shift: $event_shift, trooper: $trooper);
         $event = $event_shift->event;
         $count_of_shifts = $event->event_shifts()->count();
 

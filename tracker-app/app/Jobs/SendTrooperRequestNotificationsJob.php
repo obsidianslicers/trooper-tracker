@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
-use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
+use App\Messages\Troopers\Queries\GetTroopersByRole;
 use App\Models\TrooperRequest;
 use App\Notifications\Admin\TrooperRequestSubmittedNotification;
 use App\Policies\TrooperRequestPolicy;
@@ -29,16 +28,16 @@ class SendTrooperRequestNotificationsJob implements ShouldQueue
      */
     public function __construct(private readonly TrooperRequest $trooper_request) {}
 
-    public function handle(MagicBus $bus): void
+    public function handle(): void
     {
-        $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
+        $admins = GetTroopersByRole::call(membership_role: MembershipRole::ADMINISTRATOR);
 
         foreach ($admins as $admin)
         {
             $admin->notify(new TrooperRequestSubmittedNotification($this->trooper_request));
         }
 
-        $moderators = $bus->send(new GetTroopersByRoleQuery(MembershipRole::MODERATOR));
+        $moderators = GetTroopersByRole::call(membership_role: MembershipRole::MODERATOR);
 
         $policy = new TrooperRequestPolicy;
 

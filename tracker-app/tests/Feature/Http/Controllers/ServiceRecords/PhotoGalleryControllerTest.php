@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\ServiceRecords;
 
-use App\Bus\MagicBus;
-use App\Features\ServiceRecords\Queries\GetPhotoGalleryQuery;
+use App\Messages\ServiceRecords\Queries\GetPhotoGallery;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Mockery\MockInterface;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class PhotoGalleryControllerTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_invoke_requires_authentication(): void
@@ -29,15 +29,11 @@ class PhotoGalleryControllerTest extends TestCase
 
         $uploads = new LengthAwarePaginator(collect(), 0, 24);
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($uploads): void
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(fn (GetPhotoGalleryQuery $query): bool => true)
-                ->andReturn($uploads);
-        });
+        $messages = $this->fakeMessages([GetPhotoGallery::class => $uploads]);
 
         $response = $this->actingAs($trooper)->get(route('service-records.photo-gallery'));
+
+        $messages->assertCalled(GetPhotoGallery::class, fn (array $params): bool => true);
 
         $response->assertOk();
         $response->assertViewIs('pages.service-records.photo-gallery');

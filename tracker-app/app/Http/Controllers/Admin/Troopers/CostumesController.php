@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForDisplay;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -39,9 +39,7 @@ class CostumesController extends MagicBusController
     {
         $this->authorize('update', $trooper);
 
-        $query = new GetTrooperCostumesQuery($trooper);
-
-        $costumes = $this->bus->send($query);
+        $costumes = GetTrooperCostumesForDisplay::call(trooper: $trooper);
 
         $data = compact('trooper', 'costumes');
 

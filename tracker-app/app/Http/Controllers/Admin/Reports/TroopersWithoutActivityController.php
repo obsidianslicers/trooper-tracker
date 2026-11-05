@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Features\Reports\Queries\GetTroopersWithoutActivityQuery;
+use App\Messages\Reports\Queries\GetTroopersWithoutActivity;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -31,9 +31,7 @@ class TroopersWithoutActivityController extends BaseReportsController
 
         $lookback = now()->subMonths(12);
 
-        $troopers_query = new GetTroopersWithoutActivityQuery($trooper, $lookback);
-
-        $troopers = $this->bus->send($troopers_query);
+        $troopers = GetTroopersWithoutActivity::call(moderator: $trooper, lookback: $lookback);
 
         $data = compact('troopers', 'lookback');
 

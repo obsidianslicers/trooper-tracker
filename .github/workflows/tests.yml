@@ -34,11 +34,36 @@ jobs:
         working-directory: ./tracker-app
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Generate application key
+        working-directory: ./tracker-app
+        run: echo "APP_KEY=$(php artisan key:generate --show)" >> "$GITHUB_ENV"
+
       - name: Run Tests
         working-directory: ./tracker-app
         env:
           TERM: xterm
-          APP_KEY: ${{ secrets.TT_APP_KEY }}
         run: |
           # Run the test suite
           composer test:ci
+
+  js-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: tracker-app/package-lock.json
+
+      - name: Install npm Dependencies
+        working-directory: ./tracker-app
+        run: npm ci
+
+      - name: Run JS Tests
+        working-directory: ./tracker-app
+        run: npm test

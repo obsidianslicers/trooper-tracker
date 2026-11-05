@@ -6,10 +6,10 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
-use App\Features\Events\Commands\UpdateEventGuestCommand;
-use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\GuestUpdateHtmxRequest;
+use App\Messages\Events\Commands\UpdateEventGuest;
+use App\Messages\Events\Queries\GetEventShiftDisplay;
 use App\Models\EventGuest;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -62,15 +62,11 @@ class GuestUpdateHtmxController extends MagicBusController
 
             $valid_data = ['status' => $requestedStatus];
 
-            $event_guest_cmd = new UpdateEventGuestCommand($event_guest, $valid_data);
-
-            $this->bus->send($event_guest_cmd);
+            UpdateEventGuest::call(event_guest: $event_guest, valid_data: $valid_data);
 
             $trooper = $authTrooper;
 
-            $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);
-
-            $event_shift = $this->bus->send($event_shift_query);
+            $event_shift = GetEventShiftDisplay::call(event_shift: $event_shift, trooper: $trooper);
 
             $event = $event_shift->event;
 
@@ -92,9 +88,7 @@ class GuestUpdateHtmxController extends MagicBusController
                 EventGuest::NAME => $request->validated('name'),
             ];
 
-            $event_guest_cmd = new UpdateEventGuestCommand($event_guest, $valid_data);
-
-            $this->bus->send($event_guest_cmd);
+            UpdateEventGuest::call(event_guest: $event_guest, valid_data: $valid_data);
         }
 
         return response('ok', 200);

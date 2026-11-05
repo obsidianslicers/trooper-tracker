@@ -1,0 +1,726 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Messages\Events\Commands;
+
+use App\Enums\EventTrooperStatus;
+use App\Events\TrooperSignedUp;
+use App\Jobs\CreateTrooperFriendshipJob;
+use App\Messages\Events\Commands\SignUpEventTrooper;
+use App\Models\Costume;
+use App\Models\Event;
+use App\Models\EventOrganization;
+use App\Models\EventShift;
+use App\Models\EventShiftStation;
+use App\Models\EventTrooper;
+use App\Models\Organization;
+use App\Models\OrganizationCostume;
+use App\Models\Trooper;
+use App\Models\TrooperCostume;
+use App\Notifications\Events\TrooperSignedUpNotification;
+use App\Services\EventRosterCapacityService;
+use Hyperdrive\Concerns\ShouldBeTransactional;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Event as EventFacade;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
+use Tests\TestCase;
+
+/**
+ * @see SignUpEventTrooper
+ */
+class SignUpEventTrooperTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_handle_creates_event_trooper_with_pending_status_when_no_costume_decision(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $added_by = Trooper::factory()->create();
+
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $added_by
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_handle_creates_event_trooper_with_going_status_when_handler(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            is_handler: true,
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::IS_HANDLER => true,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_handle_saves_station_and_assigns_pending_when_station_has_room_but_no_costume(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($event_shift)
+            ->withTroopersAllowed(2)
+            ->create();
+        $trooper = Trooper::factory()->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            event_shift_station_id: $station->id,
+        ))->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_handle_assigns_standby_when_station_is_full(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($event_shift)
+            ->withTroopersAllowed(1)
+            ->create();
+        EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->asGoing()
+            ->create();
+        $trooper = Trooper::factory()->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            event_shift_station_id: $station->id,
+        ))->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
+    public function test_handle_sets_added_by_trooper_id_when_different_from_trooper(): void
+    {
+        Bus::fake();
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $added_by = Trooper::factory()->create();
+
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $added_by
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::ADDED_BY_TROOPER_ID => $added_by->id,
+        ]);
+
+        Bus::assertDispatched(CreateTrooperFriendshipJob::class, function (CreateTrooperFriendshipJob $job) use ($trooper, $added_by): bool
+        {
+            return $job->trooper_id === $added_by->{Trooper::ID}
+                && $job->friend_id === $trooper->{Trooper::ID};
+        });
+    }
+
+    public function test_handle_sets_added_by_trooper_id_null_when_same_as_trooper(): void
+    {
+        Bus::fake();
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::ADDED_BY_TROOPER_ID => null,
+        ]);
+
+        Bus::assertNotDispatched(CreateTrooperFriendshipJob::class);
+    }
+
+    public function test_handle_queues_sign_up_email(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        Notification::assertSentTo($trooper, TrooperSignedUpNotification::class);
+    }
+
+    public function test_handle_returns_null(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper
+        );
+
+        $result = $command->handle(new EventRosterCapacityService);
+
+        $this->assertNull($result);
+    }
+
+    public function test_handle_saves_organization_id_when_provided(): void
+    {
+        Mail::fake();
+
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $trooper = Trooper::factory()->create();
+
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            organization_id: $organization->id
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::ORGANIZATION_ID => $organization->id,
+        ]);
+    }
+
+    public function test_handle_saves_selected_costume_and_credit_orgs(): void
+    {
+        Notification::fake();
+
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $trooper = Trooper::factory()->create();
+        $costume = Costume::factory()->create();
+        $org_costume = OrganizationCostume::factory()->forOrganization($organization)->forCostume($costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume)->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: $costume->id,
+        ))->handle(new EventRosterCapacityService);
+
+        $event_trooper = EventTrooper::query()->where(EventTrooper::TROOPER_ID, $trooper->id)->firstOrFail();
+
+        $this->assertSame($costume->id, $event_trooper->costume_id);
+        $this->assertSame([$organization->id], $event_trooper->costume_organization_ids);
+    }
+
+    public function test_handle_saves_all_approved_credit_orgs_for_selected_costume(): void
+    {
+        Notification::fake();
+
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $trooper = Trooper::factory()->create();
+        $costume = Costume::factory()->create();
+
+        $org_costume1 = OrganizationCostume::factory()->forOrganization($org1)->forCostume($costume)->create();
+        $org_costume2 = OrganizationCostume::factory()->forOrganization($org2)->forCostume($costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume1)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume2)->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: $costume->id,
+        ))->handle(new EventRosterCapacityService);
+
+        $event_trooper = EventTrooper::query()->where(EventTrooper::TROOPER_ID, $trooper->id)->firstOrFail();
+
+        $this->assertSame($costume->id, $event_trooper->costume_id);
+        $this->assertEqualsCanonicalizing([$org1->id, $org2->id], $event_trooper->costume_organization_ids);
+    }
+
+    public function test_handle_sets_is_handler_from_selected_handler_costume(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $handler_costume = Costume::factory()->withName(Costume::HANDLER)->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: $handler_costume->id,
+        ))->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $handler_costume->id,
+            EventTrooper::IS_HANDLER => true,
+        ]);
+    }
+
+    public function test_handle_sets_is_handler_from_selected_command_staff_costume(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $command_staff_costume = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: $command_staff_costume->id,
+        ))->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $command_staff_costume->id,
+            EventTrooper::IS_HANDLER => true,
+        ]);
+    }
+
+    public function test_handle_uses_handler_capacity_for_command_staff_when_trooper_capacity_is_full(): void
+    {
+        Notification::fake();
+
+        $event = Event::factory()->state([
+            Event::TROOPERS_ALLOWED => 1,
+            Event::HANDLERS_ALLOWED => 1,
+        ])->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command_staff_costume = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: $command_staff_costume->id,
+        ))->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $command_staff_costume->id,
+            EventTrooper::IS_HANDLER => true,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_handle_assigns_command_staff_to_stand_by_when_handler_capacity_is_full(): void
+    {
+        Notification::fake();
+
+        $event = Event::factory()->state([
+            Event::TROOPERS_ALLOWED => null,
+            Event::HANDLERS_ALLOWED => 1,
+        ])->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => true])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command_staff_costume = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: $command_staff_costume->id,
+        ))->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $command_staff_costume->id,
+            EventTrooper::IS_HANDLER => true,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
+    public function test_handle_ignores_missing_costume_id(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: 999999,
+        ))->handle(new EventRosterCapacityService);
+
+        $event_trooper = EventTrooper::query()->where(EventTrooper::TROOPER_ID, $trooper->id)->firstOrFail();
+
+        $this->assertNull($event_trooper->costume_id);
+        $this->assertNull($event_trooper->costume_organization_ids);
+    }
+
+    public function test_handle_assigns_stand_by_when_org_limit_reached(): void
+    {
+        Mail::fake();
+
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => 1,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        // Fill the org slot
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false, EventTrooper::ORGANIZATION_ID => $organization->id])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            organization_id: $organization->id
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
+    public function test_handle_assigns_pending_when_org_limit_not_reached_but_no_costume(): void
+    {
+        Mail::fake();
+
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => 2,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false, EventTrooper::ORGANIZATION_ID => $organization->id])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            organization_id: $organization->id
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_handle_ignores_org_limit_when_no_organization_id(): void
+    {
+        Mail::fake();
+
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => 1,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false, EventTrooper::ORGANIZATION_ID => $organization->id])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            organization_id: null
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_handle_assigns_stand_by_when_station_has_room_but_global_limit_maxed(): void
+    {
+        $event = Event::factory()
+            ->state([Event::TROOPERS_ALLOWED => 1])
+            ->create();
+        $event_shift = EventShift::factory()
+            ->forEvent($event)
+            ->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($event_shift)
+            ->state([EventShiftStation::TROOPERS_ALLOWED => 5])
+            ->create();
+
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->forEventShiftStation($station)
+            ->state([EventTrooper::IS_HANDLER => false])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            event_shift_station_id: $station->id
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
+    public function test_handle_assigns_stand_by_when_global_has_room_but_station_maxed(): void
+    {
+        $event = Event::factory()
+            ->state([Event::TROOPERS_ALLOWED => 5])
+            ->create();
+        $event_shift = EventShift::factory()
+            ->forEvent($event)
+            ->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($event_shift)
+            ->state([EventShiftStation::TROOPERS_ALLOWED => 1])
+            ->create();
+
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->forEventShiftStation($station)
+            ->state([EventTrooper::IS_HANDLER => false])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            event_shift_station_id: $station->id
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
+    public function test_handle_restores_soft_deleted_signup_instead_of_inserting(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $old_costume = Costume::factory()->create();
+        $removed = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($old_costume)
+            ->withBackupCostume($old_costume)
+            ->asAttended()
+            ->create();
+        $removed->delete();
+
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            is_handler: true,
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertSame(1, EventTrooper::withTrashed()
+            ->where(EventTrooper::EVENT_SHIFT_ID, $event_shift->id)
+            ->where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->count());
+
+        $restored = EventTrooper::find($removed->id);
+        $this->assertNotNull($restored);
+        $this->assertNull($restored->deleted_id);
+        $this->assertSame(EventTrooperStatus::GOING, $restored->status);
+        $this->assertNull($restored->costume_id);
+        $this->assertNull($restored->backup_costume_id);
+        $this->assertTrue($restored->is_handler);
+        Notification::assertSentTo($trooper, TrooperSignedUpNotification::class);
+    }
+
+    public function test_handle_does_nothing_when_trooper_already_signed_up(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $existing = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $command = new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+        );
+
+        $command->handle(new EventRosterCapacityService);
+
+        $this->assertSame(1, EventTrooper::where(EventTrooper::EVENT_SHIFT_ID, $event_shift->id)
+            ->where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->count());
+        $this->assertSame(EventTrooperStatus::GOING, $existing->fresh()->status);
+        Notification::assertNothingSent();
+    }
+
+    public function test_handler_uses_should_be_transactional_trait(): void
+    {
+        $this->assertTrue(
+            in_array(
+                ShouldBeTransactional::class,
+                class_uses_recursive(SignUpEventTrooper::class)
+            )
+        );
+    }
+
+    public function test_invoke_fires_trooper_signed_up(): void
+    {
+        Notification::fake();
+        EventFacade::fake([TrooperSignedUp::class]);
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+
+        SignUpEventTrooper::call(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: Trooper::factory()->create(),
+        );
+
+        EventFacade::assertDispatched(
+            TrooperSignedUp::class,
+            fn (TrooperSignedUp $signed_up): bool => $signed_up->signup->trooper_id === $trooper->id
+                && $signed_up->signup->event_shift_id === $event_shift->id,
+        );
+    }
+}

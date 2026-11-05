@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\ServiceRecords;
 
-use App\Features\Troopers\Queries\GetCommandStaffQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Troopers\Queries\GetCommandStaff;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -22,9 +22,7 @@ class CommandStaffController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
-        $query = new GetCommandStaffQuery;
-
-        $troopers = $this->bus->send($query);
+        $troopers = GetCommandStaff::call();
 
         $data = compact('troopers');
 
