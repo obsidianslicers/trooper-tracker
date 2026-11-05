@@ -42,7 +42,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $image_path_lg
  * @property string|null $image_path_sm
  * @property string|null $synchronizer
- * @property string|null $sync_sheet_id
  * @property Carbon|null $synchronized_at
  * @property string|null $description
  * @property Carbon|null $created_at
@@ -83,7 +82,6 @@ class Organization extends Model
     const IMAGE_PATH_LG = 'image_path_lg';
     const IMAGE_PATH_SM = 'image_path_sm';
     const SYNCHRONIZER = 'synchronizer';
-    const SYNC_SHEET_ID = 'sync_sheet_id';
     const SYNCHRONIZED_AT = 'synchronized_at';
     const DESCRIPTION = 'description';
     const CREATED_AT = 'created_at';
@@ -123,7 +121,6 @@ class Organization extends Model
         self::IMAGE_PATH_LG,
         self::IMAGE_PATH_SM,
         self::SYNCHRONIZER,
-        self::SYNC_SHEET_ID,
         self::SYNCHRONIZED_AT,
         self::DESCRIPTION
     ];

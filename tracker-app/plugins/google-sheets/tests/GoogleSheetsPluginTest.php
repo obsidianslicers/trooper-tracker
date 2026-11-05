@@ -11,6 +11,7 @@ use App\Models\Trooper;
 use App\Plugins\PluginManager;
 use App\Plugins\PluginSheetSource;
 use App\Plugins\PluginSystemChecks;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -40,6 +41,12 @@ class GoogleSheetsPluginTest extends TestCase
         }
 
         $this->plugins = app(PluginManager::class);
+
+        // Core dropped this column; sites upgrading from before the plugin still have it.
+        Schema::table('tt_organizations', function (Blueprint $table): void
+        {
+            $table->string('sync_sheet_id', 128)->nullable();
+        });
     }
 
     public function test_enabling_copies_sheet_ids_and_leaves_the_core_column_alone(): void
