@@ -1,7 +1,7 @@
 {
     "slug": "xenforo",
     "name": "XenForo",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Connects TroopTracker to a XenForo forum: keeps forum users in step with troopers. More of the forum integration moves here in later releases.",
     "author": "Obsidian Slicers",
     "namespace": "TroopTracker\\Plugins\\Xenforo",
