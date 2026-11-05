@@ -201,6 +201,18 @@ class PluginManager
      */
     private function composerRequires(PluginManifest $manifest): array
     {
+        $require = $this->composerJson($manifest)['require'] ?? [];
+
+        return is_array($require) ? $require : [];
+    }
+
+    /**
+     * The composer.json of a plugin folder that is not installed through Composer.
+     *
+     * @return array<string, mixed>
+     */
+    private function composerJson(PluginManifest $manifest): array
+    {
         $file = $manifest->path.'/composer.json';
 
         if ($manifest->is_composer_package || !is_file($file))
@@ -210,9 +222,24 @@ class PluginManager
 
         $composer = json_decode((string) file_get_contents($file), true);
 
-        return is_array($composer) && is_array($composer['require'] ?? null)
-            ? $composer['require']
-            : [];
+        return is_array($composer) ? $composer : [];
+    }
+
+    /**
+     * How to install the packages a plugin folder needs, when some are missing.
+     */
+    private function installHint(PluginManifest $manifest): ?string
+    {
+        $name = $this->composerJson($manifest)['name'] ?? null;
+
+        $missing = $this->requirements->unmet($this->composerRequires($manifest));
+
+        if (!is_string($name) || $missing === [])
+        {
+            return null;
+        }
+
+        return "Install its packages with a deploy: composer require {$name}";
     }
 
     /**
@@ -411,7 +438,8 @@ class PluginManager
             return;
         }
 
-        $e = PluginRequirementsException::cannotEnable($manifest, $unmet);
+        $hint = $this->installHint($manifest);
+        $e = PluginRequirementsException::cannotEnable($manifest, $unmet, $hint);
         PluginChange::record(
             $manifest->slug,
             PluginChangeAction::FAILED,

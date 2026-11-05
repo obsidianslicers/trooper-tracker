@@ -231,7 +231,7 @@ php artisan plugins:enable discord
 
 If the site uses XenForo, enable the XenForo plugin right after deploying: `php artisan plugins:enable xenforo`. Until it is enabled, XenForo login is unavailable, the hourly forum user sync stops and "require a linked forum account" is off, so troopers can only sign in with email or Google. Enabling it copies the `XENFORO_*` and `TRACKER_REQUIRE_XENFORO` values from `.env` onto its settings page; `php artisan xenforo:import-env` copies them again later.
 
-If clubs sync their rosters from Google Sheets, enable the Google Sheets plugin too: `php artisan plugins:enable google-sheets`. Enabling copies each club's Sheet ID into the plugin's table. Until it is enabled, the Sheets-based club syncs and member lookups read nothing.
+If clubs sync their rosters from Google Sheets, install and enable the Google Sheets plugin too: `composer require trooptracker/google-sheets`, then `php artisan plugins:enable google-sheets`. Enabling copies each club's Sheet ID into the plugin's table. Until it is enabled, the Sheets-based club syncs and member lookups read nothing.
 
 Set the webhook under Command Staff > Plugins > Discord > Settings, or keep `DISCORD_WEBHOOK_URL` in `.env`. See [PLUGINS.md](PLUGINS.md).
 

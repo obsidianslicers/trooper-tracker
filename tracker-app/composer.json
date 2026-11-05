@@ -29,8 +29,7 @@
         "spatie/calendar-links": "^2.0",
         "symfony/css-selector": "^8.0",
         "symfony/dom-crawler": "^8.0",
-        "tightenco/ziggy": "^2.6",
-        "trooptracker/google-sheets": "^1.0"
+        "tightenco/ziggy": "^2.6"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16",

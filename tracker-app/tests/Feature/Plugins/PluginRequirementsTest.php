@@ -66,7 +66,10 @@ class PluginRequirementsTest extends TestCase
         $this->writePlugin('needs-package');
         file_put_contents(
             $this->plugins_path.'/needs-package/composer.json',
-            (string) json_encode(['require' => ['acme/not-installed' => '^1.0']]),
+            (string) json_encode([
+                'name' => 'acme/needs-package',
+                'require' => ['acme/not-installed' => '^1.0'],
+            ]),
         );
 
         $this->assertSame(
@@ -74,6 +77,9 @@ class PluginRequirementsTest extends TestCase
             $this->subject->unmetRequirements('needs-package'),
         );
         $this->expectException(PluginRequirementsException::class);
+        $this->expectExceptionMessage(
+            'Install its packages with a deploy: composer require acme/needs-package.'
+        );
 
         $this->subject->enable('needs-package');
     }

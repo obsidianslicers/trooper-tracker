@@ -7,7 +7,6 @@ Overview of Composer packages used in Troop Tracker.
 | Package | Purpose |
 |---|---|
 | `php` | The underlying programming language version for the project (^8.2). |
-| `trooptracker/google-sheets` | The google-sheets plugin in `plugins/google-sheets`, installed through the path repository. It brings `google/apiclient`, which it uses to read club rosters from Google Sheets. |
 | `intervention/image` | A PHP image handling and manipulation library. Used for processing and resizing uploaded event photos and trooper avatars. |
 | `laravel/framework` | The core of the application. Laravel is the PHP framework upon which the application is built. |
 | `laravel/socialite` | OAuth authentication library for Laravel. Used for social login integrations (Google OAuth and XenForo OAuth for forum-based authentication). |
@@ -49,3 +48,7 @@ You specifically highlighted the `reliese/laravel` package.
 
 *   **Package**: `reliese/laravel`
 *   **Purpose**: This is a development tool that helps accelerate the creation of boilerplate code. It can inspect your database schema and automatically generate corresponding Eloquent Models, including properties, relationships (`HasOne`, `BelongsTo`, etc.), and PHPDoc blocks. This saves significant time during development, especially when dealing with a large number of database tables. It is a `dev` dependency because it's not needed for the application to run in production.
+
+## Plugin packages
+
+Plugins declare their own packages in their own `composer.json`; this file never lists them. For example `google/apiclient` comes with the google-sheets plugin, installed with `composer require trooptracker/google-sheets`. See [Packages a plugin needs](PLUGINS.md#packages-a-plugin-needs).

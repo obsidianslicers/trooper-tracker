@@ -12,10 +12,14 @@ final class PluginRequirementsException extends PluginException
     /**
      * @param  array<int, string>  $unmet
      */
-    public static function cannotEnable(PluginManifest $manifest, array $unmet): self
-    {
-        return new self("{$manifest->name} can't be turned on yet. It needs "
-            .implode('; ', $unmet).'.');
+    public static function cannotEnable(
+        PluginManifest $manifest,
+        array $unmet,
+        ?string $hint = null,
+    ): self {
+        $message = "{$manifest->name} can't be turned on yet. It needs ".implode('; ', $unmet).'.';
+
+        return new self($hint === null ? $message : "{$message} {$hint}.");
     }
 
     /**

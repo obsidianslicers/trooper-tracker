@@ -31,6 +31,14 @@ class GoogleSheetsPluginTest extends TestCase
     {
         parent::setUp();
 
+        if (!class_exists(\Google\Client::class))
+        {
+            $this->markTestSkipped(
+                'google/apiclient is not installed. '
+                    .'Run composer require trooptracker/google-sheets.'
+            );
+        }
+
         $this->plugins = app(PluginManager::class);
     }
 

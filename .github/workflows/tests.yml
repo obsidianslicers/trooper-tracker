@@ -34,6 +34,10 @@ jobs:
         working-directory: ./tracker-app
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Install Composer-managed plugins for their tests
+        working-directory: ./tracker-app
+        run: composer require trooptracker/google-sheets --no-interaction --no-progress
+
       - name: Generate application key
         working-directory: ./tracker-app
         run: echo "APP_KEY=$(php artisan key:generate --show)" >> "$GITHUB_ENV"
