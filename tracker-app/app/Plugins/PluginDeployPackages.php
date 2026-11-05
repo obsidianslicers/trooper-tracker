@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Plugins;
 
+use App\Models\PluginPackage;
+use Composer\InstalledVersions;
 use Throwable;
 
 /**
@@ -59,11 +61,62 @@ final class PluginDeployPackages
     }
 
     /**
-     * Package names for the deploy to require: plugins that are on or waiting.
+     * Package names for the deploy to require: bundled plugins that are on or
+     * waiting, and the Composer-managed plugins administrators added.
      *
      * @return array<int, string>
      */
     public function toInstall(): array
+    {
+        return array_values(array_unique([...$this->bundled(), ...$this->added()]));
+    }
+
+    /**
+     * The installed Composer plugin that came from this package, if any.
+     */
+    public function manifestFromPackage(string $name): ?PluginManifest
+    {
+        $path = InstalledVersions::isInstalled($name)
+            ? InstalledVersions::getInstallPath($name)
+            : null;
+        $path = $path === null ? null : (realpath($path) ?: $path);
+
+        foreach ($this->plugins->all() as $manifest)
+        {
+            if ($path !== null && $manifest->is_composer_package
+                && (realpath($manifest->path) ?: $manifest->path) === $path)
+            {
+                return $manifest;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function added(): array
+    {
+        try
+        {
+            return PluginPackage::query()
+                ->orderBy(PluginPackage::NAME)
+                ->get()
+                ->map(fn (PluginPackage $package): string => $package->requirement())
+                ->all();
+        }
+        catch (Throwable)
+        {
+            // The table does not exist yet, before this deploy's migrations.
+            return [];
+        }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function bundled(): array
     {
         $names = [];
 

@@ -62,14 +62,12 @@ echo "📦 Installing Composer dependencies..."
     --no-dev
 
 # Plugins that bring their own Composer packages stay out of the app's composer.json.
-# The app lists the bundled ones that are on, or waiting to be turned on, and each is
-# required here. TRACKER_COMPOSER_PLUGINS in .env can add packages from elsewhere.
-# git reset above undoes the previous deploy's require, so they are required each time.
-PLUGIN_PACKAGES="$("$PHP" artisan plugins:packages 2>/dev/null \
-    | grep -E '^[a-z0-9._-]+/[a-z0-9._-]+$' || true)"
-EXTRA_PLUGIN_PACKAGES="$(grep -E '^TRACKER_COMPOSER_PLUGINS=' .env | tail -n 1 | cut -d= -f2- \
-    | tr -d "\"'" | tr ',' ' ' || true)"
-COMPOSER_PLUGINS="$(echo $PLUGIN_PACKAGES $EXTRA_PLUGIN_PACKAGES)"
+# The app lists the packages to require: bundled plugins that are on or waiting to be
+# turned on, and Composer plugins added on the Plugins page. git reset above undoes the
+# previous deploy's require, so they are required again each time.
+COMPOSER_PLUGINS="$("$PHP" artisan plugins:packages 2>/dev/null \
+    | grep -E '^[a-z0-9._-]+/[a-z0-9._-]+(:.+)?$' | tr '\n' ' ' || true)"
+COMPOSER_PLUGINS="${COMPOSER_PLUGINS% }"
 
 if [ -n "$COMPOSER_PLUGINS" ]; then
     echo "📦 Installing plugin packages: $COMPOSER_PLUGINS"

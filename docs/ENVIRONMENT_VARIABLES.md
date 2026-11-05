@@ -514,12 +514,6 @@ See [PLUGINS.md](PLUGINS.md).
 - **Required**: No
 - **Default**: `10240`, `51200`, `2000`
 
-### TRACKER_COMPOSER_PLUGINS
-- **Purpose**: Extra Composer-managed plugins, from other repositories, that `deploy.sh` installs on each deploy with `composer require`. Bundled plugins need not be listed: the deploy finds the enabled ones itself. Read only by `deploy.sh`, not by the app.
-- **Required**: No
-- **Format**: Comma or space separated package names, optionally with a version (`vendor/name:^1.0`)
-- **Example**: `TRACKER_COMPOSER_PLUGINS="acme/trooptracker-badges"`
-
 ---
 
 ## Example Production .env

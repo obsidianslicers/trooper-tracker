@@ -235,7 +235,9 @@ If clubs sync their rosters from Google Sheets, enable the Google Sheets plugin 
 
 #### Plugin packages on deploy
 
-Plugins that bring their own Composer packages stay out of the app's `composer.json`. Right after `composer install`, `deploy.sh` asks the app which bundled plugins are on, or waiting to be turned on, and need packages (`php artisan plugins:packages`), and runs `composer require` for each. The next deploy's `git reset` puts `composer.json` back before they are required again, so each server installs only what its enabled plugins use. To add a Composer-managed plugin from another repository, list it in `TRACKER_COMPOSER_PLUGINS` in `.env` (comma or space separated, optionally `vendor/name:^1.0`).
+Plugins that bring their own Composer packages stay out of the app's `composer.json`. Right after `composer install`, `deploy.sh` asks the app which bundled plugins are on, or waiting to be turned on, and need packages (`php artisan plugins:packages`), and runs `composer require` for each. The next deploy's `git reset` puts `composer.json` back before they are required again, so each server installs only what its enabled plugins use. Composer-managed plugins from other repositories are added under **Composer plugins** on the Plugins page (or `php artisan plugins:add-package vendor/name [^1.0]`); they are saved in `tt_plugin_packages` and the deploy requires them too. Removing one there (or `plugins:remove-package`) uninstalls it with the next deploy; that is refused while the plugin is on.
+
+A plugin uploaded on the Plugins page lives in `storage/app/plugins`, and a folder copied into `tracker-app/plugins/` on the server is untracked, so neither is touched by the deploy's `git reset`.
 
 After migrating, `deploy.sh` runs `php artisan plugins:upgrade` and then `php artisan plugins:enable-pending`, which turns on the plugins that were waiting for their packages. Either one failing is logged and rolled back without stopping the deploy; the plugin stays as it was and the Plugins page says why.
 

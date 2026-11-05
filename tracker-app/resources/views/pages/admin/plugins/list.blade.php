@@ -145,6 +145,61 @@
     </tbody>
 </x-table>
 
+<x-card :label="'Composer plugins'">
+    <p class="text-muted small">
+        Add a plugin published as a Composer package, from its own repository.
+        The next deploy installs it and its packages, then it appears above to enable.
+        Removing it here uninstalls it with the next deploy.
+    </p>
+    @if($packages->isNotEmpty())
+        <ul class="list-group mb-3">
+            @foreach($packages as $package)
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                        <code>{{ $package->requirement() }}</code>
+                        @if($package->isInstalled())
+                            <span class="badge text-bg-success">Installed</span>
+                        @else
+                            <span class="badge text-bg-info">Installs at next deploy</span>
+                        @endif
+                    </span>
+                    <form method="POST"
+                          action="{{ route('admin.plugins.packages.remove', ['package' => $package]) }}">
+                        @csrf
+                        <button type="submit"
+                                class="btn btn-sm btn-outline-danger">
+                            Remove
+                        </button>
+                    </form>
+                </li>
+            @endforeach
+        </ul>
+    @endif
+    <form method="POST"
+          action="{{ route('admin.plugins.packages.add') }}">
+        @csrf
+        <div class="input-group">
+            <input type="text"
+                   name="name"
+                   class="form-control"
+                   placeholder="vendor/package"
+                   value="{{ old('name') }}"
+                   required>
+            <input type="text"
+                   name="version_constraint"
+                   class="form-control"
+                   placeholder="Version (optional, e.g. ^1.0)"
+                   value="{{ old('version_constraint') }}">
+            <button type="submit"
+                    class="btn btn-primary">
+                Add
+            </button>
+        </div>
+        <x-input-error :property="'name'" />
+        <x-input-error :property="'version_constraint'" />
+    </form>
+</x-card>
+
 <x-card :label="'Install a plugin'">
     @if($uploads['is_enabled'])
         <form method="POST"
