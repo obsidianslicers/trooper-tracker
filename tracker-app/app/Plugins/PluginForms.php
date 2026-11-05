@@ -20,6 +20,12 @@ class PluginForms
     public const ORGANIZATION_UPDATE = 'admin.organizations.update';
 
     /**
+     * The event create and edit forms. Saved through UpdateEvent, which passes
+     * the event and the validated input.
+     */
+    public const EVENT_UPDATE = 'admin.events.update';
+
+    /**
      * @var array<string, array<int, array{rules: array, saved: ?Closure}>>
      */
     private array $extensions = [];

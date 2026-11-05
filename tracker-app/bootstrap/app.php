@@ -38,7 +38,6 @@ return Application::configure(basePath: dirname(__DIR__))
             __DIR__ . '/../routes/web/search.php',
             __DIR__ . '/../routes/web/api.php',
             __DIR__ . '/../routes/web/mobile-api.php',
-            __DIR__ . '/../routes/web/webhooks.php',
         ],
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
@@ -48,7 +47,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/push-notifications',
             'api/push-notifications/*',
-            'webhooks/xenforo',
+            // Plugin webhooks check their own signatures.
+            'webhooks/*',
         ]);
 
         $middleware->web(append: [

@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
-use App\Facades\TroopTrackerFacade;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use App\Models\Organization;
-use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -39,7 +37,7 @@ class UpdateController extends MagicBusController
      * @param  Event  $event  The event to be updated (route model binding)
      * @return View The event update form view
      */
-    public function __invoke(Request $request, Event $event, XenforoService $xenforo): View
+    public function __invoke(Request $request, Event $event): View
     {
         $this->authorize('update', $event);
 
@@ -62,11 +60,7 @@ class UpdateController extends MagicBusController
             $organization->pivot = $event_organization->pivot ?? null;
         }
 
-        $smilies = TroopTrackerFacade::isXenforoIntegrationConfigured()
-            ? $xenforo->get_smilies()
-            : [];
-
-        $data = compact('event', 'organizations', 'smilies');
+        $data = compact('event', 'organizations');
 
         return view('pages.admin.events.update', $data);
     }

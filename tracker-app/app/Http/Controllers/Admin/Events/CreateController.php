@@ -6,14 +6,12 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\EventType;
-use App\Facades\TroopTrackerFacade;
 use App\Http\Controllers\MagicBusController;
 use App\Messages\Organizations\Queries\GetOrganizationTree;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -46,7 +44,7 @@ class CreateController extends MagicBusController
      * @param  Event  $event  Event model (injected but not used, new instance created)
      * @return View The rendered event creation view
      */
-    public function __invoke(Request $request, Event $event, XenforoService $xenforo): View
+    public function __invoke(Request $request, Event $event): View
     {
         $this->authorize('create', Event::class);
 
@@ -60,7 +58,6 @@ class CreateController extends MagicBusController
         $event->type = EventType::REGULAR;
         $event->status = EventStatus::DRAFT;
         $event->require_mission_brief_ack = false;
-        $event->create_forum_thread = true;
 
         // Fill with old input if available
         if (!empty(old()))
@@ -74,11 +71,7 @@ class CreateController extends MagicBusController
 
         $mode = old('mode', 'email');
 
-        $smilies = TroopTrackerFacade::isXenforoIntegrationConfigured()
-            ? $xenforo->get_smilies()
-            : [];
-
-        $data = compact('event', 'organization_hierarchy', 'organizations', 'mode', 'smilies');
+        $data = compact('event', 'organization_hierarchy', 'organizations', 'mode');
 
         return view('pages.admin.events.create', $data);
     }

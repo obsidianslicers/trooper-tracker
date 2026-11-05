@@ -13,11 +13,13 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Tests\Feature\Plugins\Xenforo\UsesXenforoPlugin;
 use Tests\TestCase;
 
 class XenforoServiceTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesXenforoPlugin;
 
     public function test_resolve_user_id_for_trooper_returns_null_when_trooper_id_is_null(): void
     {
@@ -487,6 +489,9 @@ class XenforoServiceTest extends TestCase
 
     public function test_get_thread_posts_renders_attachments_through_signed_tracker_urls(): void
     {
+        // The attachment route belongs to the XenForo plugin.
+        $this->enableXenforo();
+
         config([
             'services.xenforo.base_url' => 'https://xf.test',
             'services.xenforo.api_key' => 'key-7',

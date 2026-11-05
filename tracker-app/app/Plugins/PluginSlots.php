@@ -21,6 +21,15 @@ use Throwable;
  */
 class PluginSlots
 {
+    /**
+     * View factory properties that a failed render resets.
+     */
+    private const VIEW_STATE = [
+        'renderCount', 'renderedOnce', 'sections', 'sectionStack', 'pushes', 'prepends',
+        'pushStack', 'componentStack', 'componentData', 'currentComponentData', 'slots',
+        'slotStack', 'fragments', 'fragmentStack',
+    ];
+
     public const SVELTE_SLOTS = [
         'account.profile.sections',
         'account.pending.sections',
@@ -93,6 +102,8 @@ class PluginSlots
 
     private function renderEntry(string $slot, array $entry, array $context): string
     {
+        $view_state = $this->viewState();
+
         try
         {
             if ($entry['when'] !== null && !($entry['when'])($context))
@@ -106,6 +117,8 @@ class PluginSlots
         }
         catch (Throwable $e)
         {
+            $this->restoreViewState($view_state);
+
             Log::error(
                 "Plugin view [{$entry['view']}] in slot [{$slot}] failed: {$e->getMessage()}",
                 ['exception' => $e],
@@ -115,5 +128,34 @@ class PluginSlots
 
             return '';
         }
+    }
+
+    /**
+     * A view that throws flushes the view factory's state, which would break the
+     * page still rendering around the slot (its open sections and components).
+     * These save and put back that state, so a failing entry only drops itself.
+     *
+     * @return array<string, mixed>
+     */
+    private function viewState(): array
+    {
+        $keys = array_flip(self::VIEW_STATE);
+
+        return (fn (): array => array_intersect_key(get_object_vars($this), $keys))
+            ->call(View::getFacadeRoot());
+    }
+
+    /**
+     * @param  array<string, mixed>  $state
+     */
+    private function restoreViewState(array $state): void
+    {
+        (function () use ($state): void
+        {
+            foreach ($state as $property => $value)
+            {
+                $this->{$property} = $value;
+            }
+        })->call(View::getFacadeRoot());
     }
 }

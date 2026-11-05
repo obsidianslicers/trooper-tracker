@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Observers;
 
 use App\Events\EventDetailsChanged;
-use App\Facades\TroopTrackerFacade;
-use App\Jobs\DeleteEventForumThreadJob;
 use App\Jobs\SendEventUpdatedNotificationsJob;
-use App\Jobs\UpdateEventForumThreadJob;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Services\GeocodingService;
@@ -19,7 +16,7 @@ use Throwable;
  * Handles lifecycle events for the Event model.
  *
  * Observes Event model changes and performs related actions such as geocoding,
- * forum thread sync, and update notifications.
+ * update notifications.
  */
 class EventObserver
 {
@@ -77,11 +74,6 @@ class EventObserver
             $this->storeGeocode($event);
         }
 
-        if ($this->shouldQueueForumThreadSync($event))
-        {
-            dispatch(new UpdateEventForumThreadJob($event->getKey()));
-        }
-
         $watch_fields = [
             Event::NAME,
             Event::EVENT_START,
@@ -98,28 +90,6 @@ class EventObserver
 
             EventDetailsChanged::dispatch($event, $changed);
         }
-    }
-
-    /**
-     * Handle the Event "deleted" event.
-     *
-     * When an event that has a linked XenForo thread is deleted, attempt to
-     * delete the corresponding thread from XenForo as well to keep the forum
-     * in sync.
-     */
-    public function deleted(Event $event): void
-    {
-        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
-        {
-            return;
-        }
-
-        if (!$event->create_forum_thread || empty($event->thread_id))
-        {
-            return;
-        }
-
-        dispatch(new DeleteEventForumThreadJob((int) $event->id, (int) $event->thread_id))->afterCommit();
     }
 
     /**
@@ -187,38 +157,5 @@ class EventObserver
         {
             report($e);
         }
-    }
-
-    private function shouldQueueForumThreadSync(Event $event): bool
-    {
-        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
-        {
-            return false;
-        }
-
-        if (empty($event->thread_id) || empty($event->post_id) || $event->create_forum_thread === false)
-        {
-            return false;
-        }
-
-        return $event->wasChanged([
-            Event::NAME,
-            Event::VENUE,
-            Event::VENUE_ADDRESS,
-            Event::EVENT_START,
-            Event::EVENT_END,
-            Event::EVENT_WEBSITE,
-            Event::EXPECTED_ATTENDEES,
-            Event::REQUESTED_NUMBER_CHARACTERS,
-            Event::REQUESTED_CHARACTER_TYPES,
-            Event::SECURE_STAGING_AREA,
-            Event::ALLOW_BLASTERS,
-            Event::ALLOW_PROPS,
-            Event::PARKING_AVAILABLE,
-            Event::ACCESSIBLE,
-            Event::AMENITIES,
-            Event::COMMENTS,
-            Event::REFERRED_BY,
-        ]);
     }
 }

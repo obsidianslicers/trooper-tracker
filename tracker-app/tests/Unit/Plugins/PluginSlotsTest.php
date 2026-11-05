@@ -57,6 +57,20 @@ class PluginSlotsTest extends TestCase
         $this->assertStringContainsString('Still here, nobody!', $this->subject->render('slot'));
     }
 
+    public function test_a_view_that_throws_inside_a_component_leaves_the_page_intact(): void
+    {
+        $this->subject->add('slot', 'slot-test::throws');
+        $this->subject->add('slot', 'slot-test::greeting', ['greeting' => 'Still here']);
+
+        $html = Blade::render(
+            "<x-section-title>Before @pluginSlot('slot') After</x-section-title>",
+            ['name' => 'Cody'],
+        );
+
+        $this->assertStringContainsString('<p>Still here, Cody!</p>', $html);
+        $this->assertStringContainsString('After', $html);
+    }
+
     public function test_plugin_slot_directive_renders_the_slot_with_view_variables(): void
     {
         $this->subject->add('slot', 'slot-test::greeting', ['greeting' => 'Hey']);

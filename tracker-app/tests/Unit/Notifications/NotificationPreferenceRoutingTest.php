@@ -12,7 +12,6 @@ use App\Notifications\Admin\EventRosterActivityNotification;
 use App\Notifications\Admin\PermissionRequestReviewedNotification;
 use App\Notifications\Admin\PermissionRequestSubmittedNotification;
 use App\Notifications\BaseNotification;
-use App\Notifications\Events\EventForumPostNotification;
 use App\Notifications\Events\EventUpdatedNotification;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionClass;
@@ -26,10 +25,6 @@ class NotificationPreferenceRoutingTest extends TestCase
             'event updated' => [
                 EventUpdatedNotification::class,
                 TrooperNotifications::EVENT_UPDATED,
-            ],
-            'event forum post' => [
-                EventForumPostNotification::class,
-                TrooperNotifications::EVENT_FORUM_POST,
             ],
             'event roster activity' => [
                 EventRosterActivityNotification::class,

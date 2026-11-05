@@ -111,7 +111,7 @@
                                  x-bind:style="expanded ? 'max-height: ' + fullHeight : 'max-height: 120px'">
                                 <div x-ref="content"
                                      x-bind:class="expanded ? '' : 'terminal-green'">
-                                    {!! \App\Helpers\SmiliesRenderer::render(Str::markdown($event->comments), $smilies) !!}
+                                    {!! \App\Helpers\SmiliesRenderer::render(Str::markdown($event->comments), $smilies ?? []) !!}
                                 </div>
 
                                 <div x-show="!expanded"
@@ -227,7 +227,7 @@
                         </div>
                     </div>
 
-                    @include('pages.events.inc.xenforo-comments', compact('event', 'xenforoBaseUrl', 'xenforoThreadPosts'))
+                    @pluginSlot('events.display.discussion')
 
                 </div>
             </div>

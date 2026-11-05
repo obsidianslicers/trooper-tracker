@@ -181,6 +181,7 @@ Inside a plugin, follow the same conventions as core: Hyperdrive messages for bu
 |-------|-----------|
 | `App\Events\EventPosted` | An event is posted and troopers have been notified (created open, or a draft is opened). |
 | `App\Events\EventDetailsChanged` | An event's name, times, venue, address or comments change. Has `$changed_fields`. |
+| `App\Events\EventClosed` | `tracker:close-events` closes an event that has ended. |
 | `App\Events\TrooperSignedUp` | A trooper signs up for a shift, or signs back up after being removed. Has `$signup` (an `EventTrooper`). |
 | `App\Events\TrooperSignupStatusChanged` | A signup's status changes afterwards (going, stand-by, cancelled, attended...). Has `$signup` and `$previous_status`. |
 | `App\Events\TrooperMembershipApproved` | Command staff approve a trooper's membership. Has `$trooper`. |
@@ -190,6 +191,10 @@ Inside a plugin, follow the same conventions as core: Hyperdrive messages for bu
 | `App\Events\AwardRevoked` | An award is taken back. Has the soft-deleted `$award_trooper`. |
 
 All of these fire after the database transaction commits, so a listener never sees work that is later rolled back.
+
+`App\Events\EventWatchChanging` is different: it fires (with `Event::until()`) just before a trooper starts or stops watching an event, and has `$event`, `$trooper` and `$watching`. Return `false` from a listener to stop the change, and flash the reason. The XenForo plugin uses it to keep the forum thread subscription in step.
+
+Plugins can also observe core models directly (`Event::observe(MyObserver::class)` in `bootPlugin`), for changes no app event covers.
 
 Listeners run in the same process as the code that fired the event. Catch and log your own errors (see the Discord plugin's listener) so a failure in your plugin does not break the core flow, or make the listener `ShouldQueue`. More events are easy to add: create the class in `app/Events/` and dispatch it where the thing happens.
 
@@ -216,6 +221,9 @@ $this->addToSlot(
 | `navbar.links` | Main navbar, before Help. Render `<x-nav-link>` items. | |
 | `admin.dashboard.cards` | Command Staff dashboard. Render `<x-dashboard-card>` items. | |
 | `events.display.sections` | Event page, below the shifts. | `$event` |
+| `events.display.discussion` | Event page, at the bottom, below the photos. | `$event` |
+| `events.display.share-buttons` | Event page, share button group, before the watch toggle. Render buttons. | `$event` |
+| `admin.events.form.fields` | Event create and edit forms, Miscellaneous section. Pair with `extendForm(PluginForms::EVENT_UPDATE)`. | `$event` |
 | `admin.organizations.update.fields` | Organization edit form, inside the `<form>`. Pair with `extendForm`. | `$organization` |
 | `service-records.trooper.badges` | Service record, under the trooper's name. | `$trooper` |
 | `service-records.trooper.actions` | Service record, in the button group at the top right. Render buttons. | `$trooper` |
@@ -250,11 +258,15 @@ $this->extendForm(PluginForms::ORGANIZATION_UPDATE,
 );
 ```
 
-Forms that support this are listed as constants on `App\Plugins\PluginForms`. Today that is the organization edit form.
+Forms that support this are listed as constants on `App\Plugins\PluginForms`: the organization edit form (`ORGANIZATION_UPDATE`) and the event create and edit forms (`EVENT_UPDATE`, saved by the `UpdateEvent` message; `saved` gets the event and the validated input, so check your own keys are present). Give your inputs names that are not event or organization columns, such as a `hello_` prefix.
 
 ### System Check rows
 
 `$this->addSystemCheck('Hello API key', fn () => filled($this->setting('api_key')))` adds a row to Command Staff > System Check under "Plugins". Return `true` (pass), `false` (warn) or a `SystemCheckResult`. The Plugins group also shows a failure for any enabled plugin that did not load.
+
+### Webhooks
+
+Routes under `/webhooks/` skip the CSRF check, so a plugin can receive webhooks there. Check the sender yourself (a shared secret header, a signature).
 
 ### Web middleware
 
@@ -330,13 +342,19 @@ php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\Flori
 - the user sync (`xenforo:sync-users`, hourly, and `xenforo:sync-user`)
 - the account link pages (`/account/xenforo`, `/account/xenforo/required`) and the two checks that run on every request while a linked account is required: send unlinked troopers to the link page, and log out banned forum users
 - the XenForo login driver (the Socialite provider behind "Sign in with XenForo")
+- event forum threads: a thread is opened when an event is posted (unless "Create XenForo Thread" is set to No on the event form), kept up to date when the event or its roster changes, moved to the archive forum when the event closes, and deleted with the event
+- the event page's Forum Comments section, reply box (`events.forum-reply-htmx`), forum attachments (`events.forum-attachment`), the View Forum Post button, and forum smilies in the event comments editor
+- watching an event also watches its forum thread
+- the forum webhook (`/webhooks/xenforo`) and the "new forum reply" and "notify command staff" notifications
 - forum upgrades as a donation source (donation months, total donated, donor milestones and the active donor badge), plus the service record's forum group banners, Forum Profile button and upgrade history table
 
 **Require a linked forum account** only applies while the plugin is enabled. With the plugin off, the site runs without XenForo: the XenForo login button is hidden, email and Google login work, and nobody is sent to the link page.
 
 Core's login flow still knows the name "xenforo" (the provider value stored on `oauth_logins`, the login and sign-up buttons, and the OAuth callback's XenForo-only steps). Making login providers fully pluggable is a separate, larger change.
 
-Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. The rest of XenForo (event threads and forum groups) is still core and reads the same config, so the settings page applies to it too while the plugin is enabled.
+Settings saved on its page win over the matching `.env` values (`XENFORO_*`, `TRACKER_REQUIRE_XENFORO`), which stay as the fallback until saved. The rest of XenForo (forum groups, and the XenForo API client `App\Services\Forums\XenforoService`) is still core and reads the same config, so the settings page applies to it too while the plugin is enabled.
+
+Each event's thread lives in the plugin's `tt_xenforo_event_threads` table. Enabling the plugin copies `tt_events.thread_id`, `post_id` and `create_forum_thread` there; core no longer reads those columns, and a later core migration drops them. The Florida Garrison legacy event import still writes the old columns, so run it before enabling the plugin.
 
 Sites that use XenForo must enable the plugin right after deploying. Until then the user sync stops and a linked forum account is not required:
 

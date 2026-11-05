@@ -720,9 +720,9 @@ Purpose: Event master records.
 | status | varchar(16) | no | default EventStatus::DRAFT->value |
 | create_notifications_sent_at | datetime | yes |  |
 | cancel_notifications_sent_at | datetime | yes |  |
-| create_forum_thread | boolean | no | default true |
-| thread_id | integer | yes |  |
-| post_id | integer | yes |  |
+| create_forum_thread | boolean | no | default true; no longer used, see the XenForo plugin's `tt_xenforo_event_threads` |
+| thread_id | integer | yes | no longer used (XenForo plugin) |
+| post_id | integer | yes | no longer used (XenForo plugin) |
 | latitude | decimal(9,6) | yes |  |
 | longitude | decimal(9,6) | yes |  |
 | shifts_allowed | integer | yes |  |
