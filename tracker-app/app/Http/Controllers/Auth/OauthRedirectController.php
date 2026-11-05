@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Plugins\PluginLoginProviders;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ use Laravel\Socialite\Facades\Socialite;
  * authorization page where they can grant permission for the
  * application to access their account information.
  */
-class OauthRedirectController extends MagicBusController
+class OauthRedirectController extends PageController
 {
     /**
      * Redirects the trooper to the provider's authorization page. After

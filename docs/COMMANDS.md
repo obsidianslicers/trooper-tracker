@@ -30,7 +30,7 @@ These commands run automatically via the scheduler defined in `routes/console.ph
 
 Recalculates trooper ranks, metrics, and milestone achievements for all troopers based on their event history.
 
-Dispatches `RecalculateTrooperRankCommand` through the message bus. Reports execution time and newly created milestone counts when complete.
+Dispatches `RecalculateTrooperRank` as a Hyperdrive message. Reports execution time and newly created milestone counts when complete.
 
 ```bash
 php artisan tracker:calculate-trooper-achievements
@@ -66,7 +66,7 @@ php artisan tracker:close-events
 
 ### `tracker:expire-visitor-access`
 
-Notifies visitor troopers whose 6-month access window has elapsed. Dispatches `NotifyExpiredVisitorCommand` for each expired visitor. Does not modify membership status — renewal requires a separate request.
+Notifies visitor troopers whose 6-month access window has elapsed. Dispatches `NotifyExpiredVisitor` for each expired visitor. Does not modify membership status — renewal requires a separate request.
 
 ```bash
 php artisan tracker:expire-visitor-access
@@ -179,7 +179,7 @@ php artisan tracker:reopen-future-shifts [--dry-run]
 
 ### `tracker:send-daily-event-notifications`
 
-Sends consolidated daily email digests to troopers who have upcoming events. Queries troopers eligible for notification and dispatches `SendEventDailyNotificationCommand` for each.
+Sends consolidated daily email digests to troopers who have upcoming events. Queries troopers eligible for notification and dispatches `SendEventDailyNotification` for each.
 
 ```bash
 php artisan tracker:send-daily-event-notifications

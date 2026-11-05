@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Award;
 use App\Models\AwardTrooper;
 use Illuminate\Contracts\View\View;
@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 /**
  * Handles displaying the list of troopers assigned to an award.
  */
-class ListTroopersController extends MagicBusController
+class ListTroopersController extends PageController
 {
     protected function initialized(): void
     {

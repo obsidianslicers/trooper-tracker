@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\SignUpEventTrooper;
 use App\Messages\Events\Queries\GetEventShiftDisplay;
 use App\Models\EventShift;
@@ -20,7 +20,7 @@ use Illuminate\Http\Response;
  * or the standby list based on shift capacity, and returns the updated shift
  * container view for dynamic page updates.
  */
-class SignUpHtmxController extends MagicBusController
+class SignUpHtmxController extends PageController
 {
     /**
      * Handle the incoming HTMX request to sign up a trooper for an event shift

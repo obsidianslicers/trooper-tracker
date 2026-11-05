@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Account\ResubmitDeniedRequest;
 use App\Messages\Troopers\Commands\ResubmitDeniedTrooper;
 use Illuminate\Http\RedirectResponse;
 
-class DeniedResubmitController extends MagicBusController
+class DeniedResubmitController extends PageController
 {
     public function __invoke(ResubmitDeniedRequest $request): RedirectResponse
     {

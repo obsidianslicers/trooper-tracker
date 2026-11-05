@@ -14,7 +14,7 @@ use Illuminate\Foundation\Queue\Queueable;
  * Reconciles the event roster after capacity limits change.
  *
  * Thin orchestrator: all roster business logic lives in
- * ReconcileEventRosterCommandHandler.
+ * ReconcileEventRoster.
  */
 class ReconcileEventRosterJob implements ShouldQueue
 {

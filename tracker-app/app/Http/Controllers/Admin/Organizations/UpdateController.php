@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Organizations;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Organization;
 use App\Plugins\PluginClubSynchronizers;
 use Illuminate\Contracts\View\View;
@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
  *
  * Handles displaying the form to update an existing organization.
  */
-class UpdateController extends MagicBusController
+class UpdateController extends PageController
 {
     protected function initialized(): void
     {

@@ -8,6 +8,7 @@ use App\Enums\MembershipStatus;
 use App\Messages\Troopers\Commands\UpdateTrooperMemberships;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -87,5 +88,42 @@ class UpdateTrooperMembershipsTest extends TestCase
             TrooperOrganization::ORGANIZATION_ID => $org3->id,
             TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING,
         ]);
+    }
+
+    public function test_handle_skips_unknown_parent_organizations(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $unit = Organization::factory()->create();
+
+        (new UpdateTrooperMemberships(trooper: $trooper, valid_data: [
+            999999 => ['assignment' => $unit->id],
+        ]))->handle();
+
+        $this->assertDatabaseMissing('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+        ]);
+    }
+
+    public function test_handle_restores_trashed_assignment_and_drops_conflicting_member_assignment(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $club = Organization::factory()->asOrganization()->create();
+        $old_unit = Organization::factory()->asRegion()->withParent($club)->create();
+        $new_unit = Organization::factory()->asRegion()->withParent($club)->create();
+
+        $current = TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($old_unit)
+            ->asMember()->create();
+        $previous = TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($new_unit)
+            ->create([TrooperAssignment::IS_MEMBER => false]);
+        $previous->delete();
+
+        (new UpdateTrooperMemberships(trooper: $trooper, valid_data: [
+            $club->id => ['assignment' => $new_unit->id],
+        ]))->handle();
+
+        $this->assertSoftDeleted($current);
+        $previous = TrooperAssignment::find($previous->id);
+        $this->assertNotNull($previous);
+        $this->assertTrue($previous->is_member);
     }
 }

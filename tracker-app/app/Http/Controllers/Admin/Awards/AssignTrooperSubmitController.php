@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Awards;
 
 use App\Enums\FlashType;
 use App\Events\AwardGranted;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Awards\AssignTrooperRequest;
 use App\Models\Award;
 use App\Models\AwardTrooper;
@@ -20,7 +20,7 @@ use Illuminate\Http\RedirectResponse;
  * trooper to the award for the specified date, and redirects to the award's
  * trooper list with a success message.
  */
-class AssignTrooperSubmitController extends MagicBusController
+class AssignTrooperSubmitController extends PageController
 {
     /**
      * Handle the request to assign the award to a single trooper.

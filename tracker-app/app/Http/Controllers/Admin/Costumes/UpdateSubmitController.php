@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Costumes;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Costumes\UpdateRequest;
 use App\Models\Costume;
 use App\Models\OrganizationCostume;
@@ -17,7 +17,7 @@ use Illuminate\Http\RedirectResponse;
  * An invokable controller that validates the request, updates the costume
  * and its organization assignments, then redirects to the costumes list.
  */
-class UpdateSubmitController extends MagicBusController
+class UpdateSubmitController extends PageController
 {
     /**
      * Processes the costume update submission.

@@ -4,26 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Bus\MagicBus;
 use App\Services\BreadCrumbService;
 
 /**
- * Base controller providing MagicBus integration and common services.
- *
- * This abstract controller serves as the foundation for all application controllers,
- * providing dependency injection for MagicBus, flash messaging, and breadcrumb services.
- * Extends the functionality with authorization capabilities and an initialization hook.
+ * Base controller for pages, providing breadcrumbs and an initialization hook.
  */
-abstract class MagicBusController extends Controller
+abstract class PageController extends Controller
 {
     /**
      * Create a new controller instance with core services.
      *
-     * @param  MagicBus  $bus  The command/query bus for domain operations
      * @param  BreadCrumbService  $crumbs  The breadcrumb navigation service
      */
     public function __construct(
-        protected readonly MagicBus $bus,
         protected readonly BreadCrumbService $crumbs,
     ) {
         $this->initialized();

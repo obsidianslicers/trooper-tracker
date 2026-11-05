@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Organizations;
 
 use App\Enums\FlashType;
 use App\Enums\OrganizationType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Organizations\CreateRequest;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +17,7 @@ use InvalidArgumentException;
  *
  * Handles the submission of the form for creating a new organization.
  */
-class CreateSubmitController extends MagicBusController
+class CreateSubmitController extends PageController
 {
     /**
      * Handle the incoming request to create a new organization

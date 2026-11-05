@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Troopers\Commands\MarkTrooperRip;
 use App\Models\Trooper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class MarkRipSubmitController extends MagicBusController
+class MarkRipSubmitController extends PageController
 {
     public function __invoke(Request $request, Trooper $trooper): RedirectResponse
     {

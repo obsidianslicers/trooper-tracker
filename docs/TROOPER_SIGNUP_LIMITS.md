@@ -51,7 +51,7 @@ If a shift has stations, a station is also required and its capacity is checked 
 
 When a signup cannot be completed because the trooper has reached the event’s shift limit, `SignUpHtmxController` returns the normal shift container plus an `X-Flash-Message` explaining that the maximum number of shift signups has been reached.
 
-The actual status assigned after a successful submit is decided by `SignUpEventTrooperCommandHandler` in [`tracker-app/app/Features/Events/Commands/SignUpEventTrooperCommandHandler.php`](../tracker-app/app/Features/Events/Commands/SignUpEventTrooperCommandHandler.php):
+The actual status assigned after a successful submit is decided by `SignUpEventTrooper` in [`tracker-app/app/Messages/Events/Commands/SignUpEventTrooper.php`](../tracker-app/app/Messages/Events/Commands/SignUpEventTrooper.php):
 
 1. Manual selection events always place the trooper on stand-by.
 2. Handler signups fall back to stand-by when handler capacity is full.

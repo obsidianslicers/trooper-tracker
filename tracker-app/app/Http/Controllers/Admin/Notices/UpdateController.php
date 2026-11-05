@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Notices;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Notice;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
  *
  * Handles displaying the form to update an existing notice.
  */
-class UpdateController extends MagicBusController
+class UpdateController extends PageController
 {
     protected function initialized(): void
     {

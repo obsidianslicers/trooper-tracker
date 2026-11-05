@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Troopers\Commands\DirectAddTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -20,7 +20,7 @@ use Illuminate\Validation\Rule;
  * Validates trooper and organization, authorizes against the organization
  * (not the trooper being added), then dispatches DirectAddTrooper.
  */
-class RecruitSubmitController extends MagicBusController
+class RecruitSubmitController extends PageController
 {
     protected function initialized(): void
     {

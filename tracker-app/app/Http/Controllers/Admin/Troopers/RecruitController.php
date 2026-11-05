@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * Authorization is gated on the organization at submission time, not on the
  * trooper being added, which bypasses the circular moderatedBy dependency.
  */
-class RecruitController extends MagicBusController
+class RecruitController extends PageController
 {
     protected function initialized(): void
     {

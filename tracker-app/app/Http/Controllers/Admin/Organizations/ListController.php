@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Organizations;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Auth;
  * This controller fetches and displays a list of organizations with their assignment
  * status for the authenticated user.
  */
-class ListController extends MagicBusController
+class ListController extends PageController
 {
     protected function initialized(): void
     {

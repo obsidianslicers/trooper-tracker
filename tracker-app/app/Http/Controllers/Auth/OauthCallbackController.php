@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Contracts\LoginProvider;
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Plugins\PluginLoginProviders;
@@ -27,7 +27,7 @@ use Laravel\Socialite\Two\InvalidStateException;
  * - Initiating registration flow for new troopers
  * - Linking OAuth providers to existing trooper accounts
  */
-class OauthCallbackController extends MagicBusController
+class OauthCallbackController extends PageController
 {
     private PluginLoginProviders $providers;
 

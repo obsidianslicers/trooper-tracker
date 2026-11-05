@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Troopers\Queries\GetMostRecentEventsForTrooper;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * Presents a trooper's recent event participation history for administrators
  * and moderators to review their activity and attendance records.
  */
-class EventsController extends MagicBusController
+class EventsController extends PageController
 {
     protected function initialized(): void
     {

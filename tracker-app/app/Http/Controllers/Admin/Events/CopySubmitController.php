@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Events\CopyRequest;
 use App\Models\Event;
 use App\Models\EventShiftStation;
@@ -22,7 +22,7 @@ use Illuminate\Http\RedirectResponse;
  * the original and new start dates. All shifts are also copied with adjusted times.
  * The copied event is created in DRAFT status regardless of the source event status.
  */
-class CopySubmitController extends MagicBusController
+class CopySubmitController extends PageController
 {
     /**
      * Creates a copy of an existing event with adjusted dates

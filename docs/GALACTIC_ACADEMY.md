@@ -27,7 +27,7 @@ required (`RegisterRequest`):
 - `date_of_birth` — must be between 13 and 17 years old
 - `guardian_email` — must match an existing trooper account that does not itself have a `guardian_id`
 
-`RegisterTrooperCommandHandler` looks up the guardian by email and sets `guardian_id` on the new
+`CreateTrooper` looks up the guardian by email and sets `guardian_id` on the new
 trooper. If the lookup fails the field is left null (no error thrown).
 
 After registration, a `GuardianAwareness` email is sent to the guardian's address explaining that
@@ -47,7 +47,7 @@ These restrictions only apply when **both** `date_of_birth` is set and the troop
 2. The minor's guardian (`guardian_id`) must already be signed up for the **same shift**. The check
    is in `EventShift::isGuardianAttending()`.
 
-### Trooper picker visibility (`GetTroopersForPickerQueryHandler`)
+### Trooper picker visibility (`GetTroopersForPicker`)
 
 Troopers with `guardian_id` set are hidden from all other troopers in picker/search UIs. They are
 only visible to the trooper whose `id` matches their `guardian_id`. This prevents minors from
@@ -91,9 +91,9 @@ email clears `guardian_id`.
 | `app/Models/Trooper.php` | `is_minor`, `is_adult`, `guardian()`, `minors()`, `has_guardian_required_membership` |
 | `app/Models/Event.php` | `minorAllowedToAttend()`, `minorCannotAttend()` |
 | `app/Models/EventShift.php` | Minor signup gate, `isGuardianAttending()` |
-| `app/Features/Troopers/Queries/GetTroopersForPickerQueryHandler.php` | Hides minors from all but their guardian |
+| `app/Messages/Troopers/Queries/GetTroopersForPicker.php` | Hides minors from all but their guardian |
 | `app/Http/Requests/Auth/RegisterRequest.php` | Enforces DOB + guardian email at registration |
-| `app/Features/Troopers/Commands/RegisterTrooperCommandHandler.php` | Sets `guardian_id` and `date_of_birth` |
+| `app/Messages/Troopers/Commands/CreateTrooper.php` | Sets `guardian_id` and `date_of_birth` |
 | `app/Http/Controllers/Auth/RegisterSubmitController.php` | Sends `GuardianAwareness` email |
 | `app/Mail/Auth/GuardianAwareness.php` | Guardian awareness mailable |
 | `app/Http/Controllers/Admin/Troopers/GuardianController.php` | Admin GET — guardian edit tab |

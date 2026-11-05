@@ -115,7 +115,7 @@ flowchart TD
 
 A costume decision means the trooper either picked a real costume or explicitly selected "attending without a costume" from the costume dropdown — see [Costume Decision Requirement](#costume-decision-requirement). The initial sign-up form itself never collects a costume; `PENDING` troopers make this decision afterward from their roster row.
 
-**Source:** `app/Features/Events/Commands/SignUpEventTrooperCommandHandler.php`
+**Source:** `app/Messages/Events/Commands/SignUpEventTrooper.php`
 
 ---
 
@@ -147,7 +147,7 @@ flowchart TD
 
 **Costume decision required:** A `STAND_BY` candidate is only eligible for promotion if they're a handler or have already decided on a costume (`EventTrooper::needsCostumeBeforeGoing()` is `false`). Candidates who haven't made that decision are skipped in favor of the next eligible candidate in the same pool — they remain on `STAND_BY` and can be promoted later once they decide, or picked up by a subsequent promotion run.
 
-**Source:** `app/Features/Events/Commands/PromoteNextInLineEventTrooperCommandHandler.php`
+**Source:** `app/Messages/Events/Commands/PromoteNextInLineEventTrooper.php`
 
 ---
 
@@ -193,10 +193,10 @@ Leaving both undecided is what keeps (or puts) a trooper on `PENDING` instead of
 
 | Path | Behavior |
 |---|---|
-| Initial sign-up (`SignUpEventTrooperCommandHandler`) | Would-be `GOING` is downgraded to `PENDING` when undecided. Capacity-driven `STAND_BY` is unaffected. |
+| Initial sign-up (`SignUpEventTrooper`) | Would-be `GOING` is downgraded to `PENDING` when undecided. Capacity-driven `STAND_BY` is unaffected. |
 | Status change / manual-selection approval (`SignUpUpdateHtmxController`, `status` branch) | Requesting `GOING` while undecided is silently saved as `PENDING` instead. |
 | Re-sign-up (`SignUpUpdateHtmxController`, `resign_up` branch) | Same downgrade as initial sign-up. |
-| Stand-by promotion (`PromoteNextInLineEventTrooperCommandHandler`) | Undecided candidates are skipped — see [Standby Promotion Flow](#standby-promotion-flow). |
+| Stand-by promotion (`PromoteNextInLineEventTrooper`) | Undecided candidates are skipped — see [Standby Promotion Flow](#standby-promotion-flow). |
 | Costume dropdown submit (`SignUpUpdateHtmxController`, `costume_id` branch, via `resolveCostumeDecision()`) | Deciding while `PENDING` promotes to `GOING` (or `STAND_BY` if capacity is now full); clearing the decision while `GOING` demotes back to `PENDING`. |
 
 **UI:** The costume `<select>` on `resources/views/pages/events/inc/trooper.blade.php` includes a `none` sentinel option ("Attending without a costume") ahead of the real costume list. A `PENDING` trooper sees a hint prompting them to make a choice instead of the normal status dropdown.

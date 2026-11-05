@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Awards;
 
 use App\Enums\FlashType;
 use App\Events\AwardRevoked;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Awards\RemoveTrooperRequest;
 use App\Models\Award;
 use App\Models\AwardTrooper;
@@ -15,7 +15,7 @@ use Illuminate\Http\RedirectResponse;
 /**
  * Handles removing an award from a specific trooper.
  */
-class RemoveTrooperController extends MagicBusController
+class RemoveTrooperController extends PageController
 {
     /**
      * Handle the request to remove an award from a trooper.

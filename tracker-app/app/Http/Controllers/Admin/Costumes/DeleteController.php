@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Costumes;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Costume;
 use App\Models\EventTrooper;
 use App\Models\OrganizationCostume;
@@ -18,7 +18,7 @@ use Illuminate\Http\Request;
  * Verifies deletion is permitted and calculates referential counts before
  * displaying the deletion confirmation form.
  */
-class DeleteController extends MagicBusController
+class DeleteController extends PageController
 {
     protected function initialized(): void
     {

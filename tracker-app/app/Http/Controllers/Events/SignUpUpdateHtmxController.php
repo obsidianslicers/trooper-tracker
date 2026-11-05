@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Events;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\RosterAction;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Events\SignupUpdateHtmxRequest;
 use App\Jobs\SendEventRosterActivityNotificationsJob;
 use App\Messages\Events\Commands\ChangeEventTrooperStation;
@@ -28,7 +28,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Handles HTMX-driven updates to event trooper sign-up details.
  */
-class SignUpUpdateHtmxController extends MagicBusController
+class SignUpUpdateHtmxController extends PageController
 {
     public function __invoke(
         SignupUpdateHtmxRequest $request,

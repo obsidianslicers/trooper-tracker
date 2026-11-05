@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\ServiceRecords;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForDisplay;
 use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
 use App\Messages\Troopers\Queries\GetTrooperServiceRecord;
@@ -21,7 +21,7 @@ use RuntimeException;
 /**
  * Displays a trooper's service record dashboard.
  */
-class TrooperController extends MagicBusController
+class TrooperController extends PageController
 {
     /**
      * Retrieves dashboard data and renders the trooper service record view.

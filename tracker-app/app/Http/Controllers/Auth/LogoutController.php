@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
  * This controller logs out the authenticated trooper, destroys their session,
  * displays a success message, and redirects them to the login page.
  */
-class LogoutController extends MagicBusController
+class LogoutController extends PageController
 {
     /**
      * Handle the incoming request to log out the trooper.

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\MembershipStatus;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
-class AdminDisplayController extends MagicBusController
+class AdminDisplayController extends PageController
 {
     public function __invoke(Request $request): View
     {

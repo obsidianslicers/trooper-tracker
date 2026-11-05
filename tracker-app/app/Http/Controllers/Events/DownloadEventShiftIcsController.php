@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Event;
 use App\Models\EventShift;
 use Spatie\CalendarLinks\Generators\Ics;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class DownloadEventShiftIcsController extends MagicBusController
+class DownloadEventShiftIcsController extends PageController
 {
     public function __invoke(Event $event, EventShift $event_shift): StreamedResponse
     {

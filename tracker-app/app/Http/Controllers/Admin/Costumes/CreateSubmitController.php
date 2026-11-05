@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Costumes;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Costumes\CreateRequest;
 use App\Models\Costume;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +17,7 @@ use Illuminate\Http\RedirectResponse;
  * persists the new costume, and redirects to the update page with a success
  * flash message.
  */
-class CreateSubmitController extends MagicBusController
+class CreateSubmitController extends PageController
 {
     public function __invoke(CreateRequest $request, Costume $parent): RedirectResponse
     {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Enums\EventStatus;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Organizations\Queries\GetOrganizations;
 use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use App\Messages\Reports\Queries\GetEventSummary;
@@ -19,7 +19,7 @@ use Illuminate\Http\Request;
  * that were cancelled within the last 30 days with their organizations,
  * shifts, and attendance information.
  */
-class CancelledController extends MagicBusController
+class CancelledController extends PageController
 {
     /**
      * Handle the incoming request to display the cancelled events list page

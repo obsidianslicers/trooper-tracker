@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Account;
 
 use App\Enums\MembershipRole;
 use App\Enums\OrganizationType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Organizations\Queries\GetOrganizationTree;
 use App\Messages\Troopers\Queries\Membership\GetDeniedTrooperRequests;
 use App\Models\Organization;
@@ -18,7 +18,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class DeniedController extends MagicBusController
+class DeniedController extends PageController
 {
     public function __invoke(Request $request): View|RedirectResponse
     {

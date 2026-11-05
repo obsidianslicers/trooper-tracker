@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Costumes;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Costume;
 use App\Models\EventTrooper;
 use App\Models\OrganizationCostume;
@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\DB;
  * records in a database transaction, then soft-deletes the Costume itself.
  * Redirects to the costumes list with a success message.
  */
-class DeleteSubmitController extends MagicBusController
+class DeleteSubmitController extends PageController
 {
     /**
      * Executes costume deletion with referential cleanup.

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Http\Controllers\Events\Concerns\HandlesEventImageUploadResponses;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Event;
 use App\Services\EventImageUploadService;
 use Illuminate\Http\Request;
@@ -19,7 +19,7 @@ use Illuminate\Validation\ValidationException;
  * and thumbnail versions. Images are normalized to square canvases with
  * transparency and stored in the public storage disk.
  */
-class UploadImageController extends MagicBusController
+class UploadImageController extends PageController
 {
     use HandlesEventImageUploadResponses;
 

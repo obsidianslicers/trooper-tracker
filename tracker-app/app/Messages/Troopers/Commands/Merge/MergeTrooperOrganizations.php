@@ -63,12 +63,14 @@ final class MergeTrooperOrganizations extends Message
             $target_organization->restore();
         }
 
+        $source_identifier = $source_organization->identifier;
+
         $source_organization->identifier = null;
         $source_organization->save();
 
-        if (empty($target_organization->identifier) && !empty($source_organization->identifier))
+        if (empty($target_organization->identifier) && !empty($source_identifier))
         {
-            $target_organization->identifier = $source_organization->identifier;
+            $target_organization->identifier = $source_identifier;
             $target_organization->save();
         }
     }

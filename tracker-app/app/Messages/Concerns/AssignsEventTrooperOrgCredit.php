@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 /**
  * Shared org-credit assignment logic for an EventTrooper row.
  *
- * Extracted from UpdateEventRosterCommandHandler so every entry point that can set
+ * Extracted from UpdateEventRoster so every entry point that can set
  * organization_id/costume_organization_ids (the bulk roster editor and the missing-credit
  * fix tool) goes through one implementation instead of drifting apart
  */

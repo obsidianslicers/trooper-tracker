@@ -18,6 +18,7 @@ use App\Models\TrooperAchievement;
 use App\Models\TrooperDonation;
 use App\Plugins\PluginDonations;
 use App\Support\DonationSummary;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Mockery;
@@ -554,6 +555,57 @@ class RecalculateTrooperRankTest extends TestCase
         $this->assertDatabaseHas('tt_trooper_achievements', [
             TrooperAchievement::TROOPER_ID => $trooper->id,
             TrooperAchievement::TYPE => AchievementType::DONATED_100->value,
+        ]);
+    }
+
+    public function test_handle_counts_local_donation_months_and_amount_without_donation_sources(): void
+    {
+        $trooper = Trooper::factory()->create();
+        TrooperDonation::factory()->forTrooper($trooper)->createdAt(Carbon::parse('2026-01-05'))
+            ->create([TrooperDonation::AMOUNT => 200]);
+        TrooperDonation::factory()->forTrooper($trooper)->createdAt(Carbon::parse('2026-03-05'))
+            ->create([TrooperDonation::AMOUNT => 100]);
+
+        $subject = new RecalculateTrooperRank(
+            trooper_id: $trooper->id,
+            send_milestone_notifications: false,
+        );
+        $subject->handle();
+
+        $this->assertAchievementValue($trooper, AchievementType::DONATION_MONTHS, 2);
+        $this->assertAchievementValue($trooper, AchievementType::TOTAL_DONATED, 300);
+        $this->assertHasAchievement($trooper, AchievementType::DONATED_250);
+        $this->assertMissingAchievement($trooper, AchievementType::DONATED_500);
+        $this->assertMissingAchievement($trooper, AchievementType::SUPPORTER_12_MONTHS);
+    }
+
+    private function achievementValue(Trooper $trooper, AchievementType $type): mixed
+    {
+        return TrooperAchievement::query()
+            ->where(TrooperAchievement::TROOPER_ID, $trooper->id)
+            ->where(TrooperAchievement::TYPE, $type->value)
+            ->first()
+            ?->value;
+    }
+
+    private function assertAchievementValue(Trooper $trooper, AchievementType $type, int $value): void
+    {
+        $this->assertEquals($value, $this->achievementValue($trooper, $type));
+    }
+
+    private function assertHasAchievement(Trooper $trooper, AchievementType $type): void
+    {
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => $type->value,
+        ]);
+    }
+
+    private function assertMissingAchievement(Trooper $trooper, AchievementType $type): void
+    {
+        $this->assertDatabaseMissing('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => $type->value,
         ]);
     }
 }

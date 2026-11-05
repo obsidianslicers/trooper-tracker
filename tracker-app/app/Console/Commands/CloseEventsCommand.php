@@ -13,7 +13,7 @@ use Illuminate\Console\Command;
  * Artisan command to close events that have ended.
  *
  * This command orchestrates the process of identifying and closing events
- * whose end date has passed. It delegates the query logic to GetEventsToCloseQuery
+ * whose end date has passed. It delegates the query logic to GetEventsToClose
  * service and updates each event's status to CLOSED.
  */
 class CloseEventsCommand extends Command
