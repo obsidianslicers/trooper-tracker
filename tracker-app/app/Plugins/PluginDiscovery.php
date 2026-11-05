@@ -23,6 +23,7 @@ class PluginDiscovery
     public function __construct(
         private readonly string $local_path,
         private readonly ?string $uploads_path = null,
+        private readonly bool $includes_composer_packages = true,
     ) {}
 
     public function uploadsPath(): ?string
@@ -91,6 +92,11 @@ class PluginDiscovery
      */
     private function composerPaths(): array
     {
+        if (!$this->includes_composer_packages)
+        {
+            return [];
+        }
+
         $paths = [];
 
         foreach (InstalledVersions::getInstalledPackagesByType(self::COMPOSER_TYPE) as $package)

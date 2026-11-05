@@ -464,6 +464,8 @@ php artisan plugins:enable xenforo
 php artisan db:seed --class="TroopTracker\Plugins\GoogleSheets\Database\Seeders\ClubSheetsSeeder"
 ```
 
+The plugin declares `google/apiclient` in its own `composer.json`, and the app requires it as `trooptracker/google-sheets` through the `plugins/*` path repository, so the Google client is installed only because the plugin needs it. A normal `composer install` on deploy brings both.
+
 Google Maps geocoding of event addresses stays in core (`GoogleService`, `GOOGLE_MAPS_API_KEY`).
 
 Sites that sync clubs from Google Sheets must enable the plugin after deploying, or those syncs read nothing:

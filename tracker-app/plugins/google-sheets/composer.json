@@ -1,0 +1,16 @@
+{
+    "name": "trooptracker/google-sheets",
+    "description": "Google Sheets plugin for TroopTracker",
+    "type": "trooptracker-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "google/apiclient": "^2.18"
+    },
+    "autoload": {
+        "psr-4": {
+            "TroopTracker\\Plugins\\GoogleSheets\\": "src/"
+        }
+    }
+}

@@ -7,7 +7,7 @@ Overview of Composer packages used in Troop Tracker.
 | Package | Purpose |
 |---|---|
 | `php` | The underlying programming language version for the project (^8.2). |
-| `google/apiclient` | The official Google API Client Library for PHP. Used by the google-sheets plugin to read club rosters from Google Sheets. It stays in the app's composer.json because folder plugins can't bring their own packages. |
+| `trooptracker/google-sheets` | The google-sheets plugin in `plugins/google-sheets`, installed through the path repository. It brings `google/apiclient`, which it uses to read club rosters from Google Sheets. |
 | `intervention/image` | A PHP image handling and manipulation library. Used for processing and resizing uploaded event photos and trooper avatars. |
 | `laravel/framework` | The core of the application. Laravel is the PHP framework upon which the application is built. |
 | `laravel/socialite` | OAuth authentication library for Laravel. Used for social login integrations (Google OAuth and XenForo OAuth for forum-based authentication). |

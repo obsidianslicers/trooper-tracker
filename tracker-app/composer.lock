@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "58df37287b2588628dc9c43e41ca9095",
+    "content-hash": "c2fad2dccf5587ae804e9fc05ceafac5",
     "packages": [
         {
             "name": "beste/clock",
@@ -8699,6 +8699,33 @@
                 "source": "https://github.com/tijsverkoyen/CssToInlineStyles/tree/v2.4.0"
             },
             "time": "2025-12-02T11:56:42+00:00"
+        },
+        {
+            "name": "trooptracker/google-sheets",
+            "version": "1.0.0",
+            "dist": {
+                "type": "path",
+                "url": "plugins/google-sheets",
+                "reference": "1e1c2e8eeb0f2714a6a265485a94d8a056f5677f"
+            },
+            "require": {
+                "google/apiclient": "^2.18",
+                "php": "^8.2"
+            },
+            "type": "trooptracker-plugin",
+            "autoload": {
+                "psr-4": {
+                    "TroopTracker\\Plugins\\GoogleSheets\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "Google Sheets plugin for TroopTracker",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "vlucas/phpdotenv",
