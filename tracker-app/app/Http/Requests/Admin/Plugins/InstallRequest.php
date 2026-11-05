@@ -13,7 +13,7 @@ class InstallRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return (bool) config('plugins.uploads.enabled', false);
+        return (bool) config('plugins.uploads.enabled', true);
     }
 
     /**

@@ -12,11 +12,36 @@ use Throwable;
  * Checks a plugin's requirements against what the site already has: the PHP
  * version, PHP extensions, Composer packages and the plugin API version.
  *
- * An uploaded plugin cannot install packages, so it may only use what the app
- * already provides. Every plugin is checked again before it is turned on.
+ * Missing Composer packages are installed by the next deploy; PHP, its
+ * extensions and the plugin API must already match. Every plugin is checked
+ * again before it is turned on.
  */
 final class PluginRequirements
 {
+    public const PACKAGE_NAME_PATTERN = '/^[a-z0-9]([_.-]?[a-z0-9]+)*'
+        .'\/[a-z0-9](([_.]|-{1,2})?[a-z0-9]+)*$/';
+
+    /**
+     * Split requirements into Composer packages (vendor/name) and the rest
+     * (PHP, extensions, the plugin API), which a deploy cannot install.
+     *
+     * @param  array<string, mixed>  $requirements
+     * @return array{packages: array<string, string>, platform: array<string, string>}
+     */
+    public static function split(array $requirements): array
+    {
+        $split = ['packages' => [], 'platform' => []];
+
+        foreach ($requirements as $name => $constraint)
+        {
+            $name = (string) $name;
+            $key = str_contains($name, '/') ? 'packages' : 'platform';
+            $split[$key][$name] = (string) $constraint;
+        }
+
+        return $split;
+    }
+
     /**
      * @param  array<string, string>  $requirements  Package name => version constraint.
      * @return array<int, string> Each unmet requirement, e.g. "vendor/pkg ^2.0".
@@ -109,6 +134,29 @@ final class PluginRequirements
     private function phpVersion(): string
     {
         return PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION.'.'.PHP_RELEASE_VERSION;
+    }
+
+    /**
+     * A version constraint Composer understands, without branch or path tricks
+     * such as "dev-main#ref" or "@dev".
+     */
+    public function isValidConstraint(string $constraint): bool
+    {
+        if ($constraint === '' || str_contains($constraint, '#') || str_contains($constraint, '@'))
+        {
+            return false;
+        }
+
+        try
+        {
+            (new VersionParser)->parseConstraints($constraint);
+
+            return true;
+        }
+        catch (Throwable)
+        {
+            return false;
+        }
     }
 
     /**

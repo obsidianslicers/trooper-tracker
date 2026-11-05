@@ -377,6 +377,10 @@ Run by `deploy.sh` after Composer and migrations. Runs plugin migrations for plu
 php artisan plugins:reconcile
 ```
 
+### `plugins:packages [--write]` / `plugins:unmet`
+
+`plugins:packages` lists the Composer packages the enabled plugins need; `--write` also saves them for the deploy. `plugins:unmet` lists enabled plugins that can't run right now (files missing or requirements not met). `deploy.sh` runs it before and after installing packages and stops if a plugin that could run before can't any more.
+
 ### `plugins:add-package {name} {version?} [--repository=] [--compatible]` / `plugins:remove-package {name}`
 
 Save a Composer plugin for the next deploy to install, or stop installing it. `--repository` is an `https://` repository for a package not on Packagist. `--compatible` takes updates within the same major version on each deploy; without it the first installed version is kept.

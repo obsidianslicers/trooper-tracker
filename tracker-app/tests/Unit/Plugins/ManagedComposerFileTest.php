@@ -114,6 +114,20 @@ class ManagedComposerFileTest extends TestCase
         $this->assertNotContains('guzzlehttp/guzzle', $subject->packagesToUpdate());
     }
 
+    public function test_the_lock_check_finds_core_packages_that_moved(): void
+    {
+        $this->assertSame([], $this->subject(self::APP_LOCK)->movedCorePackages());
+
+        $managed = self::APP_LOCK;
+        $managed['packages'][1]['version'] = '7.10.0';
+        unset($managed['packages-dev']);
+
+        $this->assertSame(
+            ['guzzlehttp/guzzle 7.9.2 -> 7.10.0', 'phpunit/phpunit 11.5.1 -> missing'],
+            $this->subject($managed)->movedCorePackages(),
+        );
+    }
+
     public function test_no_plugin_packages_means_a_plain_install(): void
     {
         $subject = new ManagedComposerFile(self::APP_JSON, self::APP_LOCK, null, []);

@@ -20,6 +20,8 @@ class PluginDiscovery
 
     public const MANIFEST_FILE = 'plugin.json';
 
+    public const STAGED_FOLDER = '.pending';
+
     public function __construct(
         private readonly string $local_path,
         private readonly ?string $uploads_path = null,
@@ -34,6 +36,32 @@ class PluginDiscovery
     public function uploadsPath(): ?string
     {
         return $this->uploads_path;
+    }
+
+    /**
+     * Where an uploaded update waits for the packages it needs, while the
+     * installed version keeps running.
+     */
+    public function stagedPath(string $slug): ?string
+    {
+        return $this->uploads_path === null
+            ? null
+            : rtrim($this->uploads_path, '/').'/'.self::STAGED_FOLDER.'/'.$slug;
+    }
+
+    public function staged(string $slug): ?PluginManifest
+    {
+        $path = $this->stagedPath($slug);
+
+        if ($path === null || !is_file($path.'/'.self::MANIFEST_FILE))
+        {
+            return null;
+        }
+
+        $manifests = [];
+        $this->addManifest($manifests, $path, false);
+
+        return $manifests[$slug] ?? null;
     }
 
     public function isUploaded(PluginManifest $manifest): bool

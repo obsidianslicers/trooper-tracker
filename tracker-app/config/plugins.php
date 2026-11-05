@@ -24,9 +24,10 @@ return [
     |--------------------------------------------------------------------------
     |
     | Administrators can install a plugin by uploading a zip file under
-    | Admin > Plugins. A plugin runs PHP code on the server once enabled, so
-    | uploads are off unless TRACKER_PLUGINS_ALLOW_UPLOADS is true. Uploaded
-    | plugins are kept outside the git checkout so a deploy cannot remove them.
+    | Admin > Plugins; nobody else can. A plugin runs PHP code on the server
+    | once enabled. Set TRACKER_PLUGINS_ALLOW_UPLOADS=false to turn uploads off.
+    | Uploaded plugins, and plugin folders copied onto the server, live here,
+    | outside the git checkout, so a deploy never removes them.
     |
     */
 
@@ -43,7 +44,7 @@ return [
     'deploy_path' => storage_path('app/plugin-deploy'),
 
     'uploads' => [
-        'enabled' => (bool) env('TRACKER_PLUGINS_ALLOW_UPLOADS', false),
+        'enabled' => (bool) env('TRACKER_PLUGINS_ALLOW_UPLOADS', true),
         'path' => env('TRACKER_PLUGINS_UPLOADS_PATH', storage_path('app/plugins')),
         'max_kilobytes' => (int) env('TRACKER_PLUGINS_MAX_UPLOAD_KB', 10240),
         'max_unzipped_kilobytes' => (int) env('TRACKER_PLUGINS_MAX_UNZIPPED_KB', 51200),

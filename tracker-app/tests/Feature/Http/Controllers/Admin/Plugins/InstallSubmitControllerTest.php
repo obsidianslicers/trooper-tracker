@@ -112,17 +112,38 @@ class InstallSubmitControllerTest extends TestCase
         $this->postArchive($files)->assertSessionHasErrors('archive');
     }
 
-    public function test_invoke_refuses_a_plugin_that_needs_missing_packages(): void
+    public function test_invoke_installs_a_plugin_that_needs_new_packages_for_the_deploy(): void
     {
         $files = $this->greeterFiles() + ['greeter/composer.json' => (string) json_encode([
             'require' => ['php' => '^8.2', 'acme/not-installed' => '^1.0'],
         ])];
 
-        $this->postArchive($files)
-            ->assertSessionHasErrors([
-                'archive' => 'This plugin needs packages the app does not have: '
-                    .'acme/not-installed ^1.0. Install it with Composer instead of uploading it.',
-            ]);
+        $this->postArchive($files)->assertSessionHas('success');
+
+        $this->assertFileExists($this->uploads_path.'/greeter/plugin.json');
+    }
+
+    public function test_invoke_refuses_a_plugin_this_server_cannot_run(): void
+    {
+        $files = $this->greeterFiles() + ['greeter/composer.json' => (string) json_encode([
+            'require' => ['php' => '>=99.0', 'acme/not-installed' => '^1.0'],
+        ])];
+
+        $this->postArchive($files)->assertSessionHasErrors('archive');
+
+        $this->assertDirectoryDoesNotExist($this->uploads_path.'/greeter');
+    }
+
+    public function test_invoke_refuses_a_bad_package_name_or_version(): void
+    {
+        foreach (['../../etc' => '*', 'acme/badges' => 'dev-main#abc123'] as $name => $constraint)
+        {
+            $files = $this->greeterFiles() + ['greeter/composer.json' => (string) json_encode([
+                'require' => [$name => $constraint],
+            ])];
+
+            $this->postArchive($files)->assertSessionHasErrors('archive');
+        }
 
         $this->assertDirectoryDoesNotExist($this->uploads_path.'/greeter');
     }

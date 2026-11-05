@@ -33,7 +33,7 @@ final class ListPluginsPageData extends Message
         return [
             'plugins' => GetPlugins::call(),
             'uploads' => [
-                'is_enabled' => (bool) config('plugins.uploads.enabled', false),
+                'is_enabled' => (bool) config('plugins.uploads.enabled', true),
                 'max_kilobytes' => (int) config('plugins.uploads.max_kilobytes', 10240),
             ],
             'packages' => PluginPackage::query()->orderBy(PluginPackage::NAME)->get(),

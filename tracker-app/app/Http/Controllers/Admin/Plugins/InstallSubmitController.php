@@ -32,6 +32,15 @@ class InstallSubmitController extends Controller
 
         $manifest = $result['manifest'];
 
+        if ($result['is_staged'])
+        {
+            FlashType::info("Version {$manifest->version} of \"{$manifest->name}\" needs Composer "
+                .'packages. The next deploy installs them and then applies the update; '
+                ."{$result['previous_version']} keeps running until then.");
+
+            return redirect()->route('admin.plugins.list');
+        }
+
         FlashType::success($result['previous_version'] === null
             ? "Plugin \"{$manifest->name}\" {$manifest->version} was installed. "
                 .'Enable it to turn it on.'

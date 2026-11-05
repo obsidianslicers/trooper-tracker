@@ -56,7 +56,12 @@
                     {{ ucfirst($plugin['source']) }}
                 </td>
                 <td>
-                    @if($plugin['is_enabled'] && $plugin['is_loaded'])
+                    @if($plugin['is_enabled'] && $plugin['status'] === 'failed')
+                        <span class="badge text-bg-warning"
+                              title="Enabled, but the last deploy could not finish setting it up.">
+                            Needs attention
+                        </span>
+                    @elseif($plugin['is_enabled'] && $plugin['is_loaded'])
                         <span class="badge text-bg-success">Enabled</span>
                     @elseif($plugin['is_enabled'])
                         <span class="badge text-bg-danger"
@@ -269,7 +274,8 @@
             @csrf
             <p class="text-muted small">
                 Upload a plugin as a .zip file (up to {{ number_format($uploads['max_kilobytes'] / 1024, 1) }} MB)
-                with its plugin.json at the top. It is installed disabled.
+                with its plugin.json at the top. It is installed disabled. Composer packages it
+                needs are installed by the next deploy.
                 A plugin runs code on the server once enabled, so only install plugins you trust.
             </p>
             <div class="input-group">
@@ -288,7 +294,7 @@
     @else
         <p class="text-muted small mb-0">
             Installing plugins from here is turned off.
-            Set TRACKER_PLUGINS_ALLOW_UPLOADS=true on the server to allow it,
+            The server sets TRACKER_PLUGINS_ALLOW_UPLOADS=false. Remove that to allow it,
             or add plugins with a deploy (plugins folder or Composer).
         </p>
     @endif

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Plugins;
 
+use App\Enums\PluginChangeAction;
+use App\Models\PluginChange;
 use Composer\Semver\Comparator;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
@@ -22,6 +24,11 @@ use ZipArchive;
  * Uploading a newer version of an uploaded plugin replaces its files and keeps
  * the old ones in uploads/.previous/<slug> until the upgrade is done, so they can
  * be put back if it fails.
+ *
+ * A plugin may need Composer packages the site doesn't have yet; the next deploy
+ * installs them. An update for an enabled plugin that needs new packages waits
+ * in uploads/.pending/<slug>, so the installed version keeps running until the
+ * deploy has installed them (see ReconcilePlugins).
  */
 final class PluginInstaller
 {
@@ -41,9 +48,10 @@ final class PluginInstaller
     ) {}
 
     /**
-     * previous_version is set when the upload replaced an older uploaded version.
+     * previous_version is set when the upload replaces an older uploaded version.
+     * is_staged is true when that update waits for the next deploy's packages.
      *
-     * @return array{manifest: PluginManifest, previous_version: ?string}
+     * @return array{manifest: PluginManifest, previous_version: ?string, is_staged: bool}
      */
     public function install(string $archive_path): array
     {
@@ -56,8 +64,10 @@ final class PluginInstaller
             $root = $this->root($entries);
             $manifest = $this->manifest($zip, $root, $uploads_path);
             $previous_version = $this->checkUpgrade($manifest);
-            $this->checkRequirements($zip, $root);
-            $this->extract($zip, $entries, $root, $manifest->path, $previous_version !== null);
+            $missing = $this->checkRequirements($zip, $root);
+            $is_staged = $previous_version !== null && $missing !== []
+                && $this->plugins->isEnabled($manifest->slug);
+            $this->place($zip, $entries, $root, $manifest, $previous_version, $is_staged);
         }
         finally
         {
@@ -67,9 +77,102 @@ final class PluginInstaller
         $this->plugins->forgetManifests();
 
         return [
-            'manifest' => $this->plugins->findOrFail($manifest->slug),
+            'manifest' => $is_staged
+                ? $this->discovery->staged($manifest->slug) ?? $manifest
+                : $this->plugins->findOrFail($manifest->slug),
             'previous_version' => $previous_version,
+            'is_staged' => $is_staged,
         ];
+    }
+
+    /**
+     * Move a waiting update into place, keeping the installed files aside so
+     * restorePrevious() can put them back.
+     */
+    public function promoteStaged(string $slug): PluginManifest
+    {
+        $installed = $this->plugins->findOrFail($slug);
+        $staged = (string) $this->discovery->stagedPath($slug);
+
+        $this->swapIn($staged, $installed->path);
+        $this->plugins->forgetManifests();
+
+        return $this->plugins->findOrFail($slug);
+    }
+
+    /**
+     * Finish an update whose files are in place: run its migrations if the
+     * plugin is enabled, or put the previous files back if they fail.
+     *
+     * @throws PluginInstallException
+     */
+    public function applyUpgrade(PluginManifest $manifest, string $previous_version): void
+    {
+        if (!$this->plugins->isEnabled($manifest->slug))
+        {
+            PluginChange::record(
+                $manifest->slug,
+                PluginChangeAction::UPGRADED,
+                $previous_version,
+                $manifest->version,
+                message: 'Files replaced; migrations run when it is enabled.',
+            );
+            $this->forgetPrevious($manifest);
+
+            return;
+        }
+
+        try
+        {
+            $this->plugins->upgrade($manifest->slug);
+        }
+        catch (PluginException $e)
+        {
+            $this->restorePrevious($manifest);
+
+            throw new PluginInstallException(
+                "The upgrade to {$manifest->version} failed, so version {$previous_version} "
+                .'was put back. '.$e->getMessage(),
+                previous: $e,
+            );
+        }
+
+        $this->forgetPrevious($manifest);
+    }
+
+    public function discardStaged(string $slug): void
+    {
+        $path = $this->discovery->stagedPath($slug);
+
+        if ($path !== null)
+        {
+            $this->files->deleteDirectory($path);
+        }
+    }
+
+    /**
+     * @param  array<string, int>  $entries
+     */
+    private function place(
+        ZipArchive $zip,
+        array $entries,
+        string $root,
+        PluginManifest $manifest,
+        ?string $previous_version,
+        bool $is_staged,
+    ): void {
+        if ($is_staged)
+        {
+            $staged = (string) $this->discovery->stagedPath($manifest->slug);
+            $this->files->deleteDirectory($staged);
+            $this->files->ensureDirectoryExists(dirname($staged));
+            $this->extract($zip, $entries, $root, $staged, false);
+
+            return;
+        }
+
+        $this->discardStaged($manifest->slug);
+        $this->extract($zip, $entries, $root, $manifest->path, $previous_version !== null);
     }
 
     /**
@@ -271,20 +374,62 @@ final class PluginInstaller
         return $manifest;
     }
 
-    private function checkRequirements(ZipArchive $zip, string $root): void
+    /**
+     * PHP, its extensions and the plugin API must already match. Missing Composer
+     * packages are allowed: the next deploy installs them.
+     *
+     * @return array<int, string> the Composer packages the site doesn't have yet
+     */
+    private function checkRequirements(ZipArchive $zip, string $root): array
     {
-        $json = $zip->getFromName($root.'composer.json');
-        $composer = $json === false ? null : json_decode($json, true);
-        $required = is_array($composer) ? (array) ($composer['require'] ?? []) : [];
-        $missing = $this->requirements->missing($required);
+        $required = $this->zipJson($zip, $root.'composer.json')['require'] ?? [];
+        $manifest = $this->zipJson($zip, $root.PluginDiscovery::MANIFEST_FILE);
+        $plugin_requires = $manifest['requires'] ?? [];
+        $split = PluginRequirements::split([
+            ...(is_array($required) ? $required : []),
+            ...(is_array($plugin_requires) ? $plugin_requires : []),
+        ]);
+        $unmet = $this->requirements->unmet($split['platform']);
 
-        if ($missing !== [])
+        if ($unmet !== [])
         {
             throw new PluginInstallException(
-                'This plugin needs packages the app does not have: '.implode(', ', $missing)
-                .'. Install it with Composer instead of uploading it.'
+                'This plugin can\'t run on this server. It needs '.implode('; ', $unmet).'.'
             );
         }
+
+        $this->checkPackageNames($split['packages']);
+
+        return $this->requirements->missing($split['packages']);
+    }
+
+    /**
+     * @param  array<string, string>  $packages
+     */
+    private function checkPackageNames(array $packages): void
+    {
+        foreach ($packages as $name => $constraint)
+        {
+            if (preg_match(PluginRequirements::PACKAGE_NAME_PATTERN, $name) !== 1
+                || !$this->requirements->isValidConstraint($constraint))
+            {
+                throw new PluginInstallException(
+                    "composer.json asks for [{$name} {$constraint}], which is not a valid "
+                    .'package name and version.'
+                );
+            }
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function zipJson(ZipArchive $zip, string $name): array
+    {
+        $json = $zip->getFromName($name);
+        $data = $json === false ? null : json_decode($json, true);
+
+        return is_array($data) ? $data : [];
     }
 
     /**

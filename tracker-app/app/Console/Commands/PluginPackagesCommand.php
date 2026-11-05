@@ -13,12 +13,17 @@ use Illuminate\Console\Command;
  */
 class PluginPackagesCommand extends Command
 {
-    protected $signature = 'plugins:packages';
+    protected $signature = 'plugins:packages {--write : Also save them for the deploy}';
 
     protected $description = 'List the Composer packages enabled plugins need, for the deploy.';
 
     public function handle(PluginDeployPackages $packages): int
     {
+        if ($this->option('write'))
+        {
+            $packages->writeRequirements();
+        }
+
         foreach ($packages->toInstall() as $name)
         {
             $this->line($name);

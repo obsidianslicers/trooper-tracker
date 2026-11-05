@@ -51,7 +51,7 @@ class PluginDeployPackagesTest extends TestCase
         $this->assertTrue($record->is_enable_pending);
         $this->assertFalse($this->plugins->isEnabled('sheets'));
         $this->assertTrue($this->plugins->isEnablePending('sheets'));
-        $this->assertSame(['acme/sheets'], $this->subject->toInstall());
+        $this->assertSame(['acme/not-installed:^1.0'], $this->subject->toInstall());
     }
 
     public function test_the_deploy_lists_enabled_plugins_with_packages_only(): void
@@ -62,8 +62,8 @@ class PluginDeployPackagesTest extends TestCase
         $this->plugins->enable('installed');
         $this->plugins->enable('no-packages');
 
-        $this->assertSame(['acme/installed'], $this->subject->toInstall());
-        $this->artisan('plugins:packages')->expectsOutput('acme/installed')->assertSuccessful();
+        $this->assertSame(['laravel/framework'], $this->subject->toInstall());
+        $this->artisan('plugins:packages')->expectsOutput('laravel/framework')->assertSuccessful();
     }
 
     public function test_enable_pending_turns_the_plugin_on_once_its_packages_are_in(): void
@@ -122,18 +122,26 @@ class PluginDeployPackagesTest extends TestCase
             ->assertSee('Cancel');
     }
 
-    public function test_an_uploaded_plugin_is_never_installed_by_the_deploy(): void
+    public function test_plugins_from_every_folder_get_their_packages_from_the_deploy(): void
     {
         $uploads = $this->plugins_path.'-uploads';
         $this->useBundledPlugins($this->plugins_path, $uploads);
-        $this->writePlugin('sheets', ['acme/not-installed' => '^1.0'], [], $uploads);
-        $this->plugins->recordSource('sheets', PluginSource::UPLOADED);
+        $this->writePlugin('sheets', ['acme/sheets-api' => '^1.0']);
+        $this->writePlugin('uploaded', ['acme/uploaded-api' => '^2.0'], [], $uploads);
+        $this->writePlugin('copied', ['acme/sheets-api' => '^1.2'], [], $uploads);
+        $this->plugins->recordSource('uploaded', PluginSource::UPLOADED);
 
         try
         {
-            $this->expectException(PluginRequirementsException::class);
-
             EnablePlugin::call(slug: 'sheets');
+            EnablePlugin::call(slug: 'uploaded');
+            EnablePlugin::call(slug: 'copied');
+
+            $this->assertTrue($this->plugins->isEnablePending('uploaded'));
+            $this->assertSame([
+                'packages' => ['acme/sheets-api' => '^1.2 ^1.0', 'acme/uploaded-api' => '^2.0'],
+                'repositories' => [],
+            ], $this->saved());
         }
         finally
         {
@@ -141,27 +149,29 @@ class PluginDeployPackagesTest extends TestCase
         }
     }
 
-    public function test_a_plugin_copied_to_the_server_gets_its_packages_from_the_deploy(): void
+    public function test_disabling_a_plugin_drops_its_packages_from_the_next_deploy(): void
     {
-        $uploads = $this->plugins_path.'-uploads';
-        $this->useBundledPlugins($this->plugins_path, $uploads);
-        $this->writePlugin('sheets', ['acme/not-installed' => '^1.0'], [], $uploads);
+        $this->writePlugin('sheets', ['laravel/framework' => '*']);
+        $this->plugins->enable('sheets');
+        $this->assertSame(['laravel/framework'], $this->subject->toInstall());
 
-        try
-        {
-            EnablePlugin::call(slug: 'sheets');
+        $this->plugins->disable('sheets');
 
-            $this->assertTrue($this->plugins->isEnablePending('sheets'));
-            $requirements = $this->subject->requirements();
-            $this->assertSame(['acme/sheets' => '*'], $requirements['packages']);
-            $this->assertSame('path', $requirements['repositories'][0]['type']);
-            $this->assertSame($uploads.'/sheets', $requirements['repositories'][0]['url']);
-            $this->assertFileExists(PluginDeployPackages::requirementsPath());
-        }
-        finally
-        {
-            (new Filesystem)->deleteDirectory($uploads);
-        }
+        $this->assertSame([], $this->subject->toInstall());
+        $this->assertSame(
+            [],
+            $this->saved()['packages'],
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function saved(): array
+    {
+        $path = PluginDeployPackages::requirementsPath();
+
+        return json_decode((string) file_get_contents($path), true);
     }
 
     private function useBundledPlugins(string $local_path, ?string $uploads_path = null): void

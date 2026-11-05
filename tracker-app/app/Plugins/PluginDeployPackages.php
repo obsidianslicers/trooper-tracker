@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Plugins;
 
 use App\Enums\PackageUpdatePolicy;
-use App\Enums\PluginSource;
 use App\Models\PluginPackage;
 use Composer\InstalledVersions;
 use Throwable;
@@ -13,12 +12,13 @@ use Throwable;
 /**
  * Works out which Composer packages the site's plugins need, for the deploy.
  *
- * A plugin folder with its own composer.json is installed as a Composer package
- * through a path repository; a plugin from another repository is a package an
- * administrator added. The app's composer.json never lists them. Instead this
- * class saves them to storage/app/plugin-deploy/requirements.json, and the
- * deploy builds composer.plugins.json from it (see Deploy\ManagedComposerFile).
- * Uploaded zips never get packages: they may only use what the app has.
+ * A plugin folder (bundled, uploaded or copied onto the server) lists the
+ * packages it needs in its composer.json; those of every plugin that is on or
+ * waiting to be turned on are installed at app level. A plugin from another
+ * repository is a package an administrator added. The app's composer.json never
+ * lists them. Instead this class saves them to requirements.json in the plugin
+ * deploy folder, and the deploy builds composer.plugins.json from it (see
+ * Deploy\ManagedComposerFile).
  */
 final class PluginDeployPackages
 {
@@ -29,41 +29,12 @@ final class PluginDeployPackages
     ) {}
 
     /**
-     * The Composer name of a bundled plugin that needs packages of its own.
-     */
-    public function packageName(PluginManifest $manifest): ?string
-    {
-        if ($this->plugins->record($manifest->slug)?->source === PluginSource::UPLOADED->value)
-        {
-            return null;
-        }
-
-        if (!$this->isPluginFolder($manifest))
-        {
-            return null;
-        }
-
-        $composer = $this->composerFile($manifest);
-        $name = $composer['name'] ?? null;
-
-        return is_string($name) && $this->packages($composer) !== [] ? $name : null;
-    }
-
-    /**
      * Whether the only thing stopping the plugin is packages a deploy can install.
      */
     public function canInstallOnDeploy(string $slug): bool
     {
         $manifest = $this->plugins->findOrFail($slug);
-
-        if ($this->packageName($manifest) === null)
-        {
-            return false;
-        }
-
-        $missing_packages = $this->requirements->unmet(
-            $this->packages($this->composerFile($manifest))
-        );
+        $missing_packages = $this->requirements->unmet($manifest->packages());
 
         return $missing_packages !== []
             && count($missing_packages) === count($this->plugins->unmetRequirements($slug));
@@ -95,11 +66,15 @@ final class PluginDeployPackages
         $packages = [];
         $repositories = [];
 
-        foreach ($this->bundled() as $name => $manifest)
+        foreach ($this->wanted() as $manifest)
         {
-            $packages[$name] = '*';
-            $repositories[] = $this->pathRepository($manifest);
+            foreach ($manifest->packages() as $name => $constraint)
+            {
+                $packages[$name][] = $constraint;
+            }
         }
+
+        $packages = array_map($this->combine(...), $packages);
 
         foreach ($this->added() as $package)
         {
@@ -115,6 +90,28 @@ final class PluginDeployPackages
             'packages' => $packages,
             'repositories' => array_values(array_unique(array_filter($repositories), SORT_REGULAR)),
         ];
+    }
+
+    /**
+     * Two plugins asking for the same package must both be satisfied. A
+     * constraint with "||" can't be combined safely, so the first one wins and
+     * the requirement check reports the other plugin.
+     *
+     * @param  array<int, string>  $constraints
+     */
+    private function combine(array $constraints): string
+    {
+        $constraints = array_values(array_unique(array_map('trim', $constraints)));
+        $specific = array_values(array_filter($constraints, fn (string $c): bool => $c !== '*'));
+        $has_or = array_filter($specific, fn (string $c): bool => str_contains($c, '|')) !== [];
+
+        return match (true)
+        {
+            $specific === [] => '*',
+            count($specific) === 1 => $specific[0],
+            $has_or => $specific[0],
+            default => implode(' ', $specific),
+        };
     }
 
     /**
@@ -184,26 +181,6 @@ final class PluginDeployPackages
     }
 
     /**
-     * A plugin folder outside tracker-app/plugins, such as one copied into the
-     * persistent plugins folder, needs its own path repository.
-     *
-     * @return array<string, mixed>|null
-     */
-    private function pathRepository(PluginManifest $manifest): ?array
-    {
-        $folder = dirname($manifest->path);
-
-        $local = $this->discovery->localPath();
-
-        if ((realpath($folder) ?: $folder) === (realpath($local) ?: $local))
-        {
-            return null;
-        }
-
-        return ['type' => 'path', 'url' => $manifest->path, 'options' => ['symlink' => true]];
-    }
-
-    /**
      * The installed Composer plugin that came from this package, if any.
      */
     public function manifestFromPackage(string $name): ?PluginManifest
@@ -242,58 +219,25 @@ final class PluginDeployPackages
     }
 
     /**
-     * Plugin folders with packages of their own that are on or waiting.
+     * Plugin folders that are on or waiting to be turned on. An update that is
+     * waiting for its packages counts instead of the installed version.
      *
-     * @return array<string, PluginManifest> keyed by Composer name
+     * @return array<int, PluginManifest>
      */
-    private function bundled(): array
+    private function wanted(): array
     {
-        $names = [];
+        $wanted = [];
 
         foreach ($this->plugins->all() as $manifest)
         {
-            $wanted = $this->plugins->isEnabled($manifest->slug)
-                || $this->plugins->isEnablePending($manifest->slug);
-            $name = $wanted ? $this->packageName($manifest) : null;
-
-            if ($name !== null)
+            if ($this->plugins->isEnabled($manifest->slug)
+                || $this->plugins->isEnablePending($manifest->slug))
             {
-                $names[$name] = $manifest;
+                $wanted[] = $this->discovery->staged($manifest->slug) ?? $manifest;
             }
         }
 
-        return $names;
-    }
-
-    /**
-     * A folder under tracker-app/plugins or the persistent plugins folder, even
-     * once Composer has installed it through a path repository.
-     */
-    private function isPluginFolder(PluginManifest $manifest): bool
-    {
-        $path = realpath($manifest->path) ?: $manifest->path;
-        $folders = array_filter([$this->discovery->localPath(), $this->discovery->uploadsPath()]);
-
-        foreach ($folders as $folder)
-        {
-            if (str_starts_with($path, (realpath($folder) ?: $folder).DIRECTORY_SEPARATOR))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function composerFile(PluginManifest $manifest): array
-    {
-        $file = $manifest->path.'/composer.json';
-        $composer = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
-
-        return is_array($composer) ? $composer : [];
+        return $wanted;
     }
 
     /**
@@ -336,24 +280,5 @@ final class PluginDeployPackages
         {
             return $e->getMessage();
         }
-    }
-
-    /**
-     * The "require" entries that are real packages, not PHP or its extensions.
-     *
-     * @param  array<string, mixed>  $composer
-     * @return array<string, string>
-     */
-    private function packages(array $composer): array
-    {
-        $require = is_array($composer['require'] ?? null) ? $composer['require'] : [];
-
-        return array_filter(
-            $require,
-            fn (string $package): bool => $package !== 'php'
-                && !str_starts_with($package, 'ext-')
-                && !str_starts_with($package, 'lib-'),
-            ARRAY_FILTER_USE_KEY,
-        );
     }
 }

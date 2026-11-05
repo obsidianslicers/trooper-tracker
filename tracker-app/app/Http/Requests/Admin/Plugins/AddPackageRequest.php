@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Plugins;
 
 use App\Enums\PackageUpdatePolicy;
+use App\Plugins\PluginRequirements;
 use App\Rules\Admin\Plugins\VersionConstraintRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -14,8 +15,7 @@ use Illuminate\Validation\Rule;
  */
 class AddPackageRequest extends FormRequest
 {
-    public const NAME_PATTERN = '/^[a-z0-9]([_.-]?[a-z0-9]+)*'
-        .'\/[a-z0-9](([_.]|-{1,2})?[a-z0-9]+)*$/';
+    public const NAME_PATTERN = PluginRequirements::PACKAGE_NAME_PATTERN;
 
     /**
      * @return array<string, mixed>

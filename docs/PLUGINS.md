@@ -20,7 +20,8 @@ php artisan plugins:disable <slug>     # keeps the plugin's data and settings
 php artisan plugins:uninstall <slug>   # disables it and deletes its data (asks first)
 php artisan plugins:reconcile          # after a deploy: upgrades, turns on waiting plugins, records status
 php artisan plugins:upgrade [slug]     # runs new migrations after a deploy brought new plugin files
-php artisan plugins:packages           # Composer packages enabled plugins need
+php artisan plugins:packages [--write] # Composer packages enabled plugins need (--write saves them)
+php artisan plugins:unmet              # enabled plugins that can't run (deploy.sh uses it)
 php artisan plugins:enable-pending     # turns on plugins that were waiting for their packages
 php artisan plugins:add-package <name> [version] [--repository=https://...] [--compatible]
 php artisan plugins:remove-package <name>         # stop installing it; the next deploy removes it
@@ -42,8 +43,8 @@ There are three ways to put a plugin on the server:
 
 - **In this repo:** add the folder under `tracker-app/plugins/` (see `make:plugin`), commit, deploy.
 - **As a Composer package:** add it under **Composer plugins** on the Plugins page; the next deploy installs it.
-- **Upload a zip** under Command Staff > Plugins > Install a plugin. This is off unless the server sets `TRACKER_PLUGINS_ALLOW_UPLOADS=true` (see below).
-- **Copy a folder onto the server** into `storage/app/plugins/<slug>`. It shows as "Custom" and, like an upload, survives every deploy. Unlike an upload, its `composer.json` packages are installed by the next deploy after you enable it.
+- **Upload a zip** under Command Staff > Plugins > Install a plugin (administrators only).
+- **Copy a folder onto the server** into `storage/app/plugins/<slug>`. It shows as "Custom" and, like an upload, survives every deploy, and its `composer.json` packages are installed by the next deploy after you enable it. To update one that is running, put the new version in `storage/app/plugins/.pending/<slug>` (or upload it): it is applied by the next deploy, once its packages are in.
 
 Every deploy keeps each plugin as it was: on, off, or waiting, with its settings and data. The Plugins page shows what the last deploy found for each one (failed, waiting and why), and lists plugins whose files have gone missing; put the files back and the next deploy restores them. See [DEPLOY.md](DEPLOY.md#plugin-packages-on-deploy).
 
@@ -55,10 +56,10 @@ A plugin that throws while loading or booting is logged and skipped. It cannot t
 
 ### Installing from the app
 
-An uploaded plugin can run any PHP on the server once it is enabled, so this is turned off by default. Turn it on only if you trust every administrator with server access:
+Only administrators can upload plugins, and nothing needs setting first. An uploaded plugin can run any PHP on the server once it is enabled, so give the administrator role only to people you trust with that. To turn uploads off, or change the limits:
 
 ```dotenv
-TRACKER_PLUGINS_ALLOW_UPLOADS=true
+TRACKER_PLUGINS_ALLOW_UPLOADS=false   # default: true
 # Optional:
 TRACKER_PLUGINS_UPLOADS_PATH=/path/outside/the/checkout   # default: storage/app/plugins
 TRACKER_PLUGINS_MAX_UPLOAD_KB=10240
@@ -66,7 +67,7 @@ TRACKER_PLUGINS_MAX_UNZIPPED_KB=51200
 TRACKER_PLUGINS_MAX_UPLOAD_FILES=2000
 ```
 
-The zip holds the plugin folder: `plugin.json` either at the top of the zip or inside one top folder (`greeter/plugin.json`). A local plugin's `namespace` is required, as for any local plugin. An upload cannot install packages (see [Packages a plugin needs](#packages-a-plugin-needs)), so if the zip's `composer.json` requires anything the app doesn't already have, the upload is refused and names what is missing.
+The zip holds the plugin folder: `plugin.json` either at the top of the zip or inside one top folder (`greeter/plugin.json`). A local plugin's `namespace` is required, as for any local plugin. The zip may need Composer packages the app doesn't have: they are installed by the next deploy once the plugin is enabled (see [Packages a plugin needs](#packages-a-plugin-needs)). The PHP version, PHP extensions and plugin API it asks for must already match, or the upload is refused and says what is missing. Package names and versions must be plain ones (no `dev-branch#ref` or `@dev`).
 
 Before anything is written, the upload is refused if it:
 
@@ -74,10 +75,13 @@ Before anything is written, the upload is refused if it:
 - has an absolute path, a `..` segment, a backslash or a symbolic link
 - has no valid `plugin.json`, or has files outside the plugin folder
 - uses the slug of a plugin that came with a deploy or Composer, or is not newer than the uploaded version already installed
+- asks for a PHP version, extension or plugin API this server doesn't have, or for an invalid package name or version
 
 Files are unpacked into a temporary folder and moved into place only once every file is written. The plugin is installed **disabled**, so none of its code runs until an administrator enables it. Each upload is written to the log with the administrator's trooper ID.
 
 Uploaded plugins go to `storage/app/plugins`, outside the git checkout, so a deploy (`git reset --hard`) never removes or overwrites them. The Plugins page lists them with the source "Uploaded".
+
+An update for an enabled plugin that needs Composer packages the site doesn't have yet is not applied right away: it waits in `storage/app/plugins/.pending/<slug>` and the installed version keeps running. The next deploy installs the packages and then applies the update, as below; if the packages can't be installed, the installed version keeps running and the Plugins page says why.
 
 To update an uploaded plugin, upload the newer version. Its `version` must be higher than the installed one. The old files are set aside in `.previous/<slug>`, the new ones are moved in, and, if the plugin is enabled, its new migrations run. If they fail, they are rolled back and the old files are put back, so the site keeps running the old version. Settings and data are kept either way. A disabled plugin's migrations run when it is next enabled.
 
@@ -87,7 +91,7 @@ There are three ways to install a plugin. Packages are only ever installed by Co
 
 - **Bundled plugins** live in `tracker-app/plugins/` and are found automatically. One with no packages of its own needs nothing else. One that needs outside PHP packages declares them in its own `composer.json` (with a `name`, such as `trooptracker/<slug>`). Enabling it before they are installed marks it **Turns on at next deploy**: the deploy installs it through a path repository, which pulls in its packages and symlinks the folder into `vendor/`, and then turns it on (see [DEPLOY.md](DEPLOY.md#plugin-packages-on-deploy)). Cancel shown in its place stops that. Keep a `version` in the plugin's `composer.json` so the lock file does not depend on the branch name.
 - **Composer-managed plugins** live in their own repository, declare their packages in their `composer.json`, Composer resolves them into the app's shared `vendor/` as one set, with core packages held at the app's versions, so a plugin can't pull in a version that clashes with the app's. Add one under **Composer plugins** on the Plugins page (or `php artisan plugins:add-package vendor/name [^1.0]`), with its repository URL if it isn't on Packagist and whether to keep its version or take compatible updates: it is saved, the next deploy installs it, and it then appears in the list to enable. Removing it there uninstalls it with the next deploy. Composer never runs from the page itself.
-- **Uploaded plugins** (Plugins page) can only use what the app already has. On upload, the plugin's `composer.json` `require` list is checked against the installed packages, PHP extensions and PHP version, and the zip is refused with the list of what is missing.
+- **Uploaded and copied plugins** (in `storage/app/plugins`) work like bundled ones: their `composer.json` packages are installed by the deploy once they are enabled. On upload, the PHP version and extensions they need are checked and the zip is refused if they don't match.
 
 The app's own `composer.json` never lists a plugin's packages. Removing a plugin and its packages leaves the app booting and its tests passing; only that plugin's features go away.
 

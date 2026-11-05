@@ -228,6 +228,136 @@ class ReconcilePluginsTest extends TestCase
         $this->assertTrue(Schema::hasTable('tt_keeper_items'));
     }
 
+    public function test_an_uploaded_plugin_needing_new_packages_turns_on_after_the_deploy(): void
+    {
+        $this->upload('1.0.0', ['acme/weather-api' => '^1.0'])->assertSessionHas('success');
+        EnablePlugin::call(slug: 'keeper');
+
+        $this->assertTrue($this->plugins->isEnablePending('keeper'));
+        $this->assertSame(['acme/weather-api' => '^1.0'], $this->savedRequirements());
+
+        $this->deploy();
+        $this->assertRecord('keeper', PluginSource::UPLOADED, PluginStatus::PENDING);
+
+        $this->fakeInstalled($this->uploads_path.'/keeper');
+        $report = $this->deploy();
+
+        $this->assertSame('turned on', $report['keeper']);
+        $this->assertRecord('keeper', PluginSource::UPLOADED, PluginStatus::ACTIVE);
+    }
+
+    public function test_an_update_needing_new_packages_waits_while_the_old_version_runs(): void
+    {
+        $this->upload('1.0.0', migrations: [self::ITEMS_MIGRATION => self::ITEMS_UP_DOWN]);
+        $this->plugins->enable('keeper');
+        DB::table('tt_keeper_items')->insert(['id' => 7]);
+
+        $this->upload('2.0.0', ['acme/weather-api' => '^1.0'], [
+            self::ITEMS_MIGRATION => self::ITEMS_UP_DOWN,
+            '000002_label' => [self::LABEL, self::LABEL_DOWN],
+        ])->assertSessionHas('info');
+
+        $this->assertSame('1.0.0', $this->plugins->findOrFail('keeper')->version);
+        $this->assertSame(['acme/weather-api' => '^1.0'], $this->savedRequirements());
+
+        $this->deploy();
+        $this->deploy();
+
+        $this->assertSame('1.0.0', $this->plugins->findOrFail('keeper')->version);
+        $this->assertRecord('keeper', PluginSource::UPLOADED, PluginStatus::ACTIVE);
+        $this->assertStringContainsString(
+            '2.0.0 is uploaded and waits',
+            (string) $this->record('keeper')->last_error,
+        );
+
+        $this->fakeInstalled($this->uploads_path.'/.pending/keeper');
+        $report = $this->deploy();
+
+        $this->assertSame('updated to 2.0.0', $report['keeper']);
+        $this->assertSame('2.0.0', $this->record('keeper')->installed_version);
+        $this->assertTrue(Schema::hasColumn('tt_keeper_items', 'label'));
+        $this->assertSame(7, (int) DB::table('tt_keeper_items')->value('id'));
+        $this->assertDirectoryDoesNotExist($this->uploads_path.'/.pending/keeper');
+        $this->assertRecord('keeper', PluginSource::UPLOADED, PluginStatus::ACTIVE);
+    }
+
+    public function test_a_failed_waiting_update_puts_the_running_version_back(): void
+    {
+        $this->upload('1.0.0', migrations: [self::ITEMS_MIGRATION => self::ITEMS_UP_DOWN]);
+        $this->plugins->enable('keeper');
+        $this->upload('2.0.0', ['acme/weather-api' => '^1.0'], [
+            self::ITEMS_MIGRATION => self::ITEMS_UP_DOWN,
+            '000002_broken' => ["throw new RuntimeException('boom');", ''],
+        ]);
+        $this->fakeInstalled($this->uploads_path.'/.pending/keeper');
+
+        $report = $this->deploy();
+
+        $this->assertStringContainsString('1.0.0 was put back', $report['keeper']);
+        $this->assertSame('1.0.0', $this->plugins->findOrFail('keeper')->version);
+        $this->assertSame('1.0.0', $this->record('keeper')->installed_version);
+        $this->assertTrue($this->plugins->isEnabled('keeper'));
+        $this->assertRecord('keeper', PluginSource::UPLOADED, PluginStatus::FAILED);
+        $this->assertStringContainsString('boom', (string) $this->record('keeper')->last_error);
+    }
+
+    public function test_a_failed_update_is_not_reported_as_up_to_date(): void
+    {
+        $this->writePlugin('keeper', migrations: [self::ITEMS_MIGRATION => self::ITEMS_UP_DOWN]);
+        $this->plugins->enable('keeper');
+        $this->writePlugin('keeper', '2.0.0', migrations: [
+            self::ITEMS_MIGRATION => self::ITEMS_UP_DOWN,
+            '000002_broken' => ["throw new RuntimeException('boom');", ''],
+        ]);
+
+        $this->deploy();
+
+        $record = $this->record('keeper');
+        $this->assertSame('1.0.0', $record->installed_version);
+        $this->assertSame(PluginStatus::FAILED->value, $record->status);
+        $this->assertStringContainsString(
+            'from 1.0.0 to 2.0.0 did not finish',
+            (string) $record->last_error,
+        );
+        $this->assertStringContainsString('boom', (string) $record->last_error);
+        $this->assertTrue($this->plugins->isEnabled('keeper'));
+        $this->assertTrue(Schema::hasTable('tt_keeper_items'));
+
+        $this->actingAs(Trooper::factory()->asAdministrator()->create())
+            ->get(route('admin.plugins.list'))
+            ->assertSee('Needs attention')
+            ->assertSee('did not finish');
+    }
+
+    public function test_the_deploy_can_see_which_enabled_plugins_cannot_run(): void
+    {
+        $this->writePlugin('keeper');
+        $this->writePlugin('other');
+        $this->plugins->enable('keeper');
+        $this->plugins->enable('other');
+        $this->writePlugin('keeper', packages: ['acme/gone' => '^1.0']);
+
+        $this->artisan('plugins:unmet')
+            ->expectsOutput('keeper')
+            ->doesntExpectOutput('other')
+            ->assertSuccessful();
+    }
+
+    public function test_a_plugin_whose_waiting_update_can_run_is_not_reported(): void
+    {
+        $this->upload('1.0.0', ['acme/old-api' => '^1.0']);
+        $this->fakeInstalled($this->uploads_path.'/keeper');
+        $this->plugins->enable('keeper');
+        $this->upload('2.0.0', ['acme/new-api' => '^2.0']);
+
+        file_put_contents($this->uploads_path.'/keeper/composer.json', (string) json_encode([
+            'require' => ['acme/old-api' => '^1.0'],
+        ]));
+        $this->fakeInstalled($this->uploads_path.'/.pending/keeper');
+
+        $this->artisan('plugins:unmet')->doesntExpectOutput('keeper')->assertSuccessful();
+    }
+
     /**
      * @return array<string, string>
      */
@@ -254,6 +384,53 @@ class ReconcilePluginsTest extends TestCase
         config(['plugins.uploads.path' => $this->uploads_path]);
         $this->app->instance(PluginDiscovery::class, $discovery);
         $this->app->instance(PluginManager::class, $this->plugins);
+    }
+
+    /**
+     * @param  array<string, string>  $packages
+     * @param  array<string, array{0: string, 1: string}>  $migrations
+     */
+    private function upload(
+        string $version,
+        array $packages = [],
+        array $migrations = [],
+    ): \Illuminate\Testing\TestResponse {
+        $folder = sys_get_temp_dir().'/tt-reconcile-zip-'.uniqid();
+        $this->writePlugin('keeper', $version, $packages, $migrations, $folder);
+        $files = [];
+
+        foreach ((new Filesystem)->allFiles($folder.'/keeper') as $file)
+        {
+            $files['keeper/'.$file->getRelativePathname()] = $file->getContents();
+        }
+
+        (new Filesystem)->deleteDirectory($folder);
+
+        return $this->actingAs(Trooper::factory()->asAdministrator()->create())
+            ->post(route('admin.plugins.install'), ['archive' => $this->pluginArchive($files)]);
+    }
+
+    /**
+     * What a deploy does once Composer has the packages: here, swap the plugin's
+     * package for one the test app already has.
+     */
+    private function fakeInstalled(string $path): void
+    {
+        file_put_contents($path.'/composer.json', (string) json_encode([
+            'name' => 'acme/keeper',
+            'require' => ['laravel/framework' => '*'],
+        ]));
+        $this->plugins->forgetManifests();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function savedRequirements(): array
+    {
+        $path = $this->plugin_deploy_path.'/requirements.json';
+
+        return json_decode((string) file_get_contents($path), true)['packages'];
     }
 
     private function record(string $slug): Plugin

@@ -78,7 +78,7 @@ class PluginRequirementsTest extends TestCase
         );
         $this->expectException(PluginRequirementsException::class);
         $this->expectExceptionMessage(
-            'Install its packages with a deploy: composer require acme/needs-package.'
+            'The next deploy installs missing Composer packages once the plugin is enabled.'
         );
 
         $this->subject->enable('needs-package');

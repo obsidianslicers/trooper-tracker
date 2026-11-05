@@ -284,15 +284,14 @@ class PluginManager
      */
     private function installHint(PluginManifest $manifest): ?string
     {
-        $name = $manifest->composerJson()['name'] ?? null;
-        $missing = $this->requirements->unmet($this->composerRequires($manifest));
+        $packages = PluginRequirements::split([
+            ...$this->composerRequires($manifest),
+            ...$manifest->requires,
+        ])['packages'];
 
-        if (!is_string($name) || $missing === [])
-        {
-            return null;
-        }
-
-        return "Install its packages with a deploy: composer require {$name}";
+        return $this->requirements->unmet($packages) === []
+            ? null
+            : 'The next deploy installs missing Composer packages once the plugin is enabled';
     }
 
     /**

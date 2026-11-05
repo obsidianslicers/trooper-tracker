@@ -499,10 +499,10 @@ See [PLUGINS.md](PLUGINS.md).
 - **Default**: `tracker-app/plugins`
 
 ### TRACKER_PLUGINS_ALLOW_UPLOADS
-- **Purpose**: Let administrators install a plugin by uploading a zip under Command Staff > Plugins
+- **Purpose**: Set to `false` to stop administrators installing plugins by uploading a zip under Command Staff > Plugins
 - **Required**: No
-- **Default**: `false`
-- **Security**: An enabled plugin runs PHP code on the server. Leave this off unless every administrator is trusted with that.
+- **Default**: `true`
+- **Security**: Only administrators can upload, and an enabled plugin runs PHP code on the server. Turn this off if an administrator should not be trusted with that.
 
 ### TRACKER_PLUGINS_UPLOADS_PATH
 - **Purpose**: Folder uploaded plugins are unpacked into. Keep it outside the git checkout.

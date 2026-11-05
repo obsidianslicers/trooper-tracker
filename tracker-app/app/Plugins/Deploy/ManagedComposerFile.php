@@ -88,6 +88,28 @@ final class ManagedComposerFile
     }
 
     /**
+     * Core packages the managed lock has at a different version from the app's
+     * lock (or not at all), e.g. "laravel/framework v12.3.0 -> v12.4.0".
+     *
+     * @return array<int, string>
+     */
+    public function movedCorePackages(): array
+    {
+        $managed = $this->lockedVersions($this->managed_lock ?? []);
+        $moved = [];
+
+        foreach ($this->lockedVersions($this->app_lock, without_paths: true) as $name => $version)
+        {
+            if (($managed[$name] ?? null) !== $version)
+            {
+                $moved[] = "{$name} {$version} -> ".($managed[$name] ?? 'missing');
+            }
+        }
+
+        return $moved;
+    }
+
+    /**
      * @return array<string, string>
      */
     private function pluginPackages(): array
@@ -149,12 +171,17 @@ final class ManagedComposerFile
      * @param  array<string, mixed>  $lock
      * @return array<string, string>
      */
-    private function lockedVersions(array $lock): array
+    private function lockedVersions(array $lock, bool $without_paths = false): array
     {
         $versions = [];
 
         foreach ([...($lock['packages'] ?? []), ...($lock['packages-dev'] ?? [])] as $package)
         {
+            if ($without_paths && ($package['dist']['type'] ?? null) === 'path')
+            {
+                continue;
+            }
+
             $versions[(string) $package['name']] = (string) $package['version'];
         }
 

@@ -11,8 +11,11 @@ use App\Models\PluginPackage;
 use App\Plugins\PluginDeployPackages;
 use App\Plugins\PluginDiscovery;
 use App\Plugins\PluginException;
+use App\Plugins\PluginInstaller;
+use App\Plugins\PluginInstallException;
 use App\Plugins\PluginManager;
 use App\Plugins\PluginManifest;
+use App\Plugins\PluginRequirements;
 use Composer\InstalledVersions;
 use Hyperdrive\Message;
 
@@ -34,6 +37,12 @@ final class ReconcilePlugins extends Message
     /** @var array<string, string> why a waiting plugin could not be turned on */
     private array $enable_errors = [];
 
+    /** @var array<string, string> uploaded updates still waiting for packages */
+    private array $waiting_updates = [];
+
+    /** @var array<string, string> why an update was not applied */
+    private array $upgrade_errors = [];
+
     /**
      * @return array<string, string> a line per plugin or package that changed or failed
      */
@@ -41,11 +50,23 @@ final class ReconcilePlugins extends Message
         PluginManager $plugins,
         PluginDeployPackages $packages,
         PluginDiscovery $discovery,
+        PluginInstaller $installer,
     ): array {
         $report = [];
         $composer_error = $this->composerError();
 
         $this->recordPackages($composer_error, $report);
+
+        foreach ($plugins->all() as $manifest)
+        {
+            $staged = $discovery->staged($manifest->slug);
+
+            if ($staged !== null)
+            {
+                $this->applyStaged($installer, $manifest, $staged, $report);
+            }
+        }
+
         $this->upgradeAndEnable($plugins, $packages, $report);
         $this->recordPlugins($plugins, $discovery, $composer_error, $report);
 
@@ -83,6 +104,46 @@ final class ReconcilePlugins extends Message
     }
 
     /**
+     * Apply an uploaded update that was waiting for its Composer packages, once
+     * the deploy has installed them. If it fails, the installed version is put
+     * back and keeps running.
+     *
+     * @param  array<string, string>  $report
+     */
+    private function applyStaged(
+        PluginInstaller $installer,
+        PluginManifest $installed,
+        PluginManifest $staged,
+        array &$report,
+    ): void {
+        $slug = $installed->slug;
+        $requires = $staged->composerJson()['require'] ?? [];
+        $unmet = (new PluginRequirements)->unmet([
+            ...(is_array($requires) ? $requires : []),
+            ...$staged->requires,
+        ]);
+
+        if ($unmet !== [])
+        {
+            $this->waiting_updates[$slug] = "Version {$staged->version} is uploaded and waits "
+                .'for '.implode('; ', $unmet).". {$installed->version} keeps running.";
+
+            return;
+        }
+
+        try
+        {
+            $installer->applyUpgrade($installer->promoteStaged($slug), $installed->version);
+            $report[$slug] = "updated to {$staged->version}";
+        }
+        catch (PluginException|PluginInstallException $e)
+        {
+            $this->upgrade_errors[$slug] = $e->getMessage();
+            $report[$slug] = $e->getMessage();
+        }
+    }
+
+    /**
      * @param  array<string, string>  $report
      */
     private function upgradeAndEnable(
@@ -99,6 +160,11 @@ final class ReconcilePlugins extends Message
                     fn () => $plugins->upgrade($manifest->slug),
                     "upgraded to {$manifest->version}",
                 );
+
+                if ($plugins->hasPendingUpgrade($manifest->slug))
+                {
+                    $this->upgrade_errors[$manifest->slug] = $report[$manifest->slug];
+                }
             }
         }
 
@@ -161,16 +227,39 @@ final class ReconcilePlugins extends Message
             : $problem;
 
         $is_enabled = $plugins->isEnabled($manifest->slug);
+        $problem ??= $this->upgradeProblem($plugins, $manifest);
 
         return match (true)
         {
-            $is_enabled && $problem === null => [PluginStatus::ACTIVE, null],
+            $is_enabled && $problem === null => [
+                PluginStatus::ACTIVE,
+                $this->waiting_updates[$manifest->slug] ?? null,
+            ],
             $is_enabled => [PluginStatus::FAILED, $problem],
             $plugins->isEnablePending($manifest->slug) => [
                 PluginStatus::PENDING,
                 $problem ?? $this->enable_errors[$manifest->slug] ?? null,
             ],
             default => [PluginStatus::DISABLED, null],
+        };
+    }
+
+    /**
+     * An enabled plugin whose new files' update didn't apply is not up to date,
+     * even though it still runs on its previous database changes.
+     */
+    private function upgradeProblem(PluginManager $plugins, PluginManifest $manifest): ?string
+    {
+        $slug = $manifest->slug;
+        $installed = $plugins->record($slug)?->installed_version;
+        $error = $this->upgrade_errors[$slug] ?? null;
+
+        return match (true)
+        {
+            $plugins->hasPendingUpgrade($slug) => "The update from {$installed} to "
+                ."{$manifest->version} did not finish: ".($error ?? 'it has not run yet.'),
+            $error !== null => $error,
+            default => null,
         };
     }
 

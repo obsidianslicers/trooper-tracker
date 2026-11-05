@@ -37,6 +37,22 @@ final readonly class PluginManifest
     ) {}
 
     /**
+     * The Composer packages this plugin folder needs, from its composer.json
+     * and plugin.json. Empty for a Composer package, which Composer resolved.
+     *
+     * @return array<string, string>
+     */
+    public function packages(): array
+    {
+        $require = $this->composerJson()['require'] ?? [];
+
+        return PluginRequirements::split([
+            ...(is_array($require) ? $require : []),
+            ...($this->is_composer_package ? [] : $this->requires),
+        ])['packages'];
+    }
+
+    /**
      * The composer.json of a plugin folder. Empty for a plugin installed through
      * Composer, whose packages Composer already checked, or one without the file.
      *
