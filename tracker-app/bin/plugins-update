@@ -1,0 +1,96 @@
+#!/bin/bash
+# Installs the Composer packages plugins need and brings every plugin to its chosen
+# state, without a full deploy: no git pull and no asset build. Run it on the server
+# from anywhere, as the user that runs deploy.sh:
+#
+#   bash tracker-app/bin/plugins-update
+#
+# It does what deploy.sh does for plugins: the same deploy lock, the same fallback to
+# the last working set of packages, and it stops without changing anything if a
+# plugin that works now would stop working.
+set -Eeuo pipefail
+
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$APP_DIR"
+
+PHP="$(command -v php)"
+COMPOSER_BIN="$(command -v composer)"
+PLUGIN_DEPLOY_DIR="$APP_DIR/storage/app/plugin-deploy"
+mkdir -p "$PLUGIN_DEPLOY_DIR/releases"
+
+exec 9>"$APP_DIR/storage/framework/deploy.lock"
+if ! flock -n 9; then
+    echo "❌ A deployment is running. Try again when it is done."
+    exit 1
+fi
+
+# shellcheck source=plugin-packages.sh
+. "$APP_DIR/bin/plugin-packages.sh"
+
+plugins_unmet() {
+    "$PHP" artisan plugins:unmet 2>/dev/null | sort || true
+}
+
+MAINTENANCE_STARTED=false
+on_error() {
+    echo "❌ Plugin update failed at line $1."
+    if [ "$MAINTENANCE_STARTED" = true ]; then
+        "$PHP" artisan up || true
+    fi
+}
+trap 'on_error "$LINENO"' ERR
+
+UNMET_BEFORE="$(plugins_unmet)"
+backup_plugin_packages
+"$PHP" artisan plugins:packages --write >/dev/null
+
+if ! install_packages; then
+    restore_previous_packages
+    echo "❌ No working set of Composer packages could be installed. Nothing was changed."
+    exit 1
+fi
+
+NEWLY_BROKEN="$(comm -13 <(echo "$UNMET_BEFORE") <(plugins_unmet) | sed '/^$/d')"
+if [ -n "$NEWLY_BROKEN" ]; then
+    restore_previous_packages
+    echo "❌ These enabled plugins would stop working: $(echo $NEWLY_BROKEN). Nothing was changed."
+    exit 1
+fi
+
+echo "🚧 Taking application offline..."
+MAINTENANCE_STARTED=true
+"$PHP" artisan down --refresh=15
+"$PHP" artisan config:clear
+"$PHP" artisan route:clear
+
+echo "🗄️ Running migrations and reconciling plugins..."
+"$PHP" artisan migrate --force
+BEFORE="$(sha1sum "$PLUGIN_REQUIREMENTS")"
+"$PHP" artisan plugins:reconcile || echo "⚠️ Plugin reconcile reported a problem. See Admin > Plugins."
+
+if [ "$BEFORE" != "$(sha1sum "$PLUGIN_REQUIREMENTS")" ]; then
+    backup_plugin_packages
+    if ! install_packages; then
+        restore_previous_packages
+    fi
+    "$PHP" artisan migrate --force
+    "$PHP" artisan plugins:reconcile || echo "⚠️ Plugin reconcile reported a problem. See Admin > Plugins."
+fi
+
+"$PHP" artisan config:cache
+"$PHP" artisan route:cache
+"$PHP" artisan view:cache
+"$PHP" artisan up
+MAINTENANCE_STARTED=false
+"$PHP" artisan queue:restart
+
+# Keep this release's saved packages current, for deploy.sh --rollback.
+RELEASE="$(git rev-parse HEAD)"
+rm -rf "$PLUGIN_DEPLOY_DIR/releases/$RELEASE"
+mkdir -p "$PLUGIN_DEPLOY_DIR/releases/$RELEASE"
+if [ -f composer.plugins.lock ]; then
+    cp composer.plugins.json composer.plugins.lock "$PLUGIN_DEPLOY_DIR/releases/$RELEASE/"
+fi
+cp "$PLUGIN_REQUIREMENTS_INSTALLED" "$PLUGIN_DEPLOY_DIR/releases/$RELEASE/" 2>/dev/null || true
+
+echo "✅ Plugins are up to date. See Admin > Plugins for each plugin's status."
