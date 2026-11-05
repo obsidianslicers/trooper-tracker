@@ -30,6 +30,18 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Deploy Files
+    |--------------------------------------------------------------------------
+    |
+    | Where the app saves the packages plugins need, and where deploy.sh saves
+    | how installing them went. deploy.sh expects the default; tests change it.
+    |
+    */
+
+    'deploy_path' => storage_path('app/plugin-deploy'),
+
     'uploads' => [
         'enabled' => (bool) env('TRACKER_PLUGINS_ALLOW_UPLOADS', false),
         'path' => env('TRACKER_PLUGINS_UPLOADS_PATH', storage_path('app/plugins')),

@@ -14,8 +14,12 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @property int $id
  * @property string $slug
+ * @property string|null $source
  * @property bool $is_enabled
  * @property bool $is_enable_pending
+ * @property string|null $status
+ * @property string|null $last_error
+ * @property Carbon|null $checked_at
  * @property string|null $installed_version
  * @property string|null $settings
  * @property Carbon|null $enabled_at
@@ -31,9 +35,17 @@ class Plugin extends Model
 
     const SLUG = 'slug';
 
+    const SOURCE = 'source';
+
     const IS_ENABLED = 'is_enabled';
 
     const IS_ENABLE_PENDING = 'is_enable_pending';
+
+    const STATUS = 'status';
+
+    const LAST_ERROR = 'last_error';
+
+    const CHECKED_AT = 'checked_at';
 
     const INSTALLED_VERSION = 'installed_version';
 
@@ -57,6 +69,7 @@ class Plugin extends Model
         self::ID => 'int',
         self::IS_ENABLED => 'bool',
         self::IS_ENABLE_PENDING => 'bool',
+        self::CHECKED_AT => 'datetime',
         self::ENABLED_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
@@ -67,8 +80,12 @@ class Plugin extends Model
 
     protected $fillable = [
         self::SLUG,
+        self::SOURCE,
         self::IS_ENABLED,
         self::IS_ENABLE_PENDING,
+        self::STATUS,
+        self::LAST_ERROR,
+        self::CHECKED_AT,
         self::INSTALLED_VERSION,
         self::SETTINGS,
         self::ENABLED_AT,

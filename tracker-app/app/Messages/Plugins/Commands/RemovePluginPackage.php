@@ -35,5 +35,6 @@ final class RemovePluginPackage extends Message
         }
 
         PluginPackage::query()->where(PluginPackage::NAME, $this->name)->delete();
+        $packages->writeRequirements();
     }
 }

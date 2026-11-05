@@ -81,6 +81,11 @@
                             Needs {{ implode('; ', $plugin['unmet_requirements']) }}.
                         </div>
                     @endif
+                    @if($plugin['last_error'] !== null && $plugin['last_error'] !== '')
+                        <div class="small text-danger">
+                            Last deploy: {{ $plugin['last_error'] }}
+                        </div>
+                    @endif
                 </td>
                 <td class="text-end text-nowrap">
                     @if($manifest->hasSettings())
@@ -145,11 +150,40 @@
     </tbody>
 </x-table>
 
+@if($missing->isNotEmpty())
+    <x-card :label="'Missing plugins'">
+        <p class="text-muted small">
+            These plugins were set up before, but their files are gone from the server.
+            Their settings and data are kept. Put the files back (or re-add the Composer package)
+            and the next deploy restores them as they were.
+        </p>
+        <ul class="list-group">
+            @foreach($missing as $record)
+                <li class="list-group-item">
+                    <strong>{{ $record->slug }}</strong>
+                    <span class="text-muted small">
+                        {{ $record->version }}
+                        @if($record->source !== null)
+                            · {{ ucfirst($record->source) }}
+                        @endif
+                        · was {{ $record->is_enabled ? 'enabled' : 'disabled' }}
+                    </span>
+                    @if($record->last_error !== null && $record->last_error !== '')
+                        <div class="small text-danger">{{ $record->last_error }}</div>
+                    @endif
+                </li>
+            @endforeach
+        </ul>
+    </x-card>
+@endif
+
 <x-card :label="'Composer plugins'">
     <p class="text-muted small">
         Add a plugin published as a Composer package, from its own repository.
         The next deploy installs it and its packages, then it appears above to enable.
         Removing it here uninstalls it with the next deploy.
+        Pinned packages stay on the version first installed; compatible ones take
+        updates within the same major version.
     </p>
     @if($packages->isNotEmpty())
         <ul class="list-group mb-3">
@@ -158,9 +192,20 @@
                     <span>
                         <code>{{ $package->requirement() }}</code>
                         @if($package->isInstalled())
-                            <span class="badge text-bg-success">Installed</span>
+                            <span class="badge text-bg-success">
+                                Installed {{ $package->installed_version }}
+                            </span>
                         @else
                             <span class="badge text-bg-info">Installs at next deploy</span>
+                        @endif
+                        <span class="small text-muted">
+                            {{ $update_policies[$package->update_policy] ?? '' }}
+                        </span>
+                        @if($package->repository_url !== null)
+                            <div class="small text-muted">From {{ $package->repository_url }}</div>
+                        @endif
+                        @if($package->last_error !== null && $package->last_error !== '')
+                            <div class="small text-danger">{{ $package->last_error }}</div>
                         @endif
                     </span>
                     <form method="POST"
@@ -190,13 +235,29 @@
                    class="form-control"
                    placeholder="Version (optional, e.g. ^1.0)"
                    value="{{ old('version_constraint') }}">
+            <select name="update_policy"
+                    class="form-select">
+                @foreach($update_policies as $value => $label)
+                    <option value="{{ $value }}"
+                            @selected(old('update_policy', 'pinned') === $value)>
+                        {{ $label }}
+                    </option>
+                @endforeach
+            </select>
             <button type="submit"
                     class="btn btn-primary">
                 Add
             </button>
         </div>
+        <input type="url"
+               name="repository_url"
+               class="form-control mt-2"
+               placeholder="Repository URL (optional, for packages not on Packagist)"
+               value="{{ old('repository_url') }}">
         <x-input-error :property="'name'" />
         <x-input-error :property="'version_constraint'" />
+        <x-input-error :property="'update_policy'" />
+        <x-input-error :property="'repository_url'" />
     </form>
 </x-card>
 

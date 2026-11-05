@@ -31,7 +31,9 @@ final class GetPlugins extends Message
      *     unmet_requirements: array<int, string>,
      *     capability_summary: string,
      *     is_enable_pending: bool,
-     *     can_install_on_deploy: bool
+     *     can_install_on_deploy: bool,
+     *     status: ?string,
+     *     last_error: ?string
      * }>
      */
     public function handle(
@@ -51,6 +53,8 @@ final class GetPlugins extends Message
             'capability_summary' => $this->capabilitySummary($manifest),
             'is_enable_pending' => $plugins->isEnablePending($manifest->slug),
             'can_install_on_deploy' => $packages->canInstallOnDeploy($manifest->slug),
+            'status' => $plugins->record($manifest->slug)?->status,
+            'last_error' => $plugins->record($manifest->slug)?->last_error,
         ], $plugins->all()));
     }
 

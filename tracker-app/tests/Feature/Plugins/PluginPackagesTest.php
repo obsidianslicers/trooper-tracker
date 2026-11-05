@@ -45,6 +45,97 @@ class PluginPackagesTest extends TestCase
             ->assertSuccessful();
     }
 
+    public function test_a_package_from_its_own_repository_is_saved_for_the_deploy(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.plugins.packages.add'), [
+                'name' => 'acme/badges',
+                'repository_url' => 'https://github.com/acme/badges',
+                'update_policy' => 'compatible',
+            ])
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('tt_plugin_packages', [
+            'name' => 'acme/badges',
+            'repository_url' => 'https://github.com/acme/badges',
+            'update_policy' => 'compatible',
+        ]);
+        $file = PluginDeployPackages::requirementsPath();
+        $saved = json_decode((string) file_get_contents($file), true);
+        $this->assertSame(['acme/badges' => '*'], $saved['packages']);
+        $this->assertSame(
+            [['type' => 'vcs', 'url' => 'https://github.com/acme/badges']],
+            $saved['repositories'],
+        );
+    }
+
+    public function test_only_https_repositories_are_accepted(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.plugins.packages.add'), [
+                'name' => 'acme/badges',
+                'repository_url' => 'file:///etc',
+            ])
+            ->assertSessionHasErrors('repository_url');
+
+        $this->assertDatabaseCount('tt_plugin_packages', 0);
+    }
+
+    public function test_reconcile_records_the_installed_version_and_errors(): void
+    {
+        PluginPackage::create([PluginPackage::NAME => 'laravel/framework']);
+        PluginPackage::create([PluginPackage::NAME => 'acme/not-installed']);
+
+        $this->artisan('plugins:reconcile')->assertSuccessful();
+
+        $installed = PluginPackage::query()->firstWhere(PluginPackage::NAME, 'laravel/framework');
+        $missing = PluginPackage::query()->firstWhere(PluginPackage::NAME, 'acme/not-installed');
+        $this->assertNotNull($installed->installed_version);
+        $this->assertNull($installed->last_error);
+        $this->assertNull($missing->installed_version);
+        $this->assertStringContainsString('next deploy', (string) $missing->last_error);
+        $this->artisan('plugins:reconcile')->expectsOutput('Every plugin is as it was.');
+    }
+
+    /**
+     * @return array<string, array{0: ?string, 1: ?string, 2: string, 3: string}>
+     */
+    public static function constraints(): array
+    {
+        return [
+            'not installed yet, any version' => [null, null, 'pinned', '*'],
+            'not installed yet, admin constraint' => [null, '^2.0', 'pinned', '^2.0'],
+            'pinned keeps its version' => ['1.4.2', null, 'pinned', '1.4.2'],
+            'pinned keeps a version within the constraint' => ['1.4.2', '^1.0', 'pinned', '1.4.2'],
+            'compatible stays on the major version' => ['1.4.2', null, 'compatible', '^1.0'],
+            'compatible 0.x stays on the minor version' => ['0.3.1', null, 'compatible', '^0.3'],
+            'compatible uses the admin constraint' => ['1.4.2', '~1.4.0', 'compatible', '~1.4.0'],
+            'a new major only when the admin asks' => ['1.4.2', '^2.0', 'pinned', '^2.0'],
+        ];
+    }
+
+    /**
+     * @dataProvider constraints
+     */
+    public function test_the_deploy_asks_for_the_right_version(
+        ?string $installed,
+        ?string $constraint,
+        string $policy,
+        string $expected,
+    ): void {
+        $package = new PluginPackage([
+            PluginPackage::NAME => 'acme/badges',
+            PluginPackage::INSTALLED_VERSION => $installed,
+            PluginPackage::VERSION_CONSTRAINT => $constraint,
+            PluginPackage::UPDATE_POLICY => $policy,
+        ]);
+
+        $this->assertSame(
+            $expected,
+            $this->app->make(PluginDeployPackages::class)->constraintFor($package),
+        );
+    }
+
     public function test_the_page_lists_added_packages(): void
     {
         PluginPackage::create([PluginPackage::NAME => 'acme/badges']);

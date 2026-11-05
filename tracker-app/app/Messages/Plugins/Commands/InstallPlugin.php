@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\Plugins\Commands;
 
 use App\Enums\PluginChangeAction;
+use App\Enums\PluginSource;
 use App\Models\PluginChange;
 use App\Models\Trooper;
 use App\Plugins\PluginException;
@@ -47,6 +48,7 @@ final class InstallPlugin extends Message
         $result = $installer->install($this->archive_path);
         $manifest = $result['manifest'];
         $previous_version = $result['previous_version'];
+        $plugins->recordSource($manifest->slug, PluginSource::UPLOADED);
 
         if ($previous_version === null)
         {

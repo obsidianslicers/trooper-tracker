@@ -369,6 +369,22 @@ php artisan plugins:enable discord
 php artisan plugins:disable discord
 ```
 
+### `plugins:reconcile`
+
+Run by `deploy.sh` after Composer and migrations. Runs plugin migrations for plugins whose files changed, turns on plugins that were waiting for their packages, and records each plugin's and Composer plugin's installed version, status and last error for the Plugins page. A plugin whose files are gone is marked missing; its settings and data are kept. Running it again changes nothing ("Every plugin is as it was."). It never fails, so it never stops a deploy. See [DEPLOY.md](DEPLOY.md#plugin-packages-on-deploy).
+
+```bash
+php artisan plugins:reconcile
+```
+
+### `plugins:add-package {name} {version?} [--repository=] [--compatible]` / `plugins:remove-package {name}`
+
+Save a Composer plugin for the next deploy to install, or stop installing it. `--repository` is an `https://` repository for a package not on Packagist. `--compatible` takes updates within the same major version on each deploy; without it the first installed version is kept.
+
+```bash
+php artisan plugins:add-package acme/trooptracker-badges ^1.0 --repository=https://github.com/acme/badges
+```
+
 ### `make:plugin {name} [--namespace=] [--composer]`
 
 Creates a starter plugin in `tracker-app/plugins/<slug>` from the templates in `tracker-app/stubs/plugin`. `--composer` also writes a `composer.json` so the plugin can be shared as a package.

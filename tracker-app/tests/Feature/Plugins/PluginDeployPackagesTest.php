@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Plugins;
 
+use App\Enums\PluginSource;
 use App\Messages\Plugins\Commands\EnablePlugin;
 use App\Models\Trooper;
 use App\Plugins\PluginAutoloader;
@@ -126,12 +127,36 @@ class PluginDeployPackagesTest extends TestCase
         $uploads = $this->plugins_path.'-uploads';
         $this->useBundledPlugins($this->plugins_path, $uploads);
         $this->writePlugin('sheets', ['acme/not-installed' => '^1.0'], [], $uploads);
+        $this->plugins->recordSource('sheets', PluginSource::UPLOADED);
 
         try
         {
             $this->expectException(PluginRequirementsException::class);
 
             EnablePlugin::call(slug: 'sheets');
+        }
+        finally
+        {
+            (new Filesystem)->deleteDirectory($uploads);
+        }
+    }
+
+    public function test_a_plugin_copied_to_the_server_gets_its_packages_from_the_deploy(): void
+    {
+        $uploads = $this->plugins_path.'-uploads';
+        $this->useBundledPlugins($this->plugins_path, $uploads);
+        $this->writePlugin('sheets', ['acme/not-installed' => '^1.0'], [], $uploads);
+
+        try
+        {
+            EnablePlugin::call(slug: 'sheets');
+
+            $this->assertTrue($this->plugins->isEnablePending('sheets'));
+            $requirements = $this->subject->requirements();
+            $this->assertSame(['acme/sheets' => '*'], $requirements['packages']);
+            $this->assertSame('path', $requirements['repositories'][0]['type']);
+            $this->assertSame($uploads.'/sheets', $requirements['repositories'][0]['url']);
+            $this->assertFileExists(PluginDeployPackages::requirementsPath());
         }
         finally
         {

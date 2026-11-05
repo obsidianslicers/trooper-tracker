@@ -26,6 +26,11 @@ class PluginDiscovery
         private readonly bool $includes_composer_packages = true,
     ) {}
 
+    public function localPath(): string
+    {
+        return $this->local_path;
+    }
+
     public function uploadsPath(): ?string
     {
         return $this->uploads_path;

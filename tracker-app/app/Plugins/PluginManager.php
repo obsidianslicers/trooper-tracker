@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Plugins;
 
 use App\Enums\PluginChangeAction;
+use App\Enums\PluginSource;
+use App\Enums\PluginStatus;
 use App\Models\Plugin;
 use App\Models\PluginChange;
 use Illuminate\Contracts\Foundation\Application;
@@ -103,6 +105,46 @@ class PluginManager
     public function isEnablePending(string $slug): bool
     {
         return (bool) ($this->rows()[$slug][Plugin::IS_ENABLE_PENDING] ?? false);
+    }
+
+    /**
+     * Remember where a plugin's files came from, such as an upload.
+     */
+    public function recordSource(string $slug, PluginSource $source): Plugin
+    {
+        $record = Plugin::firstOrNew([Plugin::SLUG => $slug]);
+        $record->source = $source->value;
+        $record->save();
+
+        $this->forgetState();
+
+        return $record;
+    }
+
+    /**
+     * Record what a deploy or a change found for the plugin. Saves only when it
+     * differs, so a deploy that changes nothing leaves the row alone. Returns
+     * whether it changed.
+     */
+    public function recordStatus(string $slug, PluginStatus $status, ?string $error = null): bool
+    {
+        $record = Plugin::query()->where(Plugin::SLUG, $slug)->first();
+
+        $unchanged = $record?->status === $status->value && $record->last_error === $error;
+
+        if ($record === null || $unchanged)
+        {
+            return false;
+        }
+
+        $record->status = $status->value;
+        $record->last_error = $error;
+        $record->checked_at = now();
+        $record->save();
+
+        $this->forgetState();
+
+        return true;
     }
 
     /**
@@ -658,12 +700,28 @@ class PluginManager
     }
 
     /**
+     * Keep the packages the next deploy installs in step with what is enabled.
+     */
+    private function saveDeployRequirements(): void
+    {
+        try
+        {
+            $this->app->make(PluginDeployPackages::class)->writeRequirements();
+        }
+        catch (Throwable $e)
+        {
+            Log::warning("Could not save plugin packages for the deploy: {$e->getMessage()}");
+        }
+    }
+
+    /**
      * Rebuild framework caches so the change reaches every request and queue worker,
      * not just this one.
      */
     private function stateChanged(): void
     {
         $this->forgetState();
+        $this->saveDeployRequirements();
 
         if ($this->app->configurationIsCached())
         {

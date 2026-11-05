@@ -24,3 +24,5 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 google-credentials.json
+/composer.plugins.json
+/composer.plugins.lock

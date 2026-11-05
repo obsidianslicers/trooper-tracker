@@ -15,6 +15,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $id
  * @property string $name
  * @property string|null $version_constraint
+ * @property string|null $repository_url
+ * @property string $update_policy
+ * @property string|null $installed_version
+ * @property string|null $last_error
+ * @property Carbon|null $checked_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property int|null $created_id
@@ -28,6 +33,16 @@ class PluginPackage extends Model
     const NAME = 'name';
 
     const VERSION_CONSTRAINT = 'version_constraint';
+
+    const REPOSITORY_URL = 'repository_url';
+
+    const UPDATE_POLICY = 'update_policy';
+
+    const INSTALLED_VERSION = 'installed_version';
+
+    const LAST_ERROR = 'last_error';
+
+    const CHECKED_AT = 'checked_at';
 
     const CREATED_AT = 'created_at';
 
@@ -43,6 +58,7 @@ class PluginPackage extends Model
 
     protected $casts = [
         self::ID => 'int',
+        self::CHECKED_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -53,5 +69,10 @@ class PluginPackage extends Model
     protected $fillable = [
         self::NAME,
         self::VERSION_CONSTRAINT,
+        self::REPOSITORY_URL,
+        self::UPDATE_POLICY,
+        self::INSTALLED_VERSION,
+        self::LAST_ERROR,
+        self::CHECKED_AT,
     ];
 }

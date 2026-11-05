@@ -18,10 +18,11 @@ php artisan plugins:list
 php artisan plugins:enable <slug>      # also runs the plugin's migrations
 php artisan plugins:disable <slug>     # keeps the plugin's data and settings
 php artisan plugins:uninstall <slug>   # disables it and deletes its data (asks first)
+php artisan plugins:reconcile          # after a deploy: upgrades, turns on waiting plugins, records status
 php artisan plugins:upgrade [slug]     # runs new migrations after a deploy brought new plugin files
-php artisan plugins:packages           # Composer packages enabled plugins need (deploy.sh uses it)
+php artisan plugins:packages           # Composer packages enabled plugins need
 php artisan plugins:enable-pending     # turns on plugins that were waiting for their packages
-php artisan plugins:add-package <name> [version]  # a Composer plugin for the next deploy to install
+php artisan plugins:add-package <name> [version] [--repository=https://...] [--compatible]
 php artisan plugins:remove-package <name>         # stop installing it; the next deploy removes it
 ```
 
@@ -29,7 +30,7 @@ php artisan plugins:remove-package <name>         # stop installing it; the next
 
 Then enable runs the plugin's migrations as one unit. If one fails, the migrations that already ran in that attempt are rolled back, the plugin stays disabled, and the Plugins page shows the error. Fix the plugin and enable it again. MySQL can't undo the half-run migration itself, so a plugin migration should start by dropping anything an earlier failed run of it may have left (`Schema::dropIfExists(...)` before `Schema::create(...)`).
 
-**Upgrade** applies a newer version of a plugin's files without touching its settings or data. `tt_plugins.installed_version` is the version whose migrations last ran; when the files are newer, the Plugins page shows the update as pending. Run `php artisan plugins:upgrade` after each deploy (the deploy's `php artisan migrate` already runs enabled plugins' new migrations; `plugins:upgrade` runs any that are left and records the new version). A failed upgrade is rolled back the same way as a failed enable.
+**Upgrade** applies a newer version of a plugin's files without touching its settings or data. `tt_plugins.installed_version` is the version whose migrations last ran; when the files are newer, the Plugins page shows the update as pending. `deploy.sh` does this with `php artisan plugins:reconcile` after each deploy (the deploy's `php artisan migrate` already runs enabled plugins' new migrations; reconcile runs any that are left and records the new version). A failed upgrade is rolled back the same way as a failed enable.
 
 Every install, upgrade, enable, disable, uninstall and failure is recorded in `tt_plugin_changes`, with the versions and the migrations that ran.
 
@@ -40,8 +41,11 @@ Every install, upgrade, enable, disable, uninstall and failure is recorded in `t
 There are three ways to put a plugin on the server:
 
 - **In this repo:** add the folder under `tracker-app/plugins/` (see `make:plugin`), commit, deploy.
-- **As a Composer package:** `composer require vendor/plugin`, commit `composer.json`/`composer.lock`, deploy.
+- **As a Composer package:** add it under **Composer plugins** on the Plugins page; the next deploy installs it.
 - **Upload a zip** under Command Staff > Plugins > Install a plugin. This is off unless the server sets `TRACKER_PLUGINS_ALLOW_UPLOADS=true` (see below).
+- **Copy a folder onto the server** into `storage/app/plugins/<slug>`. It shows as "Custom" and, like an upload, survives every deploy. Unlike an upload, its `composer.json` packages are installed by the next deploy after you enable it.
+
+Every deploy keeps each plugin as it was: on, off, or waiting, with its settings and data. The Plugins page shows what the last deploy found for each one (failed, waiting and why), and lists plugins whose files have gone missing; put the files back and the next deploy restores them. See [DEPLOY.md](DEPLOY.md#plugin-packages-on-deploy).
 
 The plugin then appears on the Plugins page as Disabled. To remove one for good, uninstall it first, then delete the folder (or `composer remove`) and deploy.
 
@@ -81,8 +85,8 @@ To update an uploaded plugin, upload the newer version. Its `version` must be hi
 
 There are three ways to install a plugin. Packages are only ever installed by Composer during a deploy, never from a web request.
 
-- **Bundled plugins** live in `tracker-app/plugins/` and are found automatically. One with no packages of its own needs nothing else. One that needs outside PHP packages declares them in its own `composer.json` (with a `name`, such as `trooptracker/<slug>`). Enabling it before they are installed marks it **Turns on at next deploy**: the deploy requires it through the app's path repository for `plugins/*`, which pulls in its packages and symlinks the folder into `vendor/`, and then turns it on (see [DEPLOY.md](DEPLOY.md#plugin-packages-on-deploy)). Cancel shown in its place stops that. To do it by hand, run `composer require trooptracker/<slug>` and `php artisan plugins:enable-pending`. Keep a `version` in the plugin's `composer.json` so the lock file does not depend on the branch name.
-- **Composer-managed plugins** live in their own repository, declare their packages in their `composer.json`, and are installed with `composer require vendor/plugin`. Composer resolves them into the app's shared `vendor/` as one set, so a plugin can't pull in a version that clashes with the app's. Add one under **Composer plugins** on the Plugins page (or `php artisan plugins:add-package vendor/name [^1.0]`): it is saved, the next deploy installs it, and it then appears in the list to enable. Removing it there uninstalls it with the next deploy. Composer never runs from the page itself.
+- **Bundled plugins** live in `tracker-app/plugins/` and are found automatically. One with no packages of its own needs nothing else. One that needs outside PHP packages declares them in its own `composer.json` (with a `name`, such as `trooptracker/<slug>`). Enabling it before they are installed marks it **Turns on at next deploy**: the deploy installs it through a path repository, which pulls in its packages and symlinks the folder into `vendor/`, and then turns it on (see [DEPLOY.md](DEPLOY.md#plugin-packages-on-deploy)). Cancel shown in its place stops that. Keep a `version` in the plugin's `composer.json` so the lock file does not depend on the branch name.
+- **Composer-managed plugins** live in their own repository, declare their packages in their `composer.json`, Composer resolves them into the app's shared `vendor/` as one set, with core packages held at the app's versions, so a plugin can't pull in a version that clashes with the app's. Add one under **Composer plugins** on the Plugins page (or `php artisan plugins:add-package vendor/name [^1.0]`), with its repository URL if it isn't on Packagist and whether to keep its version or take compatible updates: it is saved, the next deploy installs it, and it then appears in the list to enable. Removing it there uninstalls it with the next deploy. Composer never runs from the page itself.
 - **Uploaded plugins** (Plugins page) can only use what the app already has. On upload, the plugin's `composer.json` `require` list is checked against the installed packages, PHP extensions and PHP version, and the zip is refused with the list of what is missing.
 
 The app's own `composer.json` never lists a plugin's packages. Removing a plugin and its packages leaves the app booting and its tests passing; only that plugin's features go away.
