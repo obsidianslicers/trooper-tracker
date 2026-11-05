@@ -6,7 +6,6 @@ namespace App\Services;
 
 use App\Contracts\LoginProvider;
 use App\Enums\SystemCheckStatus;
-use App\Facades\TroopTracker;
 use App\Plugins\PluginLoginProviders;
 use App\Plugins\PluginSystemChecks;
 use Illuminate\Support\Collection;
@@ -24,7 +23,6 @@ class SystemCheckService
     ];
 
     public function __construct(
-        private readonly TroopTracker $troop_tracker,
         private readonly QueueWorkerHeartbeatService $queue_worker_heartbeat,
         private readonly ImageUploadSystemCheckService $image_uploads,
         private readonly PluginSystemChecks $plugin_checks) {}
@@ -240,7 +238,6 @@ class SystemCheckService
         );
 
         return $logins->merge([
-            $this->toResult('Google Sync', $this->troop_tracker->isGoogleSyncConfigured()),
             $this->toResult('Google Maps API key', !empty(config('services.google.maps_api_key'))),
             new SystemCheckResult(
                 "Mail transport ({$mail_mailer})",

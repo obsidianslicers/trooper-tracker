@@ -11,6 +11,7 @@ use App\Plugins\PluginForms;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
+use Mockery;
 use Tests\TestCase;
 
 class UpdateRequestTest extends TestCase
@@ -35,20 +36,20 @@ class UpdateRequestTest extends TestCase
      */
     private function setupMockedRoute(UpdateRequest $request, ?Organization $organization): void
     {
-        $mock_route = \Mockery::mock();
+        $mock_route = Mockery::mock();
         $mock_route->shouldReceive('parameter')
             ->with('organization')
             ->andReturn($organization);
         $mock_route->shouldReceive('parameter')
-            ->with('organization', \Mockery::any())
+            ->with('organization', Mockery::any())
             ->andReturn($organization);
-        $request->setRouteResolver(fn() => $mock_route);
+        $request->setRouteResolver(fn () => $mock_route);
     }
 
     public function test_authorize_returns_true_for_admin(): void
     {
         $subject = new UpdateRequest;
-        $subject->setUserResolver(fn() => $this->admin);
+        $subject->setUserResolver(fn () => $this->admin);
         $this->setupMockedRoute($subject, $this->organization);
 
         $this->assertTrue($subject->authorize());
@@ -60,7 +61,7 @@ class UpdateRequestTest extends TestCase
         $this->expectExceptionMessage('Organization not found or unauthorized.');
 
         $subject = new UpdateRequest;
-        $subject->setUserResolver(fn() => $this->admin);
+        $subject->setUserResolver(fn () => $this->admin);
         $this->setupMockedRoute($subject, null);
 
         $subject->authorize();
@@ -101,33 +102,6 @@ class UpdateRequestTest extends TestCase
         $this->assertArrayHasKey(Organization::NAME, $validator->errors()->toArray());
     }
 
-    public function test_rules_sync_sheet_id_is_nullable(): void
-    {
-        $subject = new UpdateRequest;
-        $this->setupMockedRoute($subject, $this->organization);
-        $rules = $subject->rules();
-
-        $this->assertArrayHasKey(Organization::SYNC_SHEET_ID, $rules);
-        $this->assertContains('nullable', $rules[Organization::SYNC_SHEET_ID]);
-    }
-
-    public function test_rules_validates_sync_sheet_id_max_length(): void
-    {
-        $subject = new UpdateRequest;
-        $this->setupMockedRoute($subject, $this->organization);
-
-        $validator = Validator::make(
-            [
-                Organization::NAME => 'Test Organization',
-                Organization::SYNC_SHEET_ID => str_repeat('a', 129), // max is 128
-            ],
-            $subject->rules()
-        );
-
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey(Organization::SYNC_SHEET_ID, $validator->errors()->toArray());
-    }
-
     public function test_rules_include_plugin_form_rules(): void
     {
         app(PluginForms::class)->add(PluginForms::ORGANIZATION_UPDATE, ['plugin_field' => ['nullable', 'max:5']]);
@@ -148,7 +122,6 @@ class UpdateRequestTest extends TestCase
         $validator = Validator::make(
             [
                 Organization::NAME => 'Updated Organization',
-                Organization::SYNC_SHEET_ID => 'sheet-123',
             ],
             $subject->rules()
         );

@@ -68,13 +68,4 @@ class TroopTrackerTest extends TestCase
         config(['tracker.support.goal' => '0']);
         $this->assertFalse($subject->isSupportGoalEnabled());
     }
-
-    public function test_is_google_sync_configured_matches_credentials_file_readability(): void
-    {
-        $subject = new TroopTracker;
-
-        $expected = is_readable(base_path('google-credentials.json'));
-
-        $this->assertSame($expected, $subject->isGoogleSyncConfigured());
-    }
 }

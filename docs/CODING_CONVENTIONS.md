@@ -533,7 +533,7 @@ Standalone service classes provide reusable functionality across the application
 - **GeocodingService:** Geocodes addresses to lat/long coordinates
   - `geocode(string $address): ?array`
   
-- **GoogleService:** Integrates with Google APIs
+- **GoogleService:** Geocodes addresses with the Google Maps API
   - OAuth authentication
   - API access management
 

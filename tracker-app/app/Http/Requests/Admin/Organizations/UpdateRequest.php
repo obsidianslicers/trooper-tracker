@@ -60,11 +60,6 @@ class UpdateRequest extends FormRequest
                 'max:64',
                 new UniqueNameRule(true, $this->route('organization')),
             ],
-            Organization::SYNC_SHEET_ID => [
-                'nullable',
-                'string',
-                'max:128',
-            ],
         ];
 
         return [...$rules, ...app(PluginForms::class)->rules(PluginForms::ORGANIZATION_UPDATE)];

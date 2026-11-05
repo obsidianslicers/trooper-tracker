@@ -12,6 +12,7 @@ use App\Plugins\PluginLoginProviders;
 use App\Plugins\PluginManager;
 use App\Plugins\PluginNotifications;
 use App\Plugins\PluginPermissionRequests;
+use App\Plugins\PluginSheetSource;
 use App\Plugins\PluginSlots;
 use App\Plugins\PluginSystemChecks;
 use Illuminate\Support\Facades\Blade;
@@ -31,6 +32,7 @@ class PluginsServiceProvider extends ServiceProvider
         $this->app->singleton(PluginForms::class);
         $this->app->singleton(PluginDonations::class);
         $this->app->singleton(PluginPermissionRequests::class);
+        $this->app->singleton(PluginSheetSource::class);
         $this->app->singleton(PluginLoginProviders::class);
         $this->app->singleton(PluginNotifications::class);
         $this->app->singleton(PluginSystemChecks::class);

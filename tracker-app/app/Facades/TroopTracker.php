@@ -25,21 +25,6 @@ class TroopTracker
     }
 
     /**
-     * Determine if Google Calendar sync is properly configured.
-     *
-     * Checks if the google-credentials.json file exists and is readable
-     * at the application base path.
-     *
-     * @return bool True if Google sync credentials file is available, false otherwise
-     */
-    public function isGoogleSyncConfigured(): bool
-    {
-        $is_google_sync_configured = is_readable(base_path('google-credentials.json'));
-
-        return $is_google_sync_configured;
-    }
-
-    /**
      * Determine if email/password authentication can be used.
      *
      * Email/password authentication is available unless a login provider

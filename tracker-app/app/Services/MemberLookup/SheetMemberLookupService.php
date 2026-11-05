@@ -6,15 +6,18 @@ namespace App\Services\MemberLookup;
 
 use App\Contracts\MemberLookupInterface;
 use App\Models\Organization;
-use App\Services\GoogleService;
+use App\Plugins\PluginSheetSource;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
 
-class GoogleSheetsMemberLookupService implements MemberLookupInterface
+/**
+ * Looks members up in the club's roster spreadsheet.
+ */
+class SheetMemberLookupService implements MemberLookupInterface
 {
     public function __construct(
         private readonly Organization $organization,
-        private readonly GoogleService $google,
+        private readonly PluginSheetSource $sheets,
         private readonly string $sheet_name,
         private readonly string $identifier_header,
         private readonly string $name_header = '',
@@ -36,7 +39,7 @@ class GoogleSheetsMemberLookupService implements MemberLookupInterface
         }
         catch (Throwable $e)
         {
-            // Google is unreachable or misconfigured; report it but don't cache the miss
+            // The sheet is unreachable or misconfigured; report it but don't cache the miss
             // so the next lookup retries instead of failing silently for an hour.
             report($e);
 
@@ -46,16 +49,9 @@ class GoogleSheetsMemberLookupService implements MemberLookupInterface
 
     private function fetchFromSheet(string $identifier): ?array
     {
-        $sheet_id = $this->organization->sync_sheet_id;
+        $rows = $this->sheets->get()?->rows($this->organization, $this->sheet_name);
 
-        if (empty($sheet_id))
-        {
-            return null;
-        }
-
-        $rows = $this->google->getSheet($sheet_id, $this->sheet_name);
-
-        if (!is_array($rows) || empty($rows))
+        if (empty($rows))
         {
             return null;
         }

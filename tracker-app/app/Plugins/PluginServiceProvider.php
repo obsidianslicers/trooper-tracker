@@ -164,6 +164,16 @@ abstract class PluginServiceProvider extends ServiceProvider
     }
 
     /**
+     * Give the club synchronizers somewhere to read roster spreadsheets from.
+     *
+     * @param  class-string<\App\Contracts\SheetSource>  $source_class
+     */
+    protected function setSheetSource(string $source_class): void
+    {
+        $this->app->make(PluginSheetSource::class)->set($source_class);
+    }
+
+    /**
      * Let permission requests ask for something more, such as forum user groups.
      *
      * @param  class-string<\App\Contracts\PermissionRequestExtension>  $extension_class

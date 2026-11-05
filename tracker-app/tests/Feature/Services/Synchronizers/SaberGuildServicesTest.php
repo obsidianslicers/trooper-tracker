@@ -9,7 +9,7 @@ use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
-use App\Services\GoogleService;
+use App\Plugins\PluginSheetSource;
 use App\Services\Synchronizers\SaberGuildServices;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
@@ -24,10 +24,10 @@ class SaberGuildServicesTest extends TestCase
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->create();
 
-        $google = Mockery::mock(GoogleService::class);
+        $sheets = app(PluginSheetSource::class);
 
-        /** @var SaberGuildServices&\Mockery\MockInterface $subject */
-        $subject = Mockery::mock(SaberGuildServices::class, [$organization, $google])
+        /** @var SaberGuildServices&Mockery\MockInterface $subject */
+        $subject = Mockery::mock(SaberGuildServices::class, [$organization, $sheets])
             ->makePartial()
             ->shouldAllowMockingProtectedMethods();
 

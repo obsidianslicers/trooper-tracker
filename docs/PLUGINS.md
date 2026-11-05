@@ -341,6 +341,10 @@ Troopers can sign in through another site, such as a forum. Core has Google buil
 
 Plugin pages a trooper must reach before finishing account setup, such as a page to link their account, opt in with `->defaults(TrooperSetupRequiredMiddleware::ALLOWED, true)` on the route.
 
+### Sheet source
+
+The club synchronizers (`tracker:synchronize-organizations`) and the sign-up member lookups read roster spreadsheets through `App\Contracts\SheetSource`. Its `rows($organization, $sheet_name)` returns every row of one sheet, header included, or `null` when the organization has no spreadsheet; throw `App\Exceptions\SheetUnavailableException` when it can't be read, so the run is skipped instead of treated as empty. Register it with `$this->setSheetSource(MySheets::class)`. A site has one source; without one, the syncs that need a sheet read nothing.
+
 ### Settings
 
 Each entry in `settings` becomes a field on the plugin's Settings page. Types: `text`, `url`, `email`, `number`, `boolean`, `secret`. Values are validated by type, and stored encrypted in `tt_plugins.settings`. A `secret` is never shown back; leaving it empty keeps the saved value. Read settings with `$this->setting('key')` in the provider, or `app(PluginManager::class)->setting('slug', 'key')` elsewhere.
@@ -420,6 +424,30 @@ Sites that use XenForo must enable the plugin right after deploying. Until then 
 
 ```bash
 php artisan plugins:enable xenforo
+```
+
+---
+
+## The Google Sheets plugin
+
+`tracker-app/plugins/google-sheets` is the sheet source for the clubs whose rosters are Google Sheets (Rebel Legion, Droid Builders, Saber Guild and Mandalorian Mercs lookups). It has:
+
+- the Google Sheets API client, with retries on transient Google errors
+- the **Google Sync Sheet ID** field on a club's organization form, stored in `tt_google_sheets_organization_sheets` (copied from the old `tt_organizations.sync_sheet_id` column on enable; a later core migration drops the column)
+- the **Service account credentials file** setting, `google-credentials.json` in `tracker-app` by default
+- a System Check row for the credentials file
+- `ClubSheetsSeeder`, which stores the known clubs' sheet IDs:
+
+```bash
+php artisan db:seed --class="TroopTracker\Plugins\GoogleSheets\Database\Seeders\ClubSheetsSeeder"
+```
+
+Google Maps geocoding of event addresses stays in core (`GoogleService`, `GOOGLE_MAPS_API_KEY`).
+
+Sites that sync clubs from Google Sheets must enable the plugin after deploying, or those syncs read nothing:
+
+```bash
+php artisan plugins:enable google-sheets
 ```
 
 ---

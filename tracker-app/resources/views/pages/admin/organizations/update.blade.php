@@ -45,19 +45,6 @@
                                           :value="$organization->name" />
                         </x-input-container>
 
-                        @if(TroopTracker::isGoogleSyncConfigured() && $organization->type == \App\Enums\OrganizationType::ORGANIZATION)
-                            <x-input-container>
-                                <x-label>
-                                    Google Sync Sheet ID:
-                                </x-label>
-                                <x-input-text :property="'sync_sheet_id'"
-                                              :value="$organization->sync_sheet_id" />
-                                <p class="form-help">
-                                    <i class="text-muted">Optional Google Sheet ID used for sync.</i>
-                                </p>
-                            </x-input-container>
-                        @endif
-
                         @pluginSlot('admin.organizations.update.fields')
 
 

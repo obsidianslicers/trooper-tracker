@@ -184,7 +184,7 @@ tracker-app/
 │   ├── Policies/              # Authorization (HasTrooperPermissionsTrait)
 │   ├── Rules/                 # Custom validation rules, organized by feature
 │   └── Services/              # Standalone services (Flash, BreadCrumb, Geocoding, Google)
-├── plugins/<slug>/            # Local plugins (discord, xenforo); see docs/PLUGINS.md
+├── plugins/<slug>/            # Local plugins (discord, google-sheets, xenforo); see docs/PLUGINS.md
 │   ├── src/                   # Plugin code, namespace from plugin.json
 │   └── tests/                 # Plugin tests (`<namespace>\Tests`, Plugins suite)
 ├── tests/

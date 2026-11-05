@@ -7,14 +7,14 @@ namespace App\Services\Synchronizers;
 use App\Contracts\MemberLookupInterface;
 use App\Contracts\SynchronizerInterface;
 use App\Enums\MembershipStatus;
-use App\Exceptions\GoogleSheetsUnavailableException;
+use App\Exceptions\SheetUnavailableException;
 use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
-use App\Services\GoogleService;
+use App\Plugins\PluginSheetSource;
 use Illuminate\Support\Facades\Log;
 
 abstract class BaseOrganizationService implements SynchronizerInterface
@@ -23,7 +23,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     public function __construct(
         protected readonly Organization $organization,
-        protected readonly GoogleService $google) {}
+        protected readonly PluginSheetSource $sheets) {}
 
     public function run(): void
     {
@@ -42,31 +42,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function getSheetRows(string $sheet_name, bool $skip_header = true): array
     {
-        $sheet_id = $this->organization->sync_sheet_id;
-
-        if (empty($sheet_id))
-        {
-            Log::info(__CLASS__.":{$this->organization->name} No 'sync_sheet_id' configured");
-
-            return [];
-        }
-
-        // Costumes sheet columns expected: [legionId, costumename, costumeimage]
-        try
-        {
-            $rows = $this->google->getSheet($sheet_id, $sheet_name);
-        }
-        catch (GoogleSheetsUnavailableException $exception)
-        {
-            // Abort this organization's run so synchronized_at stays stale and the
-            // next scheduled run retries. The console command logs and continues.
-            Log::warning(__CLASS__.":{$this->organization->name} Google Sheets unavailable, skipping run", [
-                'sheet' => $sheet_name,
-                'message' => $exception->getMessage(),
-            ]);
-
-            throw $exception;
-        }
+        $rows = $this->readSheet($sheet_name);
 
         if ($rows === [])
         {
@@ -75,12 +51,39 @@ abstract class BaseOrganizationService implements SynchronizerInterface
             return [];
         }
 
-        if ($skip_header)
+        return $skip_header ? array_slice($rows, 1) : $rows;
+    }
+
+    /**
+     * @return array<int, array<int, string>>
+     */
+    private function readSheet(string $sheet_name): array
+    {
+        $source = $this->sheets->get();
+        $name = $this->organization->name;
+
+        try
         {
-            $rows = array_slice($rows, 1);
+            $rows = $source?->rows($this->organization, $sheet_name);
+        }
+        catch (SheetUnavailableException $exception)
+        {
+            // Abort this organization's run so synchronized_at stays stale and the
+            // next scheduled run retries. The console command logs and continues.
+            Log::warning(__CLASS__.":{$name} Sheet unavailable, skipping run", [
+                'sheet' => $sheet_name,
+                'message' => $exception->getMessage(),
+            ]);
+
+            throw $exception;
         }
 
-        return $rows;
+        if ($rows === null)
+        {
+            Log::info(__CLASS__.":{$name} No sheet source or spreadsheet configured");
+        }
+
+        return $rows ?? [];
     }
 
     protected function updateOrganizationSync(): void

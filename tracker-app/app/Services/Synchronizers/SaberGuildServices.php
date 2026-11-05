@@ -7,19 +7,19 @@ namespace App\Services\Synchronizers;
 use App\Contracts\MemberLookupInterface;
 use App\Enums\MembershipStatus;
 use App\Models\TrooperCostume;
-use App\Services\MemberLookup\GoogleSheetsMemberLookupService;
+use App\Services\MemberLookup\SheetMemberLookupService;
 
 /**
  * Service class for managing Mandalorian Mercs organization data.
  *
- * This service interacts with Google Sheets to synchronize member information,
+ * This service reads the club roster spreadsheet to synchronize member information,
  * update trooper statuses, and manage organization-specific data.
  */
 class SaberGuildServices extends BaseOrganizationService
 {
     public function lookupMember(): ?MemberLookupInterface
     {
-        return new GoogleSheetsMemberLookupService($this->organization, $this->google, 'Troopers', 'ID', 'IRL Name', 'SG-');
+        return new SheetMemberLookupService($this->organization, $this->sheets, 'Troopers', 'ID', 'IRL Name', 'SG-');
     }
 
     protected function synchronize(): void

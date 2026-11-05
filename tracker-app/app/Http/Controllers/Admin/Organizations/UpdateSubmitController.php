@@ -36,11 +36,6 @@ class UpdateSubmitController extends MagicBusController
     ): RedirectResponse {
         $organization->name = $request->validated('name');
 
-        if ($request->has('sync_sheet_id'))
-        {
-            $organization->sync_sheet_id = $request->validated('sync_sheet_id');
-        }
-
         DB::transaction(function () use ($organization, $request, $plugin_forms): void
         {
             $organization->save();

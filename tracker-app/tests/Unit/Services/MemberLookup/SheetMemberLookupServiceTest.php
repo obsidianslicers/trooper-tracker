@@ -4,22 +4,24 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\MemberLookup;
 
-use App\Exceptions\GoogleSheetsUnavailableException;
+use App\Exceptions\SheetUnavailableException;
 use App\Models\Organization;
-use App\Services\GoogleService;
-use App\Services\MemberLookup\GoogleSheetsMemberLookupService;
+use App\Plugins\PluginSheetSource;
+use App\Services\MemberLookup\SheetMemberLookupService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
-use Mockery;
+use Mockery\MockInterface;
 use RuntimeException;
+use Tests\Concerns\UsesFakeSheetSource;
 use Tests\TestCase;
 
-class GoogleSheetsMemberLookupServiceTest extends TestCase
+class SheetMemberLookupServiceTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesFakeSheetSource;
 
-    private GoogleService $google;
+    private MockInterface $source;
 
     private Organization $organization;
 
@@ -28,20 +30,21 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
         parent::setUp();
         Cache::flush();
 
-        $this->google = Mockery::mock(GoogleService::class);
-        $this->organization = Organization::factory()->asOrganization()->withNodePath('100:')->create([
-            Organization::SYNC_SHEET_ID => 'sheet-id-123',
-        ]);
+        $this->source = $this->fakeSheetSource();
+        $this->organization = Organization::factory()
+            ->asOrganization()
+            ->withNodePath('100:')
+            ->create();
     }
 
     private function makeSubject(
         string $identifier_header = 'ID',
         string $name_header = '',
         string $identifier_prefix = '',
-    ): GoogleSheetsMemberLookupService {
-        return new GoogleSheetsMemberLookupService(
+    ): SheetMemberLookupService {
+        return new SheetMemberLookupService(
             $this->organization,
-            $this->google,
+            app(PluginSheetSource::class),
             'Troopers',
             $identifier_header,
             $name_header,
@@ -49,29 +52,23 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
         );
     }
 
-    public function test_lookup_returns_null_when_organization_has_no_sync_sheet_id(): void
+    public function test_lookup_returns_null_when_organization_has_no_sheet(): void
     {
-        $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create([
-            Organization::SYNC_SHEET_ID => null,
-        ]);
+        $this->source->shouldReceive('rows')->once()->andReturn(null);
 
-        $subject = new GoogleSheetsMemberLookupService(
-            $organization,
-            $this->google,
-            'Troopers',
-            'ID',
-        );
-
-        $this->google->shouldNotReceive('getSheet');
-
-        $result = $subject->lookup('1234');
-
-        $this->assertNull($result);
+        $this->assertNull($this->makeSubject()->lookup('1234'));
     }
 
-    public function test_lookup_returns_null_when_google_returns_empty_rows(): void
+    public function test_lookup_returns_null_without_a_sheet_source(): void
     {
-        $this->google->shouldReceive('getSheet')->once()->andReturn([]);
+        $this->app->forgetInstance(PluginSheetSource::class);
+
+        $this->assertNull($this->makeSubject()->lookup('1234'));
+    }
+
+    public function test_lookup_returns_null_when_the_sheet_is_empty(): void
+    {
+        $this->source->shouldReceive('rows')->once()->andReturn([]);
 
         $result = $this->makeSubject()->lookup('1234');
 
@@ -80,7 +77,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
     public function test_lookup_returns_null_when_identifier_not_in_sheet(): void
     {
-        $this->google->shouldReceive('getSheet')->once()->andReturn([
+        $this->source->shouldReceive('rows')->once()->andReturn([
             ['ID', 'Name'],
             ['5555', 'Someone Else'],
         ]);
@@ -92,7 +89,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
     public function test_lookup_returns_member_data_when_identifier_found(): void
     {
-        $this->google->shouldReceive('getSheet')->once()->andReturn([
+        $this->source->shouldReceive('rows')->once()->andReturn([
             ['ID', 'Name'],
             ['1234', 'Jane Rebel'],
         ]);
@@ -113,7 +110,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
     public function test_lookup_is_case_insensitive_for_identifier_matching(): void
     {
-        $this->google->shouldReceive('getSheet')->once()->andReturn([
+        $this->source->shouldReceive('rows')->once()->andReturn([
             ['ID', 'Name'],
             ['REBEL-42', 'Jane Rebel'],
         ]);
@@ -126,7 +123,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
     public function test_lookup_resolves_columns_by_header_name_not_position(): void
     {
-        $this->google->shouldReceive('getSheet')->once()->andReturn([
+        $this->source->shouldReceive('rows')->once()->andReturn([
             ['Extra', 'ID', 'Name'],
             ['ignored', '7777', 'Padawan Pete'],
         ]);
@@ -139,7 +136,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
     public function test_lookup_strips_identifier_prefix_before_matching(): void
     {
-        $this->google->shouldReceive('getSheet')->once()->andReturn([
+        $this->source->shouldReceive('rows')->once()->andReturn([
             ['ID', 'IRL Name'],
             ['SG-1234', 'Sam Saber'],
         ]);
@@ -152,7 +149,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
     public function test_lookup_prefix_strip_is_case_insensitive(): void
     {
-        $this->google->shouldReceive('getSheet')->once()->andReturn([
+        $this->source->shouldReceive('rows')->once()->andReturn([
             ['ID', 'IRL Name'],
             ['sg-5678', 'Sam Saber'],
         ]);
@@ -165,7 +162,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
     public function test_lookup_returns_null_full_name_when_no_name_header_configured(): void
     {
-        $this->google->shouldReceive('getSheet')->once()->andReturn([
+        $this->source->shouldReceive('rows')->once()->andReturn([
             ['Forum Name', 'Droid Name'],
             ['r2builder', 'R2-D2 Replica'],
         ]);
@@ -179,7 +176,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
     public function test_lookup_returns_null_when_identifier_column_header_not_found(): void
     {
-        $this->google->shouldReceive('getSheet')->once()->andReturn([
+        $this->source->shouldReceive('rows')->once()->andReturn([
             ['WrongColumn', 'Name'],
             ['1234', 'Someone'],
         ]);
@@ -191,7 +188,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
     public function test_lookup_caches_found_result_to_avoid_repeat_sheet_fetches(): void
     {
-        $this->google->shouldReceive('getSheet')->once()->andReturn([
+        $this->source->shouldReceive('rows')->once()->andReturn([
             ['ID', 'Name'],
             ['1234', 'Jane Rebel'],
         ]);
@@ -203,7 +200,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
     public function test_lookup_caches_not_found_result_to_avoid_repeat_sheet_fetches(): void
     {
-        $this->google->shouldReceive('getSheet')->once()->andReturn([
+        $this->source->shouldReceive('rows')->once()->andReturn([
             ['ID', 'Name'],
             ['9999', 'Someone Else'],
         ]);
@@ -216,11 +213,11 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
         $this->assertNull($second);
     }
 
-    public function test_lookup_returns_null_without_caching_when_google_unavailable(): void
+    public function test_lookup_returns_null_without_caching_when_the_sheet_is_unavailable(): void
     {
-        $this->google->shouldReceive('getSheet')
+        $this->source->shouldReceive('rows')
             ->twice()
-            ->andThrow(new GoogleSheetsUnavailableException('Google Sheets is unavailable.'));
+            ->andThrow(new SheetUnavailableException('The sheet is unavailable.'));
 
         $subject = $this->makeSubject('ID', 'Name');
 
@@ -228,9 +225,9 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
         $this->assertNull($subject->lookup('1234'));
     }
 
-    public function test_lookup_returns_null_instead_of_throwing_when_google_service_fails(): void
+    public function test_lookup_returns_null_instead_of_throwing_when_the_source_fails(): void
     {
-        $this->google->shouldReceive('getSheet')
+        $this->source->shouldReceive('rows')
             ->once()
             ->andThrow(new InvalidArgumentException('file "google-credentials.json" does not exist'));
 
@@ -239,9 +236,9 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function test_lookup_does_not_cache_a_failed_google_service_call(): void
+    public function test_lookup_does_not_cache_a_failed_sheet_read(): void
     {
-        $this->google->shouldReceive('getSheet')
+        $this->source->shouldReceive('rows')
             ->twice()
             ->andThrow(new RuntimeException('Google API unreachable'));
 
@@ -252,7 +249,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
     public function test_lookup_trims_whitespace_from_header_names(): void
     {
-        $this->google->shouldReceive('getSheet')->once()->andReturn([
+        $this->source->shouldReceive('rows')->once()->andReturn([
             [' ID ', ' Name '],
             ['3333', 'Whitespace Trooper'],
         ]);
