@@ -231,7 +231,14 @@ php artisan plugins:enable discord
 
 If the site uses XenForo, enable the XenForo plugin right after deploying: `php artisan plugins:enable xenforo`. Until it is enabled, XenForo login is unavailable, the hourly forum user sync stops and "require a linked forum account" is off, so troopers can only sign in with email or Google. Enabling it copies the `XENFORO_*` and `TRACKER_REQUIRE_XENFORO` values from `.env` onto its settings page; `php artisan xenforo:import-env` copies them again later.
 
-If clubs sync their rosters from Google Sheets, install and enable the Google Sheets plugin too: `composer require trooptracker/google-sheets`, then `php artisan plugins:enable google-sheets`. Enabling copies each club's Sheet ID into the plugin's table. Until it is enabled, the Sheets-based club syncs and member lookups read nothing.
+If clubs sync their rosters from Google Sheets, install and enable the Google Sheets plugin too. Add it to the server's `.env` so every deploy installs its packages, deploy, then enable it once:
+
+```bash
+TRACKER_COMPOSER_PLUGINS="trooptracker/google-sheets"
+php artisan plugins:enable google-sheets
+```
+
+`deploy.sh` runs `composer require` for each package in `TRACKER_COMPOSER_PLUGINS` (comma or space separated, optionally `vendor/name:^1.0`) right after `composer install`. These plugins stay out of the app's `composer.json`, so each server installs only the ones it uses, and the next deploy's `git reset` puts `composer.json` back before they are required again. After migrating, `deploy.sh` also runs `php artisan plugins:upgrade`; a plugin upgrade that fails is rolled back and logged without stopping the deploy. Enabling copies each club's Sheet ID into the plugin's table. Until it is enabled, the Sheets-based club syncs and member lookups read nothing.
 
 Set the webhook under Command Staff > Plugins > Discord > Settings, or keep `DISCORD_WEBHOOK_URL` in `.env`. See [PLUGINS.md](PLUGINS.md).
 

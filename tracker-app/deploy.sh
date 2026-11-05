@@ -61,6 +61,23 @@ echo "📦 Installing Composer dependencies..."
     --optimize-autoloader \
     --no-dev
 
+# Plugins that bring their own packages, e.g. TRACKER_COMPOSER_PLUGINS="trooptracker/google-sheets".
+# They stay out of the app's composer.json, so each server installs only the ones it uses.
+# git reset above undoes the previous deploy's require, so they are required again each time.
+COMPOSER_PLUGINS="$(grep -E '^TRACKER_COMPOSER_PLUGINS=' .env | tail -n 1 | cut -d= -f2- \
+    | tr -d "\"'" | tr ',' ' ' || true)"
+
+if [ -n "${COMPOSER_PLUGINS// /}" ]; then
+    echo "📦 Installing Composer-managed plugins: $COMPOSER_PLUGINS"
+    # shellcheck disable=SC2086 # one argument per package
+    "$PHP" "$COMPOSER" require $COMPOSER_PLUGINS \
+        --no-interaction \
+        --prefer-dist \
+        --update-no-dev \
+        --no-scripts
+    "$PHP" "$COMPOSER" dump-autoload --optimize --no-dev
+fi
+
 echo "📦 Building Laravel Assets..."
 
 # Raise Node memory limit for build steps
@@ -87,6 +104,10 @@ echo "🧹 Clearing caches..."
 
 echo "🗄️ Running database migrations..."
 "$PHP" artisan migrate --force
+
+echo "🧩 Finishing plugin upgrades..."
+"$PHP" artisan plugins:upgrade \
+    || echo "⚠️ A plugin upgrade failed and was rolled back. See Admin > Plugins and the logs."
 
 # --- VERSION SYSTEM ---
 echo "📝 Updating APP_VERSION in .env..."

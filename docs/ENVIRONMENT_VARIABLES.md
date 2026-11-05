@@ -514,6 +514,12 @@ See [PLUGINS.md](PLUGINS.md).
 - **Required**: No
 - **Default**: `10240`, `51200`, `2000`
 
+### TRACKER_COMPOSER_PLUGINS
+- **Purpose**: Plugins with their own Composer packages that `deploy.sh` installs on each deploy, with `composer require`, after `composer install`. Read only by `deploy.sh`, not by the app.
+- **Required**: Only for sites using such a plugin. Sites that sync club rosters from Google Sheets need `trooptracker/google-sheets`.
+- **Format**: Comma or space separated package names, optionally with a version (`vendor/name:^1.0`)
+- **Example**: `TRACKER_COMPOSER_PLUGINS="trooptracker/google-sheets"`
+
 ---
 
 ## Example Production .env
