@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Messages\Troopers\Queries;
 
 use App\Messages\Troopers\Queries\GetCommandStaff;
+use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,5 +25,18 @@ class GetCommandStaffTest extends TestCase
         $result = (new GetCommandStaff)->handle();
 
         $this->assertSame(['Alpha Moderator', 'Zulu Admin'], $result->pluck('display_name')->all());
+    }
+
+    public function test_handle_attaches_root_clubs_of_moderated_organizations(): void
+    {
+        $club = Organization::factory()->asOrganization()->withName('501st')->create();
+        $garrison = Organization::factory()->asRegion()->withParent($club)->create();
+        $moderator = Trooper::factory()->asActive()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($garrison)
+            ->asModerator()->create();
+
+        $result = (new GetCommandStaff)->handle()->firstWhere('id', $moderator->id);
+
+        $this->assertSame(['501st'], $result->cs_organizations->pluck(Organization::NAME)->all());
     }
 }

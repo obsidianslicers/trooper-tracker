@@ -105,4 +105,37 @@ class MergeTrooperOrganizationsTest extends TestCase
             TrooperOrganization::ORGANIZATION_ID => $organization->id,
         ]);
     }
+
+    public function test_call_moves_source_identifier_to_target_without_one(): void
+    {
+        $target_trooper = Trooper::factory()->asActive()->create();
+        $source_trooper = Trooper::factory()->asActive()->create();
+        $organization = Organization::factory()->asOrganization()->create();
+
+        $target_membership = TrooperOrganization::factory()->forTrooper($target_trooper)
+            ->forOrganization($organization)->create([TrooperOrganization::IDENTIFIER => null]);
+        $source_membership = TrooperOrganization::factory()->forTrooper($source_trooper)
+            ->forOrganization($organization)->withIdentifier('1138')->create();
+
+        MergeTrooperOrganizations::call(target_trooper: $target_trooper, source_trooper: $source_trooper);
+
+        $this->assertSame('1138', $target_membership->fresh()->identifier);
+        $this->assertNull($source_membership->fresh()->identifier);
+    }
+
+    public function test_call_keeps_target_identifier_when_both_have_one(): void
+    {
+        $target_trooper = Trooper::factory()->asActive()->create();
+        $source_trooper = Trooper::factory()->asActive()->create();
+        $organization = Organization::factory()->asOrganization()->create();
+
+        $target_membership = TrooperOrganization::factory()->forTrooper($target_trooper)
+            ->forOrganization($organization)->withIdentifier('421')->create();
+        TrooperOrganization::factory()->forTrooper($source_trooper)
+            ->forOrganization($organization)->withIdentifier('1138')->create();
+
+        MergeTrooperOrganizations::call(target_trooper: $target_trooper, source_trooper: $source_trooper);
+
+        $this->assertSame('421', $target_membership->fresh()->identifier);
+    }
 }

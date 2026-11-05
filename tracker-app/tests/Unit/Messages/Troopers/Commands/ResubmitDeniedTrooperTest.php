@@ -201,4 +201,25 @@ class ResubmitDeniedTrooperTest extends TestCase
 
         Queue::assertPushed(SendTrooperResubmittedNotificationsJob::class);
     }
+
+    public function test_handle_skips_unknown_organizations_and_incomplete_selections(): void
+    {
+        Queue::fake();
+        $trooper = Trooper::factory()->asDenied()->create([
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,
+        ]);
+        $org = Organization::factory()->asOrganization()->create();
+        $region = Organization::factory()->asRegion()->withParent($org)->create();
+        Organization::factory()->asUnit()->withParent($region)->create();
+        $other_org = Organization::factory()->asOrganization()->create();
+
+        (new ResubmitDeniedTrooper($trooper, [
+            999999 => ['selected' => '1', 'region_id' => $region->id],
+            $org->id => ['selected' => '1', 'region_id' => $region->id],
+            $other_org->id => ['selected' => '1'],
+        ]))->handle();
+
+        $this->assertSame(0, TrooperRequest::where(TrooperRequest::TROOPER_ID, $trooper->id)->count());
+        Queue::assertPushed(SendTrooperResubmittedNotificationsJob::class);
+    }
 }
