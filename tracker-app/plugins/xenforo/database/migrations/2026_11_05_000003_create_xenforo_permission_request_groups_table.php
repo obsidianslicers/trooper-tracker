@@ -18,12 +18,19 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
+        // An earlier attempt on MySQL could leave the table behind without
+        // recording this migration, because MySQL can't roll back DDL.
+        Schema::dropIfExists('tt_xenforo_permission_request_groups');
+
+        // Named by hand: the generated names are longer than MySQL's 64 characters.
         Schema::create('tt_xenforo_permission_request_groups', function (Blueprint $table)
         {
             $table->id();
-            $table->foreignId('permission_request_id')
-                ->unique()
-                ->constrained('tt_permission_requests')
+            $table->unsignedBigInteger('permission_request_id');
+            $table->unique('permission_request_id', 'tt_xf_perm_req_groups_request_unique');
+            $table->foreign('permission_request_id', 'tt_xf_perm_req_groups_request_foreign')
+                ->references('id')
+                ->on('tt_permission_requests')
                 ->cascadeOnDelete();
             $table->json('groups_to_add')->nullable();
             $table->json('groups_to_remove')->nullable();
@@ -40,7 +47,9 @@ return new class extends Migration {
 
     private function copyExistingGroups(): void
     {
-        if (!Schema::hasColumns('tt_permission_requests', ['forum_groups_to_add', 'forum_groups_to_remove']))
+        $columns = ['forum_groups_to_add', 'forum_groups_to_remove'];
+
+        if (! Schema::hasColumns('tt_permission_requests', $columns))
         {
             return;
         }
@@ -66,7 +75,8 @@ return new class extends Migration {
 
                 if ($rows->isNotEmpty())
                 {
-                    DB::table('tt_xenforo_permission_request_groups')->insert($rows->values()->all());
+                    DB::table('tt_xenforo_permission_request_groups')
+                        ->insert($rows->values()->all());
                 }
             });
     }
