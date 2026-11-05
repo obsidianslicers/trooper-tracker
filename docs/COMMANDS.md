@@ -128,6 +128,36 @@ php artisan fabricator:generate-factories
 
 ---
 
+### `tracker:merge-costumes`
+
+Folds a duplicate costume into the costume you want to keep, then permanently deletes the duplicate. Everything that pointed at the duplicate moves to the kept costume, including soft-deleted records:
+
+- **Club links** (`tt_organization_costumes`): a club that only had the duplicate is repointed. A club that had both keeps its existing link (taking the duplicate's prefix only if it had none).
+- **Trooper costumes** (`tt_trooper_costumes`): a trooper who only had the duplicate is moved over. A trooper who had both keeps their existing record, missing photos are filled in from the duplicate, and a display costume set to the duplicate moves to the kept record.
+- **Event sign-ups** (`tt_event_troopers`): primary and backup costumes are repointed. If a sign-up ends up with the same primary and backup costume, the backup is cleared. Credited club ids are unchanged.
+
+The command shows how many clubs, troopers, and sign-ups each costume has, then asks for confirmation. The whole merge runs in one transaction.
+
+```bash
+php artisan tracker:merge-costumes {source_costume_id} {target_costume_id} [--force]
+```
+
+| Argument/Option | Required | Description |
+|---|---|---|
+| `source_costume_id` | Yes | ID of the duplicate costume to fold in and delete (may be soft-deleted) |
+| `target_costume_id` | Yes | ID of the costume to keep |
+| `--force` | No | Skip the confirmation prompt |
+
+**Note:** club synchronizers match costumes by name. If the duplicate's name comes from a club sync, the next sync will create it again. In that case keep the costume whose name matches the club's feed, or fix the name in the club's data first.
+
+**Example:**
+```bash
+# Merge costume 87 ("TK Stormtroper") into costume 12 ("TK Stormtrooper")
+php artisan tracker:merge-costumes 87 12
+```
+
+---
+
 ### `tracker:mimic-trooper-permissions`
 
 Copies the `membership_role` and all `TrooperAssignment` records from a source trooper to a target trooper. Saves a snapshot of the target's original permissions before applying the change so it can be fully reverted. Useful for testing authorization flows as a specific role without changing accounts. **Dev use only.**
