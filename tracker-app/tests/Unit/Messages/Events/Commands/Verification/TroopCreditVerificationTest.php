@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Messages\Events\Commands\Verification;
 
 use App\Enums\EventTrooperStatus;
+use App\Jobs\SendTroopVerificationNotificationsJob;
 use App\Messages\Events\Commands\Verification\ApproveTroopCredit;
 use App\Messages\Events\Commands\Verification\RejectTroopCredit;
 use App\Messages\Events\Commands\Verification\RequestTroopVerification;
@@ -13,6 +14,7 @@ use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -30,6 +32,19 @@ class TroopCreditVerificationTest extends TestCase
         $fresh = $event_trooper->fresh();
         $this->assertSame(EventTrooperStatus::ATTENDED, $fresh->status);
         $this->assertSame([$organization->id], $fresh->costume_organization_ids);
+    }
+
+    public function test_request_queues_officer_notifications(): void
+    {
+        Queue::fake();
+        [$event_trooper, $organization] = $this->eventTrooper();
+
+        (new RequestTroopVerification($event_trooper, [$organization->id]))->handle();
+
+        Queue::assertPushed(
+            SendTroopVerificationNotificationsJob::class,
+            fn (SendTroopVerificationNotificationsJob $job): bool => (fn (): EventTrooper => $this->event_trooper)->call($job)->is($event_trooper)
+        );
     }
 
     public function test_approve_refuses_a_club_that_was_not_requested(): void

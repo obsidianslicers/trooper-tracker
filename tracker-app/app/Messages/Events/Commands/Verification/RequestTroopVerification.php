@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Messages\Events\Commands\Verification;
 
+use App\Jobs\SendTroopVerificationNotificationsJob;
 use App\Models\EventTrooper;
 use Hyperdrive\Message;
 
 /**
- * A flagged trooper confirmed a troop: hold the clubs they claimed until moderators verify them.
+ * A flagged trooper confirmed a troop: hold the clubs they claimed until moderators verify
+ * them, and let those moderators know.
+ *
+ * @method static void call(EventTrooper $event_trooper, array $organization_ids)
  */
 final class RequestTroopVerification extends Message
 {
@@ -24,5 +28,7 @@ final class RequestTroopVerification extends Message
     {
         $this->event_trooper->requestVerification($this->organization_ids);
         $this->event_trooper->save();
+
+        SendTroopVerificationNotificationsJob::dispatch($this->event_trooper);
     }
 }

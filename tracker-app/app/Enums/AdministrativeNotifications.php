@@ -37,6 +37,11 @@ enum AdministrativeNotifications: string
     case COSTUME_REQUESTS = 'costume_requests';
 
     /**
+     * Sent when a flagged trooper confirms a troop that needs a moderator to verify it.
+     */
+    case TROOP_VERIFICATIONS = 'troop_verifications';
+
+    /**
      * Sent to administrators when a moderator requests permission changes for a trooper.
      */
     case PERMISSION_REQUESTS = 'permission_requests';
