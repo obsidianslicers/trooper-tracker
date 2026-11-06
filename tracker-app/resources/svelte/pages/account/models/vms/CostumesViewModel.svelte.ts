@@ -13,6 +13,7 @@ export type TrooperCostume = {
     costume_id: number;
     name: string;
     costume_organizations: string;
+    pending_organizations: string[];
     submitting: boolean;
 };
 
@@ -85,7 +86,7 @@ export class CostumesViewModel extends ViewModel {
         //  fire & forget the request, but we want to preserve the current URL and state
         const options = createPartialReloadOptions({
             onSuccess: (page: any) => {
-                toastStateSvelte.success(`${this.selected_costume?.name} added successfully.`);
+                toastStateSvelte.success(`${this.selected_costume?.name} added. An officer reviews new costumes before you can use them.`);
                 this.selected_costume = null;
                 this.submitting = false;
                 this.trooper_costumes = page.props.results.trooper_costumes ?? [];

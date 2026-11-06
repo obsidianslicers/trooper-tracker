@@ -28,6 +28,7 @@ final class MergeTrooperCostumes extends Message
     {
         $source_costumes = TrooperCostume::query()
             ->withTrashed()
+            ->withPending()
             ->where(TrooperCostume::TROOPER_ID, $this->source_trooper->id)
             ->orderBy(TrooperCostume::ID)
             ->get();
@@ -52,6 +53,7 @@ final class MergeTrooperCostumes extends Message
     {
         return TrooperCostume::query()
             ->withTrashed()
+            ->withPending()
             ->where(TrooperCostume::TROOPER_ID, $this->target_trooper->id)
             ->where(
                 TrooperCostume::ORGANIZATION_COSTUME_ID,
@@ -72,6 +74,12 @@ final class MergeTrooperCostumes extends Message
         $target_costume->image_url_sm = $source_costume->image_url_sm;
         $target_costume->image_url_lg = $source_costume->image_url_lg;
         $target_costume->image_url_bucket_off = $source_costume->image_url_bucket_off;
+        if ($target_costume->isPending() && !$source_costume->isPending())
+        {
+            $target_costume->approved_at = $source_costume->approved_at;
+            $target_costume->approved_id = $source_costume->approved_id;
+        }
+
         $target_costume->synchronized_at = $this->latestDateTime(
             $target_costume->synchronized_at,
             $source_costume->synchronized_at,

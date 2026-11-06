@@ -20,6 +20,7 @@ class TrooperCostumeCollection extends ResourceCollection
                 'costume_id' => $costume->id,
                 'name' => $costume->name,
                 'costume_organizations' => $costume->costume_organizations ?? '',
+                'pending_organizations' => $costume->pending_organizations ?? [],
             ])->toArray();
     }
 }

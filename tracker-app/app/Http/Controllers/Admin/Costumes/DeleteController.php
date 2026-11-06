@@ -49,6 +49,7 @@ class DeleteController extends PageController
             ->count();
 
         $trooper_costume_count = TrooperCostume::query()
+            ->withPending()
             ->whereIn(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume_ids)
             ->count();
 

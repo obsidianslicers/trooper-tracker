@@ -41,21 +41,35 @@ final class AddCostumeToTrooper extends Message
 
         foreach ($organization_costumes as $organization_costume)
         {
-            $trooper_costume = $this->trooper->trooper_costumes()
-                ->withTrashed()
-                ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $organization_costume->id)
-                ->first();
+            $this->requestCostume($organization_costume);
+        }
+    }
 
-            if ($trooper_costume === null)
-            {
-                $attributes = [TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id];
+    /**
+     * Self-added costumes wait for an officer of that club. A costume the trooper removed
+     * themselves comes back as it was; one an officer revoked was reset to pending.
+     */
+    private function requestCostume(OrganizationCostume $organization_costume): void
+    {
+        $trooper_costume = TrooperCostume::withTrashed()
+            ->withPending()
+            ->where(TrooperCostume::TROOPER_ID, $this->trooper->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $organization_costume->id)
+            ->first();
 
-                $this->trooper->trooper_costumes()->create($attributes);
-            }
-            else
-            {
-                $trooper_costume->restore();
-            }
+        if ($trooper_costume === null)
+        {
+            $this->trooper->trooper_costumes()->create([
+                TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
+                TrooperCostume::APPROVED_AT => null,
+            ]);
+
+            return;
+        }
+
+        if ($trooper_costume->trashed())
+        {
+            $trooper_costume->restore();
         }
     }
 }

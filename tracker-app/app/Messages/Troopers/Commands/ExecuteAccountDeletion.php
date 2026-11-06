@@ -52,7 +52,7 @@ final class ExecuteAccountDeletion extends Message
         DB::table('tt_sessions')->where('user_id', $id)->delete();
 
         // Soft-delete operational records
-        TrooperCostume::where(TrooperCostume::TROOPER_ID, $id)->delete();
+        TrooperCostume::withPending()->where(TrooperCostume::TROOPER_ID, $id)->delete();
         TrooperFriend::where(TrooperFriend::TROOPER_ID, $id)
             ->orWhere(TrooperFriend::FRIEND_ID, $id)
             ->delete();

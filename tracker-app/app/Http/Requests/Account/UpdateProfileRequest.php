@@ -48,7 +48,8 @@ class UpdateProfileRequest extends FormRequest
                 'integer',
                 Rule::exists('tt_trooper_costumes', 'id')
                     ->where('trooper_id', $this->user()?->id ?? 0)
-                    ->whereNull('deleted_at'),
+                    ->whereNull('deleted_at')
+                    ->whereNotNull('approved_at'),
             ],
         ];
 
