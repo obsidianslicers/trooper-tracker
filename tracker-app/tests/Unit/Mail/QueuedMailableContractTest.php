@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Mail;
 
 use App\Mail\HasRetryPolicy;
+use App\Plugins\PluginAutoloader;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use PHPUnit\Framework\TestCase;
@@ -42,11 +43,43 @@ class QueuedMailableContractTest extends TestCase
      */
     private function queuedMailableClasses(): array
     {
+        $app_path = dirname(__DIR__, 3);
+        $classes = $this->queuedMailablesIn($app_path.'/app/Mail', 'App\\Mail\\');
+
+        // Composer doesn't know about plugins, so their classes need the plugin autoloader.
+        $autoloader = new PluginAutoloader;
+
+        foreach (glob($app_path.'/plugins/*/plugin.json') as $manifest)
+        {
+            $namespace = json_decode(file_get_contents($manifest), true)['namespace'];
+            $source_path = dirname($manifest).'/src';
+
+            $autoloader->add($namespace, $source_path);
+
+            if (is_dir($source_path.'/Mail'))
+            {
+                $classes = [
+                    ...$classes,
+                    ...$this->queuedMailablesIn($source_path.'/Mail', $namespace.'\\Mail\\'),
+                ];
+            }
+        }
+
+        sort($classes);
+
+        return $classes;
+    }
+
+    /**
+     * @return list<class-string>
+     */
+    private function queuedMailablesIn(string $directory, string $namespace): array
+    {
         $classes = [];
 
-        foreach (Finder::create()->files()->name('*.php')->in(dirname(__DIR__, 3).'/app/Mail') as $file)
+        foreach (Finder::create()->files()->name('*.php')->in($directory) as $file)
         {
-            $class = 'App\\Mail\\'.str_replace(
+            $class = $namespace.str_replace(
                 ['/', '.php'],
                 ['\\', ''],
                 $file->getRelativePathname(),
@@ -66,8 +99,6 @@ class QueuedMailableContractTest extends TestCase
 
             $classes[] = $class;
         }
-
-        sort($classes);
 
         return $classes;
     }
