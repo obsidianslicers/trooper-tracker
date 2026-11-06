@@ -138,6 +138,8 @@ Folds a duplicate costume into the costume you want to keep, then permanently de
 
 The command shows how many clubs, troopers, and sign-ups each costume has, then asks for confirmation. The whole merge runs in one transaction.
 
+Administrators can do the same merge from the web at **Command Staff → Merge Costumes** (`/admin/costumes/merge`). The Handler and Command Staff costumes cannot be merged away.
+
 ```bash
 php artisan tracker:merge-costumes {source_costume_id} {target_costume_id} [--force]
 ```

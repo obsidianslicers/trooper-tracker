@@ -160,6 +160,13 @@
             Create, Update, and Manage Costumes
         </x-dashboard-card>
     @endcan
+    @role(['administrator'])
+    <x-dashboard-card :label="'Merge Costumes'"
+                      :icon="'fa-object-group'"
+                      :url="route('admin.costumes.merge')">
+        Merge a duplicate costume into the one you want to keep.
+    </x-dashboard-card>
+    @endrole
     <x-dashboard-card :label="'Organizations'"
                       :icon="'fa-wrench'"
                       :url="route('admin.organizations.list')">

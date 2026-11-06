@@ -34,6 +34,13 @@ final class MergeCostumes extends Message
             throw new InvalidArgumentException('A costume cannot be merged into itself.');
         }
 
+        if ($this->source_costume->countsAsHandler())
+        {
+            throw new InvalidArgumentException(
+                "The {$this->source_costume->name} costume cannot be merged away."
+            );
+        }
+
         MergeOrganizationCostumes::call(
             target_costume: $this->target_costume,
             source_costume: $this->source_costume,
