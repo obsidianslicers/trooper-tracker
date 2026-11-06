@@ -8,7 +8,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use TroopTracker\Plugins\Holonet\Messages\Queries\GetSharedTroopHistory;
-use TroopTracker\Plugins\Holonet\Models\TrackerGrant;
+use TroopTracker\Plugins\Holonet\Models\HolonetGrant;
+use TroopTracker\Plugins\Holonet\Support\RequestLimit;
 use TroopTracker\Plugins\Holonet\Support\ThisTracker;
 
 /**
@@ -21,7 +22,18 @@ class ShareTroopHistoryController extends Controller
 
     public function __invoke(Request $request, ThisTracker $this_tracker): JsonResponse
     {
-        $grant = TrackerGrant::findByToken((string) $request->bearerToken());
+        $token = (string) $request->bearerToken();
+        $limited = RequestLimit::check([
+            'history_per_ip' => (string) $request->ip(),
+            'history_per_key' => hash('sha256', $token),
+        ]);
+
+        if ($limited !== null)
+        {
+            return $limited;
+        }
+
+        $grant = HolonetGrant::findByToken($token);
         $trooper = $grant?->trooper;
 
         if ($grant === null || $trooper === null)
@@ -34,7 +46,7 @@ class ShareTroopHistoryController extends Controller
             return response()->json(['error' => 'not_shared'], 403);
         }
 
-        $grant->update([TrackerGrant::LAST_USED_AT => now()]);
+        $grant->update([HolonetGrant::LAST_USED_AT => now()]);
 
         return response()->json([
             'version' => self::VERSION,

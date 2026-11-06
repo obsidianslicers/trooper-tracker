@@ -36,7 +36,10 @@ class HolonetServiceProvider extends PluginServiceProvider
 
         $this->schedule(function (Schedule $schedule): void
         {
-            $schedule->command(RefreshLinksCommand::class)->dailyAt('04:00')->withoutOverlapping();
+            $schedule->command(RefreshLinksCommand::class, ['--spread'])
+                ->dailyAt('04:00')
+                ->withoutOverlapping()
+                ->runInBackground();
         });
 
         $this->registerServiceRecord();

@@ -9,8 +9,8 @@ use Hyperdrive\Concerns\ShouldBeTransactional;
 use Hyperdrive\Message;
 use Illuminate\Support\Str;
 use TroopTracker\Plugins\Holonet\Directory\TrackerDirectory;
-use TroopTracker\Plugins\Holonet\Models\LinkCode;
-use TroopTracker\Plugins\Holonet\Models\TrackerGrant;
+use TroopTracker\Plugins\Holonet\Models\HolonetCode;
+use TroopTracker\Plugins\Holonet\Models\HolonetGrant;
 use TroopTracker\Plugins\Holonet\Support\LinkEligibility;
 use TroopTracker\Plugins\Holonet\Support\Pkce;
 
@@ -37,8 +37,8 @@ final class ExchangeLinkCode extends Message
      */
     public function handle(TrackerDirectory $directory): ?array
     {
-        $link_code = LinkCode::query()
-            ->where(LinkCode::CODE_HASH, hash('sha256', $this->code))
+        $link_code = HolonetCode::query()
+            ->where(HolonetCode::CODE_HASH, hash('sha256', $this->code))
             ->lockForUpdate()
             ->first();
 
@@ -64,11 +64,11 @@ final class ExchangeLinkCode extends Message
 
         $token = Str::random(64);
 
-        TrackerGrant::query()->create([
-            TrackerGrant::TROOPER_ID => $trooper->id,
-            TrackerGrant::TRACKER_URL => $tracker->url,
-            TrackerGrant::TRACKER_NAME => $tracker->name,
-            TrackerGrant::TOKEN_HASH => hash('sha256', $token),
+        HolonetGrant::query()->create([
+            HolonetGrant::TROOPER_ID => $trooper->id,
+            HolonetGrant::TRACKER_URL => $tracker->url,
+            HolonetGrant::TRACKER_NAME => $tracker->name,
+            HolonetGrant::TOKEN_HASH => hash('sha256', $token),
         ]);
 
         return ['token' => $token, 'trooper' => $trooper];

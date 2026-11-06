@@ -7,6 +7,7 @@ namespace TroopTracker\Plugins\Holonet\Support;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use TroopTracker\Plugins\Holonet\Exceptions\LinkRevokedException;
 use TroopTracker\Plugins\Holonet\Exceptions\TrackerUnavailableException;
@@ -65,6 +66,13 @@ class TrackerClient
             ->withToken($token)
             ->post($tracker_url.ThisTracker::HISTORY_PATH));
 
+        if ($response->status() === 429)
+        {
+            $this->markBusy($tracker_url, (int) $response->header('Retry-After'));
+
+            throw new TrackerUnavailableException('The tracker asked us to slow down. Trying again later.');
+        }
+
         if ($response->status() === 401)
         {
             throw new LinkRevokedException('The tracker no longer accepts this link.');
@@ -96,6 +104,26 @@ class TrackerClient
         {
             // The other tracker refuses the key on its next use once it is gone here.
         }
+    }
+
+    /**
+     * Whether the tracker asked us to slow down and the wait isn't over.
+     */
+    public function isBusy(string $tracker_url): bool
+    {
+        return Cache::has(self::busyKey($tracker_url));
+    }
+
+    private function markBusy(string $tracker_url, int $retry_after): void
+    {
+        $seconds = min(max($retry_after, 60), 86400);
+
+        Cache::put(self::busyKey($tracker_url), true, now()->addSeconds($seconds));
+    }
+
+    private static function busyKey(string $tracker_url): string
+    {
+        return 'holonet:busy:'.sha1($tracker_url);
     }
 
     private function request(): PendingRequest

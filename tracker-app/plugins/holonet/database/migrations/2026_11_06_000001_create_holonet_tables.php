@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('tt_trooper_tracker_links', function (Blueprint $table)
+        Schema::create('tt_trooper_holonet_links', function (Blueprint $table)
         {
             $table->id();
             $table->foreignId('trooper_id')->constrained('tt_troopers')->cascadeOnDelete();
@@ -28,11 +28,11 @@ return new class extends Migration {
             $table->unique(['trooper_id', 'tracker_url']);
         });
 
-        Schema::create('tt_trooper_tracker_link_troops', function (Blueprint $table)
+        Schema::create('tt_trooper_holonet_troops', function (Blueprint $table)
         {
             $table->id();
-            $table->foreignId('trooper_tracker_link_id')
-                ->constrained('tt_trooper_tracker_links')
+            $table->foreignId('holonet_link_id')
+                ->constrained('tt_trooper_holonet_links')
                 ->cascadeOnDelete();
             $table->string('remote_id', 64);
             $table->string('event_name', 256);
@@ -44,11 +44,11 @@ return new class extends Migration {
             $table->json('clubs')->nullable();
             $table->boolean('is_handler')->default(false);
             $table->timestamps();
-            $table->unique(['trooper_tracker_link_id', 'remote_id'], 'tt_link_troops_link_remote_unique');
+            $table->unique(['holonet_link_id', 'remote_id'], 'tt_trooper_holonet_troops_link_remote_unique');
             $table->index('shift_starts_at');
         });
 
-        Schema::create('tt_trooper_tracker_grants', function (Blueprint $table)
+        Schema::create('tt_trooper_holonet_grants', function (Blueprint $table)
         {
             $table->id();
             $table->foreignId('trooper_id')->constrained('tt_troopers')->cascadeOnDelete();
@@ -60,7 +60,7 @@ return new class extends Migration {
             $table->index(['trooper_id', 'tracker_url']);
         });
 
-        Schema::create('tt_trooper_tracker_link_codes', function (Blueprint $table)
+        Schema::create('tt_trooper_holonet_codes', function (Blueprint $table)
         {
             $table->id();
             $table->foreignId('trooper_id')->constrained('tt_troopers')->cascadeOnDelete();
@@ -74,9 +74,9 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists('tt_trooper_tracker_link_codes');
-        Schema::dropIfExists('tt_trooper_tracker_grants');
-        Schema::dropIfExists('tt_trooper_tracker_link_troops');
-        Schema::dropIfExists('tt_trooper_tracker_links');
+        Schema::dropIfExists('tt_trooper_holonet_codes');
+        Schema::dropIfExists('tt_trooper_holonet_grants');
+        Schema::dropIfExists('tt_trooper_holonet_troops');
+        Schema::dropIfExists('tt_trooper_holonet_links');
     }
 };

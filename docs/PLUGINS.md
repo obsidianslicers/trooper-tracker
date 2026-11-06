@@ -158,6 +158,25 @@ plugins/hello/
 | `capabilities` | if it uses those hooks | What the plugin does to the site, shown on the Plugins page and confirmed when it is turned on (see [Capabilities](#capabilities)). |
 | `requires` | no | What the plugin needs before it can be turned on. `trooptracker` is the plugin API range it works with (the app's is `App\Plugins\PluginApi::VERSION`, currently 1.0.0); also `php`, `ext-*` and Composer packages, each with a Composer version constraint, and `plugins`, other plugins' slugs with the versions it works with. The plugin's `composer.json` `require` list is checked the same way. |
 
+### Database tables
+
+A plugin's tables are named so they read as the plugin's at a glance and sort next to the core data they belong to:
+
+```
+tt_<core entity>_<plugin>[_<things>]
+```
+
+- `tt_` like every table, then the **core entity** the rows hang off, singular (`trooper`, `organization`, `event`).
+- Then the **plugin slug**, with `-` as `_` (`google_sheets`, `holonet`).
+- Then what the rows are, plural, when the plugin has more than one table for that entity.
+
+| Plugin | Table |
+|--------|-------|
+| Google Sheets | `tt_organization_google_sheets` |
+| HoloNet | `tt_trooper_holonet_links`, `tt_trooper_holonet_troops`, `tt_trooper_holonet_grants`, `tt_trooper_holonet_codes` |
+
+Data that belongs to no core entity uses `tt_<plugin>_<things>`. Name the model after the table without the core entity (`HolonetLink` for `tt_trooper_holonet_links`), and foreign keys to the plugin's own tables after that model (`holonet_link_id`). The Discord and XenForo tables (`tt_discord_organization_mentions`, `tt_xenforo_*`) were named before this rule and keep their names, because renaming a table sites already have needs a migration of its own.
+
 ### Capabilities
 
 A plugin lists in `capabilities` the hooks that change what the site does, so an administrator can see that before turning it on. The Plugins page shows them under the plugin, and Enable asks first. A hook the plugin did not list refuses to run, and the plugin fails to load with a log error naming the missing capability.
@@ -536,8 +555,20 @@ Garrisons run their own trackers. The HoloNet plugin (`holonet`), named after th
 1. The trooper's tracker sends them to `/plugins/holonet/authorize` on the other tracker with its own address, its callback (`/plugins/holonet/callback`), a random `state` and a `code_challenge`.
 2. After Allow, the other tracker sends them back with a one-time code (valid for 5 minutes, stored hashed).
 3. The trooper's tracker swaps it at `POST /webhooks/holonet/token` (with the PKCE verifier) for an access key that only reads that trooper's history. Only a hash of the key is kept on the sharing side.
-4. It reads `POST /webhooks/holonet/history` with the key as a Bearer token, right away, every night at 4:00 (`php artisan holonet:refresh-links`), and when the trooper presses Refresh. The copy is replaced whole each time. If the other tracker can't be reached the old copy stays; if it refuses the key, the copy is removed.
+4. It reads `POST /webhooks/holonet/history` with the key as a Bearer token, right away, every night between 4:00 and 5:00 (`php artisan holonet:refresh-links`), and when the trooper presses Refresh. The copy is replaced whole each time. If the other tracker can't be reached the old copy stays; if it refuses the key, the copy is removed.
 5. Unlinking calls `POST /webhooks/holonet/revoke`, so the other tracker forgets the key.
+
+**Rate limits.** Every limit is in `plugins/holonet/config/config.php` (with a `HOLONET_LIMIT_*` .env override); a tracker over a limit gets HTTP 429 with `Retry-After`.
+
+| What | Default |
+|------|---------|
+| Code exchanges (`/webhooks/holonet/token`) | 30 a minute per IP address |
+| History reads (`/webhooks/holonet/history`) | 60 a minute per access key, 300 a minute per IP address |
+| Unlink notices (`/webhooks/holonet/revoke`) | 30 a minute per IP address |
+| A trooper's Refresh button | once every 5 minutes per link (sooner just says it is up to date) |
+| A trooper starting a link, or pressing Allow | 10 an hour |
+
+The nightly refresh starts at a random time between 4:00 and 5:00 (`--spread`), runs one request at a time, and goes through links tracker by tracker. When a tracker answers 429, no request goes to it until its `Retry-After` has passed (at least a minute, at most a day); its links keep their last copy and are tried again on the next refresh.
 
 **Turning it on.** Enable **HoloNet** on the Plugins page; make sure `APP_URL` is the tracker's public HTTPS address, since that is how other trackers know it. Settings: **Tracker name** (shown to other trackers; defaults to the site name), **Let troopers share their history with other trackers** (on by default; off still lets troopers link other trackers here), and **Tracker list URL**.
 

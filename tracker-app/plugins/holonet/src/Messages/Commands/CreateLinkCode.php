@@ -8,7 +8,7 @@ use App\Models\Trooper;
 use Hyperdrive\Message;
 use Illuminate\Support\Str;
 use TroopTracker\Plugins\Holonet\Directory\DirectoryTracker;
-use TroopTracker\Plugins\Holonet\Models\LinkCode;
+use TroopTracker\Plugins\Holonet\Models\HolonetCode;
 
 /**
  * A one-time code for the tracker a trooper just allowed. Only its hash is kept,
@@ -28,16 +28,16 @@ final class CreateLinkCode extends Message
 
     public function handle(): string
     {
-        LinkCode::query()->where(LinkCode::EXPIRES_AT, '<', now())->delete();
+        HolonetCode::query()->where(HolonetCode::EXPIRES_AT, '<', now())->delete();
 
         $code = Str::random(64);
 
-        LinkCode::query()->create([
-            LinkCode::TROOPER_ID => $this->trooper->id,
-            LinkCode::TRACKER_URL => $this->tracker->url,
-            LinkCode::CODE_HASH => hash('sha256', $code),
-            LinkCode::CODE_CHALLENGE => $this->code_challenge,
-            LinkCode::EXPIRES_AT => now()->addMinutes(self::LIFETIME_MINUTES),
+        HolonetCode::query()->create([
+            HolonetCode::TROOPER_ID => $this->trooper->id,
+            HolonetCode::TRACKER_URL => $this->tracker->url,
+            HolonetCode::CODE_HASH => hash('sha256', $code),
+            HolonetCode::CODE_CHALLENGE => $this->code_challenge,
+            HolonetCode::EXPIRES_AT => now()->addMinutes(self::LIFETIME_MINUTES),
         ]);
 
         return $code;

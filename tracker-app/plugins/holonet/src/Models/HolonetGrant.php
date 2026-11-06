@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Carbon|null $created_at
  * @property-read Trooper $trooper
  */
-class TrackerGrant extends Model
+class HolonetGrant extends Model
 {
     public const ID = 'id';
 
@@ -36,7 +36,7 @@ class TrackerGrant extends Model
 
     public const LAST_USED_AT = 'last_used_at';
 
-    protected $table = 'tt_trooper_tracker_grants';
+    protected $table = 'tt_trooper_holonet_grants';
 
     protected $fillable = [
         self::TROOPER_ID,

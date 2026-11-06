@@ -9,14 +9,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use TroopTracker\Plugins\Holonet\Messages\Commands\RemoveTrackerLink;
-use TroopTracker\Plugins\Holonet\Models\TrackerLink;
+use TroopTracker\Plugins\Holonet\Models\HolonetLink;
 
 /**
  * Unlinks a tracker and removes the troops copied from it.
  */
 class RemoveTrackerLinkController extends Controller
 {
-    public function __invoke(Request $request, TrackerLink $link): RedirectResponse
+    public function __invoke(Request $request, HolonetLink $link): RedirectResponse
     {
         abort_unless($link->trooper_id === $request->user()->id, 404);
 

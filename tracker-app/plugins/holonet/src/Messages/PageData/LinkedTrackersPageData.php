@@ -7,8 +7,8 @@ namespace TroopTracker\Plugins\Holonet\Messages\PageData;
 use App\Models\Trooper;
 use Hyperdrive\Message;
 use TroopTracker\Plugins\Holonet\Directory\TrackerDirectory;
-use TroopTracker\Plugins\Holonet\Models\TrackerGrant;
-use TroopTracker\Plugins\Holonet\Models\TrackerLink;
+use TroopTracker\Plugins\Holonet\Models\HolonetGrant;
+use TroopTracker\Plugins\Holonet\Models\HolonetLink;
 use TroopTracker\Plugins\Holonet\Support\LinkEligibility;
 use TroopTracker\Plugins\Holonet\Support\ThisTracker;
 
@@ -27,20 +27,20 @@ final class LinkedTrackersPageData extends Message
      */
     public function handle(TrackerDirectory $directory, ThisTracker $this_tracker): array
     {
-        $links = TrackerLink::query()
-            ->where(TrackerLink::TROOPER_ID, $this->trooper->id)
+        $links = HolonetLink::query()
+            ->where(HolonetLink::TROOPER_ID, $this->trooper->id)
             ->withCount('troops')
-            ->orderBy(TrackerLink::TRACKER_NAME)
+            ->orderBy(HolonetLink::TRACKER_NAME)
             ->get();
 
         return [
             'links' => $links,
             'available_trackers' => $directory->others()
-                ->except($links->pluck(TrackerLink::TRACKER_URL)->all())
+                ->except($links->pluck(HolonetLink::TRACKER_URL)->all())
                 ->values(),
-            'grants' => TrackerGrant::query()
-                ->where(TrackerGrant::TROOPER_ID, $this->trooper->id)
-                ->orderBy(TrackerGrant::TRACKER_NAME)
+            'grants' => HolonetGrant::query()
+                ->where(HolonetGrant::TROOPER_ID, $this->trooper->id)
+                ->orderBy(HolonetGrant::TRACKER_NAME)
                 ->get(),
             'can_link' => LinkEligibility::canLink($this->trooper),
             'tracker_name' => $this_tracker->name(),

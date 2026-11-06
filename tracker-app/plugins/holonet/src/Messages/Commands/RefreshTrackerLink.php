@@ -8,8 +8,8 @@ use Hyperdrive\Message;
 use Illuminate\Support\Facades\DB;
 use TroopTracker\Plugins\Holonet\Exceptions\LinkRevokedException;
 use TroopTracker\Plugins\Holonet\Exceptions\TrackerUnavailableException;
-use TroopTracker\Plugins\Holonet\Models\LinkedTroop;
-use TroopTracker\Plugins\Holonet\Models\TrackerLink;
+use TroopTracker\Plugins\Holonet\Models\HolonetLink;
+use TroopTracker\Plugins\Holonet\Models\HolonetTroop;
 use TroopTracker\Plugins\Holonet\Support\TrackerClient;
 use TroopTracker\Plugins\Holonet\Support\TroopRecord;
 
@@ -19,14 +19,23 @@ use TroopTracker\Plugins\Holonet\Support\TroopRecord;
  * tracker can't be reached the old copy stays; when it refuses the link the
  * copy is removed. Returns whether the refresh worked.
  *
- * @method static bool call(TrackerLink $link)
+ * @method static bool call(HolonetLink $link)
  */
 final class RefreshTrackerLink extends Message
 {
-    public function __construct(private readonly TrackerLink $link) {}
+    public function __construct(private readonly HolonetLink $link) {}
 
     public function handle(TrackerClient $client): bool
     {
+        if ($client->isBusy($this->link->tracker_url))
+        {
+            $this->link->update([
+                HolonetLink::LAST_ERROR => 'The tracker asked us to slow down. Trying again later.',
+            ]);
+
+            return false;
+        }
+
         try
         {
             $data = $client->history($this->link->tracker_url, $this->link->token);
@@ -39,7 +48,7 @@ final class RefreshTrackerLink extends Message
         }
         catch (TrackerUnavailableException $e)
         {
-            $this->link->update([TrackerLink::LAST_ERROR => mb_substr($e->getMessage(), 0, 255)]);
+            $this->link->update([HolonetLink::LAST_ERROR => mb_substr($e->getMessage(), 0, 255)]);
 
             return false;
         }
@@ -58,7 +67,7 @@ final class RefreshTrackerLink extends Message
         $records = collect(array_slice($data['troops'], 0, $limit))
             ->map(fn (mixed $troop): ?array => TroopRecord::toAttributes($troop))
             ->filter()
-            ->unique(LinkedTroop::REMOTE_ID);
+            ->unique(HolonetTroop::REMOTE_ID);
 
         $display_name = $data['trooper']['display_name'] ?? null;
 
@@ -72,10 +81,10 @@ final class RefreshTrackerLink extends Message
             }
 
             $this->link->update([
-                TrackerLink::STATUS => TrackerLink::STATUS_ACTIVE,
-                TrackerLink::REFRESHED_AT => now(),
-                TrackerLink::LAST_ERROR => null,
-                TrackerLink::REMOTE_DISPLAY_NAME => is_string($display_name)
+                HolonetLink::STATUS => HolonetLink::STATUS_ACTIVE,
+                HolonetLink::REFRESHED_AT => now(),
+                HolonetLink::LAST_ERROR => null,
+                HolonetLink::REMOTE_DISPLAY_NAME => is_string($display_name)
                     ? mb_substr($display_name, 0, 128)
                     : $this->link->remote_display_name,
             ]);
@@ -88,8 +97,8 @@ final class RefreshTrackerLink extends Message
         {
             $this->link->troops()->delete();
             $this->link->update([
-                TrackerLink::STATUS => TrackerLink::STATUS_REVOKED,
-                TrackerLink::LAST_ERROR => 'Access was removed on the other tracker.',
+                HolonetLink::STATUS => HolonetLink::STATUS_REVOKED,
+                HolonetLink::LAST_ERROR => 'Access was removed on the other tracker.',
             ]);
         });
     }

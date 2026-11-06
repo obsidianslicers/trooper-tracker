@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use TroopTracker\Plugins\Holonet\Directory\TrackerDirectory;
 use TroopTracker\Plugins\Holonet\Support\LinkEligibility;
 use TroopTracker\Plugins\Holonet\Support\Pkce;
+use TroopTracker\Plugins\Holonet\Support\RequestLimit;
 use TroopTracker\Plugins\Holonet\Support\ThisTracker;
 
 /**
@@ -32,6 +33,13 @@ class StartTrackerLinkController extends Controller
         if ($tracker === null || !LinkEligibility::canLink($request->user()))
         {
             FlashType::danger('That tracker can\'t be linked.');
+
+            return redirect()->route('plugins.holonet.index');
+        }
+
+        if (!RequestLimit::attemptLink($request->user()->id))
+        {
+            FlashType::danger('Too many link attempts. Please try again in an hour.');
 
             return redirect()->route('plugins.holonet.index');
         }

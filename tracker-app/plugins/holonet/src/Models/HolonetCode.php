@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Carbon $expires_at
  * @property-read Trooper $trooper
  */
-class LinkCode extends Model
+class HolonetCode extends Model
 {
     public const ID = 'id';
 
@@ -35,7 +35,7 @@ class LinkCode extends Model
 
     public const EXPIRES_AT = 'expires_at';
 
-    protected $table = 'tt_trooper_tracker_link_codes';
+    protected $table = 'tt_trooper_holonet_codes';
 
     protected $fillable = [
         self::TROOPER_ID,

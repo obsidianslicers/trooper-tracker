@@ -7,7 +7,7 @@ namespace TroopTracker\Plugins\Holonet\Support;
 use App\Models\Trooper;
 use Illuminate\Support\Collection;
 use TroopTracker\Plugins\Holonet\Messages\Queries\GetLinkedTroops;
-use TroopTracker\Plugins\Holonet\Models\LinkedTroop;
+use TroopTracker\Plugins\Holonet\Models\HolonetTroop;
 
 /**
  * One lookup of a trooper's linked troops per request, shared by the service
@@ -15,11 +15,11 @@ use TroopTracker\Plugins\Holonet\Models\LinkedTroop;
  */
 class LinkedTroopsOnPage
 {
-    /** @var array<int, Collection<int, LinkedTroop>> */
+    /** @var array<int, Collection<int, HolonetTroop>> */
     private array $troops = [];
 
     /**
-     * @return Collection<int, LinkedTroop>
+     * @return Collection<int, HolonetTroop>
      */
     public function for(Trooper $trooper): Collection
     {
@@ -27,10 +27,10 @@ class LinkedTroopsOnPage
     }
 
     /**
-     * @param  Collection<int, LinkedTroop>  $troops
+     * @param  Collection<int, HolonetTroop>  $troops
      */
     public static function hours(Collection $troops): float
     {
-        return round($troops->sum(fn (LinkedTroop $troop): float => $troop->hours()), 1);
+        return round($troops->sum(fn (HolonetTroop $troop): float => $troop->hours()), 1);
     }
 }

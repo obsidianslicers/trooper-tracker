@@ -10,8 +10,8 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 use TroopTracker\Plugins\Holonet\Http\Controllers\StartTrackerLinkController;
-use TroopTracker\Plugins\Holonet\Models\LinkCode;
-use TroopTracker\Plugins\Holonet\Models\TrackerLink;
+use TroopTracker\Plugins\Holonet\Models\HolonetCode;
+use TroopTracker\Plugins\Holonet\Models\HolonetLink;
 use TroopTracker\Plugins\Holonet\Support\Pkce;
 
 class LinkFlowTest extends TestCase
@@ -111,7 +111,7 @@ class LinkFlowTest extends TestCase
             && $request['code_verifier'] === 'verifier-1'
             && $request['client'] === 'https://florida.test');
 
-        $link = TrackerLink::sole();
+        $link = HolonetLink::sole();
         $this->assertSame($this->trooper->id, $link->trooper_id);
         $this->assertSame('access-key', $link->token);
         $this->assertSame('501st Georgia Garrison', $link->tracker_name);
@@ -131,7 +131,7 @@ class LinkFlowTest extends TestCase
             ->get(route('plugins.holonet.callback', ['code' => 'code-1', 'state' => 'other']))
             ->assertRedirect(route('plugins.holonet.index'));
 
-        $this->assertSame(0, TrackerLink::count());
+        $this->assertSame(0, HolonetLink::count());
         Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'token'));
     }
 
@@ -165,7 +165,7 @@ class LinkFlowTest extends TestCase
 
         $this->assertStringStartsWith(self::GEORGIA.'/plugins/holonet/callback?', $location);
         $this->assertSame('state-1', $query['state']);
-        $code = LinkCode::sole();
+        $code = HolonetCode::sole();
         $this->assertSame(hash('sha256', $query['code']), $code->code_hash);
         $this->assertSame(self::GEORGIA, $code->tracker_url);
         $this->assertSame($this->trooper->id, $code->trooper_id);
@@ -177,7 +177,7 @@ class LinkFlowTest extends TestCase
             ->post(route('plugins.holonet.authorize.submit'), $this->authorizeQuery() + ['allow' => '0']);
 
         $this->assertStringContainsString('error=access_denied', (string) $response->headers->get('Location'));
-        $this->assertSame(0, LinkCode::count());
+        $this->assertSame(0, HolonetCode::count());
     }
 
     public function test_no_code_is_given_when_sharing_is_off(): void
@@ -189,7 +189,7 @@ class LinkFlowTest extends TestCase
             ->post(route('plugins.holonet.authorize.submit'), $this->authorizeQuery() + ['allow' => '1']);
 
         $this->assertStringContainsString('error=access_denied', (string) $response->headers->get('Location'));
-        $this->assertSame(0, LinkCode::count());
+        $this->assertSame(0, HolonetCode::count());
     }
 
     /**

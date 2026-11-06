@@ -16,7 +16,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use TroopTracker\Plugins\Holonet\Directory\TrackerDirectory;
 use TroopTracker\Plugins\Holonet\Messages\Commands\CreateLinkCode;
-use TroopTracker\Plugins\Holonet\Models\TrackerGrant;
+use TroopTracker\Plugins\Holonet\Models\HolonetGrant;
 use TroopTracker\Plugins\Holonet\Support\Pkce;
 use TroopTracker\Plugins\Holonet\Support\TroopRecord;
 
@@ -49,7 +49,7 @@ class SharingEndpointsTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('tracker.url', 'https://florida.test')
             ->assertJsonPath('trooper.display_name', $this->trooper->display_name);
-        $grant = TrackerGrant::sole();
+        $grant = HolonetGrant::sole();
         $this->assertSame(hash('sha256', $response->json('token')), $grant->token_hash);
         $this->assertSame(self::GEORGIA, $grant->tracker_url);
 
@@ -76,7 +76,7 @@ class SharingEndpointsTest extends TestCase
             'client' => 'https://florida.test',
         ])->assertStatus(400);
 
-        $this->assertSame(0, TrackerGrant::count());
+        $this->assertSame(0, HolonetGrant::count());
     }
 
     public function test_an_expired_code_is_refused(): void
@@ -122,7 +122,7 @@ class SharingEndpointsTest extends TestCase
             ->assertJsonPath('troops.0.costume', 'TK - Stormtrooper')
             ->assertJsonPath('troops.0.clubs', ['501st Legion'])
             ->assertJsonMissingPath('troops.0.trooper_id');
-        $this->assertNotNull(TrackerGrant::sole()->last_used_at);
+        $this->assertNotNull(HolonetGrant::sole()->last_used_at);
         $this->assertNotNull(TroopRecord::toAttributes($response->json('troops.0')));
     }
 
@@ -154,14 +154,14 @@ class SharingEndpointsTest extends TestCase
 
         $this->withToken($token)->postJson('/webhooks/holonet/revoke')->assertNoContent();
 
-        $this->assertSame(0, TrackerGrant::count());
+        $this->assertSame(0, HolonetGrant::count());
         $this->withToken($token)->postJson('/webhooks/holonet/history')->assertStatus(401);
     }
 
     public function test_the_trooper_can_remove_a_trackers_access(): void
     {
         $this->grant();
-        $grant = TrackerGrant::sole();
+        $grant = HolonetGrant::sole();
         $other = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
         $this->actingAs($other)
@@ -172,7 +172,7 @@ class SharingEndpointsTest extends TestCase
             ->delete(route('plugins.holonet.grants.revoke', ['grant' => $grant]))
             ->assertRedirect(route('plugins.holonet.index'));
 
-        $this->assertSame(0, TrackerGrant::count());
+        $this->assertSame(0, HolonetGrant::count());
     }
 
     private function code(string $verifier): string

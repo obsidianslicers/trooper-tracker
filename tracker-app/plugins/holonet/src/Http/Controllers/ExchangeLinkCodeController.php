@@ -7,8 +7,8 @@ namespace TroopTracker\Plugins\Holonet\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 use TroopTracker\Plugins\Holonet\Messages\Commands\ExchangeLinkCode;
+use TroopTracker\Plugins\Holonet\Support\RequestLimit;
 use TroopTracker\Plugins\Holonet\Support\ThisTracker;
 
 /**
@@ -19,12 +19,12 @@ class ExchangeLinkCodeController extends Controller
 {
     public function __invoke(Request $request, ThisTracker $this_tracker): JsonResponse
     {
-        if (RateLimiter::tooManyAttempts('holonet-token:'.$request->ip(), 30))
-        {
-            return response()->json(['error' => 'too_many_requests'], 429);
-        }
+        $limited = RequestLimit::check(['token_per_ip' => (string) $request->ip()]);
 
-        RateLimiter::hit('holonet-token:'.$request->ip());
+        if ($limited !== null)
+        {
+            return $limited;
+        }
 
         if (!$this_tracker->sharesHistory())
         {

@@ -6,7 +6,7 @@ namespace TroopTracker\Plugins\Holonet\Support;
 
 use Carbon\Carbon;
 use Throwable;
-use TroopTracker\Plugins\Holonet\Models\LinkedTroop;
+use TroopTracker\Plugins\Holonet\Models\HolonetTroop;
 
 /**
  * Turns one troop sent by another tracker into the columns stored here,
@@ -36,15 +36,15 @@ final class TroopRecord
         }
 
         return [
-            LinkedTroop::REMOTE_ID => $id,
-            LinkedTroop::EVENT_NAME => $name,
-            LinkedTroop::EVENT_TYPE => self::text($troop['event_type'] ?? null, 32),
-            LinkedTroop::VENUE => self::text($troop['venue'] ?? null, 256),
-            LinkedTroop::SHIFT_STARTS_AT => $starts_at,
-            LinkedTroop::SHIFT_ENDS_AT => $ends_at,
-            LinkedTroop::COSTUME_NAME => self::text($troop['costume'] ?? null, 256),
-            LinkedTroop::CLUBS => self::clubs($troop['clubs'] ?? null),
-            LinkedTroop::IS_HANDLER => ($troop['is_handler'] ?? false) === true,
+            HolonetTroop::REMOTE_ID => $id,
+            HolonetTroop::EVENT_NAME => $name,
+            HolonetTroop::EVENT_TYPE => self::text($troop['event_type'] ?? null, 32),
+            HolonetTroop::VENUE => self::text($troop['venue'] ?? null, 256),
+            HolonetTroop::SHIFT_STARTS_AT => $starts_at,
+            HolonetTroop::SHIFT_ENDS_AT => $ends_at,
+            HolonetTroop::COSTUME_NAME => self::text($troop['costume'] ?? null, 256),
+            HolonetTroop::CLUBS => self::clubs($troop['clubs'] ?? null),
+            HolonetTroop::IS_HANDLER => ($troop['is_handler'] ?? false) === true,
         ];
     }
 

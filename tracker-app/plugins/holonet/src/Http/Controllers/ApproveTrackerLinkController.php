@@ -11,6 +11,7 @@ use TroopTracker\Plugins\Holonet\Directory\TrackerDirectory;
 use TroopTracker\Plugins\Holonet\Messages\Commands\CreateLinkCode;
 use TroopTracker\Plugins\Holonet\Support\LinkEligibility;
 use TroopTracker\Plugins\Holonet\Support\LinkRequest;
+use TroopTracker\Plugins\Holonet\Support\RequestLimit;
 use TroopTracker\Plugins\Holonet\Support\ThisTracker;
 
 /**
@@ -34,6 +35,12 @@ class ApproveTrackerLinkController extends Controller
         {
             return redirect()->away($link_request->returnUrl(['error' => 'access_denied']));
         }
+
+        abort_unless(
+            RequestLimit::attemptLink($request->user()->id),
+            429,
+            'Too many link attempts. Please try again in an hour.',
+        );
 
         $code = CreateLinkCode::call(
             trooper: $request->user(),

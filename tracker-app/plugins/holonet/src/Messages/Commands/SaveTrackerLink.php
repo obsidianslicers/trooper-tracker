@@ -7,13 +7,13 @@ namespace TroopTracker\Plugins\Holonet\Messages\Commands;
 use App\Models\Trooper;
 use Hyperdrive\Message;
 use TroopTracker\Plugins\Holonet\Directory\DirectoryTracker;
-use TroopTracker\Plugins\Holonet\Models\TrackerLink;
+use TroopTracker\Plugins\Holonet\Models\HolonetLink;
 
 /**
  * Saves the access key another tracker gave for a trooper's history. Linking the
  * same tracker again replaces the old key.
  *
- * @method static TrackerLink call(Trooper $trooper, DirectoryTracker $tracker, string $token, ?string $remote_display_name = null)
+ * @method static HolonetLink call(Trooper $trooper, DirectoryTracker $tracker, string $token, ?string $remote_display_name = null)
  */
 final class SaveTrackerLink extends Message
 {
@@ -24,21 +24,21 @@ final class SaveTrackerLink extends Message
         private readonly ?string $remote_display_name = null,
     ) {}
 
-    public function handle(): TrackerLink
+    public function handle(): HolonetLink
     {
-        return TrackerLink::query()->updateOrCreate(
+        return HolonetLink::query()->updateOrCreate(
             [
-                TrackerLink::TROOPER_ID => $this->trooper->id,
-                TrackerLink::TRACKER_URL => $this->tracker->url,
+                HolonetLink::TROOPER_ID => $this->trooper->id,
+                HolonetLink::TRACKER_URL => $this->tracker->url,
             ],
             [
-                TrackerLink::TRACKER_NAME => $this->tracker->name,
-                TrackerLink::REMOTE_DISPLAY_NAME => $this->remote_display_name !== null
+                HolonetLink::TRACKER_NAME => $this->tracker->name,
+                HolonetLink::REMOTE_DISPLAY_NAME => $this->remote_display_name !== null
                     ? mb_substr($this->remote_display_name, 0, 128)
                     : null,
-                TrackerLink::TOKEN => $this->token,
-                TrackerLink::STATUS => TrackerLink::STATUS_ACTIVE,
-                TrackerLink::LAST_ERROR => null,
+                HolonetLink::TOKEN => $this->token,
+                HolonetLink::STATUS => HolonetLink::STATUS_ACTIVE,
+                HolonetLink::LAST_ERROR => null,
             ],
         );
     }

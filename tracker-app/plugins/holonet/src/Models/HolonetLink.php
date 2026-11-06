@@ -26,9 +26,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Trooper $trooper
- * @property-read Collection<int, LinkedTroop> $troops
+ * @property-read Collection<int, HolonetTroop> $troops
  */
-class TrackerLink extends Model
+class HolonetLink extends Model
 {
     public const ID = 'id';
 
@@ -53,7 +53,7 @@ class TrackerLink extends Model
     /** The other tracker no longer accepts this link. */
     public const STATUS_REVOKED = 'revoked';
 
-    protected $table = 'tt_trooper_tracker_links';
+    protected $table = 'tt_trooper_holonet_links';
 
     protected $fillable = [
         self::TROOPER_ID,
@@ -86,6 +86,6 @@ class TrackerLink extends Model
 
     public function troops(): HasMany
     {
-        return $this->hasMany(LinkedTroop::class, LinkedTroop::TROOPER_TRACKER_LINK_ID);
+        return $this->hasMany(HolonetTroop::class, HolonetTroop::HOLONET_LINK_ID);
     }
 }

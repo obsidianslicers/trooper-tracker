@@ -21,7 +21,7 @@ These commands run automatically via the scheduler defined in `routes/console.ph
 | `tracker:expire-visitor-access` | Daily at 12:30 AM |
 | `tracker:send-daily-event-notifications` | Daily at 8:00 AM |
 | `tracker:process-account-deletions` | Daily at 3:30 AM |
-| `holonet:refresh-links` (HoloNet plugin, while enabled) | Daily at 4:00 AM |
+| `holonet:refresh-links --spread` (HoloNet plugin, while enabled) | Daily, starting at a random time between 4:00 and 5:00 AM |
 
 ---
 
@@ -353,8 +353,12 @@ php artisan xenforo:sync-user 42
 Copies troop history again from every tracker troopers have linked. A tracker that can't be reached keeps its last copy; one that no longer accepts the link has its copy removed. Available while the HoloNet plugin is enabled.
 
 ```bash
-php artisan holonet:refresh-links
+php artisan holonet:refresh-links [--spread]
 ```
+
+| Option | Description |
+|---|---|
+| `--spread` | Wait a random time first (up to `HOLONET_NIGHTLY_JITTER` seconds, default an hour), so trackers don't all refresh at once. The nightly run uses it. |
 
 ---
 

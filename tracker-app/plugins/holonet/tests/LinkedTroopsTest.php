@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 use TroopTracker\Plugins\Holonet\Messages\Commands\RefreshTrackerLink;
 use TroopTracker\Plugins\Holonet\Messages\Queries\GetLinkedTroops;
-use TroopTracker\Plugins\Holonet\Models\LinkedTroop;
-use TroopTracker\Plugins\Holonet\Models\TrackerLink;
+use TroopTracker\Plugins\Holonet\Models\HolonetLink;
+use TroopTracker\Plugins\Holonet\Models\HolonetTroop;
 
 class LinkedTroopsTest extends TestCase
 {
@@ -65,8 +65,8 @@ class LinkedTroopsTest extends TestCase
 
         $this->assertFalse(RefreshTrackerLink::call(link: $link));
 
-        $this->assertSame(TrackerLink::STATUS_REVOKED, $link->fresh()->status);
-        $this->assertSame(0, LinkedTroop::count());
+        $this->assertSame(HolonetLink::STATUS_REVOKED, $link->fresh()->status);
+        $this->assertSame(0, HolonetTroop::count());
     }
 
     public function test_an_unreachable_tracker_keeps_the_copy(): void
@@ -77,8 +77,8 @@ class LinkedTroopsTest extends TestCase
 
         $this->assertFalse(RefreshTrackerLink::call(link: $link));
 
-        $this->assertSame(1, LinkedTroop::count());
-        $this->assertSame(TrackerLink::STATUS_ACTIVE, $link->fresh()->status);
+        $this->assertSame(1, HolonetTroop::count());
+        $this->assertSame(HolonetLink::STATUS_ACTIVE, $link->fresh()->status);
         $this->assertStringContainsString("couldn't be reached", $link->fresh()->last_error);
     }
 
@@ -94,7 +94,7 @@ class LinkedTroopsTest extends TestCase
 
         $troops = GetLinkedTroops::call(trooper: $this->trooper);
 
-        $this->assertSame(['d', 'b'], $troops->pluck(LinkedTroop::REMOTE_ID)->all());
+        $this->assertSame(['d', 'b'], $troops->pluck(HolonetTroop::REMOTE_ID)->all());
     }
 
     public function test_service_record_adds_linked_troops_to_the_totals_and_history(): void
@@ -102,7 +102,7 @@ class LinkedTroopsTest extends TestCase
         $link = $this->link();
         $link->troops()->create(array_merge(
             $this->troop('1', '2025-01-01 10:00', '2025-01-01 12:30'),
-            [LinkedTroop::EVENT_NAME => 'Georgia hospital visit'],
+            [HolonetTroop::EVENT_NAME => 'Georgia hospital visit'],
         ));
 
         $this->actingAs($this->trooper)
@@ -136,8 +136,8 @@ class LinkedTroopsTest extends TestCase
             ->delete(route('plugins.holonet.links.remove', ['link' => $link]))
             ->assertRedirect(route('plugins.holonet.index'));
 
-        $this->assertSame(0, TrackerLink::count());
-        $this->assertSame(0, LinkedTroop::count());
+        $this->assertSame(0, HolonetLink::count());
+        $this->assertSame(0, HolonetTroop::count());
         Http::assertSent(fn (Request $request): bool => $request->url() === self::GEORGIA.'/webhooks/holonet/revoke'
             && $request->hasHeader('Authorization', 'Bearer access-key'));
     }
@@ -154,13 +154,13 @@ class LinkedTroopsTest extends TestCase
             ->post(route('plugins.holonet.links.refresh', ['link' => $link]))
             ->assertNotFound();
 
-        $this->assertSame(1, TrackerLink::count());
+        $this->assertSame(1, HolonetLink::count());
     }
 
     public function test_refresh_command_refreshes_active_links(): void
     {
         $this->link();
-        $this->link('https://texas.test', 'Texas')->update([TrackerLink::STATUS => TrackerLink::STATUS_REVOKED]);
+        $this->link('https://texas.test', 'Texas')->update([HolonetLink::STATUS => HolonetLink::STATUS_REVOKED]);
         $this->fakeTrackers([self::HISTORY => Http::response(['troops' => []])]);
 
         $this->artisan('holonet:refresh-links')
@@ -168,13 +168,13 @@ class LinkedTroopsTest extends TestCase
             ->assertSuccessful();
     }
 
-    private function link(string $url = self::GEORGIA, string $name = '501st Georgia Garrison'): TrackerLink
+    private function link(string $url = self::GEORGIA, string $name = '501st Georgia Garrison'): HolonetLink
     {
-        return TrackerLink::query()->create([
-            TrackerLink::TROOPER_ID => $this->trooper->id,
-            TrackerLink::TRACKER_URL => $url,
-            TrackerLink::TRACKER_NAME => $name,
-            TrackerLink::TOKEN => 'access-key',
+        return HolonetLink::query()->create([
+            HolonetLink::TROOPER_ID => $this->trooper->id,
+            HolonetLink::TRACKER_URL => $url,
+            HolonetLink::TRACKER_NAME => $name,
+            HolonetLink::TOKEN => 'access-key',
         ]);
     }
 
@@ -184,10 +184,10 @@ class LinkedTroopsTest extends TestCase
     private function troop(string $id, string $starts_at, string $ends_at): array
     {
         return [
-            LinkedTroop::REMOTE_ID => $id,
-            LinkedTroop::EVENT_NAME => "Troop {$id}",
-            LinkedTroop::SHIFT_STARTS_AT => $starts_at,
-            LinkedTroop::SHIFT_ENDS_AT => $ends_at,
+            HolonetTroop::REMOTE_ID => $id,
+            HolonetTroop::EVENT_NAME => "Troop {$id}",
+            HolonetTroop::SHIFT_STARTS_AT => $starts_at,
+            HolonetTroop::SHIFT_ENDS_AT => $ends_at,
         ];
     }
 }

@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * record only, never in this tracker's reports, awards or club credit.
  *
  * @property int $id
- * @property int $trooper_tracker_link_id
+ * @property int $holonet_link_id
  * @property string $remote_id
  * @property string $event_name
  * @property string|null $event_type
@@ -23,13 +23,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $costume_name
  * @property array<int, string>|null $clubs
  * @property bool $is_handler
- * @property-read TrackerLink $link
+ * @property-read HolonetLink $link
  */
-class LinkedTroop extends Model
+class HolonetTroop extends Model
 {
     public const ID = 'id';
 
-    public const TROOPER_TRACKER_LINK_ID = 'trooper_tracker_link_id';
+    public const HOLONET_LINK_ID = 'holonet_link_id';
 
     public const REMOTE_ID = 'remote_id';
 
@@ -49,10 +49,10 @@ class LinkedTroop extends Model
 
     public const IS_HANDLER = 'is_handler';
 
-    protected $table = 'tt_trooper_tracker_link_troops';
+    protected $table = 'tt_trooper_holonet_troops';
 
     protected $fillable = [
-        self::TROOPER_TRACKER_LINK_ID,
+        self::HOLONET_LINK_ID,
         self::REMOTE_ID,
         self::EVENT_NAME,
         self::EVENT_TYPE,
@@ -65,7 +65,7 @@ class LinkedTroop extends Model
     ];
 
     protected $casts = [
-        self::TROOPER_TRACKER_LINK_ID => 'int',
+        self::HOLONET_LINK_ID => 'int',
         self::SHIFT_STARTS_AT => 'datetime',
         self::SHIFT_ENDS_AT => 'datetime',
         self::CLUBS => 'array',
@@ -74,7 +74,7 @@ class LinkedTroop extends Model
 
     public function link(): BelongsTo
     {
-        return $this->belongsTo(TrackerLink::class, self::TROOPER_TRACKER_LINK_ID);
+        return $this->belongsTo(HolonetLink::class, self::HOLONET_LINK_ID);
     }
 
     public function overlaps(Carbon $starts_at, Carbon $ends_at): bool
