@@ -37,9 +37,19 @@ enum AdministrativeNotifications: string
     case COSTUME_REQUESTS = 'costume_requests';
 
     /**
+     * Sent when a flagged trooper confirms a troop that needs a moderator to verify it.
+     */
+    case TROOP_VERIFICATIONS = 'troop_verifications';
+
+    /**
      * Sent to administrators when a moderator requests permission changes for a trooper.
      */
     case PERMISSION_REQUESTS = 'permission_requests';
+
+    /**
+     * Sent to administrators when troop verifications have waited more than 30 days.
+     */
+    case STALE_VERIFICATIONS = 'stale_verifications';
 
     /**
      * Sent to the moderator who requested permission changes once an administrator reviews it.
@@ -53,6 +63,6 @@ enum AdministrativeNotifications: string
      */
     public static function administratorOnly(): array
     {
-        return [self::TROOPERS_MERGED, self::PERMISSION_REQUESTS];
+        return [self::TROOPERS_MERGED, self::PERMISSION_REQUESTS, self::STALE_VERIFICATIONS];
     }
 }

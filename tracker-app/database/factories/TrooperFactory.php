@@ -8,17 +8,7 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\NotificationFrequency;
 use App\Enums\TrooperTheme;
-use App\Models\Award;
-use App\Models\AwardTrooper;
-use App\Models\Notice;
-use App\Models\NoticeTrooper;
-use App\Models\OauthLogin;
-use App\Models\Organization;
-use App\Models\OrganizationCostume;
 use App\Models\Trooper;
-use App\Models\TrooperAssignment;
-use App\Models\TrooperCostume;
-use App\Models\TrooperOrganization;
 use Database\Factories\Base\TrooperFactory as BaseTrooperFactory;
 use Illuminate\Support\Facades\Hash;
 
@@ -31,7 +21,7 @@ class TrooperFactory extends BaseTrooperFactory
      */
     public function definition(): array
     {
-        $name = $this->faker->firstName() . ' ' . $this->faker->lastName();
+        $name = $this->faker->firstName().' '.$this->faker->lastName();
 
         return array_merge(parent::definition(), [
             Trooper::EMAIL => $this->faker->safeEmail(),
@@ -48,7 +38,7 @@ class TrooperFactory extends BaseTrooperFactory
 
     public function asAdministrator(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
@@ -56,7 +46,7 @@ class TrooperFactory extends BaseTrooperFactory
 
     public function asModerator(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MODERATOR,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
@@ -64,7 +54,7 @@ class TrooperFactory extends BaseTrooperFactory
 
     public function asMember(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
@@ -72,7 +62,7 @@ class TrooperFactory extends BaseTrooperFactory
 
     public function asVisitor(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::MEMBERSHIP_ROLE => MembershipRole::VISITOR,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
@@ -80,21 +70,30 @@ class TrooperFactory extends BaseTrooperFactory
 
     public function withEmail(string $email): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::EMAIL => $email,
         ]);
     }
 
     public function withInvalidEmail(): static
     {
-        return $this->state(fn(array $attributes): array => [
-            Trooper::EMAIL => fake()->uuid() . 'invalid-email',
+        return $this->state(fn (array $attributes): array => [
+            Trooper::EMAIL => fake()->uuid().'invalid-email',
+        ]);
+    }
+
+    public function asUntrusted(string $reason = 'Claimed credit for an unapproved costume'): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            Trooper::IS_UNTRUSTED => true,
+            Trooper::UNTRUSTED_REASON => $reason,
+            Trooper::UNTRUSTED_AT => now(),
         ]);
     }
 
     public function asPending(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::PENDING,
             Trooper::SETUP_COMPLETED_AT => null,
         ]);
@@ -102,86 +101,85 @@ class TrooperFactory extends BaseTrooperFactory
 
     public function withDisplayName(string $display_name): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::DISPLAY_NAME => $display_name,
         ]);
     }
 
     public function withLegalName(string $legal_name): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::LEGAL_NAME => $legal_name,
         ]);
     }
 
     public function withNotificationFrequency(NotificationFrequency $frequency): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::NOTIFICATION_FREQUENCY => $frequency,
         ]);
     }
 
     public function withSetupCompleted(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::SETUP_COMPLETED_AT => now(),
         ]);
     }
 
     public function withSetupIncomplete(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::SETUP_COMPLETED_AT => null,
         ]);
     }
 
     public function withGuardian(Trooper $guardian): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::GUARDIAN_ID => $guardian->{Trooper::ID},
         ]);
     }
 
     public function asActive(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
     }
 
     public function asDenied(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::DENIED,
         ]);
     }
 
     public function asRetired(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::RETIRED,
         ]);
     }
 
     public function withVerifiedEmail(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::EMAIL_VERIFIED_AT => now(),
         ]);
     }
 
     public function withUnverifiedEmail(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::EMAIL_VERIFIED_AT => null,
         ]);
     }
 
     public function withPassword(string $password): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Trooper::PASSWORD => Hash::make($password),
         ]);
     }
-
 }

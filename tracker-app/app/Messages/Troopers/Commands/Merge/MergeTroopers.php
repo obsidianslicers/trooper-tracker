@@ -170,6 +170,7 @@ final class MergeTroopers extends Message
             $this->source_trooper->visitor_notified_at,
         );
 
+        $this->mergeUntrustedFlag();
         $this->target_trooper->guardian_id = $this->resolveGuardianId();
         $this->target_trooper->date_of_birth = $this->target_trooper->date_of_birth ?? $this->source_trooper->date_of_birth;
         $this->target_trooper->save();
@@ -179,6 +180,19 @@ final class MergeTroopers extends Message
         $this->source_trooper->visitor_notified_at = null;
         $this->source_trooper->deletion_requested_at = null;
         $this->source_trooper->save();
+    }
+
+    private function mergeUntrustedFlag(): void
+    {
+        if ($this->target_trooper->is_untrusted || !$this->source_trooper->is_untrusted)
+        {
+            return;
+        }
+
+        $this->target_trooper->is_untrusted = true;
+        $this->target_trooper->untrusted_reason = $this->source_trooper->untrusted_reason;
+        $this->target_trooper->untrusted_at = $this->source_trooper->untrusted_at;
+        $this->target_trooper->untrusted_id = $this->source_trooper->untrusted_id;
     }
 
     private function resolveMembershipStatus(): MembershipStatus
