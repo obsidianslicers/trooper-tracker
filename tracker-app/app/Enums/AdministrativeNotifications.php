@@ -32,6 +32,11 @@ enum AdministrativeNotifications: string
     case TROOPER_MILESTONES = 'trooper_milestones';
 
     /**
+     * Sent when a trooper adds a costume or club that needs officer approval.
+     */
+    case COSTUME_REQUESTS = 'costume_requests';
+
+    /**
      * Sent to administrators when a moderator requests permission changes for a trooper.
      */
     case PERMISSION_REQUESTS = 'permission_requests';
