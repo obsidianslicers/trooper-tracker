@@ -30,11 +30,12 @@
                         Role:
                     </x-label>
                     <x-input-select :property="'membership_role'"
-                                    :options="\App\Enums\MembershipRole::toArray()"
+                                    :options="$role_options"
                                     :value="$trooper->membership_role->value"
                                     x-on:change="membership_role = $event.target.value" />
                     <x-input-help>
                         If selected as {{ \App\Enums\MembershipRole::ADMINISTRATOR->name }}, they have full control within the Command Staff.
+                        If selected as {{ \App\Enums\MembershipRole::MANAGER->name }}, they have the same control except the developer tools (Plugins, System Check, and Merge), and cannot make anyone an {{ \App\Enums\MembershipRole::ADMINISTRATOR->name }}.
                         If selected as {{ \App\Enums\MembershipRole::MODERATOR->name }}, they have full control over their
                         assigned organizations as {{ \App\Enums\MembershipRole::MODERATOR->name }}. A {{ \App\Enums\MembershipRole::MEMBER->name }}
                         can sign up for events provided they are {{ \App\Enums\MembershipStatus::ACTIVE->name }}.

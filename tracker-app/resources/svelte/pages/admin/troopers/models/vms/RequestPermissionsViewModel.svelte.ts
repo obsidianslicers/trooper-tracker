@@ -136,7 +136,11 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
     }
 
     get can_change_role(): boolean {
-        return this.lookup !== null && this.current_role !== "administrator";
+        return (
+            this.lookup !== null &&
+            this.current_role !== "administrator" &&
+            this.current_role !== "manager"
+        );
     }
 
     get role_options(): Option[] {

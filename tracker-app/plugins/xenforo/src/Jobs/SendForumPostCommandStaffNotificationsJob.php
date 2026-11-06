@@ -30,7 +30,10 @@ class SendForumPostCommandStaffNotificationsJob implements ShouldQueue
         )->get();
 
         $admins = Trooper::active()
-            ->where(Trooper::MEMBERSHIP_ROLE, MembershipRole::ADMINISTRATOR->value)
+            ->whereIn(Trooper::MEMBERSHIP_ROLE, [
+                MembershipRole::ADMINISTRATOR->value,
+                MembershipRole::MANAGER->value,
+            ])
             ->get();
 
         $notification = new ForumPostCommandStaffNotification($this->event, $this->poster);

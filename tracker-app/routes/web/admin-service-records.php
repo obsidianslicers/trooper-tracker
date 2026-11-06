@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin/service-records')
     ->name('admin.service-records.')
-    ->middleware(['auth', 'check.role:moderator,administrator'])
+    ->middleware(['auth', 'check.role:moderator,manager,administrator'])
     ->group(function ()
     {
         Route::get('/missing-credits', MissingCreditsController::class)->name('missing-credits');

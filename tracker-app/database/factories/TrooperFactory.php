@@ -54,6 +54,14 @@ class TrooperFactory extends BaseTrooperFactory
         ]);
     }
 
+    public function asManager(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::MANAGER,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+    }
+
     public function asModerator(): static
     {
         return $this->state(fn(array $attributes): array => [

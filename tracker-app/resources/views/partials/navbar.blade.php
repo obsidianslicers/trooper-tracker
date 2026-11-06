@@ -39,7 +39,7 @@
                 @unless(Auth::user()->is_denied || Auth::user()->is_pending)
                 @include('partials.inc.navbar-notifications')
                 @pluginSlot('navbar.member-links')
-                @role(['administrator', 'moderator'])
+                @role(['administrator', 'manager', 'moderator'])
                     <x-nav-link :url="route('admin.display')"
                                 :active="request()->routeIs('admin.*')">
                         <span class="text-warning">

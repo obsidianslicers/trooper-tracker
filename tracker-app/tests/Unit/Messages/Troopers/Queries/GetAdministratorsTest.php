@@ -21,13 +21,27 @@ class GetAdministratorsTest extends TestCase
         Trooper::factory()->asMember()->withDisplayName('Member Trooper')->create();
         Trooper::factory()->asAdministrator()->asRetired()->withDisplayName('Retired Admin')->create();
 
-        $subject = new GetAdministrators();
+        $subject = new GetAdministrators;
 
         $result = $subject->handle();
 
         $this->assertCount(2, $result);
         $this->assertSame(
             ['Alpha Admin', 'Zulu Admin'],
+            $result->pluck(Trooper::DISPLAY_NAME)->all(),
+        );
+    }
+
+    public function test_handle_includes_active_managers(): void
+    {
+        Trooper::factory()->asAdministrator()->withDisplayName('Bravo Admin')->create();
+        Trooper::factory()->asManager()->withDisplayName('Alpha Manager')->create();
+        Trooper::factory()->asManager()->asRetired()->withDisplayName('Retired Manager')->create();
+
+        $result = (new GetAdministrators)->handle();
+
+        $this->assertSame(
+            ['Alpha Manager', 'Bravo Admin'],
             $result->pluck(Trooper::DISPLAY_NAME)->all(),
         );
     }

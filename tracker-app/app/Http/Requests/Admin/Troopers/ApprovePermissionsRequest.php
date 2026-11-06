@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Troopers;
 
-use App\Enums\MembershipRole;
 use App\Models\PermissionRequest;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -51,9 +50,9 @@ class ApprovePermissionsRequest extends FormRequest
         }
 
         if ($value->membership_role !== null
-            && $value->trooper->membership_role === MembershipRole::ADMINISTRATOR)
+            && $value->trooper->membership_role->hasAdministratorAccess())
         {
-            $fail('This trooper is now an administrator. Deny the request instead.');
+            $fail('This trooper is now an administrator or manager. Deny the request instead.');
         }
     }
 }

@@ -119,7 +119,7 @@
                       :url="route('admin.troopers.permissions.request')">
         Ask an administrator to change a trooper's role or forum groups.
     </x-dashboard-card>
-    @role(['administrator'])
+    @role(['administrator', 'manager'])
     <x-dashboard-card :label="'Permission Approvals'"
                       :icon="'fa-user-lock'"
                       :url="route('admin.troopers.permissions.approvals')">
@@ -132,6 +132,8 @@
             <p class="text-success mb-0">No pending requests</p>
         @endif
     </x-dashboard-card>
+    @endrole
+    @role(['administrator'])
     <x-dashboard-card :label="'Merge Troopers'"
                       :icon="'fa-user-group'"
                       :url="route('admin.troopers.merge')">
@@ -177,12 +179,14 @@
                       :url="route('admin.reports.display')">
         View Reports &amp; Statistics
     </x-dashboard-card>
-    @role(['administrator'])
+    @role(['administrator', 'manager'])
     <x-dashboard-card :label="'FAQ & Help'"
                       :icon="'fa-question'"
                       :url="route('admin.faq.index')">
         View Frequently Asked Questions and Help
     </x-dashboard-card>
+    @endrole
+    @role(['administrator'])
     <x-dashboard-card :label="'System Check'"
                       :icon="'fa-heart-pulse'"
                       :url="route('admin.system-check')">

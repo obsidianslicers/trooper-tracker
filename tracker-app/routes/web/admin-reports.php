@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 //  ADMIN/TROOPERs
 Route::prefix('admin/reports')
     ->name('admin.reports.')
-    ->middleware(['auth', 'check.role:moderator,administrator'])
+    ->middleware(['auth', 'check.role:moderator,manager,administrator'])
     ->group(function ()
     {
         Route::get('/', ReportDisplayController::class)->name('display');

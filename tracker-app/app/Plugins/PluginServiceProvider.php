@@ -44,7 +44,7 @@ abstract class PluginServiceProvider extends ServiceProvider
         'auth',
         'verified',
         'check.active',
-        'check.role:administrator',
+        'check.role:manager,administrator',
     ];
 
     public function __construct(Application $app, protected readonly PluginManifest $plugin)

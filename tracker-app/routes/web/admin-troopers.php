@@ -40,7 +40,7 @@ use Illuminate\Support\Facades\Route;
 //  ADMIN/TROOPERs
 Route::prefix('admin/troopers')
     ->name('admin.troopers.')
-    ->middleware(['auth', 'check.role:moderator,administrator'])
+    ->middleware(['auth', 'check.role:moderator,manager,administrator'])
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');
@@ -67,7 +67,7 @@ Route::prefix('admin/troopers')
                 Route::get('/lookup/{trooper}', LookupTrooperPermissionsController::class)
                     ->name('lookup');
 
-                Route::middleware('check.role:administrator')
+                Route::middleware('check.role:manager,administrator')
                     ->group(function ()
                     {
                         Route::get('/approvals', PermissionApprovalsController::class)
@@ -84,8 +84,12 @@ Route::prefix('admin/troopers')
         Route::get('/recruit', RecruitController::class)->name('recruit');
         Route::post('/recruit', RecruitSubmitController::class);
 
-        Route::get('/merge', MergeTroopersController::class)->name('merge');
-        Route::post('/merge', MergeTroopersSubmitController::class);
+        Route::middleware('check.role:administrator')
+            ->group(function ()
+            {
+                Route::get('/merge', MergeTroopersController::class)->name('merge');
+                Route::post('/merge', MergeTroopersSubmitController::class);
+            });
 
         Route::get('/{trooper}', ProfileController::class)->name('profile');
         Route::post('/{trooper}', ProfileSubmitController::class);

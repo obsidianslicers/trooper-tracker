@@ -16,14 +16,18 @@ use Illuminate\Support\Facades\Route;
 //  ADMIN/COSTUMES
 Route::prefix('admin/costumes')
     ->name('admin.costumes.')
-    ->middleware(['auth', 'check.role:administrator'])
+    ->middleware(['auth', 'check.role:manager,administrator'])
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');
         Route::get('/create', CreateController::class)->name('create');
         Route::post('/create', CreateSubmitController::class);
-        Route::get('/merge', MergeCostumesController::class)->name('merge');
-        Route::post('/merge', MergeCostumesSubmitController::class);
+        Route::middleware('check.role:administrator')
+            ->group(function ()
+            {
+                Route::get('/merge', MergeCostumesController::class)->name('merge');
+                Route::post('/merge', MergeCostumesSubmitController::class);
+            });
         Route::get('/{costume}/update', UpdateController::class)->name('update');
         Route::post('/{costume}/update', UpdateSubmitController::class);
         Route::get('/{costume}/delete', DeleteController::class)->name('delete');
