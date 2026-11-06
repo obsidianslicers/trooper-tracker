@@ -7,8 +7,8 @@ namespace App\Models\Concerns;
 use App\Enums\EventTrooperStatus;
 use App\Models\EventTrooper;
 use App\Models\Organization;
+use App\Models\Scopes\ModeratorCoverage;
 use App\Models\Trooper;
-use App\Models\TrooperAssignment;
 
 /**
  * Troop credit a flagged ("do not trust") trooper claimed, waiting for moderators.
@@ -61,9 +61,8 @@ trait HasCreditVerification
     }
 
     /**
-     * Requested clubs this moderator may verify: a unit they moderate must cover one of
-     * the trooper's memberships and sit in the same club tree as the requested club.
-     * Nobody verifies their own troops.
+     * Requested clubs this moderator may verify, by the same rule as costume reviews
+     * (see ModeratorCoverage). Nobody verifies their own troops.
      *
      * @return array<int, int>
      */
@@ -81,40 +80,14 @@ trait HasCreditVerification
             return array_values($requested);
         }
 
-        $moderated_paths = $this->moderatedPathsCoveringTrooper($moderator);
-
         return Organization::whereIn(Organization::ID, $requested)
-            ->get()
-            ->filter(fn (Organization $org) => collect($moderated_paths)->contains(
-                fn (string $path) => str_starts_with($org->node_path, $path) || str_starts_with($path, $org->node_path)
+            ->where(fn ($query) => ModeratorCoverage::apply(
+                $query,
+                $moderator,
+                (int) $this->{EventTrooper::TROOPER_ID},
+                (new Organization)->qualifyColumn(Organization::ID),
             ))
             ->pluck(Organization::ID)
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function moderatedPathsCoveringTrooper(Trooper $moderator): array
-    {
-        $member_paths = TrooperAssignment::query()
-            ->where(TrooperAssignment::TROOPER_ID, $this->{EventTrooper::TROOPER_ID})
-            ->where(TrooperAssignment::IS_MEMBER, true)
-            ->with('organization')
-            ->get()
-            ->map(fn (TrooperAssignment $ta) => $ta->organization?->node_path)
-            ->filter();
-
-        return TrooperAssignment::query()
-            ->where(TrooperAssignment::TROOPER_ID, $moderator->id)
-            ->where(TrooperAssignment::IS_MODERATOR, true)
-            ->with('organization')
-            ->get()
-            ->map(fn (TrooperAssignment $ta) => $ta->organization?->node_path)
-            ->filter(fn (?string $path) => $path !== null
-                && $member_paths->contains(fn (string $member) => str_starts_with($member, $path)))
-            ->values()
             ->all();
     }
 
