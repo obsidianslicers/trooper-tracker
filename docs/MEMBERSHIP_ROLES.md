@@ -131,7 +131,7 @@ Cannot be self-assigned.
 **Navigation:** the Events menu shows **My Events** (`/admin/events`, limited to their own
 events) and **Create Event**.
 
-**Assigned by:** Admin via authority panel
+**Assigned by:** Admin via authority panel, or by approving a [permission request](#permission-requests)
 
 ---
 
@@ -235,7 +235,8 @@ apply the change.
    (`/admin/troopers/permissions/request`), picks a trooper, and requests any of:
    - make the trooper a MODERATOR of organizations the requester moderates
      (administrators can pick any organization)
-   - set a MODERATOR back to a regular MEMBER
+   - make the trooper an EVENT_COORDINATOR
+   - set a MODERATOR or EVENT_COORDINATOR back to a regular MEMBER
    - add or remove XenForo secondary user groups, when the XenForo integration is configured
 2. The moderator adds an optional note explaining what the trooper will do. The request is
    stored in `tt_permission_requests` with status `pending`, and every administrator is
