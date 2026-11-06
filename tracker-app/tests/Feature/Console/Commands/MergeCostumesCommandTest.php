@@ -136,4 +136,21 @@ class MergeCostumesCommandTest extends TestCase
             ->expectsOutput("Target costume {$target->id} was not found.")
             ->assertExitCode(1);
     }
+
+    public function test_fails_when_source_is_the_handler_costume(): void
+    {
+        $source = Costume::factory()->create([Costume::NAME => Costume::HANDLER]);
+        $target = Costume::factory()->create();
+
+        $messages = $this->fakeMessages([MergeCostumes::class => null]);
+
+        $this->artisan('tracker:merge-costumes', [
+            'source_costume_id' => $source->id,
+            'target_costume_id' => $target->id,
+        ])
+            ->expectsOutput('The Handler costume cannot be merged away.')
+            ->assertExitCode(1);
+
+        $this->assertSame([], $messages->callsTo(MergeCostumes::class));
+    }
 }

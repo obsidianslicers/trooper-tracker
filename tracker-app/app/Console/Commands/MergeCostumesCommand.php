@@ -42,6 +42,13 @@ class MergeCostumesCommand extends Command
             return self::FAILURE;
         }
 
+        if ($source->countsAsHandler())
+        {
+            $this->error("The {$source->name} costume cannot be merged away.");
+
+            return self::FAILURE;
+        }
+
         $this->showUsage($source, $target);
 
         if (!$this->option('force') && !$this->confirm($this->confirmationQuestion($source, $target)))

@@ -71,4 +71,14 @@ class MergeCostumesTest extends TestCase
 
         MergeCostumes::call(target_costume: $costume, source_costume: $costume);
     }
+
+    public function test_call_refuses_to_merge_away_the_handler_costume(): void
+    {
+        $handler = Costume::factory()->create([Costume::NAME => Costume::HANDLER]);
+        $target = Costume::factory()->create();
+
+        $this->expectException(InvalidArgumentException::class);
+
+        MergeCostumes::call(target_costume: $target, source_costume: $handler);
+    }
 }
