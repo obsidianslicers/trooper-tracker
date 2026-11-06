@@ -25,7 +25,7 @@ class EventCoordinatorAccessTest extends TestCase
 {
     use RefreshDatabase;
 
-    private Trooper $coordinator;
+    private Trooper $event_coordinator;
 
     private Organization $club;
 
@@ -44,25 +44,25 @@ class EventCoordinatorAccessTest extends TestCase
         $this->unit = Organization::factory()->asUnit()->withParent($this->region)->withNodePath('1:2:3:')->create(['name' => 'Some Squad']);
         $this->other_region = Organization::factory()->asRegion()->withParent($this->club)->withNodePath('1:4:')->create(['name' => 'Other Region']);
 
-        $this->coordinator = Trooper::factory()->asEventCoordinator()->withVerifiedEmail()->create();
+        $this->event_coordinator = Trooper::factory()->asEventCoordinator()->withVerifiedEmail()->create();
 
         TrooperAssignment::factory()
-            ->forTrooper($this->coordinator)
+            ->forTrooper($this->event_coordinator)
             ->forOrganization($this->region)
             ->asMember()
             ->create();
     }
 
-    public function test_coordinator_has_no_command_staff_dashboard(): void
+    public function test_event_coordinator_has_no_command_staff_dashboard(): void
     {
-        $this->actingAs($this->coordinator)
+        $this->actingAs($this->event_coordinator)
             ->get(route('admin.display'))
             ->assertForbidden();
     }
 
-    public function test_coordinator_sees_event_links_instead_of_command_staff(): void
+    public function test_event_coordinator_sees_event_links_instead_of_command_staff(): void
     {
-        $this->actingAs($this->coordinator)
+        $this->actingAs($this->event_coordinator)
             ->get(route('events.list'))
             ->assertOk()
             ->assertSee(route('admin.events.create'), false)
@@ -70,9 +70,9 @@ class EventCoordinatorAccessTest extends TestCase
             ->assertDontSee('href="'.route('admin.display').'"', false);
     }
 
-    public function test_coordinator_can_host_for_organizations_they_belong_to(): void
+    public function test_event_coordinator_can_host_for_organizations_they_belong_to(): void
     {
-        $response = $this->actingAs($this->coordinator)->get(route('pickers.organization', [
+        $response = $this->actingAs($this->event_coordinator)->get(route('pickers.organization', [
             'property' => 'organization_id',
             'event_host_only' => true,
         ]));
@@ -88,12 +88,12 @@ class EventCoordinatorAccessTest extends TestCase
     {
         //  notify-only on the other region doesn't make them a member of it
         TrooperAssignment::factory()
-            ->forTrooper($this->coordinator)
+            ->forTrooper($this->event_coordinator)
             ->forOrganization($this->other_region)
             ->withShouldNotify()
             ->create();
 
-        $hostable = Organization::eventHostableBy($this->coordinator)->pluck(Organization::NAME)->all();
+        $hostable = Organization::eventHostableBy($this->event_coordinator)->pluck(Organization::NAME)->all();
 
         $this->assertEqualsCanonicalizing(['Club', 'Home Region'], $hostable);
 
@@ -109,11 +109,11 @@ class EventCoordinatorAccessTest extends TestCase
         $this->assertSame(0, Organization::eventHostableBy($former_member)->count());
     }
 
-    public function test_coordinator_creates_an_event_they_then_own(): void
+    public function test_event_coordinator_creates_an_event_they_then_own(): void
     {
         Queue::fake([SendEventCreatedNotificationsJob::class]);
 
-        $this->actingAs($this->coordinator)
+        $this->actingAs($this->event_coordinator)
             ->post(route('admin.events.create'), $this->eventPayload($this->region))
             ->assertRedirect()
             ->assertSessionHasNoErrors();
@@ -121,44 +121,44 @@ class EventCoordinatorAccessTest extends TestCase
         $this->assertDatabaseHas('tt_events', [
             Event::NAME => 'Coordinator Troop',
             Event::ORGANIZATION_ID => $this->region->id,
-            Event::CREATED_ID => $this->coordinator->id,
+            Event::CREATED_ID => $this->event_coordinator->id,
         ]);
     }
 
-    public function test_coordinator_cannot_create_an_event_for_another_organization(): void
+    public function test_event_coordinator_cannot_create_an_event_for_another_organization(): void
     {
-        $this->actingAs($this->coordinator)
+        $this->actingAs($this->event_coordinator)
             ->post(route('admin.events.create'), $this->eventPayload($this->other_region))
             ->assertSessionHasErrors(Event::ORGANIZATION_ID);
 
         $this->assertDatabaseMissing('tt_events', [Event::NAME => 'Coordinator Troop']);
     }
 
-    public function test_coordinator_manages_only_their_own_events(): void
+    public function test_event_coordinator_manages_only_their_own_events(): void
     {
-        $own = Event::factory()->withOrganization($this->region)->withCreatedByTrooper($this->coordinator)->create(['name' => 'Own Troop']);
+        $own = Event::factory()->withOrganization($this->region)->withCreatedByTrooper($this->event_coordinator)->create(['name' => 'Own Troop']);
         $others = Event::factory()->withOrganization($this->region)->create(['name' => 'Someone Elses Troop']);
 
-        $this->actingAs($this->coordinator)
+        $this->actingAs($this->event_coordinator)
             ->get(route('admin.events.list'))
             ->assertOk()
             ->assertSee('Own Troop')
             ->assertDontSee('Someone Elses Troop');
 
         //  no breadcrumb into the Command Staff dashboard they can't open
-        $this->actingAs($this->coordinator)->get(route('admin.events.update', ['event' => $own]))
+        $this->actingAs($this->event_coordinator)->get(route('admin.events.update', ['event' => $own]))
             ->assertOk()
             ->assertDontSee('href="'.route('admin.display').'"', false);
-        $this->actingAs($this->coordinator)->get(route('admin.events.troopers', ['event' => $own]))->assertOk();
-        $this->actingAs($this->coordinator)->get(route('admin.events.update', ['event' => $others]))->assertForbidden();
-        $this->actingAs($this->coordinator)->get(route('admin.events.troopers', ['event' => $others]))->assertForbidden();
+        $this->actingAs($this->event_coordinator)->get(route('admin.events.troopers', ['event' => $own]))->assertOk();
+        $this->actingAs($this->event_coordinator)->get(route('admin.events.update', ['event' => $others]))->assertForbidden();
+        $this->actingAs($this->event_coordinator)->get(route('admin.events.troopers', ['event' => $others]))->assertForbidden();
     }
 
-    public function test_coordinator_cannot_move_their_event_to_another_organization(): void
+    public function test_event_coordinator_cannot_move_their_event_to_another_organization(): void
     {
-        $own = Event::factory()->withOrganization($this->region)->withCreatedByTrooper($this->coordinator)->create();
+        $own = Event::factory()->withOrganization($this->region)->withCreatedByTrooper($this->event_coordinator)->create();
 
-        $this->actingAs($this->coordinator)
+        $this->actingAs($this->event_coordinator)
             ->post(route('admin.events.update', ['event' => $own]), $this->eventPayload($this->other_region))
             ->assertSessionHasErrors(Event::ORGANIZATION_ID);
 
@@ -169,7 +169,7 @@ class EventCoordinatorAccessTest extends TestCase
     {
         $source = Event::factory()->withOrganization($this->region)->create();
 
-        $this->actingAs($this->coordinator)
+        $this->actingAs($this->event_coordinator)
             ->post(route('admin.events.copy', ['event' => $source]), [
                 'name' => 'Copied By Coordinator',
                 'event_start' => now()->addDays(7)->toDateString(),
@@ -178,52 +178,52 @@ class EventCoordinatorAccessTest extends TestCase
 
         $copy = Event::where(Event::NAME, 'Copied By Coordinator')->sole();
 
-        $this->assertSame($this->coordinator->id, $copy->created_id);
+        $this->assertSame($this->event_coordinator->id, $copy->created_id);
         $this->assertSame($this->region->id, $copy->organization_id);
 
-        $this->actingAs($this->coordinator)
+        $this->actingAs($this->event_coordinator)
             ->get(route('admin.events.update', ['event' => $copy]))
             ->assertOk();
     }
 
     public function test_event_page_offers_edit_and_copy_by_permission(): void
     {
-        $own = Event::factory()->withOrganization($this->region)->withCreatedByTrooper($this->coordinator)->create();
+        $own = Event::factory()->withOrganization($this->region)->withCreatedByTrooper($this->event_coordinator)->create();
         $same_region = Event::factory()->withOrganization($this->region)->create();
         $other_region = Event::factory()->withOrganization($this->other_region)->create();
 
-        $this->actingAs($this->coordinator)->get(route('events.display', ['event' => $own]))
+        $this->actingAs($this->event_coordinator)->get(route('events.display', ['event' => $own]))
             ->assertOk()
             ->assertSee(route('admin.events.update', ['event' => $own]), false)
             ->assertSee(route('admin.events.copy', ['event' => $own]), false);
 
-        $this->actingAs($this->coordinator)->get(route('events.display', ['event' => $same_region]))
+        $this->actingAs($this->event_coordinator)->get(route('events.display', ['event' => $same_region]))
             ->assertOk()
             ->assertDontSee(route('admin.events.update', ['event' => $same_region]), false)
             ->assertSee(route('admin.events.copy', ['event' => $same_region]), false);
 
-        $this->actingAs($this->coordinator)->get(route('events.display', ['event' => $other_region]))
+        $this->actingAs($this->event_coordinator)->get(route('events.display', ['event' => $other_region]))
             ->assertOk()
             ->assertDontSee(route('admin.events.update', ['event' => $other_region]), false)
             ->assertDontSee(route('admin.events.copy', ['event' => $other_region]), false);
     }
 
-    public function test_coordinator_copies_events_of_organizations_they_belong_to(): void
+    public function test_event_coordinator_copies_events_of_organizations_they_belong_to(): void
     {
         $same_region = Event::factory()->withOrganization($this->region)->create();
         $other_region = Event::factory()->withOrganization($this->other_region)->create();
 
-        $this->actingAs($this->coordinator)->get(route('admin.events.copy', ['event' => $same_region]))->assertOk();
-        $this->actingAs($this->coordinator)->get(route('admin.events.copy', ['event' => $other_region]))->assertForbidden();
+        $this->actingAs($this->event_coordinator)->get(route('admin.events.copy', ['event' => $same_region]))->assertOk();
+        $this->actingAs($this->event_coordinator)->get(route('admin.events.copy', ['event' => $other_region]))->assertForbidden();
     }
 
-    public function test_coordinator_cannot_upload_photos_to_someone_elses_event(): void
+    public function test_event_coordinator_cannot_upload_photos_to_someone_elses_event(): void
     {
         Storage::fake('public');
 
         $others = Event::factory()->withOrganization($this->region)->create();
 
-        $this->actingAs($this->coordinator)
+        $this->actingAs($this->event_coordinator)
             ->post(route('admin.events.upload-image', ['event' => $others]), [
                 'images' => [UploadedFile::fake()->image('photo.jpg', 800, 600)],
             ])

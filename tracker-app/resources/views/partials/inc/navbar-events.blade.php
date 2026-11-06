@@ -39,7 +39,7 @@
                 <i class="fa fa-fw fa-ban fa-lg me-2"></i>
                 Cancelled
             </x-nav-link>
-            @role(['coordinator'])
+            @role(['event_coordinator'])
                 <li>
                     <hr class="dropdown-divider">
                 </li>

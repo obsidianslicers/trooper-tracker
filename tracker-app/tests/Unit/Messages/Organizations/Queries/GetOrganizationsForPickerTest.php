@@ -115,9 +115,9 @@ class GetOrganizationsForPickerTest extends TestCase
         $this->assertEqualsCanonicalizing([$club->id, $region->id], $result->pluck('id')->all());
     }
 
-    public function test_handle_with_event_host_only_returns_the_coordinators_organizations_and_those_above(): void
+    public function test_handle_with_event_host_only_returns_the_event_coordinators_organizations_and_those_above(): void
     {
-        $coordinator = Trooper::factory()->asEventCoordinator()->create();
+        $event_coordinator = Trooper::factory()->asEventCoordinator()->create();
 
         $garrison = Organization::factory()
             ->asOrganization()
@@ -139,12 +139,12 @@ class GetOrganizationsForPickerTest extends TestCase
             ->create();
 
         TrooperAssignment::factory()
-            ->forTrooper($coordinator)
+            ->forTrooper($event_coordinator)
             ->forOrganization($squad)
             ->asMember()
             ->create();
 
-        $result = (new GetOrganizationsForPicker($coordinator, ['event_host_only' => true]))->handle();
+        $result = (new GetOrganizationsForPicker($event_coordinator, ['event_host_only' => true]))->handle();
 
         $this->assertSame([$garrison->id, $squad->id], $result->pluck('id')->all());
     }

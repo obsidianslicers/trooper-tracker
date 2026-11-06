@@ -67,33 +67,33 @@ class EventPolicyTest extends TestCase
     {
         $policy = new EventPolicy;
 
-        $coordinator = Trooper::factory()->asEventCoordinator()->create();
+        $event_coordinator = Trooper::factory()->asEventCoordinator()->create();
         $organization = Organization::factory()->withNodePath('org.any')->create();
 
-        $own = Event::factory()->withOrganization($organization)->withCreatedByTrooper($coordinator)->create();
+        $own = Event::factory()->withOrganization($organization)->withCreatedByTrooper($event_coordinator)->create();
         $others = Event::factory()->withOrganization($organization)->create();
 
-        $this->assertTrue($policy->create($coordinator));
-        $this->assertTrue($policy->update($coordinator, $own));
-        $this->assertFalse($policy->update($coordinator, $others));
+        $this->assertTrue($policy->create($event_coordinator));
+        $this->assertTrue($policy->update($event_coordinator, $own));
+        $this->assertFalse($policy->update($event_coordinator, $others));
     }
 
     public function test_event_coordinator_ignores_leftover_moderator_flags(): void
     {
         $policy = new EventPolicy;
 
-        $coordinator = Trooper::factory()->asEventCoordinator()->create();
+        $event_coordinator = Trooper::factory()->asEventCoordinator()->create();
         $organization = Organization::factory()->withNodePath('org.flagged')->create();
 
         TrooperAssignment::factory()
-            ->forTrooper($coordinator)
+            ->forTrooper($event_coordinator)
             ->forOrganization($organization)
             ->asModerator()
             ->create();
 
         $event = Event::factory()->withOrganization($organization)->create();
 
-        $this->assertFalse($policy->update($coordinator, $event));
+        $this->assertFalse($policy->update($event_coordinator, $event));
     }
 
     public function test_delete_restore_and_force_delete_are_denied(): void

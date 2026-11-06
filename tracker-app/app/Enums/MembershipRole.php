@@ -33,7 +33,7 @@ enum MembershipRole: string
      * events they created. Not command staff: no other admin access, notifications
      * or forum permissions.
      */
-    case EVENT_COORDINATOR = 'coordinator';
+    case EVENT_COORDINATOR = 'event_coordinator';
 
     /**
      * A member with moderation privileges to manage events and members.

@@ -170,15 +170,15 @@ class SignUpEventTrooperTest extends TestCase
         Bus::fake();
         Notification::fake();
 
-        $coordinator = Trooper::factory()->asEventCoordinator()->create();
-        $event = Event::factory()->withCreatedByTrooper($coordinator)->create();
+        $event_coordinator = Trooper::factory()->asEventCoordinator()->create();
+        $event = Event::factory()->withCreatedByTrooper($event_coordinator)->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
         $trooper = Trooper::factory()->create();
 
         (new SignUpEventTrooper(
             event_shift: $event_shift,
             trooper: $trooper,
-            added_by_trooper: $coordinator
+            added_by_trooper: $event_coordinator
         ))->handle(new EventRosterCapacityService);
 
         Bus::assertNotDispatched(CreateTrooperFriendshipJob::class);
@@ -189,14 +189,14 @@ class SignUpEventTrooperTest extends TestCase
         Bus::fake();
         Notification::fake();
 
-        $coordinator = Trooper::factory()->asEventCoordinator()->create();
+        $event_coordinator = Trooper::factory()->asEventCoordinator()->create();
         $event_shift = EventShift::factory()->create();
         $trooper = Trooper::factory()->create();
 
         (new SignUpEventTrooper(
             event_shift: $event_shift,
             trooper: $trooper,
-            added_by_trooper: $coordinator
+            added_by_trooper: $event_coordinator
         ))->handle(new EventRosterCapacityService);
 
         Bus::assertDispatched(CreateTrooperFriendshipJob::class);

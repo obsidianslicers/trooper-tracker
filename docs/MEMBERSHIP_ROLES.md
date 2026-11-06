@@ -109,7 +109,7 @@ A time-limited role for prospective members or guests. Access renews in 6-month 
 
 ### EVENT_COORDINATOR
 
-For troopers who set up and run events but are not command staff. Stored as `coordinator`.
+For troopers who set up and run events but are not command staff. Stored as `event_coordinator`.
 Cannot be self-assigned.
 
 **Can:**

@@ -23,13 +23,13 @@ use Tests\TestCase;
 
 /**
  * Walks every admin route as an event coordinator, so a route added or changed later can't
- * quietly give coordinators more than their own events.
+ * quietly give event coordinators more than their own events.
  */
 class EventCoordinatorRouteAccessTest extends TestCase
 {
     use RefreshDatabase;
 
-    private Trooper $coordinator;
+    private Trooper $event_coordinator;
 
     private Organization $region;
 
@@ -41,10 +41,10 @@ class EventCoordinatorRouteAccessTest extends TestCase
 
         $this->region = Organization::factory()->asRegion()->withNodePath('1:2:')->create();
 
-        $this->coordinator = Trooper::factory()->asEventCoordinator()->withVerifiedEmail()->create();
+        $this->event_coordinator = Trooper::factory()->asEventCoordinator()->withVerifiedEmail()->create();
 
         TrooperAssignment::factory()
-            ->forTrooper($this->coordinator)
+            ->forTrooper($this->event_coordinator)
             ->forOrganization($this->region)
             ->asMember()
             ->create();
@@ -79,7 +79,7 @@ class EventCoordinatorRouteAccessTest extends TestCase
 
     public function test_every_event_route_lets_a_coordinator_into_their_own_event(): void
     {
-        $parameters = $this->eventWithChildren($this->coordinator);
+        $parameters = $this->eventWithChildren($this->event_coordinator);
 
         foreach ($this->eventRoutes() as $route)
         {
@@ -90,13 +90,13 @@ class EventCoordinatorRouteAccessTest extends TestCase
                 $this->assertNotContains(
                     $status,
                     [401, 403, 404, 500],
-                    "{$method} {$route->uri()} answered {$status} for a coordinator on their own event"
+                    "{$method} {$route->uri()} answered {$status} for an event coordinator on their own event"
                 );
             }
         }
     }
 
-    public function test_every_other_admin_route_refuses_a_coordinator(): void
+    public function test_every_other_admin_route_refuses_an_event_coordinator(): void
     {
         $routes = collect(Route::getRoutes()->getRoutes())
             ->filter(fn (LaravelRoute $route) => Str::startsWith((string) $route->getName(), 'admin.')
@@ -114,7 +114,7 @@ class EventCoordinatorRouteAccessTest extends TestCase
                 $this->assertContains(
                     $status,
                     [403, 404],
-                    "{$method} {$route->uri()} answered {$status} for a coordinator"
+                    "{$method} {$route->uri()} answered {$status} for an event coordinator"
                 );
             }
         }
@@ -122,13 +122,13 @@ class EventCoordinatorRouteAccessTest extends TestCase
 
     public function test_an_inactive_coordinator_gets_nothing(): void
     {
-        $this->coordinator->update([Trooper::MEMBERSHIP_STATUS => MembershipStatus::RESERVE]);
+        $this->event_coordinator->update([Trooper::MEMBERSHIP_STATUS => MembershipStatus::RESERVE]);
 
-        $own = $this->eventWithChildren($this->coordinator);
+        $own = $this->eventWithChildren($this->event_coordinator);
 
-        $this->actingAs($this->coordinator)->get(route('admin.events.list'))->assertForbidden();
-        $this->actingAs($this->coordinator)->get(route('admin.events.create'))->assertForbidden();
-        $this->actingAs($this->coordinator)->get(route('admin.events.update', $own))->assertForbidden();
+        $this->actingAs($this->event_coordinator)->get(route('admin.events.list'))->assertForbidden();
+        $this->actingAs($this->event_coordinator)->get(route('admin.events.create'))->assertForbidden();
+        $this->actingAs($this->event_coordinator)->get(route('admin.events.update', $own))->assertForbidden();
     }
 
     /**
@@ -141,7 +141,7 @@ class EventCoordinatorRouteAccessTest extends TestCase
             $this->assertSame(
                 403,
                 $this->callRoute($method, $route, $parameters)->status(),
-                "{$method} {$route->uri()} should refuse a coordinator on someone else's event"
+                "{$method} {$route->uri()} should refuse an event coordinator on someone else's event"
             );
         }
     }
@@ -184,13 +184,13 @@ class EventCoordinatorRouteAccessTest extends TestCase
         //  query input some pickers need (e.g. the roster's costume picker takes trooper_id)
         $query = isset($parameters['trooper_id']) ? ['trooper_id' => $parameters['trooper_id']] : [];
 
-        return $this->actingAs($this->coordinator)
+        return $this->actingAs($this->event_coordinator)
             ->withHeader('HX-Request', 'true')
             ->call($method, $uri, $query);
     }
 
     /**
-     * An event (in the coordinator's region unless given) with one of everything the event
+     * An event (in the event coordinator's region unless given) with one of everything the event
      * routes take.
      *
      * @return array<string, mixed>
