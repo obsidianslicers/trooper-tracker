@@ -444,14 +444,7 @@ Purpose: Hierarchical organization nodes.
 | identifier_validation | varchar(64) | yes |  |
 | image_path_lg | varchar(128) | yes |  |
 | image_path_sm | varchar(128) | yes |  |
-| service_class | varchar(128) | yes |  |
-| sync_sheet_id | varchar(128) | yes |  |
-| discord_mention | varchar(128) | yes |  |
-| related_forum | bigint unsigned | yes |  |
-| related_forum_archive | bigint unsigned | yes |  |
-| xenforo_group_active_id | bigint unsigned | yes |  |
-| xenforo_group_reserve_id | bigint unsigned | yes |  |
-| xenforo_group_retired_id | bigint unsigned | yes |  |
+| synchronizer | varchar(64) | yes |  |
 | synchronized_at | datetime | yes |  |
 | description | varchar(512) | yes |  |
 | created_at | timestamp | yes | timestamps helper |
@@ -561,8 +554,6 @@ XenForo secondary user groups. Only administrators approve or deny them. See
 | membership_role | varchar(16) | yes | requested `MembershipRole`; null leaves the role unchanged |
 | moderated_organization_ids_to_add | json | yes | organization ids to start moderating when the role is `moderator` |
 | moderated_organization_ids_to_remove | json | yes | organization ids to stop moderating (moderator flag only; membership kept) |
-| forum_groups_to_add | json | yes | `[{id, title}]` XenForo secondary groups to add |
-| forum_groups_to_remove | json | yes | `[{id, title}]` XenForo secondary groups to remove |
 | note | text | yes | requester's note for the reviewing admin |
 | status | varchar(16) | no | default `pending` (`pending`, `approved`, `denied`) |
 | denial_reason | text | yes | |
@@ -720,9 +711,6 @@ Purpose: Event master records.
 | status | varchar(16) | no | default EventStatus::DRAFT->value |
 | create_notifications_sent_at | datetime | yes |  |
 | cancel_notifications_sent_at | datetime | yes |  |
-| create_forum_thread | boolean | no | default true |
-| thread_id | integer | yes |  |
-| post_id | integer | yes |  |
 | latitude | decimal(9,6) | yes |  |
 | longitude | decimal(9,6) | yes |  |
 | shifts_allowed | integer | yes |  |

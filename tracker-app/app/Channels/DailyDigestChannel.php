@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notification;
 /**
  * Preserves the existing daily digest system by creating an EventNotification record
  * with processed_at = null when a trooper has DAILY notification frequency.
- * The SendEventDailyNotificationCommand scheduler picks up these unprocessed records.
+ * The SendEventDailyNotification scheduler picks up these unprocessed records.
  */
 final class DailyDigestChannel
 {

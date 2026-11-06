@@ -1,0 +1,22 @@
+{
+    "slug": "google-sheets",
+    "name": "Google Sheets",
+    "version": "1.0.0",
+    "description": "Lets the club synchronizers and member lookups read each club's roster from a Google Sheet.",
+    "author": "Obsidian Slicers",
+    "namespace": "TroopTracker\\Plugins\\GoogleSheets",
+    "provider": "TroopTracker\\Plugins\\GoogleSheets\\GoogleSheetsServiceProvider",
+    "capabilities": ["forms", "club-data"],
+    "requires": {
+        "trooptracker": "^1.0"
+    },
+    "settings": [
+        {
+            "key": "credentials_path",
+            "label": "Service account credentials file",
+            "type": "text",
+            "default": "google-credentials.json",
+            "help": "Path to the Google service account JSON file, relative to the tracker-app folder unless it starts with /."
+        }
+    ]
+}

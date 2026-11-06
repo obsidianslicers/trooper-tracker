@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\ServiceRecords;
 
-use App\Features\Troopers\Queries\GetCommandStaffQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Troopers\Queries\GetCommandStaff;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -13,7 +13,7 @@ use RuntimeException;
 /**
  * Displays the command staff listing.
  */
-class CommandStaffController extends MagicBusController
+class CommandStaffController extends PageController
 {
     /**
      * Retrieves command staff troopers and renders the command staff view.
@@ -22,9 +22,7 @@ class CommandStaffController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
-        $query = new GetCommandStaffQuery;
-
-        $troopers = $this->bus->send($query);
+        $troopers = GetCommandStaff::call();
 
         $data = compact('troopers');
 

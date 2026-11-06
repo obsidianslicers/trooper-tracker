@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Bus\MagicBus;
 use App\Enums\EventStatus;
-use App\Features\Events\Queries\GetEventShiftsToCloseQuery;
+use App\Messages\Events\Queries\GetEventShiftsToClose;
 use App\Notifications\Events\EventShiftCompletedNotification;
 use Illuminate\Console\Command;
 
@@ -14,7 +13,7 @@ use Illuminate\Console\Command;
  * Artisan command to close event shifts that have ended.
  *
  * This command orchestrates the process of identifying and closing event shifts
- * whose end time has passed. It delegates the query logic to GetEventShiftsToCloseQuery
+ * whose end time has passed. It delegates the query logic to GetEventShiftsToClose
  * service, updates each shift's status to CLOSED, and sends completion emails to
  * troopers who attended.
  */
@@ -38,15 +37,13 @@ class CloseEventShiftsCommand extends Command
      * Execute the console command.
      *
      * Orchestrates the event shift closing process by:
-     * 1. Dispatching GetEventShiftsToCloseQuery to retrieve active event shifts that have ended
+     * 1. Dispatching GetEventShiftsToClose to retrieve active event shifts that have ended
      * 2. Updating each shift's status to CLOSED
      * 3. Sending EventShiftComplete emails to troopers with GOING status
-     *
-     * @param  MagicBus  $bus  The message bus for dispatching queries
      */
-    public function handle(MagicBus $bus): void
+    public function handle(): void
     {
-        $event_shifts = $bus->send(new GetEventShiftsToCloseQuery);
+        $event_shifts = GetEventShiftsToClose::call();
 
         foreach ($event_shifts as $event_shift)
         {

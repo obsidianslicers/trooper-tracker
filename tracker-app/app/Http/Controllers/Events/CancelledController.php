@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Enums\EventStatus;
-use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
-use App\Features\Organizations\Queries\GetOrganizationsQuery;
-use App\Features\Reports\Queries\GetEventSummaryQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Organizations\Queries\GetOrganizations;
+use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
+use App\Messages\Reports\Queries\GetEventSummary;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -19,7 +19,7 @@ use Illuminate\Http\Request;
  * that were cancelled within the last 30 days with their organizations,
  * shifts, and attendance information.
  */
-class CancelledController extends MagicBusController
+class CancelledController extends PageController
 {
     /**
      * Handle the incoming request to display the cancelled events list page
@@ -33,13 +33,16 @@ class CancelledController extends MagicBusController
 
         $lookback = 30;
 
-        $events_query = new GetEventSummaryQuery($trooper, $lookback, true, EventStatus::CANCELLED);
+        $events = GetEventSummary::call(
+            moderator: $trooper,
+            lookback: $lookback,
+            show_all: true,
+            status: EventStatus::CANCELLED,
+        );
 
-        $events = $this->bus->send($events_query);
+        $costume_organizations = GetOrganizations::call();
 
-        $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
-
-        $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery($trooper, []));
+        $hosting_organizations = GetOrganizationsForPicker::call(trooper: $trooper, data: []);
 
         $data = compact('events', 'lookback', 'costume_organizations', 'hosting_organizations');
 

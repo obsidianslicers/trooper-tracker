@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Seeders\Issues;
 
-use App\Bus\MagicBus;
 use App\Enums\MembershipStatus;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
@@ -148,7 +147,7 @@ class FixSequenceTest extends TestCase
         foreach ($fixes as $fix)
         {
             $subject = new $fix;
-            $subject->run(app(MagicBus::class));
+            $subject->run();
         }
     }
 

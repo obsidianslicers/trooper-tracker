@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\Troopers\Commands\Membership;
 
 use App\Enums\MembershipStatus;
+use App\Events\TrooperMembershipApproved;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
 use App\Notifications\Troopers\MembershipApprovedNotification;
@@ -49,5 +50,7 @@ final class ApproveTrooperMembership extends Message
         });
 
         $this->trooper->notify(new MembershipApprovedNotification);
+
+        TrooperMembershipApproved::dispatch($this->trooper);
     }
 }

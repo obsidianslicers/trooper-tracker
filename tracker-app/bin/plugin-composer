@@ -1,0 +1,90 @@
+#!/usr/bin/env php
+<?php
+
+/*
+ * Prepares and checks the Composer files for a deploy. Runs before Composer installs
+ * the release's packages, so it uses no framework code. See bin/plugin-packages.sh.
+ *
+ *   php bin/plugin-composer prepare [requirements.json]
+ *
+ * Writes composer.plugins.json from composer.json, composer.lock and the plugin
+ * requirements the app saved (by default storage/app/plugin-deploy/requirements.json),
+ * and prints the packages "composer update" must touch, one per line. Exits with 10
+ * when no plugin needs packages, so the deploy uses a plain "composer install".
+ *
+ *   php bin/plugin-composer verify
+ *
+ * Exits with 1, naming them, if composer.plugins.lock has any core package at a
+ * different version from composer.lock.
+ */
+
+declare(strict_types=1);
+
+require __DIR__.'/../app/Plugins/Deploy/ManagedComposerFile.php';
+
+use App\Plugins\Deploy\ManagedComposerFile;
+
+$root = dirname(__DIR__);
+$read = static function (string $path): ?array
+{
+    if (!is_file($path))
+    {
+        return null;
+    }
+
+    $data = json_decode((string) file_get_contents($path), true);
+
+    return is_array($data) ? $data : null;
+};
+
+$command = $argv[1] ?? null;
+$managed_lock_path = $root.'/'.ManagedComposerFile::LOCK;
+
+if ($command === 'verify')
+{
+    $file = new ManagedComposerFile(
+        $read($root.'/composer.json') ?? [],
+        $read($root.'/composer.lock') ?? [],
+        $read($managed_lock_path) ?? [],
+        [],
+    );
+    $moved = $file->movedCorePackages();
+
+    if ($moved !== [])
+    {
+        fwrite(STDERR, 'Plugin packages would change core packages: '.implode(', ', $moved)."\n");
+        exit(1);
+    }
+
+    exit(0);
+}
+
+if ($command !== 'prepare')
+{
+    fwrite(STDERR, "Usage: php bin/plugin-composer prepare [requirements.json] | verify\n");
+    exit(1);
+}
+
+$file = new ManagedComposerFile(
+    $read($root.'/composer.json') ?? [],
+    $read($root.'/composer.lock') ?? [],
+    $read($managed_lock_path),
+    $read($argv[2] ?? $root.'/storage/app/plugin-deploy/requirements.json') ?? [],
+);
+
+if (!$file->hasPluginPackages())
+{
+    exit(10);
+}
+
+if (!is_file($managed_lock_path))
+{
+    copy($root.'/composer.lock', $managed_lock_path);
+}
+
+file_put_contents(
+    $root.'/'.ManagedComposerFile::FILE,
+    json_encode($file->json(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n",
+);
+
+echo implode("\n", $file->packagesToUpdate()), "\n";

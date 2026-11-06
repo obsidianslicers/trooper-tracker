@@ -6,7 +6,7 @@ This document provides a comprehensive overview of Troop Tracker's architectural
 
 ## Core Architectural Principles
 
-Troop Tracker follows **Action-Domain-Responder (ADR)** with command/query separation implemented by **Hyperdrive Messages**. The application is migrating from the older MagicBus and `app/Features` handler architecture to single-file messages organized by domain. Both patterns currently exist while workflows are migrated.
+Troop Tracker follows **Action-Domain-Responder (ADR)** with command/query separation implemented by **Hyperdrive Messages**: single-file messages in `app/Messages/`, organized by domain.
 
 ### Action-Domain-Responder (ADR)
 
@@ -20,7 +20,7 @@ This separation ensures business logic is reusable and testable independent of H
 
 ### Hyperdrive Message Architecture
 
-Hyperdrive is the target dispatch layer. A Message combines the input contract and domain operation in one class:
+Hyperdrive is the dispatch layer. A Message combines the input contract and domain operation in one class:
 
 - **Commands**: Messages that change state (create, update, delete)
 - **Queries**: Messages that read data without side effects
@@ -29,10 +29,6 @@ Hyperdrive is the target dispatch layer. A Message combines the input contract a
 - **Hydration**: Hyperdrive resolves typed constructor arguments from validated request data, route parameters, the authenticated actor, and explicit arguments
 
 See [`tracker-app/packages/hyperdrive/README.md`](../tracker-app/packages/hyperdrive/README.md) for dispatcher behavior and parameter precedence.
-
-### Legacy MagicBus Architecture
-
-Some workflows still use the legacy `app/Features/` layout, where a command or query is paired with a convention-based handler and dispatched through MagicBus. This code remains supported during migration but is not the pattern for new work. New domain operations should use a Message in `app/Messages/` unless the workflow is intentionally being left unchanged until its migration is scheduled.
 
 **Key Benefits:**
 - Convention over configuration (no manual routing)
@@ -60,8 +56,6 @@ Each domain directory contains Messages grouped by intent:
 - `Commands/` - Write operations (e.g., `CreateEvent.php`)
 - `Queries/` - Read operations (e.g., `GetEventsByOrganization.php`)
 - `PageData/` - Aggregated data for a specific page (where needed)
-
-Legacy domains may still have parallel implementations under `app/Features/`. Do not add new Feature handlers for migrated work.
 
 ---
 
@@ -202,17 +196,14 @@ final class CreateEvent extends Message
 }
 ```
 
-**Deferred Execution:**
-```php
-use Hyperdrive\Concerns\ShouldRunAfterResponse;
-
-final class SendNotification extends Message
-{
-    use ShouldRunAfterResponse;
-}
-```
+Hyperdrive has no deferred-execution modifier. Work that should not block the response belongs in
+a queued Job (or `dispatch(...)->afterResponse()`) that calls the Message.
 
 ---
+
+## Plugins
+
+Optional features ship as plugins: folders in `tracker-app/plugins/`, or uploaded or copied into `storage/app/plugins`. `App\Plugins\PluginManager` loads the enabled ones; they hook in through app events (`app/Events`), Hyperdrive message events, and `@pluginSlot` UI slots. See [PLUGINS.md](PLUGINS.md).
 
 ## Testing Strategy
 
@@ -224,7 +215,6 @@ final class SendNotification extends Message
 | Messages | Unit/Feature | Message behavior in isolation or through its HTTP entry point |
 | Jobs | Feature | Queue-specific concerns + orchestration |
 | Console Commands | Feature | Argument parsing + orchestration |
-| Legacy handlers | Unit | Fast, isolated coverage while a workflow remains on MagicBus |
 | Policies | Unit | Authorization logic in isolation |
 | Rules | Unit | Validation logic in isolation |
 

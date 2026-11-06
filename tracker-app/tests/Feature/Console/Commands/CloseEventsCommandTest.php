@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Console\Commands;
 
-use App\Bus\MagicBus;
 use App\Enums\EventStatus;
-use App\Features\Events\Queries\GetEventsToCloseQuery;
+use App\Messages\Events\Queries\GetEventsToClose;
 use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
-use Mockery\MockInterface;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 /**
@@ -21,6 +19,7 @@ use Tests\TestCase;
  */
 class CloseEventsCommandTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     /**
@@ -33,18 +32,16 @@ class CloseEventsCommandTest extends TestCase
         $event2 = Event::factory()->create([Event::STATUS => EventStatus::OPEN]);
         $events = collect([$event1, $event2]);
 
-        // Mock MagicBus to return events to close
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($events)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetEventsToCloseQuery::class))
-                ->andReturn($events);
-        });
+        // Fake the query to return events to close
+        $messages = $this->fakeMessages([
+            GetEventsToClose::class => $events,
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:close-events')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetEventsToClose::class);
 
         // Assert: Verify events are closed
         $event1->refresh();
@@ -58,18 +55,16 @@ class CloseEventsCommandTest extends TestCase
      */
     public function test_command_handles_no_events_to_close(): void
     {
-        // Arrange: Mock MagicBus to return empty collection
-        $this->mock(MagicBus::class, function (MockInterface $mock)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetEventsToCloseQuery::class))
-                ->andReturn(collect([]));
-        });
+        // Arrange: Fake the query to return empty collection
+        $messages = $this->fakeMessages([
+            GetEventsToClose::class => collect([]),
+        ]);
 
         // Act & Assert: Command should complete successfully
         $this->artisan('tracker:close-events')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetEventsToClose::class);
     }
 
     /**
@@ -81,18 +76,16 @@ class CloseEventsCommandTest extends TestCase
         $event_to_close = Event::factory()->create([Event::STATUS => EventStatus::OPEN]);
         $event_to_remain_open = Event::factory()->create([Event::STATUS => EventStatus::OPEN]);
 
-        // Mock MagicBus to return only one event
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($event_to_close)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetEventsToCloseQuery::class))
-                ->andReturn(collect([$event_to_close]));
-        });
+        // Fake the query to return only one event
+        $messages = $this->fakeMessages([
+            GetEventsToClose::class => collect([$event_to_close]),
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:close-events')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetEventsToClose::class);
 
         // Assert: Only specified event is closed
         $event_to_close->refresh();
@@ -107,20 +100,15 @@ class CloseEventsCommandTest extends TestCase
     public function test_command_dispatches_get_events_to_close_query(): void
     {
         // Arrange & Assert: Verify correct query is sent
-        $this->mock(MagicBus::class, function (MockInterface $mock)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function ($query)
-                {
-                    return $query instanceof GetEventsToCloseQuery;
-                })
-                ->andReturn(collect([]));
-        });
+        $messages = $this->fakeMessages([
+            GetEventsToClose::class => collect([]),
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:close-events')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetEventsToClose::class);
     }
 
     /**
@@ -145,18 +133,16 @@ class CloseEventsCommandTest extends TestCase
             ->count(5)
             ->create([Event::STATUS => EventStatus::OPEN]);
 
-        // Mock MagicBus to return all events
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($events)
-        {
-            $mock->shouldReceive('send')
-                ->once()
-                ->with(Mockery::type(GetEventsToCloseQuery::class))
-                ->andReturn($events);
-        });
+        // Fake the query to return all events
+        $messages = $this->fakeMessages([
+            GetEventsToClose::class => $events,
+        ]);
 
         // Act: Execute the command
         $this->artisan('tracker:close-events')
             ->assertExitCode(0);
+
+        $messages->assertCalled(GetEventsToClose::class);
 
         // Assert: All events are closed
         foreach ($events as $event)

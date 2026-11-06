@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Widgets;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Services\Support\SupportStatusService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 /**
  * Handles displaying the support widget via an HTMX request.
  */
-class SupportDisplayHtmxController extends MagicBusController
+class SupportDisplayHtmxController extends PageController
 {
     /**
      * Handle the incoming request to display the support widget

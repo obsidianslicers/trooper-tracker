@@ -8,6 +8,7 @@ use App\Enums\AdministrativeNotifications;
 use App\Enums\NotificationChannels;
 use App\Enums\TrooperNotifications;
 use App\Http\Requests\Account\UpdateNotificationPreferenceRequest;
+use App\Plugins\PluginNotifications;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -53,6 +54,22 @@ class UpdateNotificationPreferenceRequestTest extends TestCase
         );
 
         $this->assertFalse($validator->fails(), sprintf('Expected %s to pass validation.', $notification));
+    }
+
+    public function test_rules_accepts_plugin_notification_categories(): void
+    {
+        $this->app->make(PluginNotifications::class)->add('forum_reply', 'Forum Reply');
+
+        $validator = Validator::make(
+            [
+                'notification' => 'forum_reply',
+                'channel' => NotificationChannels::MAIL->value,
+                'enabled' => true,
+            ],
+            (new UpdateNotificationPreferenceRequest)->rules()
+        );
+
+        $this->assertFalse($validator->fails());
     }
 
     public function test_rules_rejects_unknown_notification_value(): void

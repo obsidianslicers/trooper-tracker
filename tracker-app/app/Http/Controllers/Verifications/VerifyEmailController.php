@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Verifications;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
 
@@ -15,7 +15,7 @@ use Illuminate\Http\RedirectResponse;
  * This controller is responsible for verifying the user's email address
  * and redirecting them to the appropriate page after verification.
  */
-class VerifyEmailController extends MagicBusController
+class VerifyEmailController extends PageController
 {
     /**
      * Handle the incoming request to verify the user's email address.

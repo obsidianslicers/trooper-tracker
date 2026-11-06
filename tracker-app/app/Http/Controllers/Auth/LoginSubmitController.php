@@ -42,9 +42,13 @@ class LoginSubmitController extends Controller
      */
     public function __invoke(LoginRequest $request): InertiaResponse|SymfonyResponse
     {
-        if ($this->troop_tracker->isXenforoOAuthRequired())
+        $required = $this->troop_tracker->requiredLoginProvider();
+
+        if ($required !== null)
         {
-            return back()->withDanger('Email/Password login is disabled. Please log in with XenForo.');
+            return back()->withDanger(
+                "Email/Password login is disabled. Please log in with {$required->name()}."
+            );
         }
 
         $trooper = Login::call($request);

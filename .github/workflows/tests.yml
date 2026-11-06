@@ -7,7 +7,21 @@ on:
 
 jobs:
   laravel-tests:
+    name: PHP ${{ matrix.php }}, ${{ matrix.plugins }} plugins
     runs-on: ubuntu-latest
+    # A newer PHP than production runs is an early warning, not a blocker.
+    continue-on-error: ${{ matrix.experimental }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4']
+        plugins: ['bundled', 'composer']
+        experimental: [false]
+        include:
+          - php: '8.5'
+            plugins: 'composer'
+            experimental: true
 
     steps:
       - name: Checkout Code
@@ -16,7 +30,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: ${{ matrix.php }}
           extensions: mbstring, bcmath, sqlite, intl, pdo_sqlite, gd
           coverage: none
 
@@ -26,19 +40,57 @@ jobs:
           path: |
             ~/.composer/cache
             vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('tracker-app/composer.lock') }}
+          key: ${{ runner.os }}-php${{ matrix.php }}-${{ matrix.plugins }}-composer-${{ hashFiles('tracker-app/composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-composer-
+            ${{ runner.os }}-php${{ matrix.php }}-${{ matrix.plugins }}-composer-
 
       - name: Install Composer Dependencies
         working-directory: ./tracker-app
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      # "bundled" checks the app and its tests work without the packages plugins bring;
+      # "composer" installs the bundled plugins' packages so their own tests run too.
+      - name: Install the bundled plugins' packages
+        if: matrix.plugins == 'composer'
+        working-directory: ./tracker-app
+        run: |
+          PACKAGES="$(php -r 'foreach (glob("plugins/*/composer.json") as $file) {
+              foreach (json_decode(file_get_contents($file), true)["require"] ?? [] as $name => $version) {
+                  if (str_contains($name, "/")) { echo "{$name}:{$version} "; }
+              }
+          }')"
+          composer require $PACKAGES --no-interaction --no-progress --no-scripts
+
+      - name: Generate application key
+        working-directory: ./tracker-app
+        run: echo "APP_KEY=$(php artisan key:generate --show)" >> "$GITHUB_ENV"
+
       - name: Run Tests
         working-directory: ./tracker-app
         env:
           TERM: xterm
-          APP_KEY: ${{ secrets.TT_APP_KEY }}
         run: |
           # Run the test suite
           composer test:ci
+
+  js-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: tracker-app/package-lock.json
+
+      - name: Install npm Dependencies
+        working-directory: ./tracker-app
+        run: npm ci
+
+      - name: Run JS Tests
+        working-directory: ./tracker-app
+        run: npm test

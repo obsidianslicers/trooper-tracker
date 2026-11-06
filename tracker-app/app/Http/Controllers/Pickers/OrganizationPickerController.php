@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Pickers;
 
-use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use Exception;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
  * needs to select an organization from a list, potentially filtered by their
  * moderation permissions.
  */
-class OrganizationPickerController extends MagicBusController
+class OrganizationPickerController extends PageController
 {
     /**
      * Handle the incoming request to display the organization picker view
@@ -42,9 +42,7 @@ class OrganizationPickerController extends MagicBusController
             throw new Exception('Missing property parameter');
         }
 
-        $query = new GetOrganizationsForPickerQuery($trooper, $request->query());
-
-        $organizations = $this->bus->send($query);
+        $organizations = GetOrganizationsForPicker::call(trooper: $trooper, data: $request->query());
 
         $data = compact('organizations', 'property');
 

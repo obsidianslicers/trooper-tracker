@@ -343,15 +343,15 @@ If the trooper has the mobile app installed and has granted notification permiss
 
 ## 11. XenForo Forum Node IDs, Discord Mentions, and XenForo Group IDs
 
-For full XenForo setup (env vars, OAuth, add-ons, API key) see [XENFORO_OAUTH.md](XENFORO_OAUTH.md). This section lists the Florida Garrison-specific values that `FloridaGarrisonSeeder` pre-seeds so you do not need to enter them manually.
+For full XenForo setup (env vars, OAuth, add-ons, API key) see [XENFORO_OAUTH.md](XENFORO_OAUTH.md). This section lists the Florida Garrison-specific values, so you do not need to enter them manually. The forum values belong to the XenForo plugin: enable it (`php artisan plugins:enable xenforo`) after `FloridaGarrisonSeeder`, then seed them with `php artisan db:seed --class="TroopTracker\Plugins\Xenforo\Database\Seeders\FloridaGarrisonForumSeeder"`. That seeder also sets the clubs' groups (Rebel Legion 1486, Mandalorian Mercs 1488, Dark Empire 1511, Droid Builders 1487, Saber Guild 1491).
 
 ### Forum Node IDs
 
-When an event is created, Troop Tracker posts a XenForo thread in the squad's `related_forum`. When the event closes, the thread is moved to `related_forum_archive`.
+When an event is created, the XenForo plugin posts a thread in the squad's event forum. When the event closes, the thread is moved to the archive forum.
 
-The following values are seeded automatically:
+`FloridaGarrisonForumSeeder` sets:
 
-| Squad              | Active Forum (`related_forum`) | Archive Forum (`related_forum_archive`) |
+| Squad              | Event Forum                    | Archive Forum                            |
 |--------------------|-------------------------------|----------------------------------------|
 | Everglades Squad   | 9                             | 107                                    |
 | Makaze Squad       | 8                             | 109                                    |
@@ -363,17 +363,11 @@ To find a node ID on your own: browse to the forum board in XenForo — the URL 
 
 To update a value or set one for a non-Florida organization: `Command Staff > Organizations > [org] > edit` → **Related Forum (Node ID)** / **Related Forum Archive (Node ID)**.
 
-Test thread creation with:
-
-```bash
-php artisan tracker:xenforo-test-thread {node_id}
-```
-
 ### Discord Mentions
 
-When Troop Tracker sends a Discord event notification, it includes a `discord_mention` string to ping the relevant squad role.
+When Troop Tracker sends a Discord event notification, it includes the organization's mention string to ping the relevant squad role.
 
-Requires `DISCORD_WEBHOOK_URL` in `.env`. The following mention strings are seeded automatically:
+Mentions belong to the Discord plugin. Enable it (`php artisan plugins:enable discord`), set its webhook under Command Staff > Plugins > Discord > Settings (or `DISCORD_WEBHOOK_URL` in `.env`), then seed these mention strings with `php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\FloridaGarrisonMentionSeeder"`:
 
 | Squad              | Discord Mention              |
 |--------------------|------------------------------|
@@ -387,7 +381,7 @@ If a role ID changes: go to Discord → Server Settings → Roles → right-clic
 
 ### XenForo Secondary Group IDs
 
-Troop Tracker synchronizes XenForo secondary group memberships based on the group IDs stored on each organization. The following values are seeded automatically:
+The XenForo plugin synchronizes XenForo secondary group memberships based on the group IDs set on each organization. `FloridaGarrisonForumSeeder` sets:
 
 | Organization       | Active group ID | Retired group ID |
 |--------------------|-----------------|-----------------|
@@ -407,13 +401,13 @@ How these combine for a Florida Garrison squad member:
 Group sync is run with:
 
 ```bash
-php artisan tracker:synchronize-xenforo-users
+php artisan xenforo:sync-users
 ```
 
 For a single trooper:
 
 ```bash
-php artisan tracker:synchronize-xenforo-user {trooper_id}
+php artisan xenforo:sync-user {trooper_id}
 ```
 
 See [XENFORO_OAUTH.md](XENFORO_OAUTH.md) section 9 for full details on how group sync works.
@@ -448,9 +442,9 @@ After setup or migration, verify all of the following:
 - legacy migrated event photos load on existing events
 - newly uploaded event photos appear in the event uploads page
 - broken image icons do not appear in the public UI
-- a XenForo forum thread is created when a new event is saved (`tt_events.thread_id` is populated)
+- a XenForo forum thread is created when a new event is saved (the event has a row in `tt_xenforo_event_threads` with a `thread_id`)
 - a Discord notification includes the correct squad role mention
-- `tracker:synchronize-xenforo-users` applies the expected secondary group IDs to a test trooper (1415 + squad group + 18)
+- `xenforo:sync-users` applies the expected secondary group IDs to a test trooper (1415 + squad group + 18)
 - posting a reply in an event's forum thread causes event watchers to receive an **Event Forum Post** in-app notification
 
 If new uploads are broken but legacy images work, the most likely issue is that `php artisan storage:link` was not run or the symlink is missing on the server.

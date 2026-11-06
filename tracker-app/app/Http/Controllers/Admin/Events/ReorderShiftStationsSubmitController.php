@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Features\Events\Commands\ReorderEventShiftStationsCommand;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Events\Commands\ReorderEventShiftStations;
 use App\Models\Event;
 use App\Models\EventShift;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class ReorderShiftStationsSubmitController extends MagicBusController
+class ReorderShiftStationsSubmitController extends PageController
 {
     public function __invoke(Request $request, Event $event, EventShift $event_shift): JsonResponse
     {
@@ -24,10 +24,10 @@ class ReorderShiftStationsSubmitController extends MagicBusController
             'ids.*' => ['integer'],
         ]);
 
-        $this->bus->send(new ReorderEventShiftStationsCommand(
-            $event_shift,
-            $validated['ids'] ?? [],
-        ));
+        ReorderEventShiftStations::call(
+            event_shift: $event_shift,
+            ordered_ids: $validated['ids'] ?? [],
+        );
 
         return response()->json(['success' => true]);
     }

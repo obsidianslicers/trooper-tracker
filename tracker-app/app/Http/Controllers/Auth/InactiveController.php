@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
  * This controller renders a page shown to troopers whose accounts have been
  * deactivated (retired status) when they attempt to log in or access the application.
  */
-class InactiveController extends MagicBusController
+class InactiveController extends PageController
 {
     /**
      * Handle the incoming request to display the inactive account page.

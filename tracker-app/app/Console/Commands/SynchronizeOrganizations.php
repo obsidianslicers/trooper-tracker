@@ -5,17 +5,15 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Organization;
+use App\Plugins\PluginClubSynchronizers;
 use Carbon\CarbonInterval;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Benchmark;
 
 /**
- * Artisan command to calculate and store trooper achievements based on their event history.
- *
- * This command aggregates event data for each trooper, such as total troops,
- * volunteer hours, and funds raised, and then updates their corresponding
- * achievements in the database.
+ * Runs each club's chosen roster sync, which updates its troopers and costumes
+ * from the club's own records.
  */
 class SynchronizeOrganizations extends Command
 {
@@ -33,44 +31,53 @@ class SynchronizeOrganizations extends Command
      */
     protected $description = 'Synchronize Organizations.';
 
-    /**
-     * Execute the console command.
-     */
-    public function handle(): void
+    public function handle(PluginClubSynchronizers $synchronizers): void
     {
-        $ms = Benchmark::measure(function ()
+        $ms = Benchmark::measure(function () use ($synchronizers): void
         {
             $organizations = Organization::ofTypeOrganizations()
-                ->whereNotNull(Organization::SERVICE_CLASS)
+                ->whereNotNull(Organization::SYNCHRONIZER)
                 ->orderByDesc(Organization::NAME)
                 ->get();
 
             foreach ($organizations as $organization)
             {
-                $this->info("Synchronize Started: {$organization->name}");
-
-                try
-                {
-                    $service_class = $organization->service_class;
-
-                    $service_class = app($service_class, compact('organization'));
-
-                    $time = Benchmark::measure(fn () => $service_class->run());
-
-                    $readable = CarbonInterval::millisecond($time)->cascade()->forHumans();
-
-                    $this->info("Synchronize Ended:   {$readable}");
-                }
-                catch (Exception $e)
-                {
-                    $this->error("Error synchronizing {$organization->name}: {$e->getMessage()}");
-                    $this->info('Synchronize Ended:   ERR');
-                }
+                $this->synchronize($synchronizers, $organization);
             }
         });
 
         $readable = CarbonInterval::millisecond($ms)->cascade()->forHumans();
 
         $this->info("Synchronizer completed in {$readable}.");
+    }
+
+    private function synchronize(
+        PluginClubSynchronizers $synchronizers,
+        Organization $organization,
+    ): void {
+        $this->info("Synchronize Started: {$organization->name}");
+
+        try
+        {
+            $synchronizer = $synchronizers->synchronizer($organization);
+
+            if ($synchronizer === null)
+            {
+                $this->warn("No roster sync [{$organization->synchronizer}] is available for "
+                    ."{$organization->name}. Is the plugin that provides it enabled?");
+
+                return;
+            }
+
+            $time = Benchmark::measure(fn () => $synchronizer->run());
+            $readable = CarbonInterval::millisecond($time)->cascade()->forHumans();
+
+            $this->info("Synchronize Ended:   {$readable}");
+        }
+        catch (Exception $e)
+        {
+            $this->error("Error synchronizing {$organization->name}: {$e->getMessage()}");
+            $this->info('Synchronize Ended:   ERR');
+        }
     }
 }

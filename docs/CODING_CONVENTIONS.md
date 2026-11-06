@@ -62,14 +62,15 @@ To leverage Laravel's Eloquent ORM conventions and simplify relationship definit
 
 ## 6. Architecture
 
-This project follows **Action-Domain-Responder (ADR)** with **Command/Query Separation** via **MagicBus**. Controllers orchestrate, handlers execute business logic.
+This project follows **Action-Domain-Responder (ADR)** with **Command/Query Separation** via
+**Hyperdrive messages**. Controllers orchestrate; messages hold the business logic.
 
 **See [ARCHITECTURE.md](ARCHITECTURE.md) for comprehensive architectural documentation.**
 
 Key architectural standards:
 - Use invokable controllers (single-action)
-- Dispatch Commands/Queries through MagicBus
-- Keep handlers focused and testable
+- Put domain logic in messages under `app/Messages/` and call them with `::call()`
+- Keep messages focused and testable
 - Follow SOLID principles
 
 ## 7. Controllers
@@ -98,14 +99,19 @@ Route::post('/login', LoginSubmitController::class);
 
 ### 8.1. Orchestration Pattern
 
-Jobs and Console Commands should follow the **Orchestration Pattern**, acting as thin orchestrators that dispatch Commands and Queries through the MagicBus. This keeps the business logic in the Domain layer (Command/Query Handlers) where it can be reused and tested in isolation.
+Jobs and Console Commands follow the **Orchestration Pattern**: they are thin orchestrators that
+call messages. Business logic stays in the messages, where it can be reused and tested in
+isolation.
 
 **Key Principles:**
 
--   **Jobs and Commands are Orchestrators:** They should coordinate workflow by dispatching Commands/Queries, not implement business logic.
--   **Business Logic Lives in Handlers:** Extract all domain logic into dedicated Command and Query Handlers in `app/Features/`.
--   **Reusability:** Handlers can be called from Controllers, Jobs, Console Commands, or other Handlers via MagicBus.
--   **Testability:** Handlers are easier to unit test because they have no dependencies on Laravel's job/command infrastructure.
+-   **Jobs and Commands are Orchestrators:** They coordinate a workflow by calling messages, not
+    by implementing business logic.
+-   **Business Logic Lives in Messages:** Domain logic belongs in `app/Messages/`.
+-   **Reusability:** A message can be called from Controllers, Jobs, Console Commands, or other
+    messages.
+-   **Testability:** Messages have no dependency on Laravel's job/command infrastructure, so they
+    are easy to unit test.
 
 **Example:**
 
@@ -117,16 +123,16 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
 
     public function __construct(
         private readonly Event $event
-    ) {
-    }
+    ) {}
 
-    /**
-     * Execute the job by dispatching commands via MagicBus.
-     */
-    public function handle(MagicBus $bus): void
+    public function handle(): void
     {
-        // Orchestrate - dispatch command through MagicBus
-        $bus->send(new SendEventCreatedNotificationCommand($this->event));
+        $troopers = GetTroopersForEventCreated::call(event: $this->event);
+
+        foreach ($troopers as $trooper)
+        {
+            SendEventCreatedNotification::call(event: $this->event, trooper: $trooper);
+        }
     }
 }
 
@@ -136,284 +142,165 @@ class SendDailyEventNotifications extends Command
     protected $signature = 'tracker:send-daily-event-notifications';
     protected $description = 'Send daily event digest emails to troopers';
 
-    /**
-     * Execute the console command by dispatching queries/commands via MagicBus.
-     */
-    public function handle(MagicBus $bus): int
+    public function handle(): int
     {
-        // Orchestrate - get eligible troopers via query
-        $troopers = $bus->send(new GetTroopersForDailyEventNotificationsQuery());
-        
-        // Dispatch command for each trooper
-        foreach ($troopers as $trooper) {
-            $bus->send(new SendEventDailyNotificationCommand($trooper));
+        $troopers = GetTroopersForDailyEventNotifications::call();
+
+        foreach ($troopers as $trooper)
+        {
+            SendEventDailyNotification::call(trooper: $trooper);
         }
-        
+
         $this->info("Sent {$troopers->count()} daily digests.");
-        
+
         return Command::SUCCESS;
     }
-}
-
-// app/Features/Events/Commands/SendEventCreatedNotificationCommandHandler.php
-readonly class SendEventCreatedNotificationCommandHandler implements CommandHandlerInterface
-{
-    /**
-     * Business logic: Create notification records and queue emails.
-     */
-    public function __invoke(SendEventCreatedNotificationCommand $command): void
-    {
-        $troopers = $this->getEligibleTroopers($command->event);
-        
-        foreach ($troopers as $trooper) {
-            $this->createNotificationAndQueueEmail($command->event, $trooper);
-        }
-    }
-    
-    // Additional private helper methods...
 }
 ```
 
 **Benefits:**
 
 -   Jobs and Commands remain simple, focused, and easy to understand
--   Business logic is centralized in Handlers for consistency
--   Handlers can be reused across different entry points (web, CLI, queue)
--   Unit testing is simplified by testing Handlers independently
+-   Business logic is centralized in messages for consistency
+-   Messages can be reused across entry points (web, CLI, queue)
+-   Unit testing is simplified by testing messages independently
 -   Aligns with the Single Responsibility Principle
--   Maintains consistency with the MagicBus Command/Query pattern used in Controllers
 
-## 9. MagicBus: Command/Query Pattern
+## 9. Hyperdrive Messages
 
-This project uses **MagicBus** for Command/Query Separation. See [ARCHITECTURE.md](ARCHITECTURE.md) for conceptual overview.
+Domain logic lives in **Hyperdrive messages**: single classes in `app/Messages/` that extend
+`Hyperdrive\Message`. The constructor is the message's input contract and `handle()` is the
+operation. There is no separate handler class. See [ARCHITECTURE.md](ARCHITECTURE.md) for the
+overview and the [Hyperdrive README](../tracker-app/packages/hyperdrive/README.md) for how
+parameters are hydrated.
 
-### 9.1. Naming Convention
+### 9.1. Layout and Naming
 
-MagicBus auto-resolves handlers by convention:
+```
+app/Messages/[Feature]/
+├── Commands/      # write operations (state change)
+├── Queries/       # read operations (no side effects)
+├── PageData/      # page payloads that aggregate queries for one page
+└── Resources/     # response shapes, where needed
+```
 
-| Type | Message Class | Handler Class |
-|------|---------------|---------------|
-| Command | `CreateEventCommand` | `CreateEventCommandHandler` |
-| Command | `UpdateTrooperCommand` | `UpdateTrooperCommandHandler` |
-| Query | `GetTroopersByRoleQuery` | `GetTroopersByRoleQueryHandler` |
-| Query | `GetEventSummaryQuery` | `GetEventSummaryQueryHandler` |
+Shared traits live in `app/Messages/Concerns/`. Large features may group messages in a
+subfolder by topic (e.g. `Troopers/Commands/Membership/`).
 
-**Rule:** `{MessageClass} + "Handler" = {HandlerClass}`
+A message is named `[Verb] [Object] [optional details]` with **no** `Command`/`Query` suffix;
+the folder already says which it is.
 
-### 9.2. Creating Commands
+| Type | Example |
+|------|---------|
+| Command | `App\Messages\Events\Commands\UpdateEvent` |
+| Command | `App\Messages\Troopers\Commands\VoidTrooper` |
+| Query | `App\Messages\Troopers\Queries\GetTroopersByRole` |
+| Query | `App\Messages\Reports\Queries\GetEventSummary` |
+| Page data | `App\Messages\Auth\PageData\LoginPageData` |
 
-Commands represent **write operations** that change state.
+### 9.2. Writing a Message
 
-**Command Class (Message):**
 ```php
-// app/Features/Events/Commands/CreateEventCommand.php
-readonly class CreateEventCommand
+// app/Messages/Troopers/Queries/GetTroopersByRole.php
+/**
+ * @method static Collection<int, Trooper> call(MembershipRole $membership_role)
+ */
+final class GetTroopersByRole extends Message
 {
     public function __construct(
-        public Organization $organization,
-        public array $data
+        private readonly MembershipRole $membership_role,
     ) {}
-}
-```
 
-**Command Handler:**
-```php
-// app/Features/Events/Commands/CreateEventCommandHandler.php
-readonly class CreateEventCommandHandler implements CommandHandlerInterface
-{
-    public function __invoke(CreateEventCommand $command): Event
+    public function handle(): Collection
     {
-        $event = Event::create([
-            Event::ORGANIZATION_ID => $command->organization->id,
-            Event::NAME => $command->data['name'],
-            Event::EVENT_DATE => $command->data['event_date'],
-            // ... other fields
-        ]);
-        
-        return $event;
-    }
-}
-```
-
-### 9.3. Creating Queries
-
-Queries represent **read operations** that fetch data without changing state.
-
-**Query Class (Message):**
-```php
-// app/Features/Troopers/Queries/GetTroopersByRoleQuery.php
-readonly class GetTroopersByRoleQuery
-{
-    public function __construct(
-        public MembershipRole $role
-    ) {}
-}
-```
-
-**Query Handler:**
-```php
-// app/Features/Troopers/Queries/GetTroopersByRoleQueryHandler.php
-readonly class GetTroopersByRoleQueryHandler implements QueryHandlerInterface
-{
-    public function __invoke(GetTroopersByRoleQuery $query): Collection
-    {
-        return Trooper::where(Trooper::MEMBERSHIP_ROLE, $query->role->value)
-            ->orderBy(Trooper::NAME)
+        return Trooper::active()
+            ->where(Trooper::MEMBERSHIP_ROLE, $this->membership_role)
+            ->orderBy(Trooper::DISPLAY_NAME)
             ->get();
     }
 }
 ```
 
-### 9.4. Dispatching via MagicBus
+- Make the class `final`, with `private readonly` constructor properties.
+- Keep the `@method static ... call(...)` PHPDoc in sync with the constructor so `::call()`
+  keeps autocomplete.
+- Inject services into `handle()` (e.g. `handle(XenforoService $xenforo)`), not the constructor;
+  the constructor is hydrated from message input only.
+- For the signed-in user, type a constructor parameter as `Hyperdrive\Contracts\Actor $actor`;
+  this keeps the session user distinct from target records looked up by id.
 
-Use the `MagicBus` facade or inject `MagicBus` into your controllers:
+### 9.3. Calling a Message
 
-**From Controller:**
+- **From a page or form request:** `IndexPageData::call($request)` hydrates constructor
+  parameters from the validated request, route parameters and the authenticated actor.
+- **Everywhere else:** use named arguments, e.g.
+  `GetEventSummary::call(moderator: $trooper, lookback: 30)`. Named arguments keep the
+  dependencies obvious and refactoring safe.
+- Messages can call other messages. Hyperdrive throws if a call chain loops back on itself.
+
+### 9.4. Transactions
+
+Use the `ShouldBeTransactional` trait to run `handle()` inside a database transaction:
+
 ```php
-use App\Bus\MagicBus;
-use App\Features\Events\Commands\CreateEventCommand;
+use Hyperdrive\Concerns\ShouldBeTransactional;
 
-class CreateEventController extends Controller
+final class VoidTrooper extends Message
 {
-    public function __invoke(Request $request, MagicBus $bus)
-    {
-        $event = $bus->send(new CreateEventCommand(
-            organization: $request->user()->organization,
-            data: $request->validated()
-        ));
-        
-        return redirect()->route('events.show', $event);
-    }
+    use ShouldBeTransactional;
 }
 ```
 
-**From Job:**
-```php
-use App\Bus\MagicBus;
-use App\Features\Events\Commands\SendEventNotificationCommand;
+Work that should not block the HTTP response belongs in a queued Job that calls the message.
 
-class SendEventNotificationsJob implements ShouldQueue
+### 9.5. Testing Messages
+
+Construct the message and call `handle()` directly:
+
+```php
+public function test_handle_returns_troopers_with_role(): void
 {
-    public function __construct(private Event $event) {}
-    
-    public function handle(MagicBus $bus): void
-    {
-        $bus->send(new SendEventNotificationCommand($this->event));
-    }
+    $admin = Trooper::factory()->asAdministrator()->create();
+
+    $subject = new GetTroopersByRole(MembershipRole::ADMINISTRATOR);
+
+    $result = $subject->handle();
+
+    $this->assertTrue($result->contains($admin));
 }
 ```
 
-### 9.5. MagicBusController
+When a controller, job or console test needs to stub a message, use the `FakesMessages` test
+trait. Messages you don't fake still run for real:
 
-For simple CRUD operations, use `MagicBusController` to avoid creating dedicated controller classes:
-
-**Route:**
 ```php
-Route::post('/admin/events/{event}/update', MagicBusController::class)
-    ->defaults('command', UpdateEventCommand::class);
+use Tests\Concerns\FakesMessages;
+
+$messages = $this->fakeMessages([GlobalSearch::class => $payload]);
+
+$response = $this->actingAs($trooper)->get(route('search.all', ['q' => 'Vader']));
+
+$messages->assertCalled(GlobalSearch::class, fn (array $params): bool => $params['term'] === 'Vader');
 ```
 
-The `MagicBusController` automatically:
-1. Instantiates the command from route parameters and request data
-2. Dispatches it through MagicBus
-3. Returns the result
-
-### 9.6. Handler Modifiers
-
-Handlers can use traits to modify their execution behavior:
-
-**Transactional Execution:**
-```php
-use App\Bus\Concerns\ShouldBeTransactional;
-
-readonly class CreateEventCommandHandler implements CommandHandlerInterface
-{
-    use ShouldBeTransactional;  // Wraps execution in DB transaction
-    
-    public function __invoke(CreateEventCommand $command): Event
-    {
-        // All database operations here run in a transaction
-    }
-}
-```
-
-**Deferred Execution:**
-```php
-use App\Bus\Concerns\ShouldRunAfterResponse;
-
-readonly class SendNotificationCommandHandler implements CommandHandlerInterface
-{
-    use ShouldRunAfterResponse;  // Runs after HTTP response is sent
-    
-    public function __invoke(SendNotificationCommand $command): void
-    {
-        // Heavy operations that don't need to block the response
-    }
-}
-```
-
-### 9.7. Testing Commands and Queries
-
-**Unit Test a Handler:**
-```php
-public function test_invoke_creates_event(): void
-{
-    $organization = Organization::factory()->create();
-    $data = ['name' => 'Test Event', 'event_date' => '2026-02-15'];
-    
-    $subject = new CreateEventCommandHandler();
-    $command = new CreateEventCommand($organization, $data);
-    
-    $result = $subject($command);
-    
-    $this->assertInstanceOf(Event::class, $result);
-    $this->assertEquals('Test Event', $result->name);
-    $this->assertDatabaseHas('tt_events', ['name' => 'Test Event']);
-}
-```
-
-**Feature Test Through MagicBus:**
-```php
-public function test_create_event_endpoint(): void
-{
-    $trooper = Trooper::factory()->asAdministrator()->create();
-    
-    $response = $this->actingAs($trooper)->post('/admin/events', [
-        'name' => 'New Event',
-        'event_date' => '2026-02-15',
-    ]);
-    
-    $response->assertRedirect();
-    $this->assertDatabaseHas('tt_events', ['name' => 'New Event']);
-}
-```
-
-### 9.8. Best Practices
+### 9.6. Best Practices
 
 **DO:**
-- ✅ Make Command/Query classes readonly with public properties
-- ✅ Use descriptive, action-oriented names (`CreateEvent`, not `EventCreator`)
-- ✅ Keep handlers focused on a single responsibility
-- ✅ Return typed results from handlers
-- ✅ Use dependency injection in handler constructors
-- ✅ Validate data before creating commands (in controllers/requests)
+- ✅ Keep one operation per message
+- ✅ Use descriptive, verb-first names (`CreateEvent`, not `EventCreator`)
+- ✅ Return typed results (`void` for commands that return nothing)
+- ✅ Validate input in form requests before calling a message
 
 **DON'T:**
-- ❌ Put business logic in the Command/Query classes (they're just DTOs)
-- ❌ Access HTTP context (Request, Session) in handlers
-- ❌ Create Commands for simple reads (use Queries)
-- ❌ Return void from Queries (they should return data)
-- ❌ Mix Commands and Queries in the same handler
+- ❌ Access HTTP context (Request, Session) inside `handle()`
+- ❌ Overload a Command or Query to also build multi-query page data (use a PageData message)
+- ❌ Mix a write and a read in the same message
 
-### 9.9. Integration with ADR
+### 9.7. Integration with ADR
 
-The MagicBus pattern complements the Action-Domain-Responder architecture:
-
-- **Action (Controller):** Validates input, creates Command/Query, dispatches via MagicBus
-- **Domain (Handler):** Executes business logic, returns result
-- **Responder:** Controller formats handler result into HTTP response
-
-This separation ensures business logic is reusable and testable independent of HTTP concerns.
+- **Action (Controller):** Validates input and calls a message
+- **Domain (Message):** Runs the business logic and returns a result
+- **Responder:** Controller turns the result into an HTTP response
 
 ## 10. Testing (PHPUnit)
 
@@ -424,11 +311,12 @@ A robust test suite is essential for our refactoring efforts. All new features a
 The appropriate test type depends on the component being tested:
 
 -   **Controllers:** Must be covered by **feature tests**. Feature tests exercise the full HTTP request/response cycle, ensuring that routing, middleware, request validation, and response rendering work correctly together.
--   **Jobs:** Must be covered by **feature tests**. Feature tests verify that jobs correctly orchestrate Service class calls and handle queue-specific concerns like failures and retries.
--   **Console Commands:** Must be covered by **feature tests**. Feature tests confirm that commands parse arguments correctly, orchestrate Service calls, and produce the expected console output.
--   **Services:** Should be covered by **unit tests**. Since Services contain the core business logic and are decoupled from framework infrastructure, they are ideal candidates for fast, focused unit tests.
+-   **Jobs:** Must be covered by **feature tests**. Feature tests verify that jobs correctly orchestrate message calls and handle queue-specific concerns like failures and retries.
+-   **Console Commands:** Must be covered by **feature tests**. Feature tests confirm that commands parse arguments correctly, orchestrate message calls, and produce the expected console output.
+-   **Messages:** Should be covered by **unit tests** in `tests/Unit/Messages/`, mirroring `app/Messages/`.
+-   **Services:** Should be covered by **unit tests**. Services are decoupled from framework infrastructure, so they are ideal candidates for fast, focused unit tests.
 
-This strategy ensures that our orchestration layers (Controllers, Jobs, Commands) are tested in realistic scenarios, while our business logic (Services) receives fast, isolated unit test coverage.
+This strategy ensures that our orchestration layers (Controllers, Jobs, Commands) are tested in realistic scenarios, while our business logic (Messages and Services) receives fast, isolated unit test coverage.
 
 ### 10.2. Test Method Naming
 
@@ -448,8 +336,8 @@ When instantiating the class being tested, the variable name **must** be `$subje
 ```php
 public function test_something(): void
 {
-    $subject = new GetTroopersByRoleQueryHandler();
-    $result = $subject(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
+    $subject = new GetTroopersByRole(MembershipRole::ADMINISTRATOR);
+    $result = $subject->handle();
     $this->assertNotEmpty($result);
 }
 ```
@@ -533,7 +421,7 @@ Standalone service classes provide reusable functionality across the application
 - **GeocodingService:** Geocodes addresses to lat/long coordinates
   - `geocode(string $address): ?array`
   
-- **GoogleService:** Integrates with Google APIs
+- **GoogleService:** Geocodes addresses with the Google Maps API
   - OAuth authentication
   - API access management
 

@@ -7,13 +7,11 @@ namespace App\Providers;
 use App\Channels\FcmChannel;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
-use App\Enums\OauthProvider;
 use App\Mail\Auth\VerifyTrooperEmail;
 use App\Mail\OutgoingMailBudget;
 use App\Models\TrooperRequest;
 use App\Policies\TrooperRequestPolicy;
 use App\Services\BreadCrumbService;
-use App\Services\Socialite\XenforoProvider;
 use App\View\Composers\ShiftAddTrooperComposer;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Contracts\Foundation\Application;
@@ -33,7 +31,6 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 use Kreait\Firebase\Contract\Messaging;
-use Laravel\Socialite\Facades\Socialite;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Throwable;
 use ValueError;
@@ -73,7 +70,6 @@ class AppServiceProvider extends ServiceProvider
      * Sets up:
      * - Bootstrap 5 pagination
      * - HTMX request detection macro
-     * - Custom Socialite providers (XenForo)
      * - Migration repository configuration
      * - Database blueprint macros (trooperstamps)
      * - Blade directives (@role)
@@ -139,16 +135,6 @@ class AppServiceProvider extends ServiceProvider
         Request::macro('isHtmx', function (): bool
         {
             return $this->headers->has('HX-Request');
-        });
-
-        //
-        //  SOCIALITE CUSTOM PROVIDERS
-        //
-        Socialite::extend(OauthProvider::XENFORO->value, function (Application $app): XenforoProvider
-        {
-            $config = $app['config']['services.xenforo'];
-
-            return Socialite::buildProvider(XenforoProvider::class, $config);
         });
 
         //

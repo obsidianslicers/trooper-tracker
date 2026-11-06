@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Organizations;
 
+use App\Enums\OrganizationType;
 use App\Models\Organization;
+use App\Plugins\PluginClubSynchronizers;
+use App\Plugins\PluginForms;
 use App\Rules\Admin\Organizations\UniqueNameRule;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Handles the validation for updating an existing organization.
  *
  * This class defines validation rules for updating organization information,
- * including name and optional sync sheet ID. It ensures the organization name
+ * including name and, for administrators, the club's roster sync. It ensures the organization name
  * remains unique among sibling organizations (children of the same parent) while
  * excluding the organization being updated from the uniqueness check.
  */
@@ -45,8 +49,7 @@ class UpdateRequest extends FormRequest
      * Get the validation rules that apply to the request.
      *
      * Validates the organization name ensuring it's unique among sibling organizations,
-     * excluding the current organization from the uniqueness check. Also validates the
-     * optional sync sheet ID field.
+     * excluding the current organization from the uniqueness check.
      *
      * @return array<string, mixed> The validation rules for updating an organization
      */
@@ -59,38 +62,39 @@ class UpdateRequest extends FormRequest
                 'max:64',
                 new UniqueNameRule(true, $this->route('organization')),
             ],
-            Organization::SYNC_SHEET_ID => [
-                'nullable',
-                'string',
-                'max:128',
-            ],
-            Organization::DISCORD_MENTION => [
-                'nullable',
-                'string',
-                'max:128',
-            ],
-            Organization::RELATED_FORUM => [
-                'nullable',
-                'integer',
-            ],
-            Organization::RELATED_FORUM_ARCHIVE => [
-                'nullable',
-                'integer',
-            ],
-            Organization::XENFORO_GROUP_ACTIVE_ID => [
-                'nullable',
-                'integer',
-            ],
-            Organization::XENFORO_GROUP_RESERVE_ID => [
-                'nullable',
-                'integer',
-            ],
-            Organization::XENFORO_GROUP_RETIRED_ID => [
-                'nullable',
-                'integer',
-            ],
         ];
 
-        return $rules;
+        if ($this->canChooseSynchronizer())
+        {
+            $rules[Organization::SYNCHRONIZER] = [
+                'nullable',
+                'string',
+                Rule::in($this->synchronizerKeys()),
+            ];
+        }
+
+        return [...$rules, ...app(PluginForms::class)->rules(PluginForms::ORGANIZATION_UPDATE)];
+    }
+
+    /**
+     * Only administrators pick a club's roster sync, and only clubs have one.
+     */
+    public function canChooseSynchronizer(): bool
+    {
+        $organization = $this->route('organization');
+
+        return $organization?->type === OrganizationType::ORGANIZATION
+            && $this->user()?->is_administrator === true;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function synchronizerKeys(): array
+    {
+        $keys = array_keys(app(PluginClubSynchronizers::class)->options());
+        $current = $this->route('organization')->synchronizer;
+
+        return $current === null ? $keys : [...$keys, $current];
     }
 }

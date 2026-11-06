@@ -1,0 +1,191 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Messages\Troopers\Commands;
+
+use App\Enums\MembershipRole;
+use App\Messages\Troopers\Commands\UpdateTrooperAuthority;
+use App\Models\Organization;
+use App\Models\Trooper;
+use App\Models\TrooperAssignment;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class UpdateTrooperAuthorityTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_handle_updates_trooper_membership_role(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+
+        $this->assertEquals(MembershipRole::MEMBER, $trooper->membership_role);
+
+        $command = new UpdateTrooperAuthority(
+            trooper: $trooper,
+            membership_role: MembershipRole::MODERATOR,
+            valid_data: []
+        );
+
+        $command->handle();
+
+        $trooper->refresh();
+        $this->assertEquals(MembershipRole::MODERATOR, $trooper->membership_role);
+    }
+
+    public function test_handle_resets_all_moderator_flags_to_false(): void
+    {
+        $trooper = Trooper::factory()->asModerator()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($org1)
+            ->asModerator()
+            ->create();
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($org2)
+            ->asModerator()
+            ->create();
+
+        $command = new UpdateTrooperAuthority(
+            trooper: $trooper,
+            membership_role: MembershipRole::MODERATOR,
+            valid_data: []
+        );
+
+        $command->handle();
+
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $org1->id,
+            TrooperAssignment::IS_MODERATOR => false,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $org2->id,
+            TrooperAssignment::IS_MODERATOR => false,
+        ]);
+    }
+
+    public function test_handle_sets_moderator_flags_for_specified_organizations(): void
+    {
+        $trooper = Trooper::factory()->asModerator()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+        $org3 = Organization::factory()->create();
+
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($org1)
+            ->asMember()
+            ->create();
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($org2)
+            ->asMember()
+            ->create();
+
+        $valid_data = [
+            $org1->id => ['is_moderator' => true],
+            $org2->id => ['is_moderator' => false],
+            $org3->id => ['is_moderator' => true],
+        ];
+
+        $command = new UpdateTrooperAuthority(
+            trooper: $trooper,
+            membership_role: MembershipRole::MODERATOR,
+            valid_data: $valid_data
+        );
+
+        $command->handle();
+
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $org1->id,
+            TrooperAssignment::IS_MODERATOR => true,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $org2->id,
+            TrooperAssignment::IS_MODERATOR => false,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $org3->id,
+            TrooperAssignment::IS_MODERATOR => true,
+        ]);
+    }
+
+    public function test_handle_restores_soft_deleted_assignment_when_setting_moderator_flag(): void
+    {
+        $trooper = Trooper::factory()->asModerator()->create();
+        $organization = Organization::factory()->create();
+
+        $assignment = TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->create([TrooperAssignment::IS_MODERATOR => false]);
+
+        $assignment->delete();
+
+        $command = new UpdateTrooperAuthority(
+            trooper: $trooper,
+            membership_role: MembershipRole::MODERATOR,
+            valid_data: [
+                $organization->id => ['is_moderator' => true],
+            ]
+        );
+
+        $command->handle();
+
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $organization->id,
+            TrooperAssignment::IS_MODERATOR => true,
+            TrooperAssignment::DELETED_AT => null,
+        ]);
+    }
+
+    public function test_handle_skips_moderator_assignment_when_trooper_is_not_moderator(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $org = Organization::factory()->create();
+
+        $valid_data = [
+            $org->id => ['is_moderator' => true],
+        ];
+
+        $command = new UpdateTrooperAuthority(
+            trooper: $trooper,
+            membership_role: MembershipRole::MEMBER,
+            valid_data: $valid_data
+        );
+
+        $command->handle();
+
+        $trooper->refresh();
+        $this->assertEquals(MembershipRole::MEMBER, $trooper->membership_role);
+        $this->assertDatabaseMissing('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $org->id,
+            TrooperAssignment::IS_MODERATOR => true,
+        ]);
+    }
+
+    public function test_handle_gives_new_visitor_six_months_and_clears_expiry_notice(): void
+    {
+        $this->travelTo(now()->startOfDay());
+        $trooper = Trooper::factory()->asMember()->create([Trooper::VISITOR_NOTIFIED_AT => now()]);
+
+        (new UpdateTrooperAuthority($trooper, MembershipRole::VISITOR, []))->handle();
+
+        $trooper->refresh();
+        $this->assertSame(MembershipRole::VISITOR, $trooper->membership_role);
+        $this->assertTrue($trooper->visitor_expires_at->equalTo(now()->addMonths(6)));
+        $this->assertNull($trooper->visitor_notified_at);
+    }
+}

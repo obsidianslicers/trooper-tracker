@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Bus\MagicBus;
-use App\Features\Troopers\Commands\ExecuteAccountDeletionCommand;
+use App\Messages\Troopers\Commands\ExecuteAccountDeletion;
 use App\Models\Trooper;
 use Illuminate\Console\Command;
 
@@ -19,7 +18,7 @@ class ProcessAccountDeletionsCommand extends Command
 
     protected $description = 'Anonymize and soft-delete trooper accounts past the 30-day grace period';
 
-    public function handle(MagicBus $bus): int
+    public function handle(): int
     {
         $pending = Trooper::query()
             ->whereNotNull(Trooper::DELETION_REQUESTED_AT)
@@ -28,7 +27,7 @@ class ProcessAccountDeletionsCommand extends Command
 
         foreach ($pending as $trooper)
         {
-            $bus->send(new ExecuteAccountDeletionCommand($trooper));
+            ExecuteAccountDeletion::call(trooper: $trooper);
         }
 
         $this->info("Processed {$pending->count()} account deletion(s).");

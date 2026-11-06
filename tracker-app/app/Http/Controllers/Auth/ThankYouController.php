@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
  * This controller renders a confirmation page shown to troopers after
  * they complete the registration form while awaiting admin approval.
  */
-class ThankYouController extends MagicBusController
+class ThankYouController extends PageController
 {
     /**
      * Handle the incoming request to display the thank you page.

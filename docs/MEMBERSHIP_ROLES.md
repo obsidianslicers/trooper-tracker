@@ -249,9 +249,9 @@ Rules:
 | Visitor expiry middleware | `app/Http/Middleware/CheckVisitorAccessMiddleware.php` |
 | Role gate middleware | `app/Http/Middleware/CheckActorRoleMiddleware.php` |
 | Permission trait | `app/Policies/Concerns/HasTrooperPermissionsTrait.php` |
-| Register handler | `app/Features/Troopers/Commands/RegisterTrooperCommandHandler.php` |
-| Approve handler | `app/Features/Troopers/Commands/ApproveTrooperCommandHandler.php` |
-| Role change handler | `app/Features/Troopers/Commands/UpdateTrooperAuthorityCommandHandler.php` |
+| Register handler | `app/Messages/Troopers/Commands/CreateTrooper.php` |
+| Approve handler | `app/Messages/Troopers/Commands/Membership/ApproveTrooperMembership.php` |
+| Role change handler | `app/Messages/Troopers/Commands/UpdateTrooperAuthority.php` |
 | Visitor expiry command | `app/Console/Commands/ExpireVisitorAccessCommand.php` |
 | Visitor renewal controller | `app/Http/Controllers/Account/VisitorRenewSubmitController.php` |
 | Permission request messages | `app/Messages/Troopers/Commands/Permissions/` |

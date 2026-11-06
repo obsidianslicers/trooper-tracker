@@ -7,13 +7,13 @@ namespace App\Http\Controllers\Events;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\RosterAction;
-use App\Features\Events\Commands\ChangeEventTrooperStationCommand;
-use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
-use App\Features\Events\Commands\UpdateEventTrooperCommand;
-use App\Features\Events\Queries\GetEventShiftDisplayQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Events\SignupUpdateHtmxRequest;
 use App\Jobs\SendEventRosterActivityNotificationsJob;
+use App\Messages\Events\Commands\ChangeEventTrooperStation;
+use App\Messages\Events\Commands\PromoteNextInLineEventTrooper;
+use App\Messages\Events\Commands\UpdateEventTrooper;
+use App\Messages\Events\Queries\GetEventShiftDisplay;
 use App\Models\Costume;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -28,7 +28,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Handles HTMX-driven updates to event trooper sign-up details.
  */
-class SignUpUpdateHtmxController extends MagicBusController
+class SignUpUpdateHtmxController extends PageController
 {
     public function __invoke(
         SignupUpdateHtmxRequest $request,
@@ -75,6 +75,23 @@ class SignUpUpdateHtmxController extends MagicBusController
                 return response('Forbidden', 403);
             }
 
+            //  troopers may only pick what the status dropdown offers them; attendance is
+            //  confirmed through the signed links once a shift closes, and moderators keep
+            //  the wider set they need for manual selection
+            $isOfferedStatus = array_key_exists($requestedStatus->value, $event->signUpStatusOptions())
+                || $requestedStatus === $event_trooper->status;
+
+            if (!$canModerateEvent && !$isOfferedStatus)
+            {
+                return $this->shiftContainerView($event_shift, $authTrooper)
+                    ->header('X-Flash-Message', json_encode([
+                        'message' => 'That status is not available for this event.',
+                        'type' => 'danger',
+                        'focus' => true,
+                        'fadeOut' => 5000,
+                    ]));
+            }
+
             if (
                 $requestedStatus === EventTrooperStatus::GOING
                 && $event_trooper->event_shift_station_id !== null
@@ -117,8 +134,7 @@ class SignUpUpdateHtmxController extends MagicBusController
 
             $valid_data = ['status' => $requestedStatus];
 
-            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
-            $this->bus->send($event_trooper_cmd);
+            UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
 
             if ($requestedStatus === EventTrooperStatus::CANCELLED && $previous_status !== EventTrooperStatus::CANCELLED)
             {
@@ -141,12 +157,12 @@ class SignUpUpdateHtmxController extends MagicBusController
 
             if ($going_to_not_going && ($is_global_full || $org_was_full || $station_was_full))
             {
-                $this->bus->send(new PromoteNextInLineEventTrooperCommand(
-                    $event_trooper,
-                    $is_global_full,
-                    $effective_org_id,
+                PromoteNextInLineEventTrooper::call(
+                    event_trooper: $event_trooper,
+                    global_was_full: $is_global_full,
+                    effective_org_id: $effective_org_id,
                     event_shift_station_id: $event_trooper->event_shift_station_id,
-                ));
+                );
             }
 
             return $this->shiftContainerView($event_shift, $authTrooper);
@@ -185,8 +201,7 @@ class SignUpUpdateHtmxController extends MagicBusController
                 EventTrooper::BACKUP_COSTUME_ID => null,
             ];
 
-            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
-            $this->bus->send($event_trooper_cmd);
+            UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
 
             return $this->shiftContainerView($event_shift, $auth_trooper);
         }
@@ -204,7 +219,10 @@ class SignUpUpdateHtmxController extends MagicBusController
                 ? (int) $request->validated('event_shift_station_id')
                 : null;
 
-            $this->bus->send(new ChangeEventTrooperStationCommand($event_trooper, $new_station_id));
+            ChangeEventTrooperStation::call(
+                event_trooper: $event_trooper,
+                event_shift_station_id: $new_station_id,
+            );
 
             return $this->shiftContainerView($event_shift, $auth_trooper);
         }
@@ -242,7 +260,7 @@ class SignUpUpdateHtmxController extends MagicBusController
                 EventTrooper::SIGNED_UP_AT => now(),
             ];
 
-            $this->bus->send(new UpdateEventTrooperCommand($event_trooper, $valid_data));
+            UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
 
             dispatch(new SendEventRosterActivityNotificationsJob($event_trooper, RosterAction::RESIGNED_UP));
 
@@ -290,24 +308,27 @@ class SignUpUpdateHtmxController extends MagicBusController
                 EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => $attending_without_costume,
             ];
 
-            $this->bus->send(new UpdateEventTrooperCommand($event_trooper, $valid_data));
+            UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
 
             if ($handler_changed && $was_going)
             {
                 // Trooper vacated their old capacity pool — promote the next in that pool
-                $this->bus->send(new PromoteNextInLineEventTrooperCommand(
-                    $event_trooper,
-                    true,
-                    $effective_org_id,
-                    $previous_is_handler,
-                ));
+                PromoteNextInLineEventTrooper::call(
+                    event_trooper: $event_trooper,
+                    global_was_full: true,
+                    effective_org_id: $effective_org_id,
+                    override_is_handler: $previous_is_handler,
+                );
 
                 // New pool was already full before this trooper joined → demote to stand-by
                 if ($new_station_was_maxed || $new_pool_was_maxed || $new_pool_org_was_maxed)
                 {
-                    $this->bus->send(new UpdateEventTrooperCommand($event_trooper, [
-                        EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
-                    ]));
+                    UpdateEventTrooper::call(
+                        event_trooper: $event_trooper,
+                        valid_data: [
+                            EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                        ],
+                    );
                 }
             }
 
@@ -321,8 +342,7 @@ class SignUpUpdateHtmxController extends MagicBusController
                 EventTrooper::BACKUP_COSTUME_ID => $request->validated('backup_costume_id'),
             ];
 
-            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
-            $this->bus->send($event_trooper_cmd);
+            UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
         }
 
         return response('ok', 200);
@@ -385,7 +405,7 @@ class SignUpUpdateHtmxController extends MagicBusController
      */
     private function shiftContainerView(EventShift $event_shift, Trooper $trooper): Response
     {
-        $event_shift = $this->bus->send(new GetEventShiftDisplayQuery($event_shift, $trooper));
+        $event_shift = GetEventShiftDisplay::call(event_shift: $event_shift, trooper: $trooper);
         $event = $event_shift->event;
 
         $can_moderate = $trooper->isModeratorForOrganization($event->organization);

@@ -1,0 +1,64 @@
+<?php
+
+declare(strict_types=1);
+
+namespace TroopTracker\Plugins\Xenforo\Http\Middleware;
+
+use App\Models\OauthLogin;
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
+use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
+
+/**
+ * Ensure the authenticated trooper has a linked XenForo OAuth account.
+ *
+ * If not, redirect them to the XenForo linking page.
+ */
+class EnsureXenforoLinked
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  Closure(Request): (Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (!config('plugins.xenforo.require_xenforo', false))
+        {
+            return $next($request);
+        }
+
+        $user = Auth::user();
+
+        if (!$user)
+        {
+            return $next($request);
+        }
+
+        // Allow access to setup, denied/pending holding, linking, OAuth, and logout
+        // routes so we don't create redirect loops or block signing out.
+        if (
+            $request->routeIs('account.setup', 'account.setup-submit') ||
+            $request->routeIs('account.denied', 'account.denied.resubmit', 'account.pending') ||
+            $request->routeIs('account.xenforo.*') ||
+            $request->routeIs('auth.oauth-*') ||
+            $request->routeIs('auth.logout') ||
+            $request->routeIs('webhooks.*')
+        ) {
+            return $next($request);
+        }
+
+        $has_xenforo = OauthLogin::where(OauthLogin::TROOPER_ID, $user->id)
+            ->where(OauthLogin::PROVIDER, XenforoLoginProvider::KEY)
+            ->exists();
+
+        if (!$has_xenforo)
+        {
+            return redirect()->route('account.xenforo.required');
+        }
+
+        return $next($request);
+    }
+}

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Bus\MagicBus;
-use App\Features\Events\Queries\GetEventShiftsToRemindQuery;
+use App\Messages\Events\Queries\GetEventShiftsToRemind;
 use App\Notifications\Events\EventShiftCompletedNotification;
 use Illuminate\Console\Command;
 
@@ -39,12 +38,10 @@ class RemindClosedEventShiftsCommand extends Command
      * 1. Dispatching a query to retrieve closed shifts needing reminders
      * 2. Updating last_notified_at on each shift
      * 3. Sending reminder notifications to troopers with GOING or TENTATIVE status
-     *
-     * @param  MagicBus  $bus  The message bus for dispatching queries
      */
-    public function handle(MagicBus $bus): void
+    public function handle(): void
     {
-        $event_shifts = $bus->send(new GetEventShiftsToRemindQuery);
+        $event_shifts = GetEventShiftsToRemind::call();
 
         foreach ($event_shifts as $event_shift)
         {

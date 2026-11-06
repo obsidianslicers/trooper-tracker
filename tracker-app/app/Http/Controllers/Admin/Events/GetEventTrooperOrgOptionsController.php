@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
@@ -12,7 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
-class GetEventTrooperOrgOptionsController extends MagicBusController
+class GetEventTrooperOrgOptionsController extends PageController
 {
     public function __invoke(Request $request, Event $event, EventTrooper $event_trooper): View
     {

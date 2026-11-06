@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Event;
 use App\Models\EventShift;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class DownloadRosterCsvController extends MagicBusController
+class DownloadRosterCsvController extends PageController
 {
     public function allShifts(Request $request, Event $event): StreamedResponse
     {

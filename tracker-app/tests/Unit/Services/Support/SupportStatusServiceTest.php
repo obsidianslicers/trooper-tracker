@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Support;
 
+use App\Contracts\DonationSource;
 use App\Models\TrooperDonation;
-use App\Services\Forums\XenforoService;
+use App\Plugins\PluginDonations;
 use App\Services\Support\SupportStatusService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -16,127 +17,63 @@ class SupportStatusServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_calculate_includes_current_month_expired_xenforo_upgrades(): void
+    protected function setUp(): void
     {
-        config([
-            'tracker.support.goal' => 100.0,
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'test-key',
-        ]);
+        parent::setUp();
 
-        $start_date = now()->startOfMonth()->addDay()->timestamp;
-        $end_date = now()->startOfMonth()->addDays(2)->timestamp;
-
-        $xenforo = Mockery::mock(XenforoService::class);
-        $xenforo->shouldReceive('get_upgrade_stats')
-            ->once()
-            ->andReturn([
-                'userUpgradeActive' => [],
-                'userUpgradeExpired' => [
-                    [
-                        'start_date' => $start_date,
-                        'end_date' => $end_date,
-                        'user_upgrade_id' => 2,
-                        'extra' => '{"cost_amount":"15.00"}',
-                    ],
-                ],
-                'userUpgrades' => [
-                    [
-                        'user_upgrade_id' => 2,
-                        'cost_amount' => 15.0,
-                    ],
-                ],
-            ]);
-
-        app()->instance(XenforoService::class, $xenforo);
-
-        $subject = app(SupportStatusService::class);
-        $status = $subject->calculate();
-
-        $this->assertTrue($status['uses_xenforo']);
-        $this->assertSame(100.0, $status['goal']);
-        $this->assertSame(15.0, $status['current']);
-        $this->assertSame(15.0, $status['progress']);
-    }
-
-    public function test_calculate_falls_back_to_local_donations_when_xenforo_total_is_zero(): void
-    {
-        config([
-            'tracker.support.goal' => 100.0,
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'test-key',
-        ]);
-
+        config(['tracker.support.goal' => 100.0]);
         TrooperDonation::factory()->create([
             TrooperDonation::AMOUNT => 12.5,
             TrooperDonation::CREATED_AT => now()->startOfMonth()->addDays(3),
         ]);
-
-        $xenforo = Mockery::mock(XenforoService::class);
-        $xenforo->shouldReceive('get_upgrade_stats')
-            ->once()
-            ->andReturn([
-                'userUpgradeActive' => [],
-                'userUpgradeExpired' => [],
-                'userUpgrades' => [],
-            ]);
-
-        app()->instance(XenforoService::class, $xenforo);
-
-        $subject = app(SupportStatusService::class);
-        $status = $subject->calculate();
-
-        $this->assertFalse($status['uses_xenforo']);
-        $this->assertSame(12.5, $status['current']);
-        $this->assertSame(12.5, $status['progress']);
     }
 
-    public function test_calculate_caches_result_and_skips_xenforo_on_second_call(): void
+    public function test_calculate_uses_local_donations_without_donation_sources(): void
     {
-        config([
-            'tracker.support.goal' => 100.0,
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'test-key',
-        ]);
+        $status = app(SupportStatusService::class)->calculate();
 
-        $xenforo = Mockery::mock(XenforoService::class);
-        $xenforo->shouldReceive('get_upgrade_stats')
-            ->once()
-            ->andReturn([
-                'userUpgradeActive' => [],
-                'userUpgradeExpired' => [],
-                'userUpgrades' => [],
-            ]);
-
-        app()->instance(XenforoService::class, $xenforo);
-
-        $subject = app(SupportStatusService::class);
-        $first = $subject->calculate();
-        $second = $subject->calculate();
-
-        $this->assertSame($first, $second);
+        $this->assertFalse($status['uses_donation_sources']);
+        $this->assertSame(12.5, $status['current']);
+        $this->assertSame(12.5, $status['progress']);
         $this->assertTrue(Cache::has(SupportStatusService::CACHE_KEY));
     }
 
-    public function test_calculate_does_not_cache_when_xenforo_fetch_fails(): void
+    public function test_calculate_prefers_the_donation_sources_month_total(): void
     {
-        config([
-            'tracker.support.goal' => 100.0,
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'test-key',
-        ]);
+        $this->addSource(40.0);
 
-        $xenforo = Mockery::mock(XenforoService::class);
-        $xenforo->shouldReceive('get_upgrade_stats')
-            ->twice()
-            ->andReturn(null);
+        $status = app(SupportStatusService::class)->calculate();
 
-        app()->instance(XenforoService::class, $xenforo);
+        $this->assertTrue($status['uses_donation_sources']);
+        $this->assertSame(40.0, $status['current']);
+        $this->assertSame(40.0, $status['progress']);
+    }
 
-        $subject = app(SupportStatusService::class);
-        $subject->calculate();
-        $subject->calculate();
+    public function test_calculate_does_not_cache_when_a_source_fails(): void
+    {
+        $this->addSource(null);
 
+        $status = app(SupportStatusService::class)->calculate();
+
+        $this->assertSame(12.5, $status['current']);
         $this->assertFalse(Cache::has(SupportStatusService::CACHE_KEY));
+    }
+
+    public function test_calculate_is_empty_without_a_goal(): void
+    {
+        config(['tracker.support.goal' => 0]);
+
+        $status = app(SupportStatusService::class)->calculate();
+
+        $this->assertSame(0.0, $status['current']);
+        $this->assertFalse(Cache::has(SupportStatusService::CACHE_KEY));
+    }
+
+    private function addSource(?float $month_total): void
+    {
+        $source = Mockery::mock(DonationSource::class);
+        $source->shouldReceive('monthTotal')->andReturn($month_total);
+        $this->app->instance($source::class, $source);
+        $this->app->make(PluginDonations::class)->add($source::class);
     }
 }

@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Bus\MagicBus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Features\Events\Commands\SendEventCancelledNotificationCommand;
-use App\Features\Events\Queries\GetTroopersForEventCancelledQuery;
+use App\Messages\Events\Commands\SendEventCancelledNotification;
+use App\Messages\Events\Queries\GetTroopersForEventCancelled;
 use App\Models\Event;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -42,7 +41,7 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
      * shift in the cancelled event. Updates the event's cancel_notifications_sent_at
      * timestamp to prevent duplicate notifications.
      */
-    public function handle(MagicBus $bus): void
+    public function handle(): void
     {
         if ($this->event->cancel_notifications_sent_at !== null)
         {
@@ -51,14 +50,12 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
 
         // Resolve recipients before mutating statuses: the query selects troopers
         // whose EventTrooper status is still GOING.
-        $troopers_query = new GetTroopersForEventCancelledQuery($this->event);
-
-        $troopers = $bus->send($troopers_query);
+        $troopers = GetTroopersForEventCancelled::call(event: $this->event);
 
         // Notifications queue after commit, so the marker, the status changes and
         // the fan-out are atomic: a failure rolls everything back with nobody
         // notified, and a retry re-runs cleanly instead of skipping at the guard.
-        DB::transaction(function () use ($bus, $troopers): void
+        DB::transaction(function () use ($troopers): void
         {
             $this->cancelShifts();
 
@@ -67,9 +64,7 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
 
             foreach ($troopers as $trooper)
             {
-                $send_notification_command = new SendEventCancelledNotificationCommand($this->event, $trooper);
-
-                $bus->send($send_notification_command);
+                SendEventCancelledNotification::call(event: $this->event, trooper: $trooper);
             }
         });
     }

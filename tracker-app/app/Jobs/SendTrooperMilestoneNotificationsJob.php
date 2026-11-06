@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Bus\MagicBus;
 use App\Enums\AchievementType;
 use App\Enums\MembershipRole;
-use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
+use App\Messages\Troopers\Queries\GetTroopersByRole;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
@@ -30,7 +29,7 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
 {
     use Queueable;
 
-    public function handle(MagicBus $bus): void
+    public function handle(): void
     {
         $milestone_types = collect(AchievementType::cases())
             ->filter(fn (AchievementType $type): bool => $type->isMilestone())
@@ -58,32 +57,32 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
         // Notifications queue after commit, so the marker and the fan-out are
         // atomic: a failure rolls back the marker with nobody notified, and a
         // retry re-runs cleanly instead of excluding these achievements forever.
-        DB::transaction(function () use ($bus, $achievements): void
+        DB::transaction(function () use ($achievements): void
         {
             TrooperAchievement::query()
                 ->whereKey($achievements->modelKeys())
                 ->update([TrooperAchievement::NOTIFICATION_SENT_AT => now()]);
 
-            $this->notifyRecipients($bus, $achievements);
+            $this->notifyRecipients($achievements);
         });
     }
 
     /**
      * @param  Collection<int, TrooperAchievement>  $achievements
      */
-    private function notifyRecipients(MagicBus $bus, Collection $achievements): void
+    private function notifyRecipients(Collection $achievements): void
     {
         /** @var Collection<int, Collection<int, TrooperAchievement>> $roundups */
         $roundups = collect();
 
-        $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
+        $admins = GetTroopersByRole::call(membership_role: MembershipRole::ADMINISTRATOR);
 
         foreach ($admins as $admin)
         {
             $roundups->put($admin->id, $this->achievementsForRecipient($admin, $achievements));
         }
 
-        $moderators = $bus->send(new GetTroopersByRoleQuery(MembershipRole::MODERATOR));
+        $moderators = GetTroopersByRole::call(membership_role: MembershipRole::MODERATOR);
         $policy = new TrooperPolicy;
 
         foreach ($moderators as $moderator)

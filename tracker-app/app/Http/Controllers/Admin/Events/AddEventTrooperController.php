@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
-use App\Features\Events\Commands\SignUpEventTrooperCommand;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Events\Commands\SignUpEventTrooper;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
@@ -14,7 +14,7 @@ use App\Models\Trooper;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-class AddEventTrooperController extends MagicBusController
+class AddEventTrooperController extends PageController
 {
     public function __invoke(Request $request, Event $event, EventShift $event_shift): Response
     {
@@ -66,14 +66,14 @@ class AddEventTrooperController extends MagicBusController
             return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
         }
 
-        $this->bus->send(new SignUpEventTrooperCommand(
-            $event_shift,
-            $trooper,
-            $auth_trooper,
+        SignUpEventTrooper::call(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $auth_trooper,
             organization_id: $organization_id,
             costume_id: $costume_id,
             event_shift_station_id: $event_shift_station_id,
-        ));
+        );
 
         FlashType::success("{$trooper->display_name} was added to the shift.");
 

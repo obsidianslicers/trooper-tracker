@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Bus\MagicBus;
-use App\Features\Events\Commands\ReconcileEventRosterCommand;
+use App\Messages\Events\Commands\ReconcileEventRoster;
 use App\Models\Event;
 use App\Models\Trooper;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,7 +14,7 @@ use Illuminate\Foundation\Queue\Queueable;
  * Reconciles the event roster after capacity limits change.
  *
  * Thin orchestrator: all roster business logic lives in
- * ReconcileEventRosterCommandHandler.
+ * ReconcileEventRoster.
  */
 class ReconcileEventRosterJob implements ShouldQueue
 {
@@ -26,8 +25,8 @@ class ReconcileEventRosterJob implements ShouldQueue
         private readonly Trooper $changed_by,
     ) {}
 
-    public function handle(MagicBus $bus): void
+    public function handle(): void
     {
-        $bus->send(new ReconcileEventRosterCommand($this->event, $this->changed_by));
+        ReconcileEventRoster::call(event: $this->event, changed_by: $this->changed_by);
     }
 }

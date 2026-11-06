@@ -26,25 +26,15 @@
                     // {{ $service_summary['rank_title'] }}
                 </span>
             </h2>
-            @if($xenforo_group_banners->isNotEmpty())
-                <div class="mt-2 service-record-banners">
-                    @foreach($xenforo_group_banners as $banner)
-                        {!! $banner['banner_text'] !!}
-                    @endforeach
-                </div>
-            @endif
+            @pluginSlot('service-records.trooper.badges')
         </div>
-        @if($xenforo_profile_url || Auth::user()->can('update', $trooper))
+        @php
+            $plugin_actions = app(\App\Plugins\PluginSlots::class)
+                ->render('service-records.trooper.actions', get_defined_vars());
+        @endphp
+        @if(trim($plugin_actions) !== '' || Auth::user()->can('update', $trooper))
             <div class="btn-group ms-auto flex-shrink-0">
-                @if($xenforo_profile_url)
-                    <a href="{{ $xenforo_profile_url }}"
-                       class="btn btn-outline-secondary"
-                       target="_blank"
-                       rel="noopener noreferrer">
-                        <i class="fa fa-fw fa-comments"></i>
-                        Forum Profile
-                    </a>
-                @endif
+                {!! $plugin_actions !!}
                 @can('update', $trooper)
                     @if($has_missing_credit)
                         <a href="{{ route('admin.service-records.missing-credits', ['trooper_id' => $trooper->id]) }}"

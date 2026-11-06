@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Notices\Commands\UpdateNoticeAsRead;
 use App\Models\Notice;
 use Illuminate\Contracts\View\View;
@@ -26,7 +26,7 @@ use Illuminate\Http\Response;
  *
  * This enables dynamic notice marking without full page reload.
  */
-class NoticesSubmitHtmxController extends MagicBusController
+class NoticesSubmitHtmxController extends PageController
 {
     /**
      * Mark a notice as read for the authenticated trooper.

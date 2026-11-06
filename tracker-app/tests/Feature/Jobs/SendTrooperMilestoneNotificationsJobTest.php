@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Jobs;
 
-use App\Bus\MagicBus;
 use App\Enums\AchievementType;
 use App\Enums\MembershipRole;
-use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Jobs\SendTrooperMilestoneNotificationsJob;
+use App\Messages\Troopers\Queries\GetTroopersByRole;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
@@ -17,11 +16,12 @@ use App\Notifications\Admin\TrooperMilestoneNotification;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
-use Mockery;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class SendTrooperMilestoneNotificationsJobTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_handle_notifies_admins_with_should_notify_for_troopers_org(): void
@@ -52,21 +52,25 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
             ->withShouldNotify(false)
             ->create();
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
-                && $query->membership_role === MembershipRole::ADMINISTRATOR)
-            ->andReturn(collect([$admin_opted_in, $admin_opted_out]));
-
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
-                && $query->membership_role === MembershipRole::MODERATOR)
-            ->andReturn(collect([]));
+        $messages = $this->fakeMessages([
+            GetTroopersByRole::class => fn (array $params): mixed => match (true)
+            {
+                $params['membership_role'] === MembershipRole::ADMINISTRATOR => collect([$admin_opted_in, $admin_opted_out]),
+                $params['membership_role'] === MembershipRole::MODERATOR => collect([]),
+            },
+        ]);
 
         $subject = new SendTrooperMilestoneNotificationsJob;
-        $subject->handle($bus);
+        $subject->handle();
+
+        $messages->assertCalled(
+            GetTroopersByRole::class,
+            fn (array $params): bool => $params['membership_role'] === MembershipRole::ADMINISTRATOR
+        );
+        $messages->assertCalled(
+            GetTroopersByRole::class,
+            fn (array $params): bool => $params['membership_role'] === MembershipRole::MODERATOR
+        );
 
         Notification::assertSentTo($admin_opted_in, TrooperMilestoneNotification::class);
         Notification::assertNotSentTo($admin_opted_out, TrooperMilestoneNotification::class);
@@ -152,21 +156,25 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
 
         $mod_out_of_scope = Trooper::factory()->asModerator()->withEmail('other@example.com')->create();
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
-                && $query->membership_role === MembershipRole::ADMINISTRATOR)
-            ->andReturn(collect([]));
-
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
-                && $query->membership_role === MembershipRole::MODERATOR)
-            ->andReturn(collect([$mod_in_scope, $mod_out_of_scope]));
+        $messages = $this->fakeMessages([
+            GetTroopersByRole::class => fn (array $params): mixed => match (true)
+            {
+                $params['membership_role'] === MembershipRole::ADMINISTRATOR => collect([]),
+                $params['membership_role'] === MembershipRole::MODERATOR => collect([$mod_in_scope, $mod_out_of_scope]),
+            },
+        ]);
 
         $subject = new SendTrooperMilestoneNotificationsJob;
-        $subject->handle($bus);
+        $subject->handle();
+
+        $messages->assertCalled(
+            GetTroopersByRole::class,
+            fn (array $params): bool => $params['membership_role'] === MembershipRole::ADMINISTRATOR
+        );
+        $messages->assertCalled(
+            GetTroopersByRole::class,
+            fn (array $params): bool => $params['membership_role'] === MembershipRole::MODERATOR
+        );
 
         Notification::assertSentTo($mod_in_scope, TrooperMilestoneNotification::class);
         Notification::assertNotSentTo($mod_out_of_scope, TrooperMilestoneNotification::class);
@@ -202,21 +210,25 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
             ->withShouldNotify(false)
             ->create();
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
-                && $query->membership_role === MembershipRole::ADMINISTRATOR)
-            ->andReturn(collect([]));
-
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
-                && $query->membership_role === MembershipRole::MODERATOR)
-            ->andReturn(collect([$mod_opted_out]));
+        $messages = $this->fakeMessages([
+            GetTroopersByRole::class => fn (array $params): mixed => match (true)
+            {
+                $params['membership_role'] === MembershipRole::ADMINISTRATOR => collect([]),
+                $params['membership_role'] === MembershipRole::MODERATOR => collect([$mod_opted_out]),
+            },
+        ]);
 
         $subject = new SendTrooperMilestoneNotificationsJob;
-        $subject->handle($bus);
+        $subject->handle();
+
+        $messages->assertCalled(
+            GetTroopersByRole::class,
+            fn (array $params): bool => $params['membership_role'] === MembershipRole::ADMINISTRATOR
+        );
+        $messages->assertCalled(
+            GetTroopersByRole::class,
+            fn (array $params): bool => $params['membership_role'] === MembershipRole::MODERATOR
+        );
 
         Notification::assertNotSentTo($mod_opted_out, TrooperMilestoneNotification::class);
     }
@@ -233,11 +245,14 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         ]);
         $achievement->setRelation('trooper', $trooper);
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldReceive('send')->twice()->andReturn(collect());
+        $messages = $this->fakeMessages([
+            GetTroopersByRole::class => collect(),
+        ]);
 
         $subject = new SendTrooperMilestoneNotificationsJob;
-        $subject->handle($bus);
+        $subject->handle();
+
+        $messages->assertCalled(GetTroopersByRole::class, null, times: 2);
 
         Notification::assertNothingSent();
         $this->assertNotNull($achievement->fresh()->notification_sent_at);
@@ -255,12 +270,9 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         ]);
         $achievement->setRelation('trooper', $trooper);
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
-                && $query->membership_role === MembershipRole::ADMINISTRATOR)
-            ->andThrow(new Exception('delivery failed'));
+        $this->fakeMessages([
+            GetTroopersByRole::class => fn (array $params): never => throw new Exception('delivery failed'),
+        ]);
 
         $subject = new SendTrooperMilestoneNotificationsJob;
 
@@ -268,7 +280,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
 
         try
         {
-            $subject->handle($bus);
+            $subject->handle();
         }
         finally
         {
@@ -298,18 +310,16 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
             ->withShouldNotify(true)
             ->create();
 
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldReceive('send')
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
-                && $query->membership_role === MembershipRole::ADMINISTRATOR)
-            ->andReturn(collect([$admin]));
-        $bus->shouldReceive('send')
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
-                && $query->membership_role === MembershipRole::MODERATOR)
-            ->andReturn(collect([]));
+        $this->fakeMessages([
+            GetTroopersByRole::class => fn (array $params): mixed => match (true)
+            {
+                $params['membership_role'] === MembershipRole::ADMINISTRATOR => collect([$admin]),
+                $params['membership_role'] === MembershipRole::MODERATOR => collect([]),
+            },
+        ]);
 
-        (new SendTrooperMilestoneNotificationsJob)->handle($bus);
-        (new SendTrooperMilestoneNotificationsJob)->handle($bus);
+        (new SendTrooperMilestoneNotificationsJob)->handle();
+        (new SendTrooperMilestoneNotificationsJob)->handle();
 
         Notification::assertSentToTimes($admin, TrooperMilestoneNotification::class, 1);
     }

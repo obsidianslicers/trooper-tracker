@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Events\UpdateCharityRequest;
 use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 
-class UpdateCharitySubmitController extends MagicBusController
+class UpdateCharitySubmitController extends PageController
 {
     public function __invoke(UpdateCharityRequest $request, Event $event): RedirectResponse
     {

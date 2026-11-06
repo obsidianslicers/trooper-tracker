@@ -2,10 +2,9 @@ import { ViewModel } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
 
-export type ForumGroup = {
-    id: number;
-    title: string;
-    banner_image_url?: string | null;
+export type PermissionRequestChange = {
+    label: string;
+    value: string;
 };
 
 export type PermissionRequestOrganization = {
@@ -28,8 +27,7 @@ export type PermissionRequest = {
     membership_role_label: string | null;
     moderated_organizations_to_add: PermissionRequestOrganization[];
     moderated_organizations_to_remove: PermissionRequestOrganization[];
-    forum_groups_to_add: ForumGroup[];
-    forum_groups_to_remove: ForumGroup[];
+    extension_changes: PermissionRequestChange[];
     note: string | null;
     denial_reason: string | null;
     created: string | null;

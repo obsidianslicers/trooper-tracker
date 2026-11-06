@@ -9,7 +9,9 @@ use App\Enums\NotificationChannels;
 use App\Enums\TrooperNotifications;
 use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Trooper;
+use App\Plugins\PluginNotifications;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Handles the validation for the update notification preference form.
@@ -39,11 +41,11 @@ class UpdateNotificationPreferenceRequest extends FormRequest
      */
     public function rules(): array
     {
-        $notifications = AdministrativeNotifications::toValidator().','.TrooperNotifications::toValidator();
-
-        $notifications = str_replace('in:', '', $notifications);
-
-        $notifications = 'in:'.$notifications;
+        $notifications = Rule::in([
+            ...array_keys(AdministrativeNotifications::toArray()),
+            ...array_keys(TrooperNotifications::toArray()),
+            ...app(PluginNotifications::class)->values(),
+        ]);
 
         $rules = [
             'notification' => [

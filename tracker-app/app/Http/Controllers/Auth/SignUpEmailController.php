@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Enums\FlashType;
 use App\Facades\TroopTracker;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Session;
  * who choose to sign up with email instead of OAuth. It sets up the
  * registration authentication context and redirects to the registration form.
  */
-class SignUpEmailController extends MagicBusController
+class SignUpEmailController extends PageController
 {
     private TroopTracker $troop_tracker;
 
@@ -39,11 +39,13 @@ class SignUpEmailController extends MagicBusController
      */
     public function __invoke(Request $request): RedirectResponse
     {
-        if ($this->troop_tracker->isXenforoOAuthRequired())
+        $required = $this->troop_tracker->requiredLoginProvider();
+
+        if ($required !== null)
         {
             Session::forget('registration_auth');
 
-            FlashType::warning('Email sign up is disabled. Please sign up with XenForo.');
+            FlashType::warning("Email sign up is disabled. Please sign up with {$required->name()}.");
 
             return redirect()->route('auth.signup');
         }

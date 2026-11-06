@@ -57,7 +57,6 @@ class CreateSubmitControllerTest extends TestCase
             'allow_props' => false,
             'parking_available' => false,
             'accessible' => false,
-            'create_forum_thread' => false,
         ]);
 
         $response->assertRedirect();

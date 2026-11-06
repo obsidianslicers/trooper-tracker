@@ -39,6 +39,15 @@ The processing stack prevents recursive loops such as `A -> B -> A` by throwing 
 
 ---
 
+## Lifecycle events
+
+Every dispatched message fires two Laravel events, which is how plugins hook into messages:
+
+- `Hyperdrive\Events\MessageHandling` — after hydration, before `handle()` runs. Has `$message`.
+- `Hyperdrive\Events\MessageHandled` — after `handle()` returns, and after the commit for `ShouldBeTransactional` messages. Has `$message` and `$result`. Not fired when `handle()` throws.
+
+---
+
 ## Parameter precedence
 
 The merge order is deliberate and matches the current implementation:

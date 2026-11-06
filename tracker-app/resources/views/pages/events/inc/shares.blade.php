@@ -32,15 +32,7 @@
     </div>
     <div class="col-12 col-lg-6 mb-2 mb-lg-0 d-flex d-lg-block align-items-center justify-content-between gap-2">
         <div class="btn-group" style="overflow-x: auto;">
-            @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured() && !empty($event->thread_id) && !empty($event->post_id))
-                <a href="{{ config('services.xenforo.base_url') . '/posts/' . $event->post_id . '/' }}"
-                   class="btn btn-outline-secondary"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   title="View Forum Post">
-                    <i class="fa fa-fw fa-comments"></i>
-                </a>
-            @endif
+            @pluginSlot('events.display.share-buttons')
 
             @include('pages.events.inc.watch-toggle', compact('event', 'is_watching'))
         </div>

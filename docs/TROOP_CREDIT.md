@@ -177,10 +177,10 @@ The multi-org path uses `SUBSTRING_INDEX(node_path, ':', 1)` to extract the root
 | Multi-club selection | `app/Http/Controllers/Events/ShiftCompleteClubController.php` |
 | Admin roster credit override | `app/Http/Controllers/Admin/Events/UpdateTroopersSubmitController.php` |
 | Shift-complete scenario generation | `app/Console/Commands/SimulateShiftCompleteCommand.php` |
-| PHP troop count + org annotation | `app/Features/Troopers/Queries/HasOrgCreditAnnotation.php` |
-| SQL attribution WHERE clause | `app/Features/Events/Queries/HasOrgAttributionQuery.php` |
-| Service record handler | `app/Features/Troopers/Queries/GetTrooperServiceRecordQueryHandler.php` |
-| Event summary report handler | `app/Features/Reports/Queries/GetTrooperEventSummaryQueryHandler.php` |
+| PHP troop count + org annotation | `app/Messages/Concerns/HasOrgCreditAnnotation.php` |
+| SQL attribution WHERE clause | `app/Messages/Concerns/HasTrooperOrgCreditQuery.php` |
+| Service record handler | `app/Messages/Troopers/Queries/GetTrooperServiceRecord.php` |
+| Event summary report handler | `app/Messages/Reports/Queries/GetTrooperEventSummary.php` |
 
 ## Important Behaviors
 

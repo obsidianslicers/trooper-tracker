@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Award;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
  * Displays the award update form allowing administrators and moderators to
  * modify the award's properties (name, frequency, organization).
  */
-class UpdateController extends MagicBusController
+class UpdateController extends PageController
 {
     protected function initialized(): void
     {

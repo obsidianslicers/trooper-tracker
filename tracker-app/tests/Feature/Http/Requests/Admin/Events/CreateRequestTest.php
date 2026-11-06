@@ -166,7 +166,6 @@ class CreateRequestTest extends TestCase
                 Event::PARKING_AVAILABLE => false,
                 Event::ACCESSIBLE => false,
                 Event::REQUIRE_MISSION_BRIEF_ACK => false,
-                Event::CREATE_FORUM_THREAD => false,
             ],
             $subject->rules()
         );
@@ -195,7 +194,6 @@ class CreateRequestTest extends TestCase
                 Event::PARKING_AVAILABLE => false,
                 Event::ACCESSIBLE => false,
                 Event::REQUIRE_MISSION_BRIEF_ACK => false,
-                Event::CREATE_FORUM_THREAD => false,
             ],
             $subject->rules()
         );

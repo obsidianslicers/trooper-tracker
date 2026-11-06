@@ -9,6 +9,7 @@ use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\Organization;
+use App\Plugins\PluginForms;
 use Illuminate\Validation\Rule;
 
 /**
@@ -76,9 +77,6 @@ trait CommonRules
             Event::PARKING_AVAILABLE => ['boolean'],
             Event::ACCESSIBLE => ['boolean'],
             Event::REQUIRE_MISSION_BRIEF_ACK => ['boolean'],
-            Event::CREATE_FORUM_THREAD => ['boolean'],
-            Event::THREAD_ID => ['nullable', 'integer', 'min:1'],
-            Event::POST_ID => ['nullable', 'integer', 'min:1'],
 
             Event::AMENITIES => ['nullable', 'string'],
             Event::COMMENTS => ['nullable', 'string'],
@@ -90,6 +88,8 @@ trait CommonRules
             'organizations.*.'.EventOrganization::CAN_ATTEND => ['boolean'],
             'organizations.*.'.EventOrganization::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
             'organizations.*.'.EventOrganization::HANDLERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
+
+            ...app(PluginForms::class)->rules(PluginForms::EVENT_UPDATE),
         ];
     }
 }

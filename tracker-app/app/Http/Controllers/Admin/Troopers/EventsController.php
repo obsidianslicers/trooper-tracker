@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Features\Troopers\Queries\GetMostRecentEventsForTrooperQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Troopers\Queries\GetMostRecentEventsForTrooper;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * Presents a trooper's recent event participation history for administrators
  * and moderators to review their activity and attendance records.
  */
-class EventsController extends MagicBusController
+class EventsController extends PageController
 {
     protected function initialized(): void
     {
@@ -28,7 +28,7 @@ class EventsController extends MagicBusController
      * Handle the incoming request to display a trooper's events page
      *
      * This method authorizes the user, sets up breadcrumbs, loads the trooper's
-     * recent events via GetMostRecentEventsForTrooperQuery, and returns the view
+     * recent events via GetMostRecentEventsForTrooper, and returns the view
      * showing the trooper's event participation history.
      *
      * @param  Request  $request  The incoming HTTP request
@@ -39,9 +39,7 @@ class EventsController extends MagicBusController
     {
         $this->authorize('update', $trooper);
 
-        $recent_events_query = new GetMostRecentEventsForTrooperQuery($trooper);
-
-        $organization_events = $this->bus->send($recent_events_query);
+        $organization_events = GetMostRecentEventsForTrooper::call(trooper: $trooper);
 
         $data = compact('trooper', 'organization_events');
 

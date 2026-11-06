@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Features\Events\Queries\GetEventsForDisplayQuery;
-use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
-use App\Features\Organizations\Queries\GetOrganizationsQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Events\Queries\GetEventsForDisplay;
+use App\Messages\Organizations\Queries\GetOrganizations;
+use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -19,7 +19,7 @@ use Illuminate\Http\Request;
  * events grouped by date. Each month displays weeks with events marked
  * on their corresponding dates.
  */
-class CalendarController extends MagicBusController
+class CalendarController extends PageController
 {
     /**
      * Handle the incoming request to display the calendar page
@@ -35,13 +35,11 @@ class CalendarController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $events_query = new GetEventsForDisplayQuery;
+        $events = GetEventsForDisplay::call()->groupBy(fn ($event) => $event->event_start->toDateString());
 
-        $events = $this->bus->send($events_query)->groupBy(fn ($event) => $event->event_start->toDateString());
+        $costume_organizations = GetOrganizations::call();
 
-        $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
-
-        $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery($trooper, []));
+        $hosting_organizations = GetOrganizationsForPicker::call(trooper: $trooper, data: []);
 
         $months = [];
 

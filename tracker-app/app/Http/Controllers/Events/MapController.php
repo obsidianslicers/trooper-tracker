@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Features\Events\Queries\GetEventsForDisplayQuery;
-use App\Features\Organizations\Queries\GetOrganizationsQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Organizations\Queries\GetOrganizations;
 use App\Models\Event;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -18,7 +17,7 @@ use Illuminate\Http\Request;
  * locations. Events are filtered to only include those with valid latitude/longitude
  * coordinates for proper map display.
  */
-class MapController extends MagicBusController
+class MapController extends PageController
 {
     /**
      * Handle the incoming request to display the map page
@@ -32,10 +31,6 @@ class MapController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
-        // $events_query = new GetEventsForDisplayQuery();
-
-        // $events = $this->bus->send($events_query)->groupBy(fn($event) => $event->event_start->toDateString());
-
         $columns = [
             Event::ID,
             Event::NAME,
@@ -58,7 +53,7 @@ class MapController extends MagicBusController
                 $event->date_range = $event->time_display;
             });
 
-        $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
+        $costume_organizations = GetOrganizations::call();
 
         $data = compact('events', 'costume_organizations');
 

@@ -82,7 +82,7 @@ sequenceDiagram
     Note over DB: TrooperRequest created<br/>status = PENDING<br/>(any prior PENDING request in same<br/>primary-club family is deleted)
 
     A->>DB: Approve join request
-    Note over DB: ApproveTrooperRequestCommandHandler runs
+    Note over DB: ApproveTrooperRequest runs
 
     DB->>DB: 1. Clear conflicting assignments (soft-delete)
     DB->>DB: 2. Create/restore TrooperOrganization at primary club (ACTIVE)
@@ -90,13 +90,13 @@ sequenceDiagram
     DB->>DB: 4. Mark TrooperRequest APPROVED
 
     A->>DB: Deny join request
-    Note over DB: DenyTrooperRequestCommandHandler runs
+    Note over DB: DenyTrooperRequest runs
     DB->>DB: Mark TrooperRequest DENIED + store reason
 ```
 
-### Step-by-Step: `ApproveTrooperRequestCommandHandler`
+### Step-by-Step: `ApproveTrooperRequest`
 
-**File:** `app/Features/Troopers/Commands/ApproveTrooperRequestCommandHandler.php`
+**File:** `app/Messages/Troopers/Commands/Membership/ApproveTrooperRequest.php`
 
 ```
 __invoke()
@@ -147,13 +147,13 @@ The individual `->save()` call here **does** fire `TrooperAssignmentObserver.sav
 
 ## Denial
 
-`DenyTrooperRequestCommandHandler` sets `status = DENIED`, records `denial_reason`, and sends `JoinRequestDeniedNotification` to the trooper. No `TrooperOrganization` or `TrooperAssignment` records are created or modified.
+`DenyTrooperRequest` sets `status = DENIED`, records `denial_reason`, and sends `JoinRequestDeniedNotification` to the trooper. No `TrooperOrganization` or `TrooperAssignment` records are created or modified.
 
 ---
 
 ## Determining Which Club a Trooper Belongs To
 
-**File:** `app/Features/Troopers/Queries/GetTrooperMembershipsQueryHandler.php`
+**File:** `app/Messages/Troopers/Queries/Membership/GetTrooperOrganizationMemberships.php`
 
 The admin membership page (`/admin/troopers/{id}/membership`) shows all top-level organizations with one row each. For each org the handler computes:
 
@@ -193,7 +193,7 @@ Example: A trooper assigned to `Florida Unit` (`100:200:300:`) shows up under `G
 
 ## Removing Membership (Red X Button)
 
-**File:** `app/Features/Troopers/Commands/RemoveTrooperMembershipCommandHandler.php`
+**File:** `app/Messages/Troopers/Commands/RemoveTrooperMembership.php`
 
 Clicking the red X on a primary club row runs:
 
@@ -209,7 +209,7 @@ After removal, neither the `TrooperOrganization` nor the `TrooperAssignment` is 
 
 ## Updating the Assignment (Membership Form)
 
-**File:** `app/Features/Troopers/Commands/UpdateTrooperMembershipsCommandHandler.php`
+**File:** `app/Messages/Troopers/Commands/UpdateTrooperMemberships.php`
 
 When an admin submits the membership form to change the "Member of" picker (i.e. move a trooper from one unit to another within a club):
 
@@ -231,7 +231,7 @@ This is enforced in two places:
 | Where | How |
 |---|---|
 | `TrooperAssignmentObserver.saving()` | Throws if a new/updated assignment conflicts with an existing active one in the same hierarchy. Fires on individual model saves only — not mass updates. |
-| `clearExistingAssignments` / `UpdateTrooperMembershipsCommandHandler` | Proactively soft-deletes conflicting assignments before creating the new one, so the observer never sees a conflict. |
+| `clearExistingAssignments` / `UpdateTrooperMemberships` | Proactively soft-deletes conflicting assignments before creating the new one, so the observer never sees a conflict. |
 
 ---
 
@@ -255,13 +255,13 @@ Visitors can only be assigned to organizations at `depth 0` (primary clubs). The
 
 | Concern | Path |
 |---|---|
-| Submit join request | `app/Features/Troopers/Commands/SubmitTrooperRequestCommandHandler.php` |
-| Approve join request | `app/Features/Troopers/Commands/ApproveTrooperRequestCommandHandler.php` |
-| Deny join request | `app/Features/Troopers/Commands/DenyTrooperRequestCommandHandler.php` |
-| Remove membership | `app/Features/Troopers/Commands/RemoveTrooperMembershipCommandHandler.php` |
-| Update assignment picker | `app/Features/Troopers/Commands/UpdateTrooperMembershipsCommandHandler.php` |
-| Direct admin add | `app/Features/Troopers/Commands/DirectAddTrooperCommandHandler.php` |
-| Membership page query | `app/Features/Troopers/Queries/GetTrooperMembershipsQueryHandler.php` |
+| Submit join request | `app/Messages/Troopers/Commands/SubmitTrooperRequest.php` |
+| Approve join request | `app/Messages/Troopers/Commands/Membership/ApproveTrooperRequest.php` |
+| Deny join request | `app/Messages/Troopers/Commands/Membership/DenyTrooperRequest.php` |
+| Remove membership | `app/Messages/Troopers/Commands/RemoveTrooperMembership.php` |
+| Update assignment picker | `app/Messages/Troopers/Commands/UpdateTrooperMemberships.php` |
+| Direct admin add | `app/Messages/Troopers/Commands/DirectAddTrooper.php` |
+| Membership page query | `app/Messages/Troopers/Queries/Membership/GetTrooperOrganizationMemberships.php` |
 | Assignment observer | `app/Models/Observers/TrooperAssignmentObserver.php` |
 | Membership page view | `resources/views/pages/admin/troopers/membership.blade.php` |
 | TrooperRequest model | `app/Models/TrooperRequest.php` |

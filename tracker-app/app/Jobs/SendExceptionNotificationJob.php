@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
-use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Mail\ExceptionOccurred;
+use App\Messages\Troopers\Queries\GetTroopersByRole;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -20,7 +19,7 @@ use Throwable;
  * to notify administrators when critical exceptions occur in the application.
  *
  * Workflow:
- * 1. Retrieves all administrator troopers via GetTroopersByRoleQuery
+ * 1. Retrieves all administrator troopers via GetTroopersByRole
  * 2. Queues ExceptionOccurred email to each administrator
  * 3. Emails include exception details, stack trace, and context for debugging
  *
@@ -53,11 +52,9 @@ class SendExceptionNotificationJob implements ShouldQueue
      * Retrieves all administrator troopers and queues an exception notification
      * email to each one. Uses Mail::queue() for asynchronous delivery.
      */
-    public function handle(MagicBus $bus): void
+    public function handle(): void
     {
-        $admin_query = new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR);
-
-        $admins = $bus->send($admin_query);
+        $admins = GetTroopersByRole::call(membership_role: MembershipRole::ADMINISTRATOR);
 
         foreach ($admins as $admin)
         {

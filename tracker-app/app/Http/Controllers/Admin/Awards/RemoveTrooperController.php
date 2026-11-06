@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Awards;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Events\AwardRevoked;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Awards\RemoveTrooperRequest;
 use App\Models\Award;
 use App\Models\AwardTrooper;
@@ -14,7 +15,7 @@ use Illuminate\Http\RedirectResponse;
 /**
  * Handles removing an award from a specific trooper.
  */
-class RemoveTrooperController extends MagicBusController
+class RemoveTrooperController extends PageController
 {
     /**
      * Handle the request to remove an award from a trooper.
@@ -36,6 +37,8 @@ class RemoveTrooperController extends MagicBusController
             $trooper_name = $award_trooper->trooper?->display_name ?? 'trooper';
 
             $award_trooper->delete();
+
+            AwardRevoked::dispatch($award_trooper);
 
             FlashType::success('Removed award from '.$trooper_name);
         }

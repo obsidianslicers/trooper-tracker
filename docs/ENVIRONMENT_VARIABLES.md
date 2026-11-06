@@ -496,6 +496,33 @@ Firebase is **optional**. When not configured, in-app notifications (the bell ic
 
 ---
 
+## Plugins
+
+See [PLUGINS.md](PLUGINS.md).
+
+### TRACKER_PLUGINS_PATH
+- **Purpose**: Folder that holds plugins added through the repo
+- **Required**: No
+- **Default**: `tracker-app/plugins`
+
+### TRACKER_PLUGINS_ALLOW_UPLOADS
+- **Purpose**: Set to `false` to stop administrators installing plugins by uploading a zip under Command Staff > Plugins
+- **Required**: No
+- **Default**: `true`
+- **Security**: Only administrators can upload, and an enabled plugin runs PHP code on the server. Turn this off if an administrator should not be trusted with that.
+
+### TRACKER_PLUGINS_UPLOADS_PATH
+- **Purpose**: Folder uploaded plugins are unpacked into. Keep it outside the git checkout.
+- **Required**: No
+- **Default**: `tracker-app/storage/app/plugins`
+
+### TRACKER_PLUGINS_MAX_UPLOAD_KB / TRACKER_PLUGINS_MAX_UNZIPPED_KB / TRACKER_PLUGINS_MAX_UPLOAD_FILES
+- **Purpose**: Limits on an uploaded plugin zip: its size, its size once unzipped, and its number of files
+- **Required**: No
+- **Default**: `10240`, `51200`, `2000`
+
+---
+
 ## Example Production .env
 
 ```env

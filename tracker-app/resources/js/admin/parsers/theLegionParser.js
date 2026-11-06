@@ -1,39 +1,59 @@
 // resources/js/parsers/theLegionParser.js
 
 import { parseMessage } from './parseMessage.js';
-import { formatUsDateTime, parseUsDateTime } from './parseUtils.js';
+import { firstInt, formatUsDateTime, parseUsDateTime } from './parseUtils.js';
 
 export function theLegionParser(message) {
-    const parsed = parseMessage(message);
+    // a request copied from its forum post keeps the post's BBCode
+    const parsed = parseMessage(message.replace(/\[\/?(b|i|u|s|color|size|font|url|email|quote|img|center|left|right)(=[^\]]*)?\]/gi, ''));
+
+    // garrison request forms label some fields differently; the first label present wins
+    const field = (...labels) => labels.map(label => parsed[label]).find(value => value !== undefined) ?? null;
+
+    // answers are "Yes", "No", "Not specified" or "Yes, but ..."
+    const yes = label => /^yes\b/i.test(parsed[label] ?? '');
+
+    const eventStart = parseUsDateTime(parsed['Event Start']);
+
+    // an end without a date ("- 5pm") is on the start's day
+    let eventEnd = parseUsDateTime(parsed['Event End'], eventStart);
+
+    // "6:30" to "8:30" with no am/pm: an end before the start is in the evening
+    if (eventStart && eventEnd && eventEnd <= eventStart && eventEnd.getHours() < 12) {
+        const evening = new Date(eventEnd);
+        evening.setHours(evening.getHours() + 12);
+        eventEnd = evening > eventStart ? evening : eventEnd;
+    }
 
     return {
-        contact_name: parsed['Contact Name'] ?? null,
-        contact_phone: parsed['Contact Phone Number'] ?? null,
-        contact_email: parsed['Contact Email'] ?? null,
+        contact_name: field('Contact Name', 'Contact'),
+        contact_phone: field('Contact Phone Number', 'Phone #'),
+        contact_email: field('Contact Email', 'Email'),
 
-        name: parsed['Event Name'] ?? null,
+        name: field('Event Name', 'Event'),
         venue: parsed['Venue'] ?? null,
-        venue_address: parsed['Venue address'] ?? null,
+        venue_address: field('Venue address', 'Address'),
 
-        event_start: parsed['Event Start'] ? formatUsDateTime(parseUsDateTime(parsed['Event Start'])) : null,
+        event_start: formatUsDateTime(eventStart),
 
-        event_end: parsed['Event End'] ? formatUsDateTime(parseUsDateTime(parsed['Event End'])) : null,
+        event_end: formatUsDateTime(eventEnd),
 
         event_website: parsed['Event Website'] ?? null,
 
-        expected_attendees: parsed['Expected number of attendees'] ?? null,
-        requested_number_characters: parsed['Requested number of characters'] ?? null,
+        // requesters write "200-300", "1,000+" or "?"; the fields take a whole number
+        expected_attendees: firstInt(parsed['Expected number of attendees']),
+        requested_number_characters: firstInt(parsed['Requested number of characters']),
         requested_character_types: parsed['Requested character types'] ?? null,
 
-        secure_staging_area: (parsed['Secure changing/staging area'] ?? '') === 'Yes',
+        secure_staging_area: yes('Secure changing/staging area'),
 
-        allow_blasters: (parsed['Can troopers carry blasters'] ?? '') === 'Yes',
+        allow_blasters: yes('Can troopers carry blasters'),
 
-        allow_props: (parsed['Can troopers carry/bring props like lightsabers and staffs'] ?? '') === 'Yes',
+        allow_props: yes('Can troopers carry/bring props like lightsabers and staffs'),
 
-        parking_available: (parsed['Is parking available'] ?? '') === 'Yes',
+        parking_available: yes('Is parking available'),
 
-        accessible: (parsed['Is venue accessible to those with limited mobility'] ?? '') === 'Yes',
+        accessible: yes('Is venue accessible to those with limited mobility'),
 
         amenities: parsed['Amenities available at venue'] ?? null,
         comments: parsed['Comments'] ?? null,

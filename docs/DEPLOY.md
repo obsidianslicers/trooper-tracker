@@ -219,6 +219,57 @@ php artisan fabricator:generate-factories
 php artisan db:seed --force
 ```
 
+#### Plugins
+
+After `php artisan migrate`, `deploy.sh` runs `php artisan plugins:reconcile`, which brings every plugin back to the state an administrator chose (see [Plugin packages on deploy](#plugin-packages-on-deploy)). Deploying by hand, run it yourself.
+
+Plugins are off until enabled. If the site posts events to Discord, enable the Discord plugin once (it moved out of core). Enabling copies each organization's Discord mention into the plugin's own table. Enable the Discord and XenForo plugins before deploying the release that drops the old core columns (`2026_11_06_000001_drop_plugin_columns_from_core_tables`); if a site has data in them and never enabled the plugin, that migration stops rather than lose it:
+
+```bash
+php artisan plugins:enable discord
+```
+
+If the site uses XenForo, enable the XenForo plugin right after deploying: `php artisan plugins:enable xenforo`. Until it is enabled, XenForo login is unavailable, the hourly forum user sync stops and "require a linked forum account" is off, so troopers can only sign in with email or Google. Enabling it copies the `XENFORO_*` and `TRACKER_REQUIRE_XENFORO` values from `.env` onto its settings page; `php artisan xenforo:import-env` copies them again later.
+
+If clubs sync their rosters from Google Sheets, enable the Google Sheets plugin too, from Admin > Plugins or `php artisan plugins:enable google-sheets`. Its Google client package isn't installed yet, so the plugin shows **Turns on at next deploy**; the next deploy installs the package and turns it on. Enabling copies each club's Sheet ID into the plugin's table. Until it is on, the Sheets-based club syncs and member lookups read nothing.
+
+#### Plugin packages on deploy
+
+Once a plugin is installed, every later deploy keeps it as it was, with nothing to set in `.env`, `composer.json` or the script. That holds for bundled plugins, uploaded zips and plugin folders copied onto the server, including the Composer packages they need.
+
+**Where plugins live.** Uploaded zips go to `storage/app/plugins`, outside the git checkout. Put a plugin you copy onto the server there too (it shows as "Custom"); it is found and reconciled like an upload. Don't copy plugins into `tracker-app/plugins/` on the server: that folder belongs to the repository. Each plugin's choices are in the database (`tt_plugins`: enabled or waiting, settings, source, installed version, status and last error).
+
+**Packages.** The app's `composer.json` never lists a plugin. Each plugin folder that is on or waiting to be turned on (bundled, uploaded or copied) lists its packages in its own `composer.json`; those are what the deploy installs, from Packagist. The app saves that list to `storage/app/plugin-deploy/requirements.json` whenever a plugin is enabled, disabled or updated, and the deploy refreshes it from the new release before Composer runs (`php artisan plugins:packages --write`). Two plugins that need the same package must both be satisfied. Then `php bin/plugin-composer prepare` builds `composer.plugins.json`: the app's `composer.json`, plus those packages, with every core package held at the exact version in this release's `composer.lock`. Composer then installs from it with its own lock file, `composer.plugins.lock`, which stays on the server (both files are git-ignored):
+
+```bash
+COMPOSER=composer.plugins.json composer update <plugin packages and changed core packages> \
+    --with-dependencies --minimal-changes --no-dev --no-scripts
+```
+
+So core packages always match the release, plugin packages keep the versions they had, and a deploy where nothing changed changes nothing ("Nothing to modify in lock file"). When no plugin needs packages, the deploy runs a plain `composer install`.
+
+**Trust.** Packages are only installed by `deploy.sh`, never from a web request, and only administrators can install or enable plugins. They install with `--no-scripts`, and only the Composer extensions the app's own `composer.json` allows (`config.allow-plugins`) may run, so a plugin's dependencies can't run install scripts.
+
+**Order.** `deploy.sh` takes a lock (`storage/framework/deploy.lock`) so two deploys never run Composer or migrations at once, then:
+
+1. notes which enabled plugins can't run already (`php artisan plugins:unmet`);
+2. syncs the code and installs packages as above, then checks with `bin/plugin-composer verify` that no core package moved;
+3. stops, before the site goes into maintenance mode, if a plugin that could run before can't now: it puts the previous release and its packages back and exits with an error;
+4. runs the app's migrations;
+5. runs `php artisan plugins:reconcile`, which applies uploaded updates that were waiting for their packages, runs plugin migrations for plugins whose files changed, turns on plugins that were waiting, records each plugin's and package's installed version and status, marks plugins whose files are gone as missing (their settings and data are kept), and saves what packages the plugins now need;
+6. if that changed what plugins need, installs packages, migrates and reconciles again (if that install fails, the packages from step 2 are put back);
+7. records this release, with its packages, as the last good one.
+
+**When something fails.** If the packages plugins now need can't be installed (a version that doesn't exist, a conflict with the app or another plugin, a network error), the deploy installs the last set that installed cleanly (`requirements.installed.json`), so every plugin that was working keeps its packages. Plugins that needed the new packages keep their files, settings and data, stay in their chosen state, and show on the Plugins page as waiting or failed with Composer's error; the next deploy tries again. If even the last good set can't be installed, or a plugin that was running would lose something it needs, the deploy stops and puts the previous release and its packages back (step 3). The error is saved in `storage/app/plugin-deploy/composer-result.json` and the full output in `composer.log` beside it. `plugins:reconcile` never fails the deploy and never reports a plugin as active when it isn't: a plugin whose update or migrations failed shows **Needs attention**, keeps its previous installed version, and the error says what failed.
+
+**Interrupted deploys.** A deploy that is cut off part way leaves `storage/app/plugin-deploy/deploy-in-progress` behind. The next deploy says so and simply does every step again; if it has to stop, it goes back to the release that was running before the interrupted one.
+
+**Rollback.** Each good deploy saves its `composer.plugins.json`, `composer.plugins.lock` and installed requirements under `storage/app/plugin-deploy/releases/<commit>/` (the last ten). `bash deploy.sh --rollback` deploys the release before the last good one, starting from the plugin packages it had. A rollback does not undo migrations, and it does not bring back older files of uploaded or copied plugins, which live outside git.
+
+Set the webhook under Command Staff > Plugins > Discord > Settings, or keep `DISCORD_WEBHOOK_URL` in `.env`. See [PLUGINS.md](PLUGINS.md).
+
+Administrators can install plugins by uploading a zip under Command Staff > Plugins; nothing needs setting in `.env`. Set `TRACKER_PLUGINS_ALLOW_UPLOADS=false` to turn that off. The PHP user must be able to write to `storage/app/plugins` (or `TRACKER_PLUGINS_UPLOADS_PATH`). Uploaded plugins live outside the git checkout, so deploys leave them in place. The web server's upload limit (`upload_max_filesize`, `post_max_size`, nginx `client_max_body_size`) must be at least `TRACKER_PLUGINS_MAX_UPLOAD_KB`.
+
 ### 6. Optimize Application
 
 ```bash
@@ -432,12 +483,13 @@ The script runs with `set -euo pipefail`, so any failing step aborts the deploy.
 2. Syncs code with `git fetch origin` + `git reset --hard origin/main` — **any uncommitted
    changes on the server are discarded**
 3. Installs PHP dependencies: `composer install --no-interaction --prefer-dist
-   --optimize-autoloader --no-dev`
+   --optimize-autoloader --no-dev`, plus the packages enabled plugins need through
+   `composer.plugins.json` (see [Plugin packages on deploy](#plugin-packages-on-deploy))
 4. Builds frontend assets with `npm install` + `npm run build`
    (`NODE_OPTIONS=--max-old-space-size=2048` to avoid OOM during the build)
 5. Enters maintenance mode: `php artisan down --refresh=15` (failure is ignored)
 6. Clears the `cache`, `route`, `config`, and `view` caches
-7. Runs `php artisan migrate --force`
+7. Runs `php artisan migrate --force`, then `php artisan plugins:reconcile`
 8. Writes `APP_VERSION="build-<short-hash>-<yymmdd>"` to `.env` (from the HEAD commit hash and
    commit date), adding the key if it's missing
 9. Rebuilds the `config`, `route`, and `view` caches
@@ -825,6 +877,8 @@ php artisan code:models
 ```
 
 ## Rollback Procedure
+
+`bash deploy.sh --rollback` redeploys the release before the last good one, with the plugin packages it had (see [Plugin packages on deploy](#plugin-packages-on-deploy)). It does not roll back migrations. To do it by hand:
 
 ```bash
 # 1. Enter maintenance mode

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Features\Events\Queries\GetEventsForDisplayQuery;
-use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
-use App\Features\Organizations\Queries\GetOrganizationsQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Events\Queries\GetEventsForDisplay;
+use App\Messages\Organizations\Queries\GetOrganizations;
+use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -18,7 +18,7 @@ use Illuminate\Http\Request;
  * events with their organizations, shifts, and attendance information. Only
  * events where the user's organization can attend are included.
  */
-class ListController extends MagicBusController
+class ListController extends PageController
 {
     /**
      * Handle the incoming request to display the events list page
@@ -34,13 +34,11 @@ class ListController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $events_query = new GetEventsForDisplayQuery;
+        $events = GetEventsForDisplay::call();
 
-        $events = $this->bus->send($events_query);
+        $costume_organizations = GetOrganizations::call();
 
-        $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
-
-        $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery($trooper, []));
+        $hosting_organizations = GetOrganizationsForPicker::call(trooper: $trooper, data: []);
 
         $data = compact('events', 'costume_organizations', 'hosting_organizations');
 

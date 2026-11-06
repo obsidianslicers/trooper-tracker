@@ -6,6 +6,7 @@ namespace Tests\Unit\Messages\Troopers\Commands\Membership;
 
 use App\Enums\MembershipStatus;
 use App\Enums\TrooperRequestStatus;
+use App\Events\TrooperRequestApproved;
 use App\Messages\Troopers\Commands\Membership\ApproveTrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -16,6 +17,7 @@ use App\Notifications\Troopers\TrooperRequestApprovedNotification;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event as EventFacade;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -162,5 +164,18 @@ final class ApproveTrooperRequestTest extends TestCase
         }
 
         return $factory->create();
+    }
+
+    public function test_handle_fires_trooper_request_approved(): void
+    {
+        EventFacade::fake([TrooperRequestApproved::class]);
+        $trooper = Trooper::factory()->asMember()->create();
+        $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+        $trooper_request = $this->createRequest($trooper, $organization, $organization, 'TK-54321');
+
+        $subject = new ApproveTrooperRequest($trooper_request, true);
+        $subject->handle();
+
+        EventFacade::assertDispatched(TrooperRequestApproved::class, fn (TrooperRequestApproved $approved): bool => $approved->trooper_request->is($trooper_request));
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shares;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -19,7 +19,7 @@ use Intervention\Image\ImageManager;
  * that allows users to share organization images via various channels
  * such as social media, email, or direct links.
  */
-class ShareOrganizationImageController extends MagicBusController
+class ShareOrganizationImageController extends PageController
 {
     /**
      * Handle the incoming request to display the organization image sharing page.

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Verifications;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -14,7 +14,7 @@ use Illuminate\View\View;
  * This controller is responsible for displaying the email verification notice
  * to the user after they have verified their email address.
  */
-class VerifyNoticeController extends MagicBusController
+class VerifyNoticeController extends PageController
 {
     /**
      * Handle the incoming request to display the email verification notice.

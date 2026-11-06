@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForDisplay;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * Presents a trooper's recent costume participation history for administrators
  * and moderators to review their activity and attendance records.
  */
-class CostumesController extends MagicBusController
+class CostumesController extends PageController
 {
     protected function initialized(): void
     {
@@ -39,9 +39,7 @@ class CostumesController extends MagicBusController
     {
         $this->authorize('update', $trooper);
 
-        $query = new GetTrooperCostumesQuery($trooper);
-
-        $costumes = $this->bus->send($query);
+        $costumes = GetTrooperCostumesForDisplay::call(trooper: $trooper);
 
         $data = compact('trooper', 'costumes');
 

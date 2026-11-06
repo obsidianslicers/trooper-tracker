@@ -25,9 +25,8 @@ class RequestPermissionsSubmitController extends Controller
             trooper: Trooper::findOrFail($request->validated('trooper_id')),
             membership_role: MembershipRole::tryFrom((string) $membership_role),
             moderated_organization_ids: $request->validated('moderated_organization_ids', []),
-            forum_group_ids_to_add: $request->validated('forum_group_ids_to_add', []),
-            forum_group_ids_to_remove: $request->validated('forum_group_ids_to_remove', []),
             note: $request->validated('note'),
+            extensions: $request->validated('extensions', []),
         );
 
         FlashType::success('Permission request sent to the administrators.');

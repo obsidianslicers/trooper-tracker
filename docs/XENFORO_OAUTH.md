@@ -138,11 +138,13 @@ What it does:
 
 ### XenForo OAuth Login
 
-Troop Tracker includes a custom Socialite provider for XenForo.
+The XenForo plugin (`tracker-app/plugins/xenforo`) adds XenForo as a login provider, with a custom Socialite driver. Enable the plugin first; with it off, the XenForo button is hidden and email and Google login work as usual.
 
 What it provides:
 
 - XenForo OAuth login
+- a ban check at sign-in (from the `/me` response, or the admin API when `/me` has no `is_banned`)
+- keeping the trooper's email address in step with the forum account
 - account linking to a Troop Tracker user
 - XenForo avatar retrieval
 - persistent mapping from Troop Tracker user to XenForo `user_id`
@@ -153,7 +155,8 @@ Relevant config:
 - `XENFORO_CLIENT_SECRET`
 - `XENFORO_REDIRECT_URI`
 - `XENFORO_BASE_URL`
-- optional endpoint path overrides in `config/services.php`
+- each of these can be set on the plugin's settings page instead, which wins over `.env`
+- optional endpoint path overrides (`XENFORO_AUTHORIZE_PATH`, `XENFORO_TOKEN_PATH`, `XENFORO_ME_PATH`) in the plugin's `config/config.php`
 
 ### XenForo-Required Accounts
 
@@ -242,8 +245,8 @@ Benefit:
 
 Commands:
 
-- `php artisan tracker:synchronize-xenforo-user {trooper}`
-- `php artisan tracker:synchronize-xenforo-users`
+- `php artisan xenforo:sync-user {trooper}`
+- `php artisan xenforo:sync-users`
 
 ### Support Total Integration
 
@@ -349,7 +352,7 @@ Notes:
 
 ### 5. Optional: confirm endpoint path overrides
 
-Defaults in `config/services.php` assume XenForo 2.3 style endpoints:
+Defaults in the plugin's `config/config.php` (`tracker-app/plugins/xenforo/config/config.php`) assume XenForo 2.3 style endpoints:
 
 - `XENFORO_AUTHORIZE_PATH=/index.php?oauth2/authorize`
 - `XENFORO_TOKEN_PATH=/index.php?api/oauth2/token`
@@ -410,13 +413,13 @@ These mappings are used by the XenForo user sync service.
 To push Troop Tracker data to XenForo after setup:
 
 ```bash
-php artisan tracker:synchronize-xenforo-users
+php artisan xenforo:sync-users
 ```
 
 For a single user:
 
 ```bash
-php artisan tracker:synchronize-xenforo-user 644
+php artisan xenforo:sync-user 644
 ```
 
 ## Forum Post Notifications (Webhook)

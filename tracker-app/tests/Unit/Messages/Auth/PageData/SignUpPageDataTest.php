@@ -17,26 +17,21 @@ class SignUpPageDataTest extends TestCase
     {
         $oauth = [
             'session' => ['method' => 'email'],
-            'xenforo' => [
-                'name' => 'Florida Garrison',
-                'required' => false,
-                'configured' => true,
+            'providers' => [
+                ['key' => 'google', 'name' => 'Google', 'icon_url' => 'https://example.com/g.svg'],
             ],
-            'google' => [
-                'enabled' => true,
-                'configured' => true,
-            ],
+            'required' => null,
             'email_password' => [
                 'enabled' => true,
             ],
         ];
 
-        Mockery::mock('alias:' . GetAuthConfig::class)
+        Mockery::mock('alias:'.GetAuthConfig::class)
             ->shouldReceive('call')
             ->once()
             ->andReturn($oauth);
 
-        $subject = new SignUpPageData();
+        $subject = new SignUpPageData;
 
         $result = $subject->handle();
 

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Hash;
  * Handles the login command for the application.
  *
  * This command message processes login requests, typically involving authentication
- * via various providers (XenForo OAuth, Google OAuth, email/password).
+ * via various providers (Google or plugin login providers, email/password).
  *
  * @method static Trooper|null call(string $email, string $password, bool $remember_me)
  */

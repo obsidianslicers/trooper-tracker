@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Features\Reports\Queries\GetEventSummaryQuery;
+use App\Messages\Reports\Queries\GetEventSummary;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -32,9 +32,7 @@ class EventSummaryController extends BaseReportsController
 
         $lookback = 30;
 
-        $events_query = new GetEventSummaryQuery($trooper, $lookback);
-
-        $events = $this->bus->send($events_query);
+        $events = GetEventSummary::call(moderator: $trooper, lookback: $lookback);
 
         $data = compact('events', 'lookback');
 

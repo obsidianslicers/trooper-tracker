@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Features\Troopers\Commands\DirectAddTrooperCommand;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Troopers\Commands\DirectAddTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
@@ -18,9 +18,9 @@ use Illuminate\Validation\Rule;
  * Handles submission of the recruit form.
  *
  * Validates trooper and organization, authorizes against the organization
- * (not the trooper being added), then dispatches DirectAddTrooperCommand.
+ * (not the trooper being added), then dispatches DirectAddTrooper.
  */
-class RecruitSubmitController extends MagicBusController
+class RecruitSubmitController extends PageController
 {
     protected function initialized(): void
     {
@@ -48,11 +48,11 @@ class RecruitSubmitController extends MagicBusController
             'identifier' => $this->buildIdentifierRules($organization, $subject),
         ]);
 
-        $this->bus->send(new DirectAddTrooperCommand(
-            $subject,
-            $organization,
-            $request->filled('identifier') ? $request->string('identifier')->toString() : null,
-        ));
+        DirectAddTrooper::call(
+            trooper: $subject,
+            organization: $organization,
+            identifier: $request->filled('identifier') ? $request->string('identifier')->toString() : null,
+        );
 
         return redirect()
             ->route('admin.troopers.recruit')

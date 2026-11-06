@@ -6,12 +6,12 @@ namespace App\Http\Controllers\Search;
 
 use App\Enums\SearchType;
 use App\Enums\TrooperTheme;
-use App\Features\Search\Queries\GlobalSearchQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Search\Queries\GlobalSearch;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class SearchController extends MagicBusController
+class SearchController extends PageController
 {
     public function __invoke(Request $request): View
     {
@@ -24,7 +24,7 @@ class SearchController extends MagicBusController
 
         if (strlen(trim($term)) >= 2)
         {
-            $results = $this->bus->send(new GlobalSearchQuery($term, $type->value));
+            $results = GlobalSearch::call(term: $term, type: $type->value);
         }
 
         $search_title = match ($request->user()->theme)

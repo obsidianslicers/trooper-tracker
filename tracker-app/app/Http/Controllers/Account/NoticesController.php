@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Messages\Notices\Queries\GetUnreadNotices;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
  * This controller retrieves notices visible to the trooper based on their
  * organization memberships and displays unread notices ordered by start date.
  */
-class NoticesController extends MagicBusController
+class NoticesController extends PageController
 {
     /**
      * Display the notices page for the authenticated trooper.

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Notices;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Notices\CreateRequest;
 use App\Models\Notice;
 use Illuminate\Http\RedirectResponse;
@@ -15,7 +15,7 @@ use Illuminate\Http\RedirectResponse;
  *
  * Handles the submission of the form for creating a new notice.
  */
-class CreateSubmitController extends MagicBusController
+class CreateSubmitController extends PageController
 {
     /**
      * Handle the incoming request to create a new notice

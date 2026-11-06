@@ -1,0 +1,266 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Messages\Reports\Queries;
+
+use App\Messages\Reports\Queries\GetLeaderboardMetrics;
+use App\Models\Costume;
+use App\Models\Event;
+use App\Models\EventShift;
+use App\Models\EventTrooper;
+use App\Models\Organization;
+use App\Models\Trooper;
+use App\Models\TrooperAssignment;
+use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
+
+class GetLeaderboardMetricsTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_handle_returns_leaderboard_array_with_expected_sections(): void
+    {
+        $result = (new GetLeaderboardMetrics(30))->handle();
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('dominance', $result);
+        $this->assertArrayHasKey('diversity', $result);
+        $this->assertArrayHasKey('operatives', $result);
+    }
+
+    public function test_handle_dominance_section_returns_collection(): void
+    {
+        $result = (new GetLeaderboardMetrics(30))->handle();
+
+        $this->assertInstanceOf(Collection::class, $result['dominance']);
+    }
+
+    public function test_handle_diversity_section_returns_collection(): void
+    {
+        $result = (new GetLeaderboardMetrics(30))->handle();
+
+        $this->assertInstanceOf(Collection::class, $result['diversity']);
+    }
+
+    public function test_handle_operatives_section_returns_collection(): void
+    {
+        $result = (new GetLeaderboardMetrics(30))->handle();
+
+        $this->assertInstanceOf(Collection::class, $result['operatives']);
+    }
+
+    public function test_handle_all_time_includes_attendance_outside_30_day_window(): void
+    {
+        $old_trooper = Trooper::factory()->asMember()->create();
+        $recent_trooper = Trooper::factory()->asMember()->create();
+
+        $this->createAttendance($old_trooper, now()->subDays(90));
+        $this->createAttendance($recent_trooper, now()->subDays(5));
+
+        $all_time = (new GetLeaderboardMetrics)->handle();
+        $thirty_days = (new GetLeaderboardMetrics(30))->handle();
+
+        $this->assertTrue($all_time['operatives']->pluck('trooper_id')->contains($old_trooper->id));
+        $this->assertFalse(
+            $thirty_days['operatives']->pluck('trooper_id')->contains($old_trooper->id)
+        );
+        $this->assertTrue(
+            $thirty_days['operatives']->pluck('trooper_id')->contains($recent_trooper->id)
+        );
+    }
+
+    public function test_handle_operatives_are_limited_to_30(): void
+    {
+        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
+
+        foreach (range(1, 31) as $index)
+        {
+            $trooper = Trooper::factory()->asMember()->create();
+            $shift = EventShift::factory()
+                ->forEvent($event)
+                ->withShiftStartsAt(now()->addMinutes($index))
+                ->create();
+
+            EventTrooper::factory()
+                ->forEventShift($shift)
+                ->forTrooper($trooper)
+                ->asAttended()
+                ->create();
+        }
+
+        $result = (new GetLeaderboardMetrics(null, null, 30))->handle();
+
+        $this->assertCount(30, $result['operatives']);
+    }
+
+    public function test_handle_club_filter_includes_direct_and_costume_credit(): void
+    {
+        $this->skipIfSqlite();
+        $club = Organization::factory()->asOrganization()->create();
+        $other_club = Organization::factory()->asOrganization()->create();
+        $direct_trooper = Trooper::factory()->asMember()->create();
+        $costume_credit_trooper = Trooper::factory()->asMember()->create();
+        $other_trooper = Trooper::factory()->asMember()->create();
+
+        TrooperAssignment::factory()->forTrooper($direct_trooper)->forOrganization($club)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($costume_credit_trooper)->forOrganization($club)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($other_trooper)->forOrganization($other_club)->asMember()->create();
+
+        $this->createAttendance($direct_trooper, now()->subDays(5), $club);
+        $this->createAttendance($costume_credit_trooper, now()->subDays(5), null, [$club->id]);
+        $this->createAttendance($other_trooper, now()->subDays(5), $other_club);
+
+        $result = (new GetLeaderboardMetrics(null, $club))->handle();
+        $trooper_ids = $result['operatives']->pluck('trooper_id');
+
+        $this->assertTrue($trooper_ids->contains($direct_trooper->id));
+        $this->assertTrue($trooper_ids->contains($costume_credit_trooper->id));
+        $this->assertFalse($trooper_ids->contains($other_trooper->id));
+    }
+
+    public function test_handle_club_filter_uses_organization_id_when_costume_credit_is_empty_array(): void
+    {
+        $this->skipIfSqlite();
+        $club = Organization::factory()->asOrganization()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($club)->asMember()->create();
+        $event_trooper = $this->createAttendance($trooper, now()->subDays(5), $club);
+
+        DB::table('tt_event_troopers')
+            ->where(EventTrooper::ID, $event_trooper->id)
+            ->update([EventTrooper::COSTUME_ORGANIZATION_IDS => json_encode([])]);
+
+        $result = (new GetLeaderboardMetrics(null, $club))->handle();
+
+        $this->assertTrue($result['operatives']->pluck('trooper_id')->contains($trooper->id));
+    }
+
+    public function test_handle_club_filter_ignores_organization_id_when_costume_credit_points_elsewhere(): void
+    {
+        $this->skipIfSqlite();
+        $club = Organization::factory()->asOrganization()->create();
+        $other_club = Organization::factory()->asOrganization()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($club)->asMember()->create();
+        $event_trooper = $this->createAttendance($trooper, now()->subDays(5), $club);
+
+        DB::table('tt_event_troopers')
+            ->where(EventTrooper::ID, $event_trooper->id)
+            ->update([EventTrooper::COSTUME_ORGANIZATION_IDS => json_encode([$other_club->id])]);
+
+        $result = (new GetLeaderboardMetrics(null, $club))->handle();
+
+        $this->assertFalse($result['operatives']->pluck('trooper_id')->contains($trooper->id));
+    }
+
+    public function test_handle_diversity_includes_id_name_and_count_keys(): void
+    {
+        $costume = Costume::factory()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->asAttended()
+            ->create();
+
+        $result = (new GetLeaderboardMetrics)->handle();
+
+        $item = $result['diversity']->first();
+
+        $this->assertArrayHasKey('id', $item);
+        $this->assertArrayHasKey('name', $item);
+        $this->assertArrayHasKey('count', $item);
+        $this->assertSame($costume->id, $item['id']);
+        $this->assertSame($costume->name, $item['name']);
+        $this->assertSame(1, $item['count']);
+    }
+
+    public function test_handle_operatives_count_only_attended_records_on_closed_events(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+
+        $this->createAttendance($trooper, now()->subDays(5));
+        $this->createAttendance($trooper, now()->subDays(4), null, [], false);
+
+        $closed_event = Event::factory()->asClosed()->withEventStart(now()->subDays(3))->create();
+        $shift = EventShift::factory()->forEvent($closed_event)->create();
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $result = (new GetLeaderboardMetrics)->handle();
+
+        $this->assertSame(1, (int) $result['operatives']->first()->troop_count);
+    }
+
+    public function test_handle_club_filter_includes_former_member_with_club_credit(): void
+    {
+        $this->skipIfSqlite();
+        $club = Organization::factory()->asOrganization()->create();
+        $former_member = Trooper::factory()->asMember()->create();
+
+        TrooperAssignment::factory()->forTrooper($former_member)->forOrganization($club)
+            ->asMember()->create()->delete();
+
+        $this->createAttendance($former_member, now()->subDays(5), null, [$club->id]);
+
+        $result = (new GetLeaderboardMetrics(null, $club))->handle();
+
+        $this->assertTrue($result['operatives']->pluck('trooper_id')->contains($former_member->id));
+    }
+
+    /**
+     * @param  array<int, int>  $costume_organization_ids
+     */
+    private function createAttendance(
+        Trooper $trooper,
+        Carbon $event_start,
+        ?Organization $organization = null,
+        array $costume_organization_ids = [],
+        bool $closed = true,
+    ): EventTrooper {
+        $event_factory = Event::factory()->withEventStart($event_start);
+
+        if ($closed)
+        {
+            $event_factory = $event_factory->asClosed();
+        }
+
+        $event = $event_factory->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->asAttended()
+            ->create([
+                EventTrooper::ORGANIZATION_ID => $organization?->id,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => $costume_organization_ids ?: null,
+            ]);
+
+        if ($costume_organization_ids !== [])
+        {
+            DB::table('tt_event_troopers')
+                ->where(EventTrooper::ID, $event_trooper->id)
+                ->update([
+                    EventTrooper::ORGANIZATION_ID => null,
+                    EventTrooper::COSTUME_ORGANIZATION_IDS => json_encode(
+                        $costume_organization_ids
+                    ),
+                ]);
+
+            $event_trooper->refresh();
+        }
+
+        return $event_trooper;
+    }
+}

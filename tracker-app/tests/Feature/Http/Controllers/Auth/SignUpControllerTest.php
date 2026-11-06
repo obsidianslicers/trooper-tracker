@@ -18,12 +18,12 @@ class SignUpControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('layouts.inertia');
-        $response->assertInertia(fn(Assert $page) => $page
+        $response->assertInertia(fn (Assert $page) => $page
             ->component('auth/SignUp')
             ->has('oauth')
             ->has('oauth.session')
-            ->has('oauth.xenforo')
-            ->has('oauth.google')
+            ->has('oauth.providers')
+            ->where('oauth.required', null)
             ->has('oauth.email_password')
         );
     }

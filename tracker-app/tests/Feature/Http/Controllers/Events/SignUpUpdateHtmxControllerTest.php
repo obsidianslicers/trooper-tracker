@@ -18,6 +18,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class SignUpUpdateHtmxControllerTest extends TestCase
@@ -803,5 +804,117 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
             EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => true,
         ]);
+    }
+
+    /**
+     * @return array<string, array{EventTrooperStatus}>
+     */
+    public static function statusesTroopersCannotPick(): array
+    {
+        return [
+            'attended' => [EventTrooperStatus::ATTENDED],
+            'stand by' => [EventTrooperStatus::STAND_BY],
+            'not picked' => [EventTrooperStatus::NOT_PICKED],
+            'no show' => [EventTrooperStatus::NO_SHOW],
+            'unable to attend' => [EventTrooperStatus::UNABLE_TO_ATTEND],
+        ];
+    }
+
+    #[DataProvider('statusesTroopersCannotPick')]
+    public function test_invoke_refuses_a_status_the_dropdown_does_not_offer(EventTrooperStatus $status): void
+    {
+        [$trooper, $event_trooper] = $this->goingTrooper();
+
+        $response = $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+            'status' => $status->value,
+        ]);
+
+        $response->assertOk();
+        $response->assertHeader('X-Flash-Message');
+        $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
+    }
+
+    public function test_invoke_refuses_marking_a_friend_as_attended(): void
+    {
+        [$trooper, $event_trooper] = $this->goingTrooper();
+
+        $friend_signup = EventTrooper::factory()
+            ->forEventShift($event_trooper->event_shift)
+            ->forTrooper(Trooper::factory()->asActive()->create())
+            ->asGoing()
+            ->state([EventTrooper::ADDED_BY_TROOPER_ID => $trooper->id])
+            ->create();
+
+        $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $friend_signup->id]), [
+            'status' => EventTrooperStatus::ATTENDED->value,
+        ]);
+
+        $this->assertSame(EventTrooperStatus::GOING, $friend_signup->fresh()->status);
+    }
+
+    public function test_invoke_refuses_tentative_when_the_event_does_not_offer_it(): void
+    {
+        [$trooper, $event_trooper] = $this->goingTrooper();
+        $event_trooper->event_shift->event->update([Event::TENTATIVE_SIGNUPS_ALLOWED => false]);
+
+        $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+            'status' => EventTrooperStatus::TENTATIVE->value,
+        ]);
+
+        $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
+    }
+
+    public function test_invoke_still_allows_the_statuses_the_dropdown_offers(): void
+    {
+        [$trooper, $event_trooper] = $this->goingTrooper();
+        $event_trooper->event_shift->event->update([
+            Event::TENTATIVE_SIGNUPS_ALLOWED => true,
+            Event::TROOPERS_ALLOWED => null,
+            Event::HANDLERS_ALLOWED => null,
+        ]);
+
+        foreach ([EventTrooperStatus::TENTATIVE, EventTrooperStatus::CANCELLED] as $status)
+        {
+            $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+                'status' => $status->value,
+            ])->assertOk();
+
+            $this->assertSame($status, $event_trooper->fresh()->status);
+        }
+    }
+
+    public function test_invoke_lets_a_moderator_reject_on_a_manual_selection_event(): void
+    {
+        [$trooper, $event_trooper] = $this->goingTrooper();
+        $event_trooper->event_shift->event->update([Event::STATUS => EventStatus::MANUAL_SELECTION]);
+        $administrator = Trooper::factory()->asAdministrator()->asActive()->withVerifiedEmail()->create();
+
+        $this->actingAs($administrator)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+            'status' => EventTrooperStatus::STAND_BY->value,
+        ]);
+
+        $this->assertSame(EventTrooperStatus::STAND_BY, $event_trooper->fresh()->status);
+    }
+
+    /**
+     * @return array{Trooper, EventTrooper}
+     */
+    private function goingTrooper(): array
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        return [$trooper, $event_trooper];
     }
 }

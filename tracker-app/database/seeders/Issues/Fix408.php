@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Issues;
 
-use App\Bus\MagicBus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipStatus;
 use App\Mail\Fix408AmbiguousMemberships;
@@ -57,7 +56,7 @@ class Fix408 extends Seeder
     /** @var array<int, array<string, mixed>> */
     private array $ambiguous_memberships = [];
 
-    public function run(MagicBus $bus): void
+    public function run(): void
     {
         if (!Schema::hasTable('troopers'))
         {
@@ -74,9 +73,8 @@ class Fix408 extends Seeder
             $this->printSummary();
         });
 
-        $this->emailAdministrators($bus, Fix408OutstandingCredit::class, $this->outstanding_rows);
+        $this->emailAdministrators(Fix408OutstandingCredit::class, $this->outstanding_rows);
         $this->emailAdministrators(
-            $bus,
             Fix408AmbiguousMemberships::class,
             $this->ambiguous_memberships,
         );

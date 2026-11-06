@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Features\Changes\Queries\GetModelChangesForTrooperQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Changes\Queries\GetModelChangesForTrooper;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * Presents a trooper's recent audit trail showing changes to their profile
  * and event participation records for administrators and moderators to review.
  */
-class ChangesController extends MagicBusController
+class ChangesController extends PageController
 {
     protected function initialized(): void
     {
@@ -28,7 +28,7 @@ class ChangesController extends MagicBusController
      * Handle the incoming request to display a trooper's change history page
      *
      * This method authorizes the user, sets up breadcrumbs, loads the trooper's
-     * recent model changes via GetModelChangesForTrooperQuery, and returns the view
+     * recent model changes via GetModelChangesForTrooper, and returns the view
      * showing the trooper's audit trail of changes.
      *
      * @param  Request  $request  The incoming HTTP request
@@ -41,9 +41,7 @@ class ChangesController extends MagicBusController
 
         $lookback = now()->subDays(30);
 
-        $changes_query = new GetModelChangesForTrooperQuery($trooper, $lookback);
-
-        $changes = $this->bus->send($changes_query);
+        $changes = GetModelChangesForTrooper::call(trooper: $trooper, lookback: $lookback);
 
         $data = compact('trooper', 'changes');
 

@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Facades\TroopTrackerFacade;
-use App\Features\Events\Queries\GetEventDisplayQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\PageController;
+use App\Messages\Events\Queries\GetEventDisplay;
 use App\Models\Event;
 use App\Models\EventWatch;
-use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -21,7 +19,7 @@ use Illuminate\Http\Request;
  * It loads the event with all related data including organizations, shifts,
  * and trooper assignments.
  */
-class EventDisplayController extends MagicBusController
+class EventDisplayController extends PageController
 {
     /**
      * Initialize controller by setting up breadcrumb navigation.
@@ -42,13 +40,11 @@ class EventDisplayController extends MagicBusController
      * @param  Event  $event  The event to display for sign-up
      * @return View The rendered event sign-up page
      */
-    public function __invoke(Request $request, Event $event, XenforoService $xenforo): View
+    public function __invoke(Request $request, Event $event): View
     {
         $trooper = $request->user();
 
-        $event_query = new GetEventDisplayQuery($event, $trooper);
-
-        $event = $this->bus->send($event_query);
+        $event = GetEventDisplay::call(event: $event, trooper: $trooper);
 
         $can_moderate = $trooper->isModeratorForOrganization($event->organization);
 
@@ -64,24 +60,6 @@ class EventDisplayController extends MagicBusController
             $bg = 'bg-secondary';
         }
 
-        // XenForo base URL, if configured
-        $xenforoBaseUrl = config('services.xenforo.base_url', '');
-
-        // XenForo thread posts (optional)
-        $xenforoThreadPosts = [];
-        $smilies = [];
-        if (TroopTrackerFacade::isXenforoIntegrationConfigured())
-        {
-            $smilies = $xenforo->get_smilies();
-
-            if (!empty($event->thread_id) && !empty($event->post_id))
-            {
-                $threadId = (int) $event->thread_id;
-                $excludePostId = (int) $event->post_id;
-                $xenforoThreadPosts = $xenforo->get_thread_posts($threadId, exclude_post_id: $excludePostId, per_page: 50, max_pages: 20);
-            }
-        }
-
         $is_watching = EventWatch::where('event_id', $event->id)
             ->where('trooper_id', $trooper->id)
             ->exists();
@@ -90,9 +68,6 @@ class EventDisplayController extends MagicBusController
             'event',
             'can_moderate',
             'bg',
-            'xenforoBaseUrl',
-            'xenforoThreadPosts',
-            'smilies',
             'mission_brief_required',
             'has_mission_brief_ack',
             'is_watching'
