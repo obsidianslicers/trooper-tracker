@@ -8,6 +8,7 @@ use App\Enums\EventTrooperStatus;
 use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\UpdateEventTrooper;
+use App\Messages\Events\Commands\Verification\RequestTroopVerification;
 use App\Models\EventTrooper;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\View\View;
@@ -79,6 +80,11 @@ class ShiftCompleteClubController extends PageController
 
         $child_org_ids = $event_trooper->childOrgIdsForSelectedParents($submitted_ids);
 
+        if ($event_trooper->isAwaitingVerification() || $event_trooper->trooper->is_untrusted)
+        {
+            return $this->requestVerification($event_trooper, $child_org_ids);
+        }
+
         $valid_data = [
             EventTrooper::STATUS => EventTrooperStatus::ATTENDED,
             EventTrooper::COSTUME_ORGANIZATION_IDS => $child_org_ids,
@@ -88,6 +94,21 @@ class ShiftCompleteClubController extends PageController
         UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
 
         $message = 'Excellent work trooper! Imperial records now reflect your heroic presence.';
+
+        return view('pages.events.shift-complete', compact('event_trooper', 'message'));
+    }
+
+    /**
+     * @param  array<int, int>  $organization_ids
+     */
+    private function requestVerification(EventTrooper $event_trooper, array $organization_ids): View
+    {
+        if (!$event_trooper->isAwaitingVerification())
+        {
+            RequestTroopVerification::call(event_trooper: $event_trooper, organization_ids: $organization_ids);
+        }
+
+        $message = ShiftCompleteController::VERIFICATION_MESSAGE;
 
         return view('pages.events.shift-complete', compact('event_trooper', 'message'));
     }

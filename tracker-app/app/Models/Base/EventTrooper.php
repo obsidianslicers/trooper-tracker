@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $costume_id
  * @property bool $is_attending_without_costume
  * @property array|null $costume_organization_ids
+ * @property array|null $requested_organization_ids
+ * @property Carbon|null $verification_requested_at
  * @property int|null $backup_costume_id
  * @property array|null $backup_costume_organization_ids
  * @property int|null $added_by_trooper_id
@@ -59,6 +61,8 @@ class EventTrooper extends Model
     const COSTUME_ID = 'costume_id';
     const IS_ATTENDING_WITHOUT_COSTUME = 'is_attending_without_costume';
     const COSTUME_ORGANIZATION_IDS = 'costume_organization_ids';
+    const REQUESTED_ORGANIZATION_IDS = 'requested_organization_ids';
+    const VERIFICATION_REQUESTED_AT = 'verification_requested_at';
     const BACKUP_COSTUME_ID = 'backup_costume_id';
     const BACKUP_COSTUME_ORGANIZATION_IDS = 'backup_costume_organization_ids';
     const ADDED_BY_TROOPER_ID = 'added_by_trooper_id';
@@ -82,6 +86,8 @@ class EventTrooper extends Model
         self::COSTUME_ID => 'int',
         self::IS_ATTENDING_WITHOUT_COSTUME => 'bool',
         self::COSTUME_ORGANIZATION_IDS => 'json',
+        self::REQUESTED_ORGANIZATION_IDS => 'json',
+        self::VERIFICATION_REQUESTED_AT => 'datetime',
         self::BACKUP_COSTUME_ID => 'int',
         self::BACKUP_COSTUME_ORGANIZATION_IDS => 'json',
         self::ADDED_BY_TROOPER_ID => 'int',
@@ -102,6 +108,8 @@ class EventTrooper extends Model
         self::COSTUME_ID,
         self::IS_ATTENDING_WITHOUT_COSTUME,
         self::COSTUME_ORGANIZATION_IDS,
+        self::REQUESTED_ORGANIZATION_IDS,
+        self::VERIFICATION_REQUESTED_AT,
         self::BACKUP_COSTUME_ID,
         self::BACKUP_COSTUME_ORGANIZATION_IDS,
         self::ADDED_BY_TROOPER_ID,

@@ -8,6 +8,7 @@ use App\Enums\EventTrooperStatus;
 use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\UpdateEventTrooper;
+use App\Messages\Events\Commands\Verification\RequestTroopVerification;
 use App\Models\EventTrooper;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\View\View;
@@ -24,6 +25,9 @@ use ValueError;
  */
 class ShiftCompleteController extends PageController
 {
+    public const VERIFICATION_MESSAGE = 'Thanks, trooper! A moderator will confirm this troop '
+        .'before it shows on your service record.';
+
     private array $attended_messages = [
         'Excellent work trooper! Imperial records now reflect your heroic presence.',
         'Your dedication has been logged in the Imperial archives.',
@@ -81,6 +85,13 @@ class ShiftCompleteController extends PageController
             abort(404);
         }
 
+        if ($event_trooper->isAwaitingVerification())
+        {
+            $message = self::VERIFICATION_MESSAGE;
+
+            return view('pages.events.shift-complete', compact('event_trooper', 'message'));
+        }
+
         $message = '';
 
         if ($event_trooper->event_shift->event->can_update_trooper_status)
@@ -112,6 +123,14 @@ class ShiftCompleteController extends PageController
                 }
             }
 
+            if ($trooper_status === EventTrooperStatus::ATTENDED && $event_trooper->trooper->is_untrusted)
+            {
+                $this->requestVerification($event_trooper, $valid_data);
+                $message = self::VERIFICATION_MESSAGE;
+
+                return view('pages.events.shift-complete', compact('event_trooper', 'message'));
+            }
+
             UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
 
             $message = $this->getMessageForStatus($trooper_status);
@@ -122,6 +141,22 @@ class ShiftCompleteController extends PageController
         }
 
         return view('pages.events.shift-complete', compact('event_trooper', 'message'));
+    }
+
+    /**
+     * @param  array<string, mixed>  $valid_data
+     */
+    private function requestVerification(EventTrooper $event_trooper, array $valid_data): void
+    {
+        $organization_ids = $valid_data[EventTrooper::COSTUME_ORGANIZATION_IDS]
+            ?? $event_trooper->creditedOrgIds();
+
+        if (empty($organization_ids))
+        {
+            $organization_ids = [$event_trooper->event_shift->event->organization_id];
+        }
+
+        RequestTroopVerification::call(event_trooper: $event_trooper, organization_ids: $organization_ids);
     }
 
     private function getMessageForStatus(EventTrooperStatus $status): string

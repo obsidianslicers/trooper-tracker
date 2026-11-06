@@ -8,6 +8,7 @@ use App\Console\Commands\DispatchQueueHeartbeatCommand;
 use App\Console\Commands\ExpireVisitorAccessCommand;
 use App\Console\Commands\ProcessAccountDeletionsCommand;
 use App\Console\Commands\RemindClosedEventShiftsCommand;
+use App\Console\Commands\RemindStaleVerificationsCommand;
 use App\Console\Commands\SendDailyEventNotifications;
 use App\Console\Commands\SendDailyMilestoneNotifications;
 use App\Console\Commands\SendTentativeReminders;
@@ -53,6 +54,10 @@ Schedule::command(SendDailyMilestoneNotifications::class)
 
 Schedule::command(RemindClosedEventShiftsCommand::class)
     ->dailyAt('09:00')
+    ->timezone($timezone);
+
+Schedule::command(RemindStaleVerificationsCommand::class)
+    ->weeklyOn(1, '09:00')
     ->timezone($timezone);
 
 Schedule::command(SendTentativeReminders::class)

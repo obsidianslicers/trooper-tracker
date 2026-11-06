@@ -37,6 +37,11 @@ enum AdministrativeNotifications: string
     case PERMISSION_REQUESTS = 'permission_requests';
 
     /**
+     * Sent to administrators when troop verifications have waited more than 30 days.
+     */
+    case STALE_VERIFICATIONS = 'stale_verifications';
+
+    /**
      * Sent to the moderator who requested permission changes once an administrator reviews it.
      */
     case PERMISSION_REQUEST_REVIEWED = 'permission_request_reviewed';
@@ -48,6 +53,6 @@ enum AdministrativeNotifications: string
      */
     public static function administratorOnly(): array
     {
-        return [self::TROOPERS_MERGED, self::PERMISSION_REQUESTS];
+        return [self::TROOPERS_MERGED, self::PERMISSION_REQUESTS, self::STALE_VERIFICATIONS];
     }
 }

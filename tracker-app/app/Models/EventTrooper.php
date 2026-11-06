@@ -9,6 +9,7 @@ use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipRole;
 use App\Models\Base\EventTrooper as BaseEventTrooper;
 use App\Models\Concerns\HasAuditTrail;
+use App\Models\Concerns\HasCreditVerification;
 use App\Models\Concerns\HasObserver;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventTrooperScopes;
@@ -29,6 +30,7 @@ use Illuminate\Support\Facades\Crypt;
 class EventTrooper extends BaseEventTrooper
 {
     use HasAuditTrail;
+    use HasCreditVerification;
     use HasEventTrooperScopes;
     use HasFactory;
     use HasObserver;
@@ -45,6 +47,7 @@ class EventTrooper extends BaseEventTrooper
             self::STATUS,
             self::COSTUME_ID,
             self::COSTUME_ORGANIZATION_IDS,
+            self::REQUESTED_ORGANIZATION_IDS,
             self::ORGANIZATION_ID,
         ];
     }
@@ -134,7 +137,8 @@ class EventTrooper extends BaseEventTrooper
 
         return Costume::forTrooper($this->trooper->id, $organization_ids)
             ->pluck('name', 'id')
-            ->sortBy(function ($name, $id) {
+            ->sortBy(function ($name, $id)
+            {
                 if ($name === Costume::COMMAND_STAFF)
                 {
                     return 2;
@@ -388,8 +392,10 @@ class EventTrooper extends BaseEventTrooper
             $member_orgs = $this->memberOrgsQuery()->get();
 
             return Organization::findMany($approved_ids)
-                ->filter(function ($approved_org) use ($member_orgs) {
-                    return $member_orgs->contains(function ($member_org) use ($approved_org) {
+                ->filter(function ($approved_org) use ($member_orgs)
+                {
+                    return $member_orgs->contains(function ($member_org) use ($approved_org)
+                    {
                         return str_starts_with($member_org->node_path, $approved_org->node_path)
                             || str_starts_with($approved_org->node_path, $member_org->node_path);
                     });

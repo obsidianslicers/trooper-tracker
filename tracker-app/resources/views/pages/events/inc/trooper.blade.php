@@ -6,6 +6,10 @@
         </a>
         <br/>
         <span class="text-muted small">{{ $event_trooper->trooper->legal_name }}</span>
+        @if(($can_moderate ?? false) && $event_trooper->trooper->is_untrusted)
+            <br />
+            <span class="badge text-bg-warning">Needs verification</span>
+        @endif
         @if($event_trooper->added_by_trooper_id > 0)
             <br />
             <i class="small text-muted">
@@ -174,7 +178,7 @@
                                 hx-swap="outerHTML"
                                 class="form-select-sm" />
             @elseif($event_shift->is_closed && $event_shift->shift_ends_at->isPast() && $event_trooper->isEligibleForAttendance() && ($can_moderate || $event_trooper->canMarkAttendance(Auth::user())))
-                @if($event_trooper->status === \App\Enums\EventTrooperStatus::ATTENDED || $event_trooper->status === \App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND)
+                @if(in_array($event_trooper->status, [\App\Enums\EventTrooperStatus::ATTENDED, \App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND, \App\Enums\EventTrooperStatus::AWAITING_VERIFICATION], true))
                     <span class="{{ $event_trooper->status->color() }} d-block mb-1">
                         {{ to_title($event_trooper->status->name) }}
                         <span class="d-none d-md-inline">

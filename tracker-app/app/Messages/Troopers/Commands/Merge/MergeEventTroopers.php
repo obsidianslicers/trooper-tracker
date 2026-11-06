@@ -75,6 +75,15 @@ final class MergeEventTroopers extends Message
             $source_event_trooper->costume_organization_ids ?? [],
             $target_event_trooper->costume_organization_ids ?? []
         );
+        $requested = array_values(array_unique(array_merge(
+            $source_event_trooper->requested_organization_ids ?? [],
+            $target_event_trooper->requested_organization_ids ?? []
+        )));
+        $target_event_trooper->requested_organization_ids = empty($requested) ? null : $requested;
+        $target_event_trooper->verification_requested_at = $this->earliestDateTime(
+            $target_event_trooper->verification_requested_at,
+            $source_event_trooper->verification_requested_at,
+        );
         $target_event_trooper->backup_costume_id = $source_event_trooper->backup_costume_id ?? $target_event_trooper->backup_costume_id;
         $target_event_trooper->backup_costume_organization_ids = array_merge(
             $source_event_trooper->backup_costume_organization_ids ?? [],
@@ -124,6 +133,7 @@ final class MergeEventTroopers extends Message
             'tentative' => 20,
             'standby' => 30,
             'going' => 40,
+            'verifying' => 45,
             'attended' => 50,
             'notpicked' => 60,
             'unabletoattend' => 70,

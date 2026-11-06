@@ -115,6 +115,17 @@
             <p class="text-success mb-0">No costumes waiting</p>
         @endif
     </x-dashboard-card>
+    <x-dashboard-card :label="'Troop Verifications'"
+                      :icon="'fa-user-clock'"
+                      :url="route('admin.troopers.troop-verifications')">
+        @if($troops_awaiting_verification > 0)
+            <p class="text-warning mb-0">
+                {{ $troops_awaiting_verification }} troop{{ $troops_awaiting_verification === 1 ? '' : 's' }} awaiting verification
+            </p>
+        @else
+            <p class="text-success mb-0">No troops waiting</p>
+        @endif
+    </x-dashboard-card>
     <x-dashboard-card :label="'Troopers'"
                       :icon="'fa-users-gear'"
                       :url="route('admin.troopers.list')">
