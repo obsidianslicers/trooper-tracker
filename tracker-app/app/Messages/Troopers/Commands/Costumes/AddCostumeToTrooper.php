@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\Commands\Costumes;
 
+use App\Jobs\SendCostumeRequestNotificationsJob;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
@@ -39,17 +40,31 @@ final class AddCostumeToTrooper extends Message
             })
             ->get();
 
+        $pending_ids = [];
+
         foreach ($organization_costumes as $organization_costume)
         {
-            $this->requestCostume($organization_costume);
+            $trooper_costume = $this->requestCostume($organization_costume);
+
+            if ($trooper_costume?->isPending())
+            {
+                $pending_ids[] = $trooper_costume->id;
+            }
+        }
+
+        if ($pending_ids !== [])
+        {
+            SendCostumeRequestNotificationsJob::dispatch($this->trooper, $pending_ids);
         }
     }
 
     /**
      * Self-added costumes wait for an officer of that club. A costume the trooper removed
      * themselves comes back as it was; one an officer revoked was reset to pending.
+     * Returns the row only when this call created or restored it, so a costume that
+     * is already listed doesn't notify officers again.
      */
-    private function requestCostume(OrganizationCostume $organization_costume): void
+    private function requestCostume(OrganizationCostume $organization_costume): ?TrooperCostume
     {
         $trooper_costume = TrooperCostume::withTrashed()
             ->withPending()
@@ -59,17 +74,19 @@ final class AddCostumeToTrooper extends Message
 
         if ($trooper_costume === null)
         {
-            $this->trooper->trooper_costumes()->create([
+            return $this->trooper->trooper_costumes()->create([
                 TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
                 TrooperCostume::APPROVED_AT => null,
             ]);
-
-            return;
         }
 
-        if ($trooper_costume->trashed())
+        if (!$trooper_costume->trashed())
         {
-            $trooper_costume->restore();
+            return null;
         }
+
+        $trooper_costume->restore();
+
+        return $trooper_costume;
     }
 }

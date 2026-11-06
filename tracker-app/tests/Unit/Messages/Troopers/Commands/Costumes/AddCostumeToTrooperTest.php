@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Troopers\Commands\Costumes;
 
+use App\Jobs\SendCostumeRequestNotificationsJob;
 use App\Messages\Troopers\Commands\Costumes\AddCostumeToTrooper;
 use App\Models\Costume;
 use App\Models\Organization;
@@ -12,6 +13,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class AddCostumeToTrooperTest extends TestCase
@@ -123,5 +125,81 @@ class AddCostumeToTrooperTest extends TestCase
         $this->assertNotNull($revoked);
         $this->assertTrue($revoked->isPending());
         $this->assertFalse($revoked->trashed());
+    }
+
+    public function test_handle_queues_officer_notifications_for_new_pending_costumes(): void
+    {
+        Queue::fake();
+        [$trooper, $organization, $costume, $organization_costume] = $this->singleClubCostume();
+
+        $subject = new AddCostumeToTrooper($trooper, $costume->id, [$organization->id]);
+        $subject->handle();
+
+        $added = TrooperCostume::withPending()
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $organization_costume->id)
+            ->firstOrFail();
+
+        Queue::assertPushed(
+            SendCostumeRequestNotificationsJob::class,
+            fn (SendCostumeRequestNotificationsJob $job): bool => $this->jobIds($job) === [$added->id]
+        );
+    }
+
+    public function test_handle_does_not_notify_again_for_a_costume_already_listed(): void
+    {
+        Queue::fake();
+        [$trooper, $organization, $costume, $organization_costume] = $this->singleClubCostume();
+        TrooperCostume::factory()
+            ->forTrooper($trooper)
+            ->forOrganizationCostume($organization_costume)
+            ->pending()
+            ->create();
+
+        $subject = new AddCostumeToTrooper($trooper, $costume->id, [$organization->id]);
+        $subject->handle();
+
+        Queue::assertNotPushed(SendCostumeRequestNotificationsJob::class);
+    }
+
+    public function test_handle_does_not_notify_when_an_approved_costume_comes_back(): void
+    {
+        Queue::fake();
+        [$trooper, $organization, $costume, $organization_costume] = $this->singleClubCostume();
+        $approved = TrooperCostume::factory()
+            ->forTrooper($trooper)
+            ->forOrganizationCostume($organization_costume)
+            ->create();
+        $approved->delete();
+
+        $subject = new AddCostumeToTrooper($trooper, $costume->id, [$organization->id]);
+        $subject->handle();
+
+        Queue::assertNotPushed(SendCostumeRequestNotificationsJob::class);
+    }
+
+    /**
+     * @return array{0: Trooper, 1: Organization, 2: Costume, 3: OrganizationCostume}
+     */
+    private function singleClubCostume(): array
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $costume = Costume::factory()->create();
+        $organization_costume = OrganizationCostume::factory()
+            ->forOrganization($organization)
+            ->forCostume($costume)
+            ->create();
+
+        return [$trooper, $organization, $costume, $organization_costume];
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function jobIds(SendCostumeRequestNotificationsJob $job): array
+    {
+        return (fn (): array => $this->trooper_costume_ids)->call($job);
     }
 }
