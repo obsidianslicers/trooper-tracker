@@ -36,7 +36,7 @@ enum MembershipRole: string
     /**
      * An administrator without the developer tools (Plugins, System Check, Merge).
      */
-    case MANAGER = 'manager';
+    case STAFF_OFFICER = 'staff_officer';
 
     /**
      * An administrator with full system access and control.
@@ -53,11 +53,11 @@ enum MembershipRole: string
     }
 
     /**
-     * Whether the role carries administrator access (Administrator or Manager).
+     * Whether the role carries administrator access (Administrator or Staff Officer).
      */
     public function hasAdministratorAccess(): bool
     {
-        return $this === self::ADMINISTRATOR || $this === self::MANAGER;
+        return $this === self::ADMINISTRATOR || $this === self::STAFF_OFFICER;
     }
 
     /**

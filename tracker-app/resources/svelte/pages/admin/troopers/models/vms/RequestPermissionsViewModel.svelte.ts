@@ -139,7 +139,7 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
         return (
             this.lookup !== null &&
             this.current_role !== "administrator" &&
-            this.current_role !== "manager"
+            this.current_role !== "staff_officer"
         );
     }
 

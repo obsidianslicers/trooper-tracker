@@ -119,7 +119,7 @@
                       :url="route('admin.troopers.permissions.request')">
         Ask an administrator to change a trooper's role or forum groups.
     </x-dashboard-card>
-    @role(['administrator', 'manager'])
+    @role(['administrator', 'staff_officer'])
     <x-dashboard-card :label="'Permission Approvals'"
                       :icon="'fa-user-lock'"
                       :url="route('admin.troopers.permissions.approvals')">
@@ -179,7 +179,7 @@
                       :url="route('admin.reports.display')">
         View Reports &amp; Statistics
     </x-dashboard-card>
-    @role(['administrator', 'manager'])
+    @role(['administrator', 'staff_officer'])
     <x-dashboard-card :label="'FAQ & Help'"
                       :icon="'fa-question'"
                       :url="route('admin.faq.index')">

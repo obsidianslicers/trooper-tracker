@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 //  ADMIN/COSTUMES
 Route::prefix('admin/costumes')
     ->name('admin.costumes.')
-    ->middleware(['auth', 'check.role:manager,administrator'])
+    ->middleware(['auth', 'check.role:staff_officer,administrator'])
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');

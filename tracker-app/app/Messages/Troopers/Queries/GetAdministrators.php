@@ -19,7 +19,10 @@ final class GetAdministrators extends Message
     public function handle(): Collection
     {
         return Trooper::active()
-            ->whereIn(Trooper::MEMBERSHIP_ROLE, [MembershipRole::ADMINISTRATOR, MembershipRole::MANAGER])
+            ->whereIn(Trooper::MEMBERSHIP_ROLE, [
+                MembershipRole::ADMINISTRATOR,
+                MembershipRole::STAFF_OFFICER,
+            ])
             ->orderBy(Trooper::DISPLAY_NAME)
             ->get();
     }

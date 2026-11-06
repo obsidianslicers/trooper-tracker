@@ -32,16 +32,16 @@ class GetAdministratorsTest extends TestCase
         );
     }
 
-    public function test_handle_includes_active_managers(): void
+    public function test_handle_includes_active_staff_officers(): void
     {
         Trooper::factory()->asAdministrator()->withDisplayName('Bravo Admin')->create();
-        Trooper::factory()->asManager()->withDisplayName('Alpha Manager')->create();
-        Trooper::factory()->asManager()->asRetired()->withDisplayName('Retired Manager')->create();
+        Trooper::factory()->asStaffOfficer()->withDisplayName('Alpha Staff Officer')->create();
+        Trooper::factory()->asStaffOfficer()->asRetired()->withDisplayName('Retired Staff Officer')->create();
 
         $result = (new GetAdministrators)->handle();
 
         $this->assertSame(
-            ['Alpha Manager', 'Bravo Admin'],
+            ['Alpha Staff Officer', 'Bravo Admin'],
             $result->pluck(Trooper::DISPLAY_NAME)->all(),
         );
     }

@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
-class ManagerAccessTest extends TestCase
+class StaffOfficerAccessTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -41,32 +41,32 @@ class ManagerAccessTest extends TestCase
     }
 
     #[DataProvider('developerRoutes')]
-    public function test_manager_cannot_open_developer_tools(string $route): void
+    public function test_staff_officer_cannot_open_developer_tools(string $route): void
     {
-        $manager = Trooper::factory()->asManager()->create();
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
 
-        $response = $this->actingAs($manager)->get(route($route));
+        $response = $this->actingAs($staff_officer)->get(route($route));
 
         $response->assertForbidden();
     }
 
     #[DataProvider('administratorRoutes')]
-    public function test_manager_can_open_administrator_pages(string $route): void
+    public function test_staff_officer_can_open_administrator_pages(string $route): void
     {
-        $manager = Trooper::factory()->asManager()->create();
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
 
-        $response = $this->actingAs($manager)->get(route($route));
+        $response = $this->actingAs($staff_officer)->get(route($route));
 
         $response->assertOk();
     }
 
-    public function test_manager_cannot_submit_merge_troopers(): void
+    public function test_staff_officer_cannot_submit_merge_troopers(): void
     {
-        $manager = Trooper::factory()->asManager()->create();
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $source = Trooper::factory()->create();
         $target = Trooper::factory()->create();
 
-        $response = $this->actingAs($manager)->post(route('admin.troopers.merge'), [
+        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.merge'), [
             'source_trooper_id' => $source->id,
             'target_trooper_id' => $target->id,
         ]);
@@ -74,11 +74,11 @@ class ManagerAccessTest extends TestCase
         $response->assertForbidden();
     }
 
-    public function test_dashboard_hides_developer_tools_from_manager(): void
+    public function test_dashboard_hides_developer_tools_from_staff_officer(): void
     {
-        $manager = Trooper::factory()->asManager()->create();
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
 
-        $response = $this->actingAs($manager)->get(route('admin.display'));
+        $response = $this->actingAs($staff_officer)->get(route('admin.display'));
 
         $response->assertOk();
         $response->assertSee('Permission Approvals');
@@ -100,26 +100,26 @@ class ManagerAccessTest extends TestCase
         $response->assertSee('Merge Costumes');
     }
 
-    public function test_manager_can_make_a_trooper_a_manager(): void
+    public function test_staff_officer_can_make_a_trooper_a_staff_officer(): void
     {
-        $manager = Trooper::factory()->asManager()->create();
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $subject = Trooper::factory()->create();
 
-        $response = $this->actingAs($manager)->post(route('admin.troopers.authority', $subject), [
-            Trooper::MEMBERSHIP_ROLE => MembershipRole::MANAGER->value,
+        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.authority', $subject), [
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::STAFF_OFFICER->value,
             'organizations' => [],
         ]);
 
         $response->assertRedirect(route('admin.troopers.list'));
-        $this->assertSame(MembershipRole::MANAGER, $subject->fresh()->membership_role);
+        $this->assertSame(MembershipRole::STAFF_OFFICER, $subject->fresh()->membership_role);
     }
 
-    public function test_manager_cannot_make_a_trooper_an_administrator(): void
+    public function test_staff_officer_cannot_make_a_trooper_an_administrator(): void
     {
-        $manager = Trooper::factory()->asManager()->create();
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $subject = Trooper::factory()->create();
 
-        $response = $this->actingAs($manager)->post(route('admin.troopers.authority', $subject), [
+        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.authority', $subject), [
             Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR->value,
             'organizations' => [],
         ]);
@@ -128,16 +128,16 @@ class ManagerAccessTest extends TestCase
         $this->assertSame(MembershipRole::MEMBER, $subject->fresh()->membership_role);
     }
 
-    public function test_manager_cannot_change_an_administrator(): void
+    public function test_staff_officer_cannot_change_an_administrator(): void
     {
-        $manager = Trooper::factory()->asManager()->create();
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $administrator = Trooper::factory()->asAdministrator()->create();
 
-        $this->actingAs($manager)
+        $this->actingAs($staff_officer)
             ->get(route('admin.troopers.authority', $administrator))
             ->assertForbidden();
 
-        $this->actingAs($manager)
+        $this->actingAs($staff_officer)
             ->post(route('admin.troopers.authority', $administrator), [
                 Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER->value,
                 'organizations' => [],
@@ -147,15 +147,15 @@ class ManagerAccessTest extends TestCase
         $this->assertSame(MembershipRole::ADMINISTRATOR, $administrator->fresh()->membership_role);
     }
 
-    public function test_authority_page_hides_administrator_option_from_manager(): void
+    public function test_authority_page_hides_administrator_option_from_staff_officer(): void
     {
-        $manager = Trooper::factory()->asManager()->create();
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $subject = Trooper::factory()->create();
 
-        $response = $this->actingAs($manager)->get(route('admin.troopers.authority', $subject));
+        $response = $this->actingAs($staff_officer)->get(route('admin.troopers.authority', $subject));
 
         $response->assertOk();
-        $response->assertSee('value="manager"', false);
+        $response->assertSee('value="staff_officer"', false);
         $response->assertDontSee('value="administrator"', false);
     }
 }

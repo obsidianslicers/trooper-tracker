@@ -54,10 +54,10 @@ class TrooperFactory extends BaseTrooperFactory
         ]);
     }
 
-    public function asManager(): static
+    public function asStaffOfficer(): static
     {
         return $this->state(fn(array $attributes): array => [
-            Trooper::MEMBERSHIP_ROLE => MembershipRole::MANAGER,
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::STAFF_OFFICER,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
     }

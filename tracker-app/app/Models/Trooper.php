@@ -124,9 +124,9 @@ class Trooper extends BaseTrooper implements
     }
 
     /**
-     * Check if the trooper has administrator access (Administrator or Manager).
+     * Check if the trooper has administrator access (Administrator or Staff Officer).
      *
-     * @return bool True if the trooper is an active administrator or manager.
+     * @return bool True if the trooper is an active administrator or staff officer.
      */
     public function getIsAdministratorAttribute(): bool
     {
@@ -136,7 +136,7 @@ class Trooper extends BaseTrooper implements
     /**
      * Check if the trooper may use the developer tools (Plugins, System Check, Merge).
      *
-     * @return bool True only for an active Administrator, never a Manager.
+     * @return bool True only for an active Administrator, never a Staff Officer.
      */
     public function getHasDeveloperAccessAttribute(): bool
     {

@@ -132,31 +132,31 @@ class AuthorityRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_authorize_returns_true_for_manager(): void
+    public function test_authorize_returns_true_for_staff_officer(): void
     {
-        $manager = Trooper::factory()->asManager()->create();
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $subject = new AuthorityRequest;
-        $subject->setUserResolver(fn () => $manager);
+        $subject->setUserResolver(fn () => $staff_officer);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $this->assertTrue($subject->authorize());
     }
 
-    public function test_authorize_returns_false_for_manager_editing_administrator(): void
+    public function test_authorize_returns_false_for_staff_officer_editing_administrator(): void
     {
-        $manager = Trooper::factory()->asManager()->create();
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $subject = new AuthorityRequest;
-        $subject->setUserResolver(fn () => $manager);
+        $subject->setUserResolver(fn () => $staff_officer);
         $this->setupMockedRoute($subject, $this->admin);
 
         $this->assertFalse($subject->authorize());
     }
 
-    public function test_rules_rejects_administrator_role_from_manager(): void
+    public function test_rules_rejects_administrator_role_from_staff_officer(): void
     {
-        $manager = Trooper::factory()->asManager()->create();
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $subject = new AuthorityRequest;
-        $subject->setUserResolver(fn () => $manager);
+        $subject->setUserResolver(fn () => $staff_officer);
 
         $validator = Validator::make(
             [Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR->value],

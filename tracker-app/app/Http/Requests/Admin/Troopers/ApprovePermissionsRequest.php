@@ -52,7 +52,7 @@ class ApprovePermissionsRequest extends FormRequest
         if ($value->membership_role !== null
             && $value->trooper->membership_role->hasAdministratorAccess())
         {
-            $fail('This trooper is now an administrator or manager. Deny the request instead.');
+            $fail('This trooper is now an administrator or staff officer. Deny the request instead.');
         }
     }
 }

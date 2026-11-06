@@ -82,7 +82,7 @@ final class ApproveTrooperPermissions extends Message
         if ($trooper->membership_role->hasAdministratorAccess())
         {
             throw new RuntimeException(
-                'Administrator and manager roles cannot be changed by a permission request.'
+                'Administrator and staff officer roles cannot be changed by a permission request.'
             );
         }
 

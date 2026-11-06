@@ -33,7 +33,11 @@ final class GetCommandStaff extends Message
      */
     public function handle(): Collection
     {
-        $roles = [MembershipRole::ADMINISTRATOR, MembershipRole::MANAGER, MembershipRole::MODERATOR];
+        $roles = [
+            MembershipRole::ADMINISTRATOR,
+            MembershipRole::STAFF_OFFICER,
+            MembershipRole::MODERATOR,
+        ];
 
         $troopers = Trooper::active()
             ->whereIn(Trooper::MEMBERSHIP_ROLE, $roles)

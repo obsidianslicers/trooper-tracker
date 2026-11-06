@@ -68,11 +68,11 @@ class TrooperPolicy
 
     /**
      * Determine whether the user can update a trooper's authority/role.
-     * Managers may not change an Administrator's role.
+     * Staff officers may not change an Administrator's role.
      *
      * @param  Trooper  $trooper  The authenticated user performing the action.
      * @param  Trooper  $subject  The trooper whose authority is being updated.
-     * @return bool True if the user is an administrator or manager allowed to edit the subject.
+     * @return bool True if the user is an administrator or staff officer allowed to edit the subject.
      */
     public function updateAuthority(Trooper $trooper, Trooper $subject): bool
     {
