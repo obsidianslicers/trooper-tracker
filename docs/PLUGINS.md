@@ -275,7 +275,9 @@ $this->addToSlot(
 | `admin.events.form.fields` | Event create and edit forms, Miscellaneous section. Pair with `extendForm(PluginForms::EVENT_UPDATE)`. | `$event` |
 | `admin.organizations.update.fields` | Organization edit form, inside the `<form>`. Pair with `extendForm`. | `$organization` |
 | `service-records.trooper.badges` | Service record, under the trooper's name. | `$trooper` |
+| `service-records.trooper.summary` | Service record, Service Summary card, below the troop and hour totals. | `$trooper`, `$service_summary` |
 | `service-records.trooper.actions` | Service record, in the button group at the top right. Render buttons. | `$trooper` |
+| `service-records.trooper.history` | Service record, History tab, below the trooper's shifts. | `$trooper` |
 | `service-records.trooper.donations` | Service record, Donations tab, above the local donation records. | `$trooper` |
 
 Svelte pages have slots too. Their names are listed in `App\Plugins\PluginSlots::SVELTE_SLOTS`; the server renders them to HTML on every Inertia request and the page shows them with `<PluginSlot name="..." />` (`resources/svelte/lib/components/PluginSlot.svelte`). The views get `$request` and `$actor` (the signed-in trooper) instead of page variables. The markup is inserted as plain HTML, so `<script>` tags in it do not run; use links and forms.
@@ -516,6 +518,28 @@ Google Maps geocoding of event addresses stays in core (`GoogleService`, `GOOGLE
 Sites that sync clubs from Google Sheets must enable the plugin (Admin > Plugins, or `php artisan plugins:enable google-sheets`) and deploy once, or those syncs read nothing.
 
 ---
+
+---
+
+## The Linked Trackers plugin
+
+Garrisons run their own trackers. The Linked Trackers plugin (`federation`) lets a trooper link their account on another garrison's tracker, so their service record here also shows the troops they did there. There is no central server: every tracker is equal, and each link is made by the trooper.
+
+**What a trooper sees.** Profile > Linked Trackers (also a button on their own service record) lists their links. To add one they pick a tracker, sign in there with their normal login, and press Allow. Their service record here then shows "Linked Trackers", "All-Time Troops" and "All-Time Hours" in the Service Summary, and a "Troops from Linked Trackers" table under History. A troop that overlaps one recorded here, or one from another linked tracker, counts once. Linked troops never count toward this tracker's reports, leaderboards, awards, achievements or club credit. A trooper can link as many trackers as they like, and unlink any of them; unlinking removes the copied troops.
+
+**What is shared.** Only attended shifts of closed events recorded on that tracker: event name, type and venue, shift times, costume, the clubs credited, and whether the trooper was a handler. Never emails, phones, legal names, contacts or other troopers. A tracker only shares troops it recorded itself, never ones it copied from another tracker. Troopers under 18 (or with a guardian) can't link or allow a link. Under "Trackers that can see your history here" a trooper can remove another tracker's access; that tracker then removes the copy on its next refresh.
+
+**Which trackers can link.** `plugins/federation/trackers.json` in this repository lists the supported trackers (name and HTTPS address). A garrison joins with a pull request adding its tracker. Each tracker reads that list from GitHub (cached for a day, or from the **Tracker list URL** setting) plus the copy bundled with the plugin. Links only work between trackers on the list, and a trooper is only ever sent back to the tracker that asked. The System Check row "Linked trackers: this tracker is on the list" warns while this tracker is missing from it.
+
+**How it works.** It follows the OAuth authorization code flow with PKCE:
+
+1. The trooper's tracker sends them to `/plugins/federation/authorize` on the other tracker with its own address, its callback (`/plugins/federation/callback`), a random `state` and a `code_challenge`.
+2. After Allow, the other tracker sends them back with a one-time code (valid for 5 minutes, stored hashed).
+3. The trooper's tracker swaps it at `POST /webhooks/federation/token` (with the PKCE verifier) for an access key that only reads that trooper's history. Only a hash of the key is kept on the sharing side.
+4. It reads `POST /webhooks/federation/history` with the key as a Bearer token, right away, every night at 4:00 (`php artisan federation:refresh-links`), and when the trooper presses Refresh. The copy is replaced whole each time. If the other tracker can't be reached the old copy stays; if it refuses the key, the copy is removed.
+5. Unlinking calls `POST /webhooks/federation/revoke`, so the other tracker forgets the key.
+
+**Turning it on.** Enable **Linked Trackers** on the Plugins page; make sure `APP_URL` is the tracker's public HTTPS address, since that is how other trackers know it. Settings: **Tracker name** (shown to other trackers; defaults to the site name), **Let troopers share their history with other trackers** (on by default; off still lets troopers link other trackers here), and **Tracker list URL**.
 
 ---
 

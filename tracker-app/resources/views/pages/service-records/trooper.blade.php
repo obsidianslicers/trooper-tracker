@@ -135,6 +135,7 @@
                          id="recent-shifts"
                          role="tabpanel">
                         @include('pages.service-records.inc.trooper-recent-shifts')
+                        @pluginSlot('service-records.trooper.history')
                     </div>
                     <div class="tab-pane fade"
                          id="awards"

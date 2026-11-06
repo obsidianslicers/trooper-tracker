@@ -1,0 +1,34 @@
+{
+    "slug": "federation",
+    "name": "Linked Trackers",
+    "version": "1.0.0",
+    "description": "Lets troopers link their accounts on other garrisons' trackers, so their service record shows every troop they have done on any linked tracker.",
+    "author": "Obsidian Slicers",
+    "namespace": "TroopTracker\\Plugins\\Federation",
+    "provider": "TroopTracker\\Plugins\\Federation\\FederationServiceProvider",
+    "capabilities": ["schedule", "webhooks"],
+    "requires": {
+        "trooptracker": "^1.0"
+    },
+    "settings": [
+        {
+            "key": "tracker_name",
+            "label": "Tracker name",
+            "type": "text",
+            "help": "How this tracker is named to troopers on other trackers, for example 501st Florida Garrison. Leave empty to use the site name."
+        },
+        {
+            "key": "share_history",
+            "label": "Let troopers share their history with other trackers",
+            "type": "boolean",
+            "default": true,
+            "help": "When off, troopers can still link other trackers here, but other trackers can't read troop history from this one."
+        },
+        {
+            "key": "directory_url",
+            "label": "Tracker list URL",
+            "type": "url",
+            "help": "Where the list of supported trackers is read from. Leave empty to use the list in the TroopTracker repository."
+        }
+    ]
+}
