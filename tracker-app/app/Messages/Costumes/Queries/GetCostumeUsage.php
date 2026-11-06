@@ -33,6 +33,7 @@ final class GetCostumeUsage extends Message
             'organizations' => $organization_costume_ids->count(),
             'troopers' => TrooperCostume::query()
                 ->withTrashed()
+                ->withPending()
                 ->whereIn(TrooperCostume::ORGANIZATION_COSTUME_ID, $organization_costume_ids)
                 ->count(),
             'event_signups' => EventTrooper::query()

@@ -159,6 +159,50 @@ class BaseOrganizationServiceTest extends TestCase
         $this->assertSame('https://img/lg.jpg', $saved->{TrooperCostume::IMAGE_URL_LG});
     }
 
+    public function test_sync_trooper_costume_approves_a_pending_self_added_costume(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $sheets = app(PluginSheetSource::class);
+
+        $subject = new BaseOrganizationServiceHarness($organization, $sheets);
+        $org_costume = $subject->publicGetOrCreateOrganizationCostume('Scout Trooper');
+
+        $pending = TrooperCostume::factory()
+            ->forTrooper($trooper)
+            ->forOrganizationCostume($org_costume)
+            ->pending()
+            ->create();
+
+        $subject->publicSyncTrooperCostume($trooper, $org_costume, []);
+
+        $pending->refresh();
+        $this->assertFalse($pending->isPending());
+        $this->assertNull($pending->{TrooperCostume::APPROVED_ID});
+        $this->assertDatabaseCount('tt_trooper_costumes', 1);
+    }
+
+    public function test_sync_trooper_costume_leaves_other_pending_costumes_pending(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $sheets = app(PluginSheetSource::class);
+
+        $subject = new BaseOrganizationServiceHarness($organization, $sheets);
+        $listed = $subject->publicGetOrCreateOrganizationCostume('Scout Trooper');
+        $unlisted = $subject->publicGetOrCreateOrganizationCostume('Emperor Palpatine');
+
+        $pending = TrooperCostume::factory()
+            ->forTrooper($trooper)
+            ->forOrganizationCostume($unlisted)
+            ->pending()
+            ->create();
+
+        $subject->publicSyncTrooperCostume($trooper, $listed, []);
+
+        $this->assertTrue($pending->refresh()->isPending());
+    }
+
     public function test_clean_input_returns_null_for_null_and_sanitizes_strings(): void
     {
         $organization = Organization::factory()->create();

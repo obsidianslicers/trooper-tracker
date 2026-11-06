@@ -42,30 +42,35 @@ trait HasCostumeScopes
      * Costume::forTrooper($trooper_id, [1, 2, 3])->get();
      * ```
      *
-     * @param Builder $query The query builder instance
-     * @param int $trooper_id The ID of the trooper to filter by
-     * @param Collection|array<int>|null $organization_ids Optional collection or array of organization IDs to filter by.
+     * @param  Builder  $query  The query builder instance
+     * @param  int  $trooper_id  The ID of the trooper to filter by
+     * @param  Collection|array<int>|null  $organization_ids  Optional collection or array of organization IDs to filter by.
      *                                                        When provided, only includes organization_costumes
      *                                                        from these organizations.
      * @return Builder The modified query builder for method chaining
      */
     public function scopeSearchFor(Builder $query, string $search_term): Builder
     {
-        $term = '%' . trim($search_term, '%') . '%';
+        $term = '%'.trim($search_term, '%').'%';
 
         return $query->where(self::NAME, 'like', $term);
     }
 
-    public function scopeForTrooper(Builder $query, int $trooper_id, Collection|array|null $organization_ids = null): Builder
-    {
+    public function scopeForTrooper(
+        Builder $query,
+        int $trooper_id,
+        Collection|array|null $organization_ids = null,
+        bool $include_pending = false,
+    ): Builder {
         return $query
-            ->where(function ($query) use ($trooper_id, $organization_ids)
+            ->where(function ($query) use ($trooper_id, $organization_ids, $include_pending)
             {
-                $query->whereHas('organization_costumes', function ($query) use ($trooper_id, $organization_ids)
+                $query->whereHas('organization_costumes', function ($query) use ($trooper_id, $organization_ids, $include_pending)
                 {
-                    $query->whereHas('trooper_costumes', function ($q) use ($trooper_id)
+                    $query->whereHas('trooper_costumes', function ($q) use ($trooper_id, $include_pending)
                     {
-                        $q->where(TrooperCostume::TROOPER_ID, $trooper_id);
+                        $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
+                            ->when($include_pending, fn ($q) => $q->withPending());
                     });
 
                     if ($organization_ids != null)
@@ -75,14 +80,15 @@ trait HasCostumeScopes
                 })
                     ->orWhereIn(Costume::NAME, [Costume::COMMAND_STAFF, Costume::HANDLER]);
             })
-            ->with(['organization_costumes' => function ($query) use ($trooper_id, $organization_ids)
+            ->with(['organization_costumes' => function ($query) use ($trooper_id, $organization_ids, $include_pending)
             {
                 // Only pull the organization details if the trooper actually has the approval
-                $with = 'organization:' . Organization::ID . ',' . Organization::NAME;
+                $with = 'organization:'.Organization::ID.','.Organization::NAME;
                 $query->with($with)
-                    ->whereHas('trooper_costumes', function ($q) use ($trooper_id)
+                    ->whereHas('trooper_costumes', function ($q) use ($trooper_id, $include_pending)
                     {
-                        $q->where(TrooperCostume::TROOPER_ID, $trooper_id);
+                        $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
+                            ->when($include_pending, fn ($q) => $q->withPending());
                     });
 
                 if ($organization_ids !== null)

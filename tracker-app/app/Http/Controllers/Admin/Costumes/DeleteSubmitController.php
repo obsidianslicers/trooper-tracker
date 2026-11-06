@@ -49,6 +49,7 @@ class DeleteSubmitController extends PageController
 
             // Soft-delete trooper costumes linked to this costume's org variants
             TrooperCostume::query()
+                ->withPending()
                 ->whereIn(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume_ids)
                 ->get()
                 ->each->delete();

@@ -22,16 +22,24 @@ class TrooperCostumeFactory extends BaseTrooperCostumeFactory
         ]);
     }
 
+    public function pending(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            TrooperCostume::APPROVED_AT => null,
+            TrooperCostume::APPROVED_ID => null,
+        ]);
+    }
+
     public function forTrooper(Trooper $trooper): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             TrooperCostume::TROOPER_ID => $trooper->{Trooper::ID},
         ]);
     }
 
     public function forOrganizationCostume(OrganizationCostume $organization_costume): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->{OrganizationCostume::ID},
         ]);
     }

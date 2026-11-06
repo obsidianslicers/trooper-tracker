@@ -25,6 +25,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $image_url_lg
  * @property string|null $image_url_bucket_off
  * @property Carbon|null $synchronized_at
+ * @property Carbon|null $approved_at
+ * @property int|null $approved_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -48,6 +50,8 @@ class TrooperCostume extends Model
     const IMAGE_URL_LG = 'image_url_lg';
     const IMAGE_URL_BUCKET_OFF = 'image_url_bucket_off';
     const SYNCHRONIZED_AT = 'synchronized_at';
+    const APPROVED_AT = 'approved_at';
+    const APPROVED_ID = 'approved_id';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -61,6 +65,8 @@ class TrooperCostume extends Model
         self::TROOPER_ID => 'int',
         self::ORGANIZATION_COSTUME_ID => 'int',
         self::SYNCHRONIZED_AT => 'datetime',
+        self::APPROVED_AT => 'datetime',
+        self::APPROVED_ID => 'int',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -74,7 +80,9 @@ class TrooperCostume extends Model
         self::IMAGE_URL_SM,
         self::IMAGE_URL_LG,
         self::IMAGE_URL_BUCKET_OFF,
-        self::SYNCHRONIZED_AT
+        self::SYNCHRONIZED_AT,
+        self::APPROVED_AT,
+        self::APPROVED_ID
     ];
 
     public function organization_costume(): BelongsTo

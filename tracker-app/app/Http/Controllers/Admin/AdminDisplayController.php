@@ -8,6 +8,7 @@ use App\Enums\MembershipStatus;
 use App\Http\Controllers\PageController;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
+use App\Models\TrooperCostume;
 use App\Models\TrooperRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -28,6 +29,11 @@ class AdminDisplayController extends PageController
             ->forModerator($trooper)
             ->count();
 
+        $pending_costumes = TrooperCostume::onlyPending()
+            ->moderatedBy($trooper)
+            ->whereHas('trooper')
+            ->count();
+
         $pending_permission_requests = $trooper->is_administrator
             ? PermissionRequest::pending()->count()
             : 0;
@@ -36,6 +42,7 @@ class AdminDisplayController extends PageController
             'not_approved',
             'pending_join_requests',
             'pending_permission_requests',
+            'pending_costumes',
         ));
     }
 }

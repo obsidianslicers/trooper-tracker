@@ -6,6 +6,7 @@ namespace App\Messages\Troopers\Commands\Costumes;
 
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperCostume;
 use Hyperdrive\Message;
 
 /**
@@ -27,7 +28,8 @@ final class RemoveCostumeFromTrooper extends Message
      */
     public function handle(): void
     {
-        $trooper_costumes = $this->trooper->trooper_costumes()
+        $trooper_costumes = TrooperCostume::withPending()
+            ->where(TrooperCostume::TROOPER_ID, $this->trooper->id)
             ->whereHas('organization_costume', function ($query)
             {
                 $query->where(OrganizationCostume::COSTUME_ID, $this->costume_id);
