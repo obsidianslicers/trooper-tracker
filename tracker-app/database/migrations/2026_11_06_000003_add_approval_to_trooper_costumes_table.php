@@ -20,15 +20,19 @@ return new class extends Migration {
 
         //  existing costumes are trusted, except self-added costumes in clubs that sync
         //  from an API: those were never confirmed by the club and wait for an officer
-        $unconfirmed_synced_ids = DB::table('tt_trooper_costumes as tc')
-            ->join('tt_organization_costumes as oc', 'oc.id', '=', 'tc.organization_costume_id')
-            ->join('tt_organizations as o', 'o.id', '=', 'oc.organization_id')
-            ->whereNull('tc.synchronized_at')
-            ->whereNotNull('o.synchronizer')
-            ->pluck('tc.id');
-
         DB::table('tt_trooper_costumes')
-            ->whereNotIn('id', $unconfirmed_synced_ids)
+            ->where(function ($query): void
+            {
+                $query->whereNotNull('synchronized_at')
+                    ->orWhereNotExists(function ($synced_club): void
+                    {
+                        $synced_club->select(DB::raw(1))
+                            ->from('tt_organization_costumes as oc')
+                            ->join('tt_organizations as o', 'o.id', '=', 'oc.organization_id')
+                            ->whereColumn('oc.id', 'tt_trooper_costumes.organization_costume_id')
+                            ->whereNotNull('o.synchronizer');
+                    });
+            })
             ->update([
                 'approved_at' => DB::raw('COALESCE(synchronized_at, created_at, CURRENT_TIMESTAMP)'),
             ]);

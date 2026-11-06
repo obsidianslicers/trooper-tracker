@@ -8,7 +8,9 @@ use App\Messages\Troopers\Commands\Costumes\ApproveTrooperCostume;
 use App\Messages\Troopers\Commands\Costumes\DenyTrooperCostume;
 use App\Messages\Troopers\Commands\Costumes\RevokeTrooperCostume;
 use App\Models\TrooperCostume;
+use App\Notifications\Troopers\CostumeApprovedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use RuntimeException;
 use Tests\Concerns\BuildsCostumeReviews;
 use Tests\TestCase;
@@ -35,6 +37,41 @@ class ReviewTrooperCostumeTest extends TestCase
         $pending->refresh();
         $this->assertFalse($pending->isPending());
         $this->assertSame($moderator->id, $pending->approved_id);
+    }
+
+    public function test_approve_notifies_the_trooper(): void
+    {
+        Notification::fake();
+        $moderator = $this->moderatorOf($this->garrison);
+        $trooper = $this->memberOf($this->garrison);
+        $pending = $this->costumeFor($trooper, $this->club);
+
+        (new ApproveTrooperCostume($moderator, $pending))->handle();
+
+        Notification::assertSentTo(
+            $trooper,
+            CostumeApprovedNotification::class,
+            fn (CostumeApprovedNotification $notification): bool => $notification->costume_name === 'Emperor Palpatine'
+                && $notification->club_name === '501st Legion'
+        );
+    }
+
+    public function test_approved_notification_renders_mail_and_database_payload(): void
+    {
+        $trooper = $this->memberOf($this->garrison);
+
+        $subject = new CostumeApprovedNotification(
+            costume_name: 'Emperor Palpatine',
+            club_name: '501st Legion',
+        );
+
+        $html = $subject->toMail($trooper)->render();
+        $payload = $subject->toArray($trooper);
+
+        $this->assertStringContainsString('Emperor Palpatine', $html);
+        $this->assertStringContainsString('501st Legion', $html);
+        $this->assertSame('Costume Approved', $payload['title']);
+        $this->assertSame('Emperor Palpatine is approved for 501st Legion.', $payload['body']);
     }
 
     public function test_approve_refuses_an_approved_costume(): void
