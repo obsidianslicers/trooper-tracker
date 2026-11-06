@@ -12,8 +12,7 @@ test.describe('membership approvals', () => {
 
         await card.getByRole('button', { name: 'Approve' }).click();
 
-        await expect(page.locator('.card').filter({ hasText: seeded.recruit.name }))
-            .toHaveCount(0);
+        await expect(page.getByText('Trooper membership approved successfully.')).toBeVisible();
 
         await page.reload();
         await expect(page.getByText(seeded.recruit.name)).toHaveCount(0);

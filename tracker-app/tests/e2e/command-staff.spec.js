@@ -6,8 +6,8 @@ test.use({ storageState: personas.admin.storageState });
 async function pickFromModal(page, fieldLabel, search, choice) {
     await page.getByLabel(fieldLabel).click();
 
-    const modal = page.locator('.modal.show');
-    await modal.getByLabel('Search').fill(search);
+    const modal = page.getByRole('dialog');
+    await modal.getByRole('textbox').fill(search);
     await modal.getByRole('button', { name: choice }).click();
 
     await expect(modal).toBeHidden();
@@ -23,8 +23,8 @@ test('an administrator merges a duplicate costume into the one to keep', async (
     await page.getByRole('button', { name: 'Merge Costumes' }).click();
 
     await page.goto('/admin/costumes');
-    await expect(page.getByText(seeded.keptCostume)).toBeVisible();
-    await expect(page.getByText(seeded.duplicateCostume)).toHaveCount(0);
+    await expect(page.getByRole('cell', { name: seeded.keptCostume })).toBeVisible();
+    await expect(page.getByRole('cell', { name: seeded.duplicateCostume })).toHaveCount(0);
 });
 
 test('an administrator merges a duplicate trooper into another', async ({ page }) => {
@@ -35,5 +35,5 @@ test('an administrator merges a duplicate trooper into another', async ({ page }
 
     await page.getByRole('button', { name: 'Merge Troopers' }).click();
 
-    await expect(page.getByText(/merged/i).first()).toBeVisible();
+    await expect(page.getByText('Troopers are currently being merged.')).toBeVisible();
 });

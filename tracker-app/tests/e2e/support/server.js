@@ -29,13 +29,14 @@ if (seed.status !== 0) {
 const server = spawn(
     php,
     [
+        // -q drops the per-request access log so failures stay readable.
+        '-q',
         '-S',
         `${e2eEnv.E2E_HOST}:${e2eEnv.E2E_PORT}`,
-        '-t',
-        'public',
-        'vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php',
+        `${APP_ROOT}/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php`,
     ],
-    { cwd: APP_ROOT, env, stdio: 'inherit' },
+    // Laravel's router script serves files from the working directory, so start in public/.
+    { cwd: `${APP_ROOT}/public`, env, stdio: 'inherit' },
 );
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
