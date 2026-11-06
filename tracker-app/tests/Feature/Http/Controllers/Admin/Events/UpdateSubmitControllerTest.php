@@ -68,7 +68,6 @@ class UpdateSubmitControllerTest extends TestCase
             'allow_props' => false,
             'parking_available' => false,
             'accessible' => false,
-            'create_forum_thread' => false,
         ]);
 
         $response->assertRedirect();
@@ -104,7 +103,6 @@ class UpdateSubmitControllerTest extends TestCase
             'allow_props' => false,
             'parking_available' => false,
             'accessible' => false,
-            'create_forum_thread' => false,
         ]);
 
         $response->assertRedirect();
@@ -137,7 +135,6 @@ class UpdateSubmitControllerTest extends TestCase
             'allow_props' => false,
             'parking_available' => false,
             'accessible' => false,
-            'create_forum_thread' => false,
         ]);
 
         $response->assertRedirect();
@@ -167,7 +164,6 @@ class UpdateSubmitControllerTest extends TestCase
             'allow_props' => false,
             'parking_available' => false,
             'accessible' => false,
-            'create_forum_thread' => false,
         ]);
 
         $response->assertRedirect();
@@ -209,7 +205,6 @@ class UpdateSubmitControllerTest extends TestCase
             'allow_props' => false,
             'parking_available' => false,
             'accessible' => false,
-            'create_forum_thread' => false,
         ]);
 
         $response->assertSessionHasErrors(Event::ORGANIZATION_ID);

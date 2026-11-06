@@ -1,0 +1,1216 @@
+<?php
+
+namespace TroopTracker\Plugins\Xenforo\Services;
+
+use App\Helpers\SmiliesRenderer;
+use App\Models\OauthLogin;
+use DOMDocument;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
+use Throwable;
+use TroopTracker\Plugins\Xenforo\Support\ForumBBCodeRenderer;
+use TroopTracker\Plugins\Xenforo\Support\XenforoUpgradeHelper;
+
+class XenforoService
+{
+    private string $base_url;
+
+    private ?string $api_key;
+
+    private ?string $api_user;
+
+    /**
+     * Whether the forum URL and API key are set, which every API feature needs.
+     */
+    public static function isConfigured(): bool
+    {
+        return filled(config('plugins.xenforo.base_url')) && filled(config('plugins.xenforo.api_key'));
+    }
+
+    public function __construct()
+    {
+        $this->base_url = rtrim((string) config('plugins.xenforo.base_url', ''), '/');
+        $this->api_key = config('plugins.xenforo.api_key');
+        $this->api_user = config('plugins.xenforo.api_user');
+    }
+
+    private function buildApiHeaders(?int $user_id = null): array
+    {
+        if (empty($this->api_key))
+        {
+            return [];
+        }
+
+        $headers = [
+            'XF-Api-Key' => (string) $this->api_key,
+        ];
+
+        $effectiveUser = $user_id ?? $this->api_user;
+
+        if (!empty($effectiveUser))
+        {
+            $headers['XF-Api-User'] = (string) $effectiveUser;
+        }
+
+        return $headers;
+    }
+
+    /**
+     * Fetch all smilies from XenForo and cache them for 24 hours.
+     *
+     * Returns an empty array when XenForo is not configured or the request fails,
+     * so callers can safely pass the result to SmiliesRenderer::render() without
+     * any conditional logic.
+     *
+     * @return array<int, array{smilie_id:int,title:string,smilie_text:string[],image_url:string,image_url_2x:string}>
+     */
+    public function get_smilies(): array
+    {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return [];
+        }
+
+        return Cache::remember('xenforo_smilies', 86400, function (): array
+        {
+            $url = $this->base_url.'/api/smilies';
+
+            try
+            {
+                $response = Http::withHeaders(['XF-Api-Key' => (string) $this->api_key])
+                    ->acceptJson()
+                    ->timeout(5)
+                    ->get($url);
+            }
+            catch (Throwable $e)
+            {
+                Log::warning('Failed to fetch XenForo smilies', ['message' => $e->getMessage()]);
+
+                return [];
+            }
+
+            if (!$response->successful())
+            {
+                return [];
+            }
+
+            $data = $response->json();
+            $smilies = $data['smilies'] ?? [];
+            $baseUrl = rtrim((string) ($data['base_url'] ?? ''), '/');
+
+            if (!is_array($smilies))
+            {
+                return [];
+            }
+
+            foreach ($smilies as &$smiley)
+            {
+                if (!empty($smiley['image_url']) && !Str::startsWith($smiley['image_url'], ['http://', 'https://']))
+                {
+                    $smiley['image_url'] = $baseUrl.'/'.ltrim($smiley['image_url'], '/');
+                }
+            }
+            unset($smiley);
+
+            return $smilies;
+        });
+    }
+
+    /**
+     * Fetch recent posts for a XenForo thread.
+     *
+     * @return array<int, array{post_id:int,username:string,avatar_url:?string,message:string,message_bbcode:string,message_html:string,post_date:?int,post_url:?string}>
+     */
+    public function get_thread_posts(
+        int $thread_id,
+        ?int $exclude_post_id = null,
+        int $per_page = 50,
+        int $max_pages = 10
+    ): array {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return [];
+        }
+
+        $url = $this->base_url.'/api/threads/'.$thread_id.'/posts';
+
+        $headers = [
+            'XF-Api-Key' => (string) $this->api_key,
+        ];
+
+        if (!empty($this->api_user))
+        {
+            $headers['XF-Api-User'] = (string) $this->api_user;
+        }
+
+        $normalized = [];
+        $page = 1;
+        $max_pages = max(1, $max_pages);
+        $per_page = max(1, $per_page);
+
+        while ($page <= $max_pages)
+        {
+            try
+            {
+                $response = Http::withHeaders($headers)
+                    ->acceptJson()
+                    ->timeout(5)
+                    ->get($url, [
+                        'page' => $page,
+                        'per_page' => $per_page,
+                    ]);
+            }
+            catch (Throwable $e)
+            {
+                Log::warning('Failed to fetch XenForo thread posts', [
+                    'thread_id' => $thread_id,
+                    'url' => $url,
+                    'page' => $page,
+                    'message' => $e->getMessage(),
+                ]);
+
+                break;
+            }
+
+            if (!$response->successful())
+            {
+                break;
+            }
+
+            $data = $response->json();
+            $posts = $data['posts'] ?? [];
+            if (!is_array($posts))
+            {
+                break;
+            }
+
+            foreach ($posts as $post)
+            {
+                if (!is_array($post) || empty($post['post_id']))
+                {
+                    continue;
+                }
+
+                $user = null;
+                if (isset($post['User']) && is_array($post['User']))
+                {
+                    $user = $post['User'];
+                }
+                elseif (isset($post['user']) && is_array($post['user']))
+                {
+                    $user = $post['user'];
+                }
+
+                $username = (string) (
+                    $user['username'] ??
+                    $post['username'] ??
+                    $post['user_username'] ??
+                    'Unknown'
+                );
+
+                $avatar_url = null;
+                if (is_array($user))
+                {
+                    $avatar_url = $user['avatar_urls']['s']
+                        ?? $user['avatar_urls']['m']
+                        ?? $user['avatar_url']
+                        ?? null;
+                }
+
+                if (is_string($avatar_url) && $avatar_url !== '' && !Str::startsWith($avatar_url, ['http://', 'https://']))
+                {
+                    $avatar_url = $this->base_url.'/'.ltrim($avatar_url, '/');
+                }
+
+                $raw_message = (string) ($post['message'] ?? $post['message_text'] ?? '');
+                $message_bbcode = trim($raw_message);
+
+                // Fallback preview for list rendering/search.
+                $message_plain = preg_replace('~\[attach[^\]]*\].*?\[/attach\]~si', '', $message_bbcode) ?? '';
+                $message_plain = trim(preg_replace('/\s+/', ' ', preg_replace('~\[[^\]]+\]~', '', $message_plain) ?? '') ?? '');
+                $message_html = SmiliesRenderer::render(
+                    ForumBBCodeRenderer::toHtml($message_bbcode, $this->map_post_attachments($post)),
+                    $this->get_smilies()
+                );
+
+                $post_id = (int) $post['post_id'];
+                $post_url = !empty($this->base_url) ? $this->base_url.'/posts/'.$post_id.'/' : null;
+
+                $normalized[] = [
+                    'post_id' => $post_id,
+                    'username' => $username,
+                    'avatar_url' => is_string($avatar_url) ? $avatar_url : null,
+                    'message' => $message_plain,
+                    'message_bbcode' => $message_bbcode,
+                    'message_html' => $message_html,
+                    'post_date' => isset($post['post_date']) ? (int) $post['post_date'] : null,
+                    'post_url' => $post_url,
+                ];
+            }
+
+            $lastPage = null;
+            if (isset($data['pagination']) && is_array($data['pagination']))
+            {
+                $lastPage = isset($data['pagination']['last_page']) ? (int) $data['pagination']['last_page'] : null;
+            }
+
+            if ($lastPage !== null && $page >= $lastPage)
+            {
+                break;
+            }
+
+            // XenForo ignores per_page and uses the forum's own page size (often 20),
+            // so a short page does not mean it is the last one.
+            if ($lastPage === null && $posts === [])
+            {
+                break;
+            }
+
+            $page++;
+        }
+
+        if ($exclude_post_id !== null)
+        {
+            $normalized = array_values(array_filter(
+                $normalized,
+                static fn (array $post): bool => (int) ($post['post_id'] ?? 0) !== $exclude_post_id
+            ));
+        }
+
+        usort($normalized, static function (array $a, array $b): int
+        {
+            $dateA = (int) ($a['post_date'] ?? 0);
+            $dateB = (int) ($b['post_date'] ?? 0);
+
+            if ($dateA === $dateB)
+            {
+                return (int) ($b['post_id'] ?? 0) <=> (int) ($a['post_id'] ?? 0);
+            }
+
+            return $dateB <=> $dateA;
+        });
+
+        return $normalized;
+    }
+
+    /**
+     * Fetch the raw file for a XenForo attachment.
+     *
+     * @return array{content:string,content_type:string,filename:?string}|null
+     */
+    public function get_attachment_data(int $attachment_id): ?array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $attachment_id <= 0)
+        {
+            return null;
+        }
+
+        $url = $this->base_url.'/api/attachments/'.$attachment_id.'/data';
+
+        try
+        {
+            $response = Http::withHeaders($this->buildApiHeaders())
+                ->timeout(10)
+                ->get($url);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo attachment', [
+                'attachment_id' => $attachment_id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (!$response->successful())
+        {
+            return null;
+        }
+
+        preg_match('~filename="?([^";]+)"?~i', $response->header('Content-Disposition'), $matches);
+
+        return [
+            'content' => $response->body(),
+            'content_type' => $response->header('Content-Type') ?: 'application/octet-stream',
+            'filename' => isset($matches[1]) ? basename($matches[1]) : null,
+        ];
+    }
+
+    /**
+     * Map a post's attachments by id to URLs served through the tracker, so
+     * viewers don't need forum permissions to see them.
+     *
+     * @param  array<string, mixed>  $post
+     * @return array<int, array{url:string,filename:string,is_image:bool}>
+     */
+    private function map_post_attachments(array $post): array
+    {
+        $attachments = $post['Attachments'] ?? [];
+        if (!is_array($attachments))
+        {
+            return [];
+        }
+
+        $mapped = [];
+
+        foreach ($attachments as $attachment)
+        {
+            if (!is_array($attachment) || (int) ($attachment['attachment_id'] ?? 0) <= 0)
+            {
+                continue;
+            }
+
+            $attachment_id = (int) $attachment['attachment_id'];
+
+            $is_media = !empty($attachment['is_video']) || !empty($attachment['is_audio']);
+
+            $mapped[$attachment_id] = [
+                'url' => URL::signedRoute('events.forum-attachment', ['attachment_id' => $attachment_id]),
+                'filename' => (string) ($attachment['filename'] ?? 'Attachment '.$attachment_id),
+                'is_image' => !$is_media && (int) ($attachment['height'] ?? 0) > 0,
+            ];
+        }
+
+        return $mapped;
+    }
+
+    /**
+     * Create a new reply post in an existing XenForo thread.
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function create_post(
+        int $thread_id,
+        string $message,
+        ?int $user_id = null
+    ): array {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        if ($thread_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        if ($user_id === null)
+        {
+            $user_id = $this->resolve_user_id_for_trooper(Auth::id());
+        }
+
+        $url = $this->base_url.'/api/posts';
+
+        $payload = [
+            'thread_id' => $thread_id,
+            'message' => $message,
+            'api_bypass_permissions' => 1,
+        ];
+
+        $headers = $this->buildApiHeaders($user_id);
+
+        $response = Http::withHeaders($headers)->asForm()->post($url, $payload);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    public function create_thread(
+        int $node_id,
+        string $title,
+        string $message,
+        ?int $user_id = null,
+        ?int $prefix_id = null,
+        array $extra_fields = []
+    ): array {
+        // If no explicit XenForo user ID was provided, attempt to resolve it
+        // from the currently authenticated trooper's linked XenForo account.
+        if ($user_id === null)
+        {
+            $user_id = $this->resolve_user_id_for_trooper(Auth::id());
+        }
+
+        $url = $this->base_url.'/api/threads';
+        $payload = [
+            'node_id' => $node_id,
+            'title' => $title,
+            'message' => $message,
+            'api_bypass_permissions' => 1,
+        ];
+        if ($prefix_id !== null)
+        {
+            $payload['prefix_id'] = $prefix_id;
+        }
+        if (!empty($extra_fields))
+        {
+            $payload = array_merge($payload, $extra_fields);
+        }
+        $headers = $this->buildApiHeaders($user_id);
+        $response = Http::withHeaders($headers)->asForm()->post($url, $payload);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    /**
+     * Move an existing XenForo thread to a different node (forum).
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function move_thread(int $thread_id, int $target_node_id): array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $thread_id <= 0 || $target_node_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        $url = $this->base_url.'/api/threads/'.$thread_id.'/move';
+
+        $payload = [
+            'target_node_id' => $target_node_id,
+            'api_bypass_permissions' => 1,
+        ];
+
+        // Use the configured API user as the acting user; the thread
+        // being moved is identified by the URL.
+        $headers = $this->buildApiHeaders();
+
+        $response = Http::withHeaders($headers)
+            ->asForm()
+            ->post($url, $payload);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    /**
+     * Update an existing XenForo thread title.
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function update_thread(
+        int $thread_id,
+        string $title
+    ): array {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        if ($thread_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        $url = $this->base_url.'/api/threads/'.$thread_id;
+
+        $payload = [
+            'title' => $title,
+            'api_bypass_permissions' => 1,
+        ];
+
+        $headers = $this->buildApiHeaders();
+
+        $response = Http::withHeaders($headers)->asForm()->post($url, $payload);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    /**
+     * Subscribe the given XenForo user to a thread (with email notifications).
+     *
+     * Uses the trooper-api add-on endpoint: POST /api/trooper-api/watch-thread
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function watch_thread(int $thread_id, int $user_id): array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $thread_id <= 0 || $user_id <= 0)
+        {
+            return ['status' => 0, 'body' => null];
+        }
+
+        $url = $this->base_url.'/api/trooper-api/watch-thread';
+
+        $payload = [
+            'thread_id' => $thread_id,
+            'email_subscribe' => true,
+        ];
+
+        $response = Http::withHeaders($this->buildApiHeaders($user_id))->asForm()->post($url, $payload);
+
+        return ['status' => $response->status(), 'body' => $response->json()];
+    }
+
+    /**
+     * Unsubscribe the given XenForo user from a thread.
+     *
+     * Uses the trooper-api add-on endpoint: DELETE /api/trooper-api/watch-thread
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function unwatch_thread(int $thread_id, int $user_id): array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $thread_id <= 0 || $user_id <= 0)
+        {
+            return ['status' => 0, 'body' => null];
+        }
+
+        $url = $this->base_url.'/api/trooper-api/watch-thread';
+
+        $response = Http::withHeaders($this->buildApiHeaders($user_id))->asForm()->delete($url, [
+            'thread_id' => $thread_id,
+        ]);
+
+        return ['status' => $response->status(), 'body' => $response->json()];
+    }
+
+    /**
+     * Delete an existing XenForo thread.
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function delete_thread(int $thread_id): array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $thread_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        $url = $this->base_url.'/api/threads/'.$thread_id;
+
+        // Use the configured API user as the acting user; the thread
+        // being deleted is identified by the URL.
+        $headers = $this->buildApiHeaders();
+
+        $response = Http::withHeaders($headers)->delete($url);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    /**
+     * Update an existing XenForo post's message body.
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function update_post(
+        int $post_id,
+        string $message,
+        ?int $user_id = null
+    ): array {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        if ($post_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        if ($user_id === null)
+        {
+            $user_id = $this->resolve_user_id_for_trooper(Auth::id());
+        }
+
+        $url = $this->base_url.'/api/posts/'.$post_id;
+
+        $payload = [
+            'message' => $message,
+            'api_bypass_permissions' => 1,
+        ];
+
+        $headers = $this->buildApiHeaders($user_id);
+
+        $response = Http::withHeaders($headers)->asForm()->post($url, $payload);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    /**
+     * Fetch a XenForo user by ID.
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function get_user(int $user_id): array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $user_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        $url = $this->base_url.'/api/users/'.$user_id;
+
+        // Use the configured API user as the context, not the
+        // target XenForo user. The user ID in the URL identifies
+        // which account to update.
+        $headers = $this->buildApiHeaders();
+
+        try
+        {
+            $response = Http::withHeaders($headers)
+                ->acceptJson()
+                ->timeout(5)
+                ->get($url);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo user', [
+                'xenforo_user_id' => $user_id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    /**
+     * Resolve a XenForo user ID for a given trooper via OAuth mapping.
+     * Returns null if no XenForo OAuth login is linked.
+     */
+    public function resolve_user_id_for_trooper(?int $trooper_id): ?int
+    {
+        if ($trooper_id === null)
+        {
+            return null;
+        }
+
+        $oauth = OauthLogin::where(OauthLogin::TROOPER_ID, $trooper_id)
+            ->where(OauthLogin::PROVIDER, 'xenforo')
+            ->first();
+
+        if ($oauth === null || empty($oauth->provider_id))
+        {
+            return null;
+        }
+
+        return (int) $oauth->provider_id;
+    }
+
+    /**
+     * Update XenForo user custom fields and/or groups.
+     *
+     * @param  array<string,mixed>  $payload
+     * @return array{status:int,body:mixed}
+     */
+    public function update_user(int $user_id, array $payload): array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $user_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        $url = $this->base_url.'/api/users/'.$user_id;
+
+        $payload['api_bypass_permissions'] = 1;
+
+        // Use the configured API user as the acting user; the
+        // user being modified is identified by the URL.
+        $headers = $this->buildApiHeaders();
+
+        try
+        {
+            $response = Http::withHeaders($headers)
+                ->asForm()
+                ->timeout(10)
+                ->post($url, $payload);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to update XenForo user', [
+                'xenforo_user_id' => $user_id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    /**
+     * Fetch upgrade statistics from the XenForo UpgradeStats add-on.
+     *
+     * This endpoint is only called when XenForo API credentials are
+     * configured. If the request fails or returns a non-array payload,
+     * null is returned and callers should fall back to local data.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function get_upgrade_stats(): ?array
+    {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return null;
+        }
+
+        $url = $this->base_url.'/index.php?api/upgrade-stats';
+
+        try
+        {
+            $headers = $this->buildApiHeaders();
+
+            $response = Http::withHeaders($headers)
+                ->acceptJson()
+                ->timeout(5)
+                ->get($url);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo upgrade stats', [
+                'url' => $url,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (!$response->successful())
+        {
+            Log::warning('Non-success response from XenForo upgrade stats', [
+                'url' => $url,
+                'status' => $response->status(),
+            ]);
+
+            return null;
+        }
+
+        $data = $response->json();
+
+        return is_array($data) ? $data : null;
+    }
+
+    /**
+     * Group IDs granted by XenForo user upgrades (each upgrade's extra_group_ids).
+     * Returns null when the upgrade stats cannot be read.
+     *
+     * @return array<int, int>|null
+     */
+    public function getUpgradeGroupIds(): ?array
+    {
+        $stats = $this->get_upgrade_stats();
+
+        if ($stats === null)
+        {
+            return null;
+        }
+
+        return collect($stats['userUpgrades'] ?? [])
+            ->filter(static fn (mixed $upgrade): bool => is_array($upgrade))
+            ->flatMap(fn (array $upgrade): array => $this->parseGroupIds(
+                $upgrade['extra_group_ids'] ?? []
+            ))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Fetch the full upgrade history for a specific XenForo user.
+     *
+     * Calls the per-user upgrade-stats endpoint and normalises each donation
+     * record to:
+     *   - user_upgrade_record_id (int)
+     *   - upgrade_title (string)
+     *   - start_date (int)   — Unix timestamp
+     *   - end_date (int)     — Unix timestamp; 0 = lifetime/no expiry
+     *   - is_active (bool)
+     *   - cost_amount (float) — per-period subscription price
+     *   - total_amount (float) — months covered × per-period price
+     *
+     * Returns null when credentials are missing or the request fails.
+     *
+     * @return array<int,array{user_upgrade_record_id:int,upgrade_title:string,start_date:int,end_date:int,is_active:bool,cost_amount:float,total_amount:float}>|null
+     */
+    public function get_user_upgrade_history(int $user_id): ?array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $user_id <= 0)
+        {
+            return null;
+        }
+
+        $data = $this->get_user_upgrade_stats($user_id);
+
+        if ($data === null)
+        {
+            return null;
+        }
+
+        $records = [];
+
+        foreach ($data['donations'] ?? [] as $row)
+        {
+            if (!is_array($row))
+            {
+                continue;
+            }
+
+            $upgrade_id = (int) ($row['user_upgrade_id'] ?? 0);
+            $start_date = (int) ($row['start_date'] ?? 0);
+            $end_date = (int) ($row['end_date'] ?? 0);
+            $cost_amount = (float) ($row['cost_amount'] ?? 0.0);
+            $months_paid = XenforoUpgradeHelper::countMonthsForRecord($start_date, $end_date);
+
+            $records[] = [
+                'user_upgrade_record_id' => (int) ($row['user_upgrade_record_id'] ?? 0),
+                'upgrade_title' => (string) ($row['title'] ?? 'Upgrade #'.$upgrade_id),
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'is_active' => ($row['status'] ?? '') === 'active',
+                'cost_amount' => $cost_amount,
+                'total_amount' => round($months_paid * $cost_amount, 2),
+            ];
+        }
+
+        // Most recent first.
+        usort($records, static fn (array $a, array $b): int => $b['start_date'] <=> $a['start_date']);
+
+        return $records;
+    }
+
+    /**
+     * Fetch raw upgrade stats for a single XenForo user from the per-user endpoint.
+     *
+     * Returns the decoded JSON payload or null on failure.
+     *
+     * @return array<string,mixed>|null
+     */
+    private function get_user_upgrade_stats(int $user_id): ?array
+    {
+        $url = $this->base_url.'/index.php?api/upgrade-stats/user&user_id='.$user_id;
+
+        try
+        {
+            $response = Http::withHeaders($this->buildApiHeaders())
+                ->acceptJson()
+                ->timeout(5)
+                ->get($url);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo upgrade stats for user', [
+                'url' => $url,
+                'user_id' => $user_id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (!$response->successful())
+        {
+            Log::warning('Non-success response from XenForo upgrade stats for user', [
+                'url' => $url,
+                'user_id' => $user_id,
+                'status' => $response->status(),
+            ]);
+
+            return null;
+        }
+
+        $data = $response->json();
+
+        return is_array($data) ? $data : null;
+    }
+
+    /**
+     * Determine whether the given user has at least one currently active upgrade.
+     *
+     * Thin wrapper around get_user_upgrade_history() used where only the
+     * active/inactive boolean is needed.
+     */
+    public function get_user_purchases(int $user_id): ?array
+    {
+        $history = $this->get_user_upgrade_history($user_id);
+
+        if ($history === null)
+        {
+            return null;
+        }
+
+        return array_values(array_filter(
+            $history,
+            static fn (array $row): bool => $row['is_active']
+        ));
+    }
+
+    /**
+     * Fetch user-group banner data from the XenForo user-groups add-on.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function get_user_groups(int $user_id): ?array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $user_id <= 0)
+        {
+            return null;
+        }
+
+        $url = $this->base_url.'/index.php?api/user-groups&user_id='.$user_id;
+
+        try
+        {
+            $headers = $this->buildApiHeaders();
+
+            $response = Http::withHeaders($headers)
+                ->acceptJson()
+                ->timeout(5)
+                ->get($url);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo user groups', [
+                'url' => $url,
+                'user_id' => $user_id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (!$response->successful())
+        {
+            Log::warning('Non-success response from XenForo user groups', [
+                'url' => $url,
+                'user_id' => $user_id,
+                'status' => $response->status(),
+            ]);
+
+            return null;
+        }
+
+        $data = $response->json();
+
+        return is_array($data) ? $data : null;
+    }
+
+    /**
+     * Fetch every XenForo user group from the user-groups add-on.
+     *
+     * Calls the same add-on endpoint as get_user_groups() without a user_id,
+     * which the add-on answers with the full group list. Returns null when
+     * XenForo is not configured or the request fails.
+     *
+     * @return array<int, array{id:int,title:string,banner_image_url:?string}>|null
+     */
+    public function getAllUserGroups(): ?array
+    {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return null;
+        }
+
+        $groups = $this->fetchUserGroupList();
+
+        if ($groups === null)
+        {
+            return null;
+        }
+
+        return collect($groups)
+            ->filter(static fn (mixed $group): bool => is_array($group))
+            ->map(fn (array $group): array => [
+                'id' => (int) ($group['groupID'] ?? $group['user_group_id'] ?? 0),
+                'title' => (string) ($group['title'] ?? ''),
+                'banner_image_url' => $this->extractBannerImageUrl(
+                    $group['bannerText'] ?? $group['banner_text'] ?? null
+                ),
+            ])
+            ->filter(static fn (array $group): bool => $group['id'] > 0 && $group['title'] !== '')
+            ->unique('id')
+            ->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Fetch a XenForo user's current secondary group IDs.
+     * Returns null when the user cannot be read.
+     *
+     * @return array<int, int>|null
+     */
+    public function getUserSecondaryGroupIds(int $user_id): ?array
+    {
+        $user = $this->get_user($user_id);
+
+        if ($user['status'] < 200 || $user['status'] >= 300 || !is_array($user['body']))
+        {
+            return null;
+        }
+
+        $body = $user['body'];
+        $user_data = is_array($body['user'] ?? null) ? $body['user'] : $body;
+
+        return $this->parseGroupIds($user_data['secondary_group_ids'] ?? []);
+    }
+
+    /**
+     * XenForo sends group ID lists either as an array or a comma-separated string.
+     *
+     * @return array<int, int>
+     */
+    private function parseGroupIds(mixed $raw): array
+    {
+        $ids = is_string($raw) ? explode(',', $raw) : (array) $raw;
+
+        return collect($ids)
+            ->map(static fn (mixed $id): mixed => is_string($id) ? trim($id) : $id)
+            ->filter(static fn (mixed $id): bool => is_numeric($id))
+            ->map(static fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, mixed>|null
+     */
+    private function fetchUserGroupList(): ?array
+    {
+        $url = $this->base_url.'/index.php?api/user-groups';
+
+        try
+        {
+            $response = Http::withHeaders($this->buildApiHeaders())
+                ->acceptJson()
+                ->timeout(5)
+                ->get($url);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo user group list', [
+                'url' => $url,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (!$response->successful())
+        {
+            Log::warning('Non-success response from XenForo user group list', [
+                'url' => $url,
+                'status' => $response->status(),
+            ]);
+
+            return null;
+        }
+
+        $groups = $response->json('userGroups') ?? $response->json('user_groups');
+
+        if (!is_array($groups))
+        {
+            Log::warning('Unexpected response from XenForo user group list', [
+                'url' => $url,
+                'keys' => array_keys((array) $response->json()),
+            ]);
+
+            return null;
+        }
+
+        return $groups;
+    }
+
+    /**
+     * Pull the first image URL out of a XenForo banner's HTML so callers can
+     * render it without trusting the rest of the markup.
+     */
+    private function extractBannerImageUrl(mixed $banner_html): ?string
+    {
+        if (!is_string($banner_html) || !str_contains($banner_html, '<img'))
+        {
+            return null;
+        }
+
+        $document = new DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML('<?xml encoding="utf-8"?>'.$banner_html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        $image = $document->getElementsByTagName('img')->item(0);
+        $src = trim((string) $image?->getAttribute('src'));
+
+        if ($src === '')
+        {
+            return null;
+        }
+
+        if (str_starts_with($src, '//'))
+        {
+            $src = 'https:'.$src;
+        }
+        elseif (!preg_match('#^[a-z][a-z0-9+.-]*:#i', $src))
+        {
+            $src = $this->base_url.'/'.ltrim($src, '/');
+        }
+
+        $scheme = strtolower((string) parse_url($src, PHP_URL_SCHEME));
+
+        return in_array($scheme, ['http', 'https'], true) ? $src : null;
+    }
+}

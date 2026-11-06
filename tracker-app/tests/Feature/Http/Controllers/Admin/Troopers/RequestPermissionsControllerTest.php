@@ -34,7 +34,6 @@ class RequestPermissionsControllerTest extends TestCase
             ->component('admin/troopers/RequestPermissions')
             ->has('organizations', 1)
             ->where('organizations.0.id', $moderated->id)
-            ->where('is_xenforo_configured', false)
             ->has('permission_requests', 1));
     }
 

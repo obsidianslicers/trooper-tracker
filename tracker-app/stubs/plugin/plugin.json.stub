@@ -1,0 +1,22 @@
+{
+    "slug": "{{ slug }}",
+    "name": "{{ name_json }}",
+    "version": "0.1.0",
+    "description": "",
+    "author": "",
+    "namespace": "{{ namespace_json }}",
+    "provider": "{{ namespace_json }}\\{{ class }}ServiceProvider",
+    "capabilities": ["events"],
+    "requires": {
+        "trooptracker": "^1.0"
+    },
+    "settings": [
+        {
+            "key": "greeting",
+            "label": "Greeting",
+            "type": "text",
+            "default": "Hello from {{ name_json }}",
+            "help": "An example setting. Read it with $this->setting('greeting')."
+        }
+    ]
+}

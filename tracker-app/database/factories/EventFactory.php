@@ -42,10 +42,10 @@ class EventFactory extends BaseEventFactory
 
             Event::VENUE => $this->faker->company(),
             Event::VENUE_ADDRESS => $this->faker->streetAddress()
-                . ' ' . $this->faker->city()
-                . ', ' . $this->faker->stateAbbr()
-                . ' ' . $this->faker->postcode()
-                . ' ' . $this->faker->country(),
+                .' '.$this->faker->city()
+                .', '.$this->faker->stateAbbr()
+                .' '.$this->faker->postcode()
+                .' '.$this->faker->country(),
 
             Event::EVENT_WEBSITE => $this->faker->url(),
 
@@ -54,7 +54,7 @@ class EventFactory extends BaseEventFactory
             Event::REQUESTED_CHARACTER_TYPES => $this->faker->randomElement([
                 'Stormtroopers, Jedi, Mandalorians',
                 'Rebels, Sith Lords',
-                'Droids, Other'
+                'Droids, Other',
             ]),
 
             Event::SECURE_STAGING_AREA => $this->faker->boolean(),
@@ -74,7 +74,7 @@ class EventFactory extends BaseEventFactory
 
     public function withOrganization(Organization $organization): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Event::ORGANIZATION_ID => $organization->{Organization::ID},
             Event::PRIMARY_ORGANIZATION_ID => $organization->{Organization::ID},
         ]);
@@ -82,49 +82,28 @@ class EventFactory extends BaseEventFactory
 
     public function withCreatedByTrooper(Trooper $trooper): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Event::CREATED_ID => $trooper->{Trooper::ID},
         ]);
     }
 
     public function withCreateNotificationsSent(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Event::CREATE_NOTIFICATIONS_SENT_AT => now(),
         ]);
     }
 
     public function withCancelNotificationsSent(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Event::CANCEL_NOTIFICATIONS_SENT_AT => now(),
-        ]);
-    }
-
-    public function withForumThreadEnabled(): static
-    {
-        return $this->state(fn(array $attributes): array => [
-            Event::CREATE_FORUM_THREAD => true,
-        ]);
-    }
-
-    public function withForumThreadDisabled(): static
-    {
-        return $this->state(fn(array $attributes): array => [
-            Event::CREATE_FORUM_THREAD => false,
-        ]);
-    }
-
-    public function withForumThreadId(int $thread_id): static
-    {
-        return $this->state(fn(array $attributes): array => [
-            Event::THREAD_ID => $thread_id,
         ]);
     }
 
     public function forForumBbcodeTemplate(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Event::NAME => 'Mos Eisley Patrol <script>alert(1)</script>',
             Event::VENUE => 'Anchorhead Plaza',
             Event::VENUE_ADDRESS => '123 Dune Sea Rd',
@@ -147,7 +126,7 @@ class EventFactory extends BaseEventFactory
 
     public function withForumBbcodeOptionalFieldsMissing(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Event::EVENT_WEBSITE => null,
             Event::EXPECTED_ATTENDEES => null,
             Event::REQUESTED_NUMBER_CHARACTERS => null,
@@ -160,7 +139,7 @@ class EventFactory extends BaseEventFactory
 
     public function withForumBbcodeEscapableText(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Event::NAME => '<b>Imperial Muster</b>',
             Event::VENUE => 'Hall & Hangar',
             Event::VENUE_ADDRESS => '1 "Docking Bay" Lane',
@@ -173,23 +152,22 @@ class EventFactory extends BaseEventFactory
 
     public function asClosed(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Event::STATUS => EventStatus::CLOSED,
         ]);
     }
 
     public function withEventStart(\Carbon\Carbon $date): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Event::EVENT_START => $date,
         ]);
     }
 
     public function withEventEnd(\Carbon\Carbon $date): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Event::EVENT_END => $date,
         ]);
     }
-
 }

@@ -291,7 +291,7 @@ The `app/Services/` directory contains standalone service classes:
 
 - **BreadCrumbService:** Navigation breadcrumb generation
 - **GeocodingService:** Address geocoding integration
-- **GoogleService:** Google API integration
+- **GoogleService:** Google Maps geocoding
 - **StandaloneService:** Base service class
 
 ## Hyperdrive

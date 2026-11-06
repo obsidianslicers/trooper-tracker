@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\ServiceRecords;
 
+use App\Contracts\DonationSource;
 use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForDisplay;
 use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
 use App\Messages\Troopers\Queries\GetTrooperServiceRecord;
@@ -12,10 +13,13 @@ use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
+use App\Models\TrooperDonation;
+use App\Plugins\PluginDonations;
 use App\Services\BreadCrumbService;
-use App\Services\Forums\XenforoService;
+use App\Support\DonationSummary;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
+use Mockery;
 use Mockery\MockInterface;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
@@ -105,85 +109,37 @@ class TrooperControllerTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_invoke_passes_xenforo_group_banners_when_integration_is_configured(): void
+    public function test_invoke_adds_donation_source_totals_to_service_summary(): void
     {
-        config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key-1',
-        ]);
-
         $auth_trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $target_trooper = Trooper::factory()->asMember()->create();
-
-        $messages = $this->fakeMessages([
-            GetTrooperServiceRecord::class => $this->makeServiceRecordData($target_trooper),
-            GetTrooperCostumesForDisplay::class => collect(),
+        $data = $this->makeServiceRecordData($target_trooper);
+        $data['all_donations'] = collect([
+            new TrooperDonation(['amount' => 10, 'created_at' => '2025-01-15']),
         ]);
 
-        $this->mock(XenforoService::class, function (MockInterface $mock) use ($target_trooper): void
-        {
-            $mock->shouldReceive('resolve_user_id_for_trooper')
-                ->once()
-                ->with($target_trooper->id)
-                ->andReturn(15802);
+        $this->fakeMessages([
+            GetTrooperServiceRecord::class => $data,
+            GetTrooperCostumesForDisplay::class => collect(),
+            GetEventTroopersMissingCredit::class => ['total' => 0],
+        ]);
 
-            $mock->shouldReceive('get_user_groups')
-                ->once()
-                ->with(15802)
-                ->andReturn([
-                    'userGroups' => [
-                        [
-                            'groupID' => 2,
-                            'title' => 'Reserve',
-                            'bannerText' => '<span class="userBanner userBanner--reserve">Reserve</span>',
-                            'order' => 20,
-                            'isPrimary' => false,
-                        ],
-                        [
-                            'groupID' => 1,
-                            'title' => 'Primary',
-                            'bannerText' => '<span class="userBanner userBanner--primary">Primary</span>',
-                            'order' => 10,
-                            'isPrimary' => true,
-                        ],
-                        [
-                            'groupID' => 3,
-                            'title' => 'Empty',
-                            'bannerText' => '',
-                            'order' => 30,
-                            'isPrimary' => false,
-                        ],
-                    ],
-                ]);
-
-            $mock->shouldReceive('get_user_upgrade_history')
-                ->once()
-                ->with(15802)
-                ->andReturn([]);
-        });
+        $source = Mockery::mock(DonationSource::class);
+        $source->shouldReceive('summaryFor')->once()->andReturn(new DonationSummary(
+            month_keys: ['2025-01' => true, '2025-02' => true],
+            total: 25.0,
+            is_active: true,
+        ));
+        $this->app->instance($source::class, $source);
+        $this->app->make(PluginDonations::class)->add($source::class);
 
         $response = $this->actingAs($auth_trooper)
             ->get(route('service-records.trooper', ['trooper' => $target_trooper]));
 
-        $messages->assertCalled(
-            GetTrooperServiceRecord::class,
-            fn (array $params): bool => $params['trooper_id'] === $target_trooper->id
-        );
-        $messages->assertCalled(
-            GetTrooperCostumesForDisplay::class,
-            fn (array $params): bool => $params['trooper']->id === $target_trooper->id
-        );
-
         $response->assertOk();
-        $response->assertViewHas('xenforo_group_banners', function (Collection $banners): bool
-        {
-            return $banners->pluck('banner_text')->all() === [
-                '<span class="userBanner userBanner--primary">Primary</span>',
-                '<span class="userBanner userBanner--reserve">Reserve</span>',
-            ];
-        });
-        $response->assertViewHas('xenforo_profile_url', 'https://xf.test/members/15802/');
-        $response->assertSee('https://xf.test/members/15802/', false);
+        $response->assertViewHas('is_active_donor', true);
+        $response->assertViewHas('service_summary', fn (array $summary): bool => $summary['total_donated'] === 35.0
+            && $summary['donation_months'] === 2);
     }
 
     public function test_invoke_shows_edit_link_when_authenticated_trooper_can_update_target(): void

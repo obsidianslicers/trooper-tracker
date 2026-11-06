@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Enums\OauthProvider;
 use App\Http\Controllers\Auth\InactiveController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LoginSubmitController;
@@ -20,8 +19,6 @@ use Illuminate\Support\Facades\Route;
 Route::name('auth.')
     ->group(function ()
     {
-        $providers = [OauthProvider::GOOGLE->value, OauthProvider::XENFORO->value];
-
         //  LOGIN / LOGOUT
         Route::get('/login', LoginController::class)->name('login');
         Route::post('/login', LoginSubmitController::class);
@@ -36,6 +33,6 @@ Route::name('auth.')
         Route::post('/register', RegisterSubmitController::class)->middleware('auth.registration');
 
         // OAUTH
-        Route::get('/oauth/{provider}', OauthRedirectController::class)->whereIn('provider', $providers)->name('oauth-redirect');
-        Route::get('/oauth/{provider}/callback', OauthCallbackController::class)->whereIn('provider', $providers)->name('oauth-callback');
+        Route::get('/oauth/{provider}', OauthRedirectController::class)->where('provider', '[a-z0-9_-]+')->name('oauth-redirect');
+        Route::get('/oauth/{provider}/callback', OauthCallbackController::class)->where('provider', '[a-z0-9_-]+')->name('oauth-callback');
     });

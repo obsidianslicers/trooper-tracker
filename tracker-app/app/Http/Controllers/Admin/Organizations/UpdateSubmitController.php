@@ -8,7 +8,9 @@ use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Organizations\UpdateRequest;
 use App\Models\Organization;
+use App\Plugins\PluginForms;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class UpdateSubmitController
@@ -27,46 +29,27 @@ class UpdateSubmitController extends PageController
      * @param  Organization  $organization  The organization to be updated
      * @return RedirectResponse A redirect response to the organization list
      */
-    public function __invoke(UpdateRequest $request, Organization $organization): RedirectResponse
-    {
+    public function __invoke(
+        UpdateRequest $request,
+        Organization $organization,
+        PluginForms $plugin_forms,
+    ): RedirectResponse {
         $organization->name = $request->validated('name');
 
-        if ($request->has('sync_sheet_id'))
+        if ($request->canChooseSynchronizer())
         {
-            $organization->sync_sheet_id = $request->validated('sync_sheet_id');
+            $organization->synchronizer = $request->validated('synchronizer') ?: null;
         }
 
-        if ($request->has('discord_mention'))
+        DB::transaction(function () use ($organization, $request, $plugin_forms): void
         {
-            $organization->discord_mention = $request->validated('discord_mention');
-        }
-
-        if ($request->has(Organization::RELATED_FORUM))
-        {
-            $organization->related_forum = $request->validated(Organization::RELATED_FORUM);
-        }
-
-        if ($request->has(Organization::RELATED_FORUM_ARCHIVE))
-        {
-            $organization->related_forum_archive = $request->validated(Organization::RELATED_FORUM_ARCHIVE);
-        }
-
-        if ($request->has(Organization::XENFORO_GROUP_ACTIVE_ID))
-        {
-            $organization->xenforo_group_active_id = $request->validated(Organization::XENFORO_GROUP_ACTIVE_ID);
-        }
-
-        if ($request->has(Organization::XENFORO_GROUP_RESERVE_ID))
-        {
-            $organization->xenforo_group_reserve_id = $request->validated(Organization::XENFORO_GROUP_RESERVE_ID);
-        }
-
-        if ($request->has(Organization::XENFORO_GROUP_RETIRED_ID))
-        {
-            $organization->xenforo_group_retired_id = $request->validated(Organization::XENFORO_GROUP_RETIRED_ID);
-        }
-
-        $organization->save();
+            $organization->save();
+            $plugin_forms->saved(
+                PluginForms::ORGANIZATION_UPDATE,
+                $organization,
+                $request->validated(),
+            );
+        });
 
         FlashType::updated($organization);
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import PluginSlot from "$lib/components/PluginSlot.svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
     import Tab from "$lib/components/ui/tabs/Tab.svelte";
     import TabContent from "$lib/components/ui/tabs/TabContent.svelte";
@@ -54,6 +55,7 @@
                 </Alert>
             {/if}
             <Details details={vm.pageData?.details} />
+            <PluginSlot name="account.profile.sections" />
         </TabPanel>
         <TabPanel id="notifications">
             <Notifications notifications={vm.pageData?.notifications} />

@@ -41,14 +41,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $identifier_validation
  * @property string|null $image_path_lg
  * @property string|null $image_path_sm
- * @property string|null $service_class
- * @property string|null $sync_sheet_id
- * @property string|null $discord_mention
- * @property int|null $related_forum
- * @property int|null $related_forum_archive
- * @property int|null $xenforo_group_active_id
- * @property int|null $xenforo_group_reserve_id
- * @property int|null $xenforo_group_retired_id
+ * @property string|null $synchronizer
  * @property Carbon|null $synchronized_at
  * @property string|null $description
  * @property Carbon|null $created_at
@@ -88,14 +81,7 @@ class Organization extends Model
     const IDENTIFIER_VALIDATION = 'identifier_validation';
     const IMAGE_PATH_LG = 'image_path_lg';
     const IMAGE_PATH_SM = 'image_path_sm';
-    const SERVICE_CLASS = 'service_class';
-    const SYNC_SHEET_ID = 'sync_sheet_id';
-    const DISCORD_MENTION = 'discord_mention';
-    const RELATED_FORUM = 'related_forum';
-    const RELATED_FORUM_ARCHIVE = 'related_forum_archive';
-    const XENFORO_GROUP_ACTIVE_ID = 'xenforo_group_active_id';
-    const XENFORO_GROUP_RESERVE_ID = 'xenforo_group_reserve_id';
-    const XENFORO_GROUP_RETIRED_ID = 'xenforo_group_retired_id';
+    const SYNCHRONIZER = 'synchronizer';
     const SYNCHRONIZED_AT = 'synchronized_at';
     const DESCRIPTION = 'description';
     const CREATED_AT = 'created_at';
@@ -113,11 +99,6 @@ class Organization extends Model
         self::SEQUENCE => 'int',
         self::CAN_ATTEND_DEFAULT => 'bool',
         self::REQUIRES_GUARDIAN => 'bool',
-        self::RELATED_FORUM => 'int',
-        self::RELATED_FORUM_ARCHIVE => 'int',
-        self::XENFORO_GROUP_ACTIVE_ID => 'int',
-        self::XENFORO_GROUP_RESERVE_ID => 'int',
-        self::XENFORO_GROUP_RETIRED_ID => 'int',
         self::SYNCHRONIZED_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
@@ -139,14 +120,7 @@ class Organization extends Model
         self::IDENTIFIER_VALIDATION,
         self::IMAGE_PATH_LG,
         self::IMAGE_PATH_SM,
-        self::SERVICE_CLASS,
-        self::SYNC_SHEET_ID,
-        self::DISCORD_MENTION,
-        self::RELATED_FORUM,
-        self::RELATED_FORUM_ARCHIVE,
-        self::XENFORO_GROUP_ACTIVE_ID,
-        self::XENFORO_GROUP_RESERVE_ID,
-        self::XENFORO_GROUP_RETIRED_ID,
+        self::SYNCHRONIZER,
         self::SYNCHRONIZED_AT,
         self::DESCRIPTION
     ];

@@ -7,12 +7,6 @@ namespace Database\Seeders;
 use App\Enums\OrganizationType;
 use App\Models\Observers\OrganizationObserver;
 use App\Models\Organization;
-use App\Services\Synchronizers\DarkEmpireServices;
-use App\Services\Synchronizers\DroidBuildersService;
-use App\Services\Synchronizers\MandalorianMercsService;
-use App\Services\Synchronizers\RebelLegionService;
-use App\Services\Synchronizers\SaberGuildServices;
-use App\Services\Synchronizers\TheLegionService;
 use Illuminate\Database\Seeder;
 
 class OrganizationSeeder extends Seeder
@@ -26,7 +20,7 @@ class OrganizationSeeder extends Seeder
         //  model events are blocked during seeding, so we
         //  need to manually trigger the observer to set any
         //  derived fields
-        $observer = new OrganizationObserver();
+        $observer = new OrganizationObserver;
         $organizations = Organization::all();
         foreach ($organizations as $organization)
         {
@@ -42,8 +36,7 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Imperial costuming organization focused on Star Wars villains.',
                 'identifier_display' => 'TKID',
                 'identifier_validation' => 'integer|between:100,99999',
-                'service_class' => TheLegionService::class,
-                'sync_sheet_id' => null,
+                'synchronizer' => '501st',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
             ],
@@ -52,63 +45,52 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Rebel-aligned Star Wars costuming group.',
                 'identifier_display' => 'Forum Username',
                 'identifier_validation' => 'string|max:64',
-                'service_class' => RebelLegionService::class,
-                'sync_sheet_id' => '1I3FuS_uPg2nuC80PEA6tKYaVBd1Qh1allTOdVz3M6x0',
+                'synchronizer' => 'rebel-legion',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
-                'xenforo_group_active_id' => 1486,
             ],
             [
                 'name' => 'Mandalorian Mercs',
                 'description' => 'Custom Mandalorian armor builders and costumers.',
                 'identifier_display' => 'CAT #',
                 'identifier_validation' => 'integer',
-                'service_class' => MandalorianMercsService::class,
-                'sync_sheet_id' => null,
+                'synchronizer' => 'mandalorian-mercs',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
-                'xenforo_group_active_id' => 1488,
             ],
             [
                 'name' => 'Dark Empire',
                 'description' => 'Expanded universe costuming group for dark side characters.',
                 'identifier_display' => '#',
                 'identifier_validation' => 'integer',
-                'service_class' => DarkEmpireServices::class,
-                'sync_sheet_id' => null,
+                'synchronizer' => 'dark-empire',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
-                'xenforo_group_active_id' => 1511,
             ],
             [
                 'name' => 'Droid Builders',
                 'description' => 'Star Wars droid construction and robotics enthusiast group.',
                 'identifier_display' => 'Forum Username',
                 'identifier_validation' => 'string|max:64',
-                'service_class' => DroidBuildersService::class,
-                'sync_sheet_id' => '195NT1crFYL_ECVyzoaD2F1QXGW5WxlnBDfDaLVtM87Y',
+                'synchronizer' => 'droid-builders',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
-                'xenforo_group_active_id' => 1487,
             ],
             [
                 'name' => 'Saber Guild',
                 'description' => 'Lightsaber performance and Jedi/Sith costuming group.',
                 'identifier_display' => 'SG #',
                 'identifier_validation' => 'integer',
-                'service_class' => SaberGuildServices::class,
-                'sync_sheet_id' => '1PcveycMujakkKeG2m4y8iFunrFbo2KVpQJ00GyPI3b8',
+                'synchronizer' => 'saber-guild',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
-                'xenforo_group_active_id' => 1491,
             ],
             [
                 'name' => 'Galactic Academy',
                 'description' => 'Star Wars costuming group for children and families.',
                 'identifier_display' => 'GA ID',
                 'identifier_validation' => 'string|max:128',
-                'service_class' => null,
-                'sync_sheet_id' => null,
+                'synchronizer' => null,
                 'can_attend_default' => true,
                 'requires_guardian' => true,
             ],
@@ -116,19 +98,16 @@ class OrganizationSeeder extends Seeder
 
         foreach ($organizations as $data)
         {
-            $org = Organization::where('name', $data['name'])->first() ?? new Organization();
+            $org = Organization::where('name', $data['name'])->first() ?? new Organization;
 
             $org->name = $data['name'];
             $org->can_attend_default = $data['can_attend_default'];
             $org->requires_guardian = $data['requires_guardian'];
-            $org->service_class = $data['service_class'];
+            $org->synchronizer = $data['synchronizer'];
             $org->description = $data['description'];
             $org->identifier_display = $data['identifier_display'] ?? '';
             $org->identifier_validation = $data['identifier_validation'] ?? '';
             $org->type = OrganizationType::ORGANIZATION;
-            $org->sync_sheet_id = $data['sync_sheet_id'] ?? null;
-
-            if (isset($data['xenforo_group_active_id']))  { $org->xenforo_group_active_id  = $data['xenforo_group_active_id']; }
 
             $org->save();
         }

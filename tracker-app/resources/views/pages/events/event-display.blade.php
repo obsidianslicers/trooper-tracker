@@ -119,7 +119,7 @@
                                  x-bind:style="expanded ? 'max-height: ' + fullHeight : 'max-height: 120px'">
                                 <div x-ref="content"
                                      x-bind:class="expanded ? '' : 'terminal-green'">
-                                    {!! \App\Helpers\SmiliesRenderer::render(Str::markdown($event->comments), $smilies) !!}
+                                    {!! \App\Helpers\SmiliesRenderer::render(Str::markdown($event->comments), $smilies ?? []) !!}
                                 </div>
 
                                 <div x-show="!expanded"
@@ -196,6 +196,8 @@
                         </div>
                     </div>
 
+                    @pluginSlot('events.display.sections')
+
                     @if ($event->event_uploads->where('is_administrative', true)->isNotEmpty())
                         <div class="mt-5">
                             <x-section-title>Instructional Uploads</x-section-title>
@@ -233,7 +235,7 @@
                         </div>
                     </div>
 
-                    @include('pages.events.inc.xenforo-comments', compact('event', 'xenforoBaseUrl', 'xenforoThreadPosts'))
+                    @pluginSlot('events.display.discussion')
 
                 </div>
             </div>

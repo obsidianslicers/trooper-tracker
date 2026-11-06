@@ -10,7 +10,6 @@ export default function ({ mode, organizationId, organizationName, clubName }) {
             organization_name: organizationName || '',
             club_name: clubName || '',
             require_mission_brief_ack: 0,
-            create_forum_thread: 1,
         },
 
         init() {

@@ -44,12 +44,12 @@ class RegisterControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('layouts.inertia');
-        $response->assertInertia(fn(Assert $page) => $page
+        $response->assertInertia(fn (Assert $page) => $page
             ->component('auth/Register')
             ->where('oauth.session.method', 'email')
             ->where('oauth.session.email', 'alpha@example.com')
-            ->has('oauth.xenforo')
-            ->has('oauth.google')
+            ->has('oauth.providers')
+            ->where('oauth.required', null)
             ->has('oauth.email_password')
             ->has('organizations', 1)
             ->where('organizations.0.name', 'Alpha Organization')

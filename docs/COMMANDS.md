@@ -14,7 +14,7 @@ These commands run automatically via the scheduler defined in `routes/console.ph
 
 | Command | Schedule |
 |---|---|
-| `tracker:synchronize-xenforo-users` | Every hour |
+| `xenforo:sync-users` (XenForo plugin, while enabled) | Every hour |
 | `tracker:close-event-shifts` | Every hour |
 | `tracker:close-events` | Daily at 1:00 AM |
 | `tracker:calculate-trooper-achievements` | Daily at 2:00 AM |
@@ -124,6 +124,36 @@ Generates Eloquent model factories for all models in the models directory that d
 
 ```bash
 php artisan fabricator:generate-factories
+```
+
+---
+
+### `tracker:merge-costumes`
+
+Folds a duplicate costume into the costume you want to keep, then permanently deletes the duplicate. Everything that pointed at the duplicate moves to the kept costume, including soft-deleted records:
+
+- **Club links** (`tt_organization_costumes`): a club that only had the duplicate is repointed. A club that had both keeps its existing link (taking the duplicate's prefix only if it had none).
+- **Trooper costumes** (`tt_trooper_costumes`): a trooper who only had the duplicate is moved over. A trooper who had both keeps their existing record, missing photos are filled in from the duplicate, and a display costume set to the duplicate moves to the kept record.
+- **Event sign-ups** (`tt_event_troopers`): primary and backup costumes are repointed. If a sign-up ends up with the same primary and backup costume, the backup is cleared. Credited club ids are unchanged.
+
+The command shows how many clubs, troopers, and sign-ups each costume has, then asks for confirmation. The whole merge runs in one transaction.
+
+```bash
+php artisan tracker:merge-costumes {source_costume_id} {target_costume_id} [--force]
+```
+
+| Argument/Option | Required | Description |
+|---|---|---|
+| `source_costume_id` | Yes | ID of the duplicate costume to fold in and delete (may be soft-deleted) |
+| `target_costume_id` | Yes | ID of the costume to keep |
+| `--force` | No | Skip the confirmation prompt |
+
+**Note:** club synchronizers match costumes by name. If the duplicate's name comes from a club sync, the next sync will create it again. In that case keep the costume whose name matches the club's feed, or fix the name in the club's data first.
+
+**Example:**
+```bash
+# Merge costume 87 ("TK Stormtroper") into costume 12 ("TK Stormtrooper")
+php artisan tracker:merge-costumes 87 12
 ```
 
 ---
@@ -287,7 +317,7 @@ php artisan tracker:simulate-shift-complete 42 --expired --no-eligible-orgs
 
 ### `tracker:synchronize-organizations`
 
-Synchronizes all organizations that have a configured service class. Instantiates each service class via the container, runs the sync, and reports timing and success/failure per organization.
+Runs the roster sync each club chose on its organization page, whether built in or from a plugin, and reports timing and success or failure per club. A club whose sync comes from a plugin that is off is skipped with a warning.
 
 ```bash
 php artisan tracker:synchronize-organizations
@@ -295,31 +325,32 @@ php artisan tracker:synchronize-organizations
 
 ---
 
-### `tracker:synchronize-xenforo-user`
+### `xenforo:sync-user` (XenForo plugin)
 
-Syncs a single trooper's data to XenForo.
+Syncs a single trooper's data to XenForo. Replaces `tracker:synchronize-xenforo-user`. Available while the XenForo plugin is enabled.
 
 ```bash
-php artisan tracker:synchronize-xenforo-user {trooper_id}
+php artisan xenforo:sync-user {trooper_id} [--dry-run]
 ```
 
-| Argument | Required | Description |
+| Argument / option | Required | Description |
 |---|---|---|
 | `trooper_id` | Yes | ID of the trooper to sync |
+| `--dry-run` | No | Show the group changes without writing to XenForo |
 
 **Example:**
 ```bash
-php artisan tracker:synchronize-xenforo-user 42
+php artisan xenforo:sync-user 42
 ```
 
 ---
 
-### `tracker:synchronize-xenforo-users`
+### `xenforo:sync-users` (XenForo plugin)
 
-Syncs all troopers to XenForo, processed in chunks to avoid memory issues.
+Syncs all troopers to XenForo, processed in chunks to avoid memory issues. Replaces `tracker:synchronize-xenforo-users`, and runs hourly while the XenForo plugin is enabled.
 
 ```bash
-php artisan tracker:synchronize-xenforo-users [--chunk=<size>]
+php artisan xenforo:sync-users [--chunk=<size>]
 ```
 
 | Option | Default | Description |
@@ -328,7 +359,7 @@ php artisan tracker:synchronize-xenforo-users [--chunk=<size>]
 
 **Example:**
 ```bash
-php artisan tracker:synchronize-xenforo-users --chunk=50
+php artisan xenforo:sync-users --chunk=50
 ```
 
 ---
@@ -354,4 +385,36 @@ php artisan xenforo:test-thread {node_id} {title} {message} [--user_id=] [--pref
 ```bash
 php artisan xenforo:test-thread 5 "Test Thread" "Hello world" --user_id=1 --prefix_id=3
 php artisan xenforo:test-thread 5 "Test" "Body" --extra=field1:val1 --extra=field2:val2
+```
+
+---
+
+### `plugins:list` / `plugins:enable {slug}` / `plugins:disable {slug}` / `plugins:uninstall {slug} [--force]`
+
+List the plugins found in `tracker-app/plugins/` and `storage/app/plugins`, or turn one on or off for the whole site. Enabling runs the plugin's migrations. Disabling keeps its data and settings. Uninstalling disables it, rolls back its migrations and deletes its settings, after a confirmation prompt (`--force` skips it). See [PLUGINS.md](PLUGINS.md).
+
+```bash
+php artisan plugins:list
+php artisan plugins:enable discord
+php artisan plugins:disable discord
+```
+
+### `plugins:reconcile`
+
+Run by `deploy.sh` after Composer and migrations. Runs plugin migrations for plugins whose files changed, turns on plugins that were waiting for their packages, and records each plugin's installed version, status and last error for the Plugins page. A plugin whose files are gone is marked missing; its settings and data are kept. Running it again changes nothing ("Every plugin is as it was."). It never fails, so it never stops a deploy. See [DEPLOY.md](DEPLOY.md#plugin-packages-on-deploy).
+
+```bash
+php artisan plugins:reconcile
+```
+
+### `plugins:packages [--write]` / `plugins:unmet`
+
+`plugins:packages` lists the Composer packages the enabled plugins need; `--write` also saves them for the deploy. `plugins:unmet` lists enabled plugins that can't run right now (files missing or requirements not met). `deploy.sh` runs it before and after installing packages and stops if a plugin that could run before can't any more.
+
+### `make:plugin {name} [--namespace=] [--composer]`
+
+Creates a starter plugin in `tracker-app/plugins/<slug>` from the templates in `tracker-app/stubs/plugin`. `--composer` also writes a `composer.json` for the Composer packages the plugin needs.
+
+```bash
+php artisan make:plugin "Event Weather"
 ```

@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
 use App\Enums\MembershipRole;
-use App\Enums\OauthProvider;
 use App\Jobs\SendPermissionRequestNotificationsJob;
-use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
+use Tests\Concerns\UsesBadgeRequests;
+use Tests\Fixtures\PermissionRequests\BadgeRequests;
 use Tests\TestCase;
 
 class RequestPermissionsSubmitControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesBadgeRequests;
 
     private Trooper $moderator;
 
@@ -29,6 +29,8 @@ class RequestPermissionsSubmitControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->addBadgeRequests();
 
         Bus::fake([SendPermissionRequestNotificationsJob::class]);
 
@@ -143,49 +145,36 @@ class RequestPermissionsSubmitControllerTest extends TestCase
         $response->assertSessionHasErrors('membership_role');
     }
 
-    public function test_invoke_submits_forum_group_request(): void
+    public function test_invoke_submits_a_request_with_only_an_extension_change(): void
     {
-        $this->configureXenforo();
-        $trooper = Trooper::factory()->asMember()->create();
-        OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => OauthProvider::XENFORO,
-            OauthLogin::PROVIDER_ID => '77',
-        ]);
-
         $response = $this->submit([
-            'trooper_id' => $trooper->id,
-            'forum_group_ids_to_add' => [20],
+            'trooper_id' => Trooper::factory()->asMember()->create()->id,
+            'extensions' => ['badges' => ['names' => ['gold']]],
         ]);
 
         $response->assertSessionHasNoErrors();
-        $this->assertSame(
-            [['id' => 20, 'title' => 'Event Coordinators']],
-            PermissionRequest::sole()->forum_groups_to_add
-        );
+        $this->assertSame([PermissionRequest::sole()->id => ['gold']], BadgeRequests::$stored);
     }
 
-    public function test_invoke_rejects_forum_groups_for_trooper_without_forum_account(): void
+    public function test_invoke_applies_extension_rules(): void
     {
-        $this->configureXenforo();
-
         $response = $this->submit([
             'trooper_id' => Trooper::factory()->asMember()->create()->id,
-            'forum_group_ids_to_add' => [20],
+            'extensions' => ['badges' => ['names' => ['bronze']]],
         ]);
 
-        $response->assertSessionHasErrors('forum_group_ids_to_add');
+        $response->assertSessionHasErrors('extensions.badges.names.0');
+        $this->assertDatabaseCount('tt_permission_requests', 0);
     }
 
-    public function test_invoke_rejects_unknown_forum_group(): void
+    public function test_invoke_runs_extension_checks(): void
     {
-        $this->configureXenforo();
-
         $response = $this->submit([
-            'trooper_id' => Trooper::factory()->asMember()->create()->id,
-            'forum_group_ids_to_add' => [999],
+            'trooper_id' => Trooper::factory()->asModerator()->create()->id,
+            'extensions' => ['badges' => ['names' => ['silver']]],
         ]);
 
-        $response->assertSessionHasErrors('forum_group_ids_to_add.0');
+        $response->assertSessionHasErrors(['extensions.badges.names' => 'Moderators already have silver.']);
     }
 
     public function test_invoke_rejects_malformed_input_without_crashing(): void
@@ -194,14 +183,14 @@ class RequestPermissionsSubmitControllerTest extends TestCase
             'trooper_id' => ['1'],
             'membership_role' => 'moderator',
             'moderated_organization_ids' => 'all',
-            'forum_group_ids_to_add' => 'abc',
+            'extensions' => 'abc',
         ]);
 
         $response->assertRedirect();
         $response->assertSessionHasErrors([
             'trooper_id',
             'moderated_organization_ids',
-            'forum_group_ids_to_add',
+            'extensions',
         ]);
     }
 
@@ -212,19 +201,5 @@ class RequestPermissionsSubmitControllerTest extends TestCase
     {
         return $this->actingAs($this->moderator)
             ->post(route('admin.troopers.permissions.request'), $data);
-    }
-
-    private function configureXenforo(): void
-    {
-        config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
-        ]);
-
-        Http::fake([
-            'https://xf.test/index.php?api/user-groups' => Http::response([
-                'userGroups' => [['groupID' => 20, 'title' => 'Event Coordinators']],
-            ], 200),
-        ]);
     }
 }

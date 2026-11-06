@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Troopers\Commands;
 
+use App\Contracts\DonationSource;
 use App\Enums\AchievementType;
 use App\Enums\EventTrooperStatus;
-use App\Enums\OauthProvider;
 use App\Jobs\SendTrooperMilestoneNotificationsJob;
 use App\Messages\Troopers\Commands\RecalculateTrooperRank;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
-use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperDonation;
-use App\Services\Forums\XenforoService;
+use App\Plugins\PluginDonations;
+use App\Support\DonationSummary;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
@@ -521,56 +521,62 @@ class RecalculateTrooperRankTest extends TestCase
         return EventShift::factory()->forEvent($event)->create();
     }
 
-    public function test_handle_counts_local_donation_months_and_amount_without_xenforo(): void
+    public function test_handle_adds_donation_source_months_and_total_to_local_donations(): void
     {
-        $this->mockUpgradeStats(null);
+        $trooper = Trooper::factory()->create();
+        TrooperDonation::factory()->create([
+            TrooperDonation::TROOPER_ID => $trooper->id,
+            TrooperDonation::AMOUNT => 40,
+            TrooperDonation::CREATED_AT => '2025-01-15 12:00:00',
+        ]);
+
+        $source = Mockery::mock(DonationSource::class);
+        $source->shouldReceive('summariesFor')
+            ->once()
+            ->andReturn([$trooper->id => new DonationSummary(
+                month_keys: ['2025-01' => true, '2025-02' => true],
+                total: 75.0,
+            )]);
+        $this->app->instance($source::class, $source);
+        $this->app->make(PluginDonations::class)->add($source::class);
+
+        (new RecalculateTrooperRank(trooper_id: $trooper->id))->handle();
+
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => AchievementType::DONATION_MONTHS->value,
+            TrooperAchievement::VALUE => 2,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => AchievementType::TOTAL_DONATED->value,
+            TrooperAchievement::VALUE => 115,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => AchievementType::DONATED_100->value,
+        ]);
+    }
+
+    public function test_handle_counts_local_donation_months_and_amount_without_donation_sources(): void
+    {
         $trooper = Trooper::factory()->create();
         TrooperDonation::factory()->forTrooper($trooper)->createdAt(Carbon::parse('2026-01-05'))
             ->create([TrooperDonation::AMOUNT => 200]);
         TrooperDonation::factory()->forTrooper($trooper)->createdAt(Carbon::parse('2026-03-05'))
             ->create([TrooperDonation::AMOUNT => 100]);
 
-        (new RecalculateTrooperRank(trooper_id: $trooper->id, send_milestone_notifications: false))->handle();
+        $subject = new RecalculateTrooperRank(
+            trooper_id: $trooper->id,
+            send_milestone_notifications: false,
+        );
+        $subject->handle();
 
         $this->assertAchievementValue($trooper, AchievementType::DONATION_MONTHS, 2);
         $this->assertAchievementValue($trooper, AchievementType::TOTAL_DONATED, 300);
         $this->assertHasAchievement($trooper, AchievementType::DONATED_250);
         $this->assertMissingAchievement($trooper, AchievementType::DONATED_500);
         $this->assertMissingAchievement($trooper, AchievementType::SUPPORTER_12_MONTHS);
-    }
-
-    public function test_handle_adds_xenforo_upgrade_history_to_donation_metrics(): void
-    {
-        $trooper = Trooper::factory()->create();
-        OauthLogin::factory()->forTrooper($trooper)->forProvider(OauthProvider::XENFORO->value)
-            ->create([OauthLogin::PROVIDER_ID => '55']);
-        $start = now()->subMonths(13)->getTimestamp();
-        $this->mockUpgradeStats([
-            'userUpgrades' => [['user_upgrade_id' => 1, 'cost_amount' => '10.00'], 'ignored'],
-            'userUpgradeActive' => [
-                ['user_id' => 55, 'user_upgrade_id' => 1, 'start_date' => $start, 'end_date' => 0],
-                ['user_upgrade_id' => 1],
-            ],
-            'userUpgradeExpired' => [
-                ['user_id' => 55, 'user_upgrade_id' => 1, 'start_date' => 0, 'end_date' => 0],
-                ['user_id' => 99, 'user_upgrade_id' => 1, 'start_date' => $start, 'end_date' => 0],
-            ],
-        ]);
-
-        (new RecalculateTrooperRank(trooper_id: $trooper->id, send_milestone_notifications: false))->handle();
-
-        $months = $this->achievementValue($trooper, AchievementType::DONATION_MONTHS);
-        $this->assertGreaterThanOrEqual(13, $months);
-        $this->assertEquals($months * 10, $this->achievementValue($trooper, AchievementType::TOTAL_DONATED));
-        $this->assertHasAchievement($trooper, AchievementType::SUPPORTER_12_MONTHS);
-        $this->assertHasAchievement($trooper, AchievementType::DONATED_100);
-    }
-
-    private function mockUpgradeStats(?array $stats): void
-    {
-        $xenforo = Mockery::mock(XenforoService::class);
-        $xenforo->shouldReceive('get_upgrade_stats')->once()->andReturn($stats);
-        $this->app->instance(XenforoService::class, $xenforo);
     }
 
     private function achievementValue(Trooper $trooper, AchievementType $type): mixed

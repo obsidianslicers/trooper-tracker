@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Auth;
 
+use App\Contracts\LoginProvider;
 use App\Facades\TroopTracker;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Messages\Auth\Commands\Login;
@@ -27,17 +28,15 @@ class LoginSubmitControllerTest extends TestCase
 
         $this->instance(TroopTracker::class, Mockery::mock(TroopTracker::class, function ($mock): void
         {
-            $mock->shouldReceive('isXenforoOAuthRequired')->once()->andReturnFalse();
+            $mock->shouldReceive('requiredLoginProvider')->once()->andReturnNull();
         }));
 
-        $dispatcher = new class ($trooper)
-        {
+        $dispatcher = new class($trooper) {
             public array $calls = [];
 
             public function __construct(
-            private readonly mixed $return_value
-            ) {
-            }
+                private readonly mixed $return_value
+            ) {}
 
             public function handle(string $message_class, ?Request $request = null, array $params = []): mixed
             {
@@ -58,7 +57,7 @@ class LoginSubmitControllerTest extends TestCase
 
         $login_calls = array_values(array_filter(
             $dispatcher->calls,
-            static fn(array $call): bool => $call[0] === Login::class
+            static fn (array $call): bool => $call[0] === Login::class
         ));
 
         $this->assertCount(1, $login_calls);
@@ -66,7 +65,7 @@ class LoginSubmitControllerTest extends TestCase
         $this->assertSame([], $login_calls[0][2]);
     }
 
-    public function test_invoke_returns_back_with_danger_when_xenforo_login_is_required(): void
+    public function test_invoke_returns_back_with_danger_when_a_login_provider_is_required(): void
     {
         $trooper = Trooper::factory()
             ->asActive()
@@ -75,11 +74,11 @@ class LoginSubmitControllerTest extends TestCase
 
         $this->instance(TroopTracker::class, Mockery::mock(TroopTracker::class, function ($mock): void
         {
-            $mock->shouldReceive('isXenforoOAuthRequired')->once()->andReturnTrue();
+            $mock->shouldReceive('requiredLoginProvider')->once()
+                ->andReturn(Mockery::mock(LoginProvider::class, ['name' => 'The Forum']));
         }));
 
-        $dispatcher = new class
-        {
+        $dispatcher = new class {
             public array $calls = [];
 
             public function handle(string $message_class, ?Request $request = null, array $params = []): mixed
@@ -101,7 +100,7 @@ class LoginSubmitControllerTest extends TestCase
 
         $login_calls = array_values(array_filter(
             $dispatcher->calls,
-            static fn(array $call): bool => $call[0] === Login::class
+            static fn (array $call): bool => $call[0] === Login::class
         ));
 
         $this->assertSame([], $login_calls);
@@ -116,11 +115,10 @@ class LoginSubmitControllerTest extends TestCase
 
         $this->instance(TroopTracker::class, Mockery::mock(TroopTracker::class, function ($mock): void
         {
-            $mock->shouldReceive('isXenforoOAuthRequired')->once()->andReturnFalse();
+            $mock->shouldReceive('requiredLoginProvider')->once()->andReturnNull();
         }));
 
-        $dispatcher = new class
-        {
+        $dispatcher = new class {
             public array $calls = [];
 
             public function handle(string $message_class, ?Request $request = null, array $params = []): mixed
@@ -142,7 +140,7 @@ class LoginSubmitControllerTest extends TestCase
 
         $login_calls = array_values(array_filter(
             $dispatcher->calls,
-            static fn(array $call): bool => $call[0] === Login::class
+            static fn (array $call): bool => $call[0] === Login::class
         ));
 
         $this->assertCount(1, $login_calls);

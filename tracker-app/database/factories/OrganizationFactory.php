@@ -26,21 +26,21 @@ class OrganizationFactory extends BaseOrganizationFactory
 
     public function withName(string $name): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Organization::NAME => $name,
         ]);
     }
 
     public function withNodePath(string $node_path): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Organization::NODE_PATH => $node_path,
         ]);
     }
 
     public function withParent(Organization $parent): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Organization::PARENT_ID => $parent->{Organization::ID},
             Organization::DEPTH => $parent->{Organization::DEPTH} + 1,
         ]);
@@ -48,21 +48,21 @@ class OrganizationFactory extends BaseOrganizationFactory
 
     public function withIdentifierDisplay(string $identifier_display): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Organization::IDENTIFIER_DISPLAY => $identifier_display,
         ]);
     }
 
     public function withSequence(int $sequence): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Organization::SEQUENCE => $sequence,
         ]);
     }
 
     public function asOrganization(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Organization::TYPE => OrganizationType::ORGANIZATION,
             Organization::DEPTH => 0,
         ]);
@@ -70,7 +70,7 @@ class OrganizationFactory extends BaseOrganizationFactory
 
     public function asRegion(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Organization::TYPE => OrganizationType::REGION,
             Organization::DEPTH => 1,
         ]);
@@ -78,16 +78,9 @@ class OrganizationFactory extends BaseOrganizationFactory
 
     public function asUnit(): static
     {
-        return $this->state(fn(array $attributes): array => [
+        return $this->state(fn (array $attributes): array => [
             Organization::TYPE => OrganizationType::UNIT,
             Organization::DEPTH => 2,
-        ]);
-    }
-
-    public function withRelatedForum(string $related_forum): static
-    {
-        return $this->state(fn(array $attributes): array => [
-            Organization::RELATED_FORUM => $related_forum,
         ]);
     }
 }

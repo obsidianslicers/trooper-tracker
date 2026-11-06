@@ -18,8 +18,6 @@ class PermissionRequestFactory extends BasePermissionRequestFactory
             PermissionRequest::REQUESTER_TROOPER_ID => Trooper::factory()->asModerator(),
             PermissionRequest::MEMBERSHIP_ROLE => MembershipRole::MODERATOR,
             PermissionRequest::MODERATED_ORGANIZATION_IDS_TO_ADD => [],
-            PermissionRequest::FORUM_GROUPS_TO_ADD => [],
-            PermissionRequest::FORUM_GROUPS_TO_REMOVE => [],
             PermissionRequest::STATUS => PermissionRequestStatus::PENDING,
         ]);
     }
@@ -50,14 +48,6 @@ class PermissionRequestFactory extends BasePermissionRequestFactory
      * @param  array<int, array{id:int,title:string}>  $add
      * @param  array<int, array{id:int,title:string}>  $remove
      */
-    public function withForumGroups(array $add = [], array $remove = []): static
-    {
-        return $this->state(fn (array $attributes): array => [
-            PermissionRequest::FORUM_GROUPS_TO_ADD => $add,
-            PermissionRequest::FORUM_GROUPS_TO_REMOVE => $remove,
-        ]);
-    }
-
     public function asApproved(): static
     {
         return $this->state(fn (array $attributes): array => [

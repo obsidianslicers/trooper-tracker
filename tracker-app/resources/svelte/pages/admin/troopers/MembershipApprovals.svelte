@@ -1,4 +1,5 @@
 <script lang="ts">
+    import PluginSlot from "$lib/components/PluginSlot.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
     import TrooperApprovals from "./components/membership/TrooperApprovals.svelte";
@@ -15,3 +16,4 @@
 
 <TrooperApprovals {vm} />
 <TrooperRequests {vm} />
+<PluginSlot name="admin.troopers.approvals.sections" />

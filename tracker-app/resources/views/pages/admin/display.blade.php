@@ -181,7 +181,13 @@
                       :url="route('admin.system-check')">
         Verify PHP, server, and integration settings
     </x-dashboard-card>
+    <x-dashboard-card :label="'Plugins'"
+                      :icon="'fa-puzzle-piece'"
+                      :url="route('admin.plugins.list')">
+        Enable, Disable, and Configure Plugins
+    </x-dashboard-card>
     @endrole
+    @pluginSlot('admin.dashboard.cards')
 </x-dashboard-cards>
 
 @endsection

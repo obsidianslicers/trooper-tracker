@@ -17,6 +17,7 @@
 <link rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.2.3/darkly/bootstrap.min.css" />
 @vite(['resources/css/app.scss'])
+@pluginPageSlot('page.head')
 @if(config('services.google.maps_api_key'))
     <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=marker">
     </script>

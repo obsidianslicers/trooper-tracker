@@ -85,11 +85,15 @@ Once approved, users may log in using:
 
 **OAuth Configuration:** See [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) for OAuth client ID/secret setup.  
 
+## Login providers
+
+Google login is built in. Plugins add others, such as XenForo login from the XenForo plugin (see [PLUGINS.md](PLUGINS.md#login-providers)). A provider's button shows only while it is configured.
+
 ## XenForo-Required Mode
 
-Troop Tracker can be configured to require XenForo-linked accounts.
+Troop Tracker can be configured to require XenForo-linked accounts. This needs the XenForo plugin enabled and its OAuth client configured.
 
-When `TRACKER_REQUIRE_XENFORO=true`:
+When **Require a linked forum account** is on (or `TRACKER_REQUIRE_XENFORO=true` until it is saved on the plugin's settings page):
 
 - email/password login is disabled
 - non-XenForo OAuth providers are blocked

@@ -18,6 +18,8 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class TrooperSetupRequiredMiddleware
 {
+    public const ALLOWED = 'allowed_during_setup';
+
     /**
      * Handle an incoming request and verify trooper setup completion.
      *
@@ -39,12 +41,12 @@ class TrooperSetupRequiredMiddleware
             {
                 if ($user->is_denied)
                 {
-                    if (!$request->routeIs('account.denied', 'account.denied.resubmit', 'account.xenforo.*', 'auth.*', 'pickers.*', 'verification.*'))
+                    if (!$this->isAllowedDuringSetup($request, 'account.denied', 'account.denied.resubmit'))
                     {
                         return redirect()->route('account.denied');
                     }
                 }
-                elseif (!$request->routeIs('account.setup', 'account.setup-submit', 'account.xenforo.*', 'auth.*', 'pickers.*', 'verification.*'))
+                elseif (!$this->isAllowedDuringSetup($request, 'account.setup', 'account.setup-submit'))
                 {
                     return redirect()->route('account.setup');
                 }
@@ -52,5 +54,19 @@ class TrooperSetupRequiredMiddleware
         }
 
         return $next($request);
+    }
+
+    /**
+     * A plugin opens one of its routes to troopers who haven't finished setup
+     * with ->defaults(self::ALLOWED, true), such as a page to link a forum account.
+     */
+    private function isAllowedDuringSetup(Request $request, string ...$routes): bool
+    {
+        if ($request->routeIs(...$routes, ...['auth.*', 'pickers.*', 'verification.*']))
+        {
+            return true;
+        }
+
+        return (bool) ($request->route()?->defaults[self::ALLOWED] ?? false);
     }
 }

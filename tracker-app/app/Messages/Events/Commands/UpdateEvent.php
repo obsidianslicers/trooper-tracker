@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\Events\Commands;
 
 use App\Models\Event;
+use App\Plugins\PluginForms;
 use Hyperdrive\Message;
 
 /**
@@ -38,5 +39,7 @@ final class UpdateEvent extends Message
         $this->event->fill($this->data);
 
         $this->event->save();
+
+        app(PluginForms::class)->saved(PluginForms::EVENT_UPDATE, $this->event, $this->data);
     }
 }

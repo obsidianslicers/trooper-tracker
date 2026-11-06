@@ -9,7 +9,7 @@
     import SlimCard from "$lib/components/ui/SlimCard.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
-    import ForumGroupSelection from "./components/permissions/ForumGroupSelection.svelte";
+    import ExtensionSections from "./components/permissions/ExtensionSections.svelte";
     import OrganizationSelection from "./components/permissions/OrganizationSelection.svelte";
     import RequestHistory from "./components/permissions/RequestHistory.svelte";
     import RoleSelection from "./components/permissions/RoleSelection.svelte";
@@ -24,9 +24,8 @@
 
 <SlimCard>
     <p class="text-muted">
-        Ask an administrator to change a trooper's role{vm.is_xenforo_configured
-            ? " or forum user groups"
-            : ""}. Nothing changes until an administrator approves it.
+        Ask an administrator to change a trooper's permissions. Nothing changes
+        until an administrator approves it.
     </p>
     <form onsubmit={vm.submit}>
         <InputContainer>
@@ -47,9 +46,7 @@
                 <OrganizationSelection {vm} />
             {/if}
 
-            {#if vm.is_xenforo_configured}
-                <ForumGroupSelection {vm} />
-            {/if}
+            <ExtensionSections {vm} />
 
             <InputContainer>
                 <InputText

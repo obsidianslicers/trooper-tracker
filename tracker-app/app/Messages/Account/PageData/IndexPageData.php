@@ -26,14 +26,15 @@ use App\Messages\Troopers\Queries\GetTrooperMinors;
 use App\Messages\Troopers\Queries\Membership\GetTrooperMemberships;
 use App\Messages\Troopers\Queries\Membership\GetTrooperRequests;
 use App\Models\Trooper;
+use App\Plugins\PluginNotifications;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 
 /**
  * Retrieves application configuration including authentication provider status and feature toggles.
  *
- * This query message responds with configuration data for authorization providers (XenForo OAuth,
- * Google OAuth, email/password authentication), application metadata, and feature/localization settings.
+ * This query message responds with configuration data for authorization providers (Google or
+ * plugin login providers, email/password authentication), application metadata, and feature/localization settings.
  * Used by frontend clients to determine available authentication methods and application capabilities.
  *
  * @method static array<string, mixed> call()
@@ -82,7 +83,10 @@ final class IndexPageData extends Message
     private function getNotifications(): array
     {
         return [
-            'trooper_notification_enums' => TrooperNotifications::toValueLabels(),
+            'trooper_notification_enums' => $this->withPluginCategories(
+                TrooperNotifications::toValueLabels(),
+                $this->plugins()->trooperCategories(),
+            ),
             'administrative_notification_enums' => $this->getAdministrativeNotificationEnums(),
             'notification_frequency_enums' => NotificationFrequency::toValueLabels(),
             'notification_frequency' => $this->actor->notification_frequency,
@@ -102,17 +106,45 @@ final class IndexPageData extends Message
     {
         if ($this->actor->is_administrator)
         {
-            return AdministrativeNotifications::toValueLabels();
+            return $this->withPluginCategories(
+                AdministrativeNotifications::toValueLabels(),
+                $this->plugins()->commandStaffCategories(),
+            );
         }
 
         if ($this->actor->is_moderator)
         {
-            return AdministrativeNotifications::toValueLabels(
-                exclude: AdministrativeNotifications::administratorOnly()
+            return $this->withPluginCategories(
+                AdministrativeNotifications::toValueLabels(
+                    exclude: AdministrativeNotifications::administratorOnly()
+                ),
+                $this->plugins()->commandStaffCategories(include_administrator_only: false),
             );
         }
 
         return [];
+    }
+
+    /**
+     * @param  array<int, array{value:string,label:string}>  $core
+     * @param  array<string, string>  $plugin_categories
+     * @return array<int, array{value:string,label:string}>
+     */
+    private function withPluginCategories(array $core, array $plugin_categories): array
+    {
+        foreach ($plugin_categories as $value => $label)
+        {
+            $core[] = ['value' => $value, 'label' => $label];
+        }
+
+        usort($core, fn (array $a, array $b): int => strcmp($a['label'], $b['label']));
+
+        return $core;
+    }
+
+    private function plugins(): PluginNotifications
+    {
+        return app(PluginNotifications::class);
     }
 
     /**
@@ -139,6 +171,11 @@ final class IndexPageData extends Message
         }
 
         foreach (AdministrativeNotifications::toArray() as $key => $label)
+        {
+            $preferences[$key] = array_fill_keys($channels, true);
+        }
+
+        foreach ($this->plugins()->values() as $key)
         {
             $preferences[$key] = array_fill_keys($channels, true);
         }

@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }}\Listeners;
+
+use App\Events\EventPosted;
+use Illuminate\Support\Facades\Log;
+
+class LogPostedEvent
+{
+    public function handle(EventPosted $posted): void
+    {
+        Log::info("[{{ slug }}] Event posted: {$posted->event->name}");
+    }
+}

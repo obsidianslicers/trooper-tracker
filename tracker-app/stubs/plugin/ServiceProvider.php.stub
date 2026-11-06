@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use App\Events\EventPosted;
+use App\Plugins\PluginServiceProvider;
+use {{ namespace }}\Listeners\LogPostedEvent;
+
+/**
+ * Entry point for the {{ name }} plugin. See docs/PLUGINS.md for every hook.
+ */
+class {{ class }}ServiceProvider extends PluginServiceProvider
+{
+    protected function registerPlugin(): void
+    {
+        //
+    }
+
+    public function bootPlugin(): void
+    {
+        $this->listen(EventPosted::class, LogPostedEvent::class);
+
+        $this->addToSlot(
+            'events.display.sections',
+            '{{ slug }}::event-panel',
+            fn (array $context): array => ['greeting' => $this->setting('greeting')],
+        );
+    }
+}

@@ -1,0 +1,7 @@
+{
+    "name": "{{ composer_name }}",
+    "description": "Composer packages the {{ name_json }} plugin needs. The deploy installs them.",
+    "require": {
+        "php": "^8.2"
+    }
+}

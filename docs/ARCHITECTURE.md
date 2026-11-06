@@ -201,6 +201,10 @@ a queued Job (or `dispatch(...)->afterResponse()`) that calls the Message.
 
 ---
 
+## Plugins
+
+Optional features ship as plugins: folders in `tracker-app/plugins/`, or uploaded or copied into `storage/app/plugins`. `App\Plugins\PluginManager` loads the enabled ones; they hook in through app events (`app/Events`), Hyperdrive message events, and `@pluginSlot` UI slots. See [PLUGINS.md](PLUGINS.md).
+
 ## Testing Strategy
 
 ### Test Types by Component
