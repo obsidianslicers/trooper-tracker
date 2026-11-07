@@ -36,6 +36,7 @@ use App\Http\Controllers\Admin\Troopers\RecruitSubmitController;
 use App\Http\Controllers\Admin\Troopers\RequestPermissionsController;
 use App\Http\Controllers\Admin\Troopers\RequestPermissionsSubmitController;
 use App\Http\Controllers\Admin\Troopers\RevokeCostumeController;
+use App\Http\Controllers\Admin\Troopers\UndoRevokeCostumeController;
 use App\Http\Controllers\Admin\Troopers\UnmarkRipSubmitController;
 use App\Http\Controllers\Admin\Troopers\UnvoidSubmitController;
 use App\Http\Controllers\Admin\Troopers\VoidSubmitController;
@@ -92,6 +93,9 @@ Route::prefix('admin/troopers')
             ->name('costumes.deny');
         Route::post('/costumes/{trooper_costume}/revoke', RevokeCostumeController::class)
             ->name('costumes.revoke');
+        Route::post('/costumes/{trooper_costume}/undo-revoke', UndoRevokeCostumeController::class)
+            ->name('costumes.undo-revoke')
+            ->withTrashed();
 
         Route::get('/recruit', RecruitController::class)->name('recruit');
         Route::post('/recruit', RecruitSubmitController::class);

@@ -97,6 +97,41 @@ class CostumeApprovalsControllerTest extends TestCase
         $this->assertSoftDeleted('tt_trooper_costumes', [TrooperCostume::ID => $approved->id]);
     }
 
+    public function test_undo_revoke_restores_a_revoked_costume(): void
+    {
+        $moderator = $this->moderatorOf($this->garrison);
+        $trooper = $this->memberOf($this->garrison);
+        $approved = $this->costumeFor($trooper, $this->club, pending: false);
+
+        $this->actingAs($moderator)
+            ->post(route('admin.troopers.costumes.revoke', ['trooper_costume' => $approved->id]));
+
+        $this->actingAs($moderator)
+            ->get(route('admin.troopers.costumes', $trooper))
+            ->assertOk()
+            ->assertSee('Revoked')
+            ->assertSee('Undo');
+
+        $this->actingAs($moderator)
+            ->post(route('admin.troopers.costumes.undo-revoke', ['trooper_costume' => $approved->id]))
+            ->assertRedirect();
+
+        $this->assertNotSoftDeleted('tt_trooper_costumes', [TrooperCostume::ID => $approved->id]);
+        $this->assertFalse(TrooperCostume::findOrFail($approved->id)->isRevoked());
+    }
+
+    public function test_undo_revoke_is_forbidden_out_of_scope(): void
+    {
+        $moderator = $this->moderatorOf($this->garrison);
+        $approved = $this->costumeFor($this->memberOf($this->garrison), $this->club, pending: false);
+        $this->actingAs($moderator)
+            ->post(route('admin.troopers.costumes.revoke', ['trooper_costume' => $approved->id]));
+
+        $this->actingAs($this->moderatorOf($this->other_club))
+            ->post(route('admin.troopers.costumes.undo-revoke', ['trooper_costume' => $approved->id]))
+            ->assertForbidden();
+    }
+
     public function test_trooper_costumes_page_shows_review_buttons_in_scope(): void
     {
         $moderator = $this->moderatorOf($this->garrison);

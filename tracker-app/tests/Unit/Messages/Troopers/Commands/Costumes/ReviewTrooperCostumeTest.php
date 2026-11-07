@@ -7,6 +7,7 @@ namespace Tests\Unit\Messages\Troopers\Commands\Costumes;
 use App\Messages\Troopers\Commands\Costumes\ApproveTrooperCostume;
 use App\Messages\Troopers\Commands\Costumes\DenyTrooperCostume;
 use App\Messages\Troopers\Commands\Costumes\RevokeTrooperCostume;
+use App\Messages\Troopers\Commands\Costumes\UndoRevokeTrooperCostume;
 use App\Models\TrooperCostume;
 use App\Notifications\Troopers\CostumeApprovedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -95,12 +96,52 @@ class ReviewTrooperCostumeTest extends TestCase
 
     public function test_revoke_removes_the_costume_and_clears_the_approval(): void
     {
+        $moderator = $this->moderatorOf($this->garrison);
         $approved = $this->costumeFor($this->memberOf($this->garrison), $this->club, pending: false);
 
-        (new RevokeTrooperCostume($approved))->handle();
+        (new RevokeTrooperCostume($moderator, $approved))->handle();
 
         $revoked = TrooperCostume::withPending()->withTrashed()->find($approved->id);
         $this->assertTrue($revoked->trashed());
         $this->assertTrue($revoked->isPending());
+        $this->assertTrue($revoked->isRevoked());
+        $this->assertSame($moderator->id, $revoked->revoked_id);
+    }
+
+    public function test_undo_revoke_restores_and_approves_the_costume(): void
+    {
+        $moderator = $this->moderatorOf($this->garrison);
+        $approved = $this->costumeFor($this->memberOf($this->garrison), $this->club, pending: false);
+        (new RevokeTrooperCostume($moderator, $approved))->handle();
+        $revoked = TrooperCostume::withPending()->withTrashed()->findOrFail($approved->id);
+
+        (new UndoRevokeTrooperCostume($moderator, $revoked))->handle();
+
+        $restored = TrooperCostume::findOrFail($approved->id);
+        $this->assertFalse($restored->isPending());
+        $this->assertFalse($restored->isRevoked());
+        $this->assertSame($moderator->id, $restored->approved_id);
+    }
+
+    public function test_undo_revoke_refuses_a_costume_that_was_not_revoked(): void
+    {
+        $moderator = $this->moderatorOf($this->garrison);
+        $approved = $this->costumeFor($this->memberOf($this->garrison), $this->club, pending: false);
+
+        $this->expectException(RuntimeException::class);
+
+        (new UndoRevokeTrooperCostume($moderator, $approved))->handle();
+    }
+
+    public function test_approving_a_re_added_revoked_costume_clears_the_revoke(): void
+    {
+        $moderator = $this->moderatorOf($this->garrison);
+        $approved = $this->costumeFor($this->memberOf($this->garrison), $this->club, pending: false);
+        $approved->markRevoked($moderator);
+        $approved->save();
+
+        (new ApproveTrooperCostume($moderator, $approved))->handle();
+
+        $this->assertFalse($approved->refresh()->isRevoked());
     }
 }

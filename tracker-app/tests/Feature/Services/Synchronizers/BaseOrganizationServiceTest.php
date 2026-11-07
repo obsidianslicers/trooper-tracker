@@ -182,6 +182,31 @@ class BaseOrganizationServiceTest extends TestCase
         $this->assertDatabaseCount('tt_trooper_costumes', 1);
     }
 
+    public function test_sync_trooper_costume_leaves_an_officer_revoked_costume_revoked(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $officer = Trooper::factory()->asAdministrator()->create();
+
+        $subject = new BaseOrganizationServiceHarness($organization, app(PluginSheetSource::class));
+        $org_costume = $subject->publicGetOrCreateOrganizationCostume('Scout Trooper');
+
+        $revoked = TrooperCostume::factory()
+            ->forTrooper($trooper)
+            ->forOrganizationCostume($org_costume)
+            ->create();
+        $revoked->markRevoked($officer);
+        $revoked->save();
+        $revoked->delete();
+
+        $subject->publicSyncTrooperCostume($trooper, $org_costume, []);
+
+        $revoked = TrooperCostume::withPending()->withTrashed()->findOrFail($revoked->id);
+        $this->assertTrue($revoked->trashed());
+        $this->assertTrue($revoked->isPending());
+        $this->assertTrue($revoked->isRevoked());
+    }
+
     public function test_sync_trooper_costume_leaves_other_pending_costumes_pending(): void
     {
         $organization = Organization::factory()->create();

@@ -52,6 +52,7 @@ class TrooperCostume extends BaseTrooperCostume
     public function isReviewableBy(Trooper $moderator): bool
     {
         return self::withPending()
+            ->withTrashed()
             ->whereKey($this->id)
             ->moderatedBy($moderator)
             ->exists();
@@ -71,6 +72,28 @@ class TrooperCostume extends BaseTrooperCostume
     {
         $this->{self::APPROVED_AT} = now();
         $this->{self::APPROVED_ID} = $approver?->id;
+        $this->{self::REVOKED_AT} = null;
+        $this->{self::REVOKED_ID} = null;
+    }
+
+    /**
+     * An officer revoked it. Club syncs leave it alone until an officer approves it again.
+     */
+    public function isRevoked(): bool
+    {
+        return $this->{self::REVOKED_AT} !== null;
+    }
+
+    public function markRevoked(Trooper $officer): void
+    {
+        $this->markPending();
+        $this->{self::REVOKED_AT} = now();
+        $this->{self::REVOKED_ID} = $officer->id;
+    }
+
+    public function revoked_by(): BelongsTo
+    {
+        return $this->belongsTo(Trooper::class, self::REVOKED_ID);
     }
 
     public function markPending(): void

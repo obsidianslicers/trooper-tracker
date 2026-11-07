@@ -150,6 +150,12 @@ abstract class BaseOrganizationService implements MemberLookupSource, Synchroniz
                 TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
             ]);
 
+        if ($trooper_costume->exists && $trooper_costume->isRevoked())
+        {
+            //  an officer revoked it; that outranks the club's records until undone
+            return;
+        }
+
         if ($trooper_costume->exists && $trooper_costume->trashed())
         {
             // Unique index on (trooper_id, organization_costume_id) requires restoring

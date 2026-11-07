@@ -71,7 +71,12 @@
                         <td>{{ $trooper_costume->organization_costume?->costume?->name }}</td>
                         <td>{{ $trooper_costume->organization_costume?->organization?->name }}</td>
                         <td class="text-nowrap">
-                            @if ($trooper_costume->isPending())
+                            @if ($trooper_costume->trashed() && $trooper_costume->isRevoked())
+                                <span class="badge text-bg-danger">Revoked</span>
+                                @if ($trooper_costume->revoked_by)
+                                    <span class="text-muted small">by {{ $trooper_costume->revoked_by->display_name }}</span>
+                                @endif
+                            @elseif ($trooper_costume->isPending())
                                 <span class="badge text-bg-warning">Pending review</span>
                             @elseif ($trooper_costume->synchronized_at !== null)
                                 <span class="badge text-bg-success">Club records</span>

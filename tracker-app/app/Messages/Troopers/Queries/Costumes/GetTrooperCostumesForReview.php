@@ -26,14 +26,23 @@ final class GetTrooperCostumesForReview extends Message
     public function handle(): Collection
     {
         $reviewable_ids = TrooperCostume::withPending()
+            ->withTrashed()
             ->where(TrooperCostume::TROOPER_ID, $this->trooper->id)
             ->moderatedBy($this->moderator)
             ->pluck(TrooperCostume::ID)
             ->all();
 
         return TrooperCostume::withPending()
+            ->withTrashed()
             ->where(TrooperCostume::TROOPER_ID, $this->trooper->id)
-            ->with(['organization_costume.costume', 'organization_costume.organization', 'approved_by'])
+            ->where(fn ($query) => $query->whereNull(TrooperCostume::DELETED_AT)
+                ->orWhereNotNull(TrooperCostume::REVOKED_AT))
+            ->with([
+                'organization_costume.costume',
+                'organization_costume.organization',
+                'approved_by',
+                'revoked_by',
+            ])
             ->get()
             ->sortBy(fn (TrooperCostume $tc) => $tc->organization_costume?->costume?->name)
             ->values()

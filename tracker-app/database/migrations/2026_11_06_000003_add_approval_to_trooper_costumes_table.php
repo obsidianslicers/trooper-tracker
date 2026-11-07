@@ -15,6 +15,8 @@ return new class extends Migration {
         {
             $table->timestamp('approved_at')->nullable()->after('synchronized_at');
             $table->unsignedBigInteger('approved_id')->nullable()->after('approved_at');
+            $table->timestamp('revoked_at')->nullable()->after('approved_id');
+            $table->unsignedBigInteger('revoked_id')->nullable()->after('revoked_at');
             $table->index('approved_at');
         });
 
@@ -32,7 +34,7 @@ return new class extends Migration {
         Schema::table('tt_trooper_costumes', function (Blueprint $table)
         {
             $table->dropIndex(['approved_at']);
-            $table->dropColumn(['approved_at', 'approved_id']);
+            $table->dropColumn(['approved_at', 'approved_id', 'revoked_at', 'revoked_id']);
         });
     }
 };
