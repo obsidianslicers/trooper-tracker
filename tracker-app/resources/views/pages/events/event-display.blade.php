@@ -19,40 +19,48 @@
                             {{ $event->name }}
                         </h4>
                     </span>
-                    @can('update', $event)
+                    @canany(['update', 'copy'], $event)
                         <div class="btn-group mb-2 ms-auto d-none d-md-flex">
-                            <a href="{{ route('admin.events.update', compact('event')) }}"
-                               class="btn border-white">
-                                <i class="fa fa-fw fa-edit"></i>
-                                Edit
-                            </a>
-                            <a href="{{ route('admin.events.copy', compact('event')) }}"
-                               class="btn border-white">
-                                <i class="fa fa-fw fa-copy"></i>
-                                Copy
-                            </a>
+                            @can('update', $event)
+                                <a href="{{ route('admin.events.update', compact('event')) }}"
+                                   class="btn border-white">
+                                    <i class="fa fa-fw fa-edit"></i>
+                                    Edit
+                                </a>
+                            @endcan
+                            @can('copy', $event)
+                                <a href="{{ route('admin.events.copy', compact('event')) }}"
+                                   class="btn border-white">
+                                    <i class="fa fa-fw fa-copy"></i>
+                                    Copy
+                                </a>
+                            @endcan
                         </div>
-                    @endcan
+                    @endcanany
                 </div>
                 <div class="card-body">
-                    @can('update', $event)
+                    @canany(['update', 'copy'], $event)
                         <div class="row d-md-none mb-2">
                             <div class="col-12">
                                 <div class="btn-group mb-2 ms-auto w-100">
-                                    <a href="{{ route('admin.events.update', compact('event')) }}"
-                                       class="btn border-white">
-                                        <i class="fa fa-fw fa-edit"></i>
-                                        Edit
-                                    </a>
-                                    <a href="{{ route('admin.events.copy', compact('event')) }}"
-                                       class="btn border-white">
-                                        <i class="fa fa-fw fa-copy"></i>
-                                        Copy
-                                    </a>
+                                    @can('update', $event)
+                                        <a href="{{ route('admin.events.update', compact('event')) }}"
+                                           class="btn border-white">
+                                            <i class="fa fa-fw fa-edit"></i>
+                                            Edit
+                                        </a>
+                                    @endcan
+                                    @can('copy', $event)
+                                        <a href="{{ route('admin.events.copy', compact('event')) }}"
+                                           class="btn border-white">
+                                            <i class="fa fa-fw fa-copy"></i>
+                                            Copy
+                                        </a>
+                                    @endcan
                                 </div>
                             </div>
                         </div>
-                    @endcan
+                    @endcanany
                     <div class="row mb-2 border-bottom">
                         <div class="col-12 col-md-6 small text-muted pb-3">
                             <div class="row">

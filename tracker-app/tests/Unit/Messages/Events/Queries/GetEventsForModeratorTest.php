@@ -45,4 +45,20 @@ class GetEventsForModeratorTest extends TestCase
 
         $this->assertCount(3, $result->items());
     }
+
+    public function test_handle_returns_only_their_own_events_for_event_coordinator(): void
+    {
+        $event_coordinator = Trooper::factory()->asEventCoordinator()->create();
+        $org = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($event_coordinator)->forOrganization($org)->asMember()->create();
+
+        $own_event = Event::factory()->withOrganization($org)->withCreatedByTrooper($event_coordinator)->create();
+        Event::factory()->withOrganization($org)->create();
+
+        $result = (new GetEventsForModerator(new EventFilter(new Request), $event_coordinator))->handle();
+
+        $this->assertCount(1, $result->items());
+        $this->assertSame($own_event->id, $result->items()[0]->id);
+    }
 }

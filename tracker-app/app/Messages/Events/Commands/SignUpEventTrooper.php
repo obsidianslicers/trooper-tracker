@@ -120,11 +120,14 @@ final class SignUpEventTrooper extends Message
         if ($event_trooper->added_by_trooper_id !== null)
         {
             $moderator = $this->added_by_trooper->membership_role === MembershipRole::MODERATOR ||
-                $this->added_by_trooper->membership_role === MembershipRole::ADMINISTRATOR;
+                $this->added_by_trooper->membership_role === MembershipRole::ADMINISTRATOR ||
+                ($this->added_by_trooper->membership_role === MembershipRole::EVENT_COORDINATOR
+                    && $this->event_shift->event->created_id === $this->added_by_trooper->id);
 
             if (!$moderator)
             {
-                //  don't create a friendship if the added by trooper is a moderator or administrator
+                //  don't create a friendship if the added by trooper is a moderator or administrator,
+                //  or the event coordinator running this event
                 dispatch(new CreateTrooperFriendshipJob($event_trooper->added_by_trooper_id, $event_trooper->trooper_id));
             }
         }

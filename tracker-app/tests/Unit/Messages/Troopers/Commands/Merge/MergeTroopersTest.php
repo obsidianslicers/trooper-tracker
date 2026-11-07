@@ -104,6 +104,26 @@ class MergeTroopersTest extends TestCase
         $this->assertNull($source_trooper->{Trooper::DELETION_REQUESTED_AT});
     }
 
+    public function test_resolve_membership_role_ranks_event_coordinator_between_member_and_moderator(): void
+    {
+        $cases = [
+            [MembershipRole::MEMBER, MembershipRole::EVENT_COORDINATOR, MembershipRole::EVENT_COORDINATOR],
+            [MembershipRole::EVENT_COORDINATOR, MembershipRole::MEMBER, MembershipRole::EVENT_COORDINATOR],
+            [MembershipRole::EVENT_COORDINATOR, MembershipRole::MODERATOR, MembershipRole::MODERATOR],
+        ];
+
+        foreach ($cases as [$target_role, $source_role, $expected])
+        {
+            $target_trooper = Trooper::factory()->create([Trooper::MEMBERSHIP_ROLE => $target_role]);
+            $source_trooper = Trooper::factory()->create([Trooper::MEMBERSHIP_ROLE => $source_role]);
+
+            $method = new ReflectionMethod(MergeTroopers::class, 'resolveMembershipRole');
+            $method->setAccessible(true);
+
+            $this->assertSame($expected, $method->invoke(new MergeTroopers($target_trooper, $source_trooper)));
+        }
+    }
+
     public function test_merge_trooper_friends_moves_source_friendships_to_target_and_updates_inverse_rows(): void
     {
         $target_trooper = Trooper::factory()->asActive()->create();

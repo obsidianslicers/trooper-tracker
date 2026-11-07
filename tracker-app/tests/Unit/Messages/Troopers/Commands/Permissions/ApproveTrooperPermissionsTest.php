@@ -41,6 +41,59 @@ class ApproveTrooperPermissionsTest extends TestCase
         $this->actingAs($this->admin);
     }
 
+    public function test_handle_makes_trooper_an_event_coordinator(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+
+        $permission_request = PermissionRequest::factory()
+            ->forTrooper($trooper)
+            ->withRole(MembershipRole::EVENT_COORDINATOR)
+            ->create();
+
+        (new ApproveTrooperPermissions($this->admin, $permission_request))->handle();
+
+        $this->assertSame(MembershipRole::EVENT_COORDINATOR, $trooper->fresh()->membership_role);
+        $this->assertSame(PermissionRequestStatus::APPROVED, $permission_request->fresh()->status);
+    }
+
+    public function test_handle_clears_moderation_when_a_moderator_becomes_an_event_coordinator(): void
+    {
+        $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+        $trooper = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->create([TrooperAssignment::IS_MODERATOR => true]);
+
+        $permission_request = PermissionRequest::factory()
+            ->forTrooper($trooper)
+            ->withRole(MembershipRole::EVENT_COORDINATOR)
+            ->create();
+
+        (new ApproveTrooperPermissions($this->admin, $permission_request))->handle();
+
+        $this->assertSame(MembershipRole::EVENT_COORDINATOR, $trooper->fresh()->membership_role);
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $organization->id,
+            TrooperAssignment::IS_MODERATOR => false,
+        ]);
+    }
+
+    public function test_handle_sets_an_event_coordinator_back_to_member(): void
+    {
+        $trooper = Trooper::factory()->asEventCoordinator()->create();
+
+        $permission_request = PermissionRequest::factory()
+            ->forTrooper($trooper)
+            ->withRole(MembershipRole::MEMBER)
+            ->create();
+
+        (new ApproveTrooperPermissions($this->admin, $permission_request))->handle();
+
+        $this->assertSame(MembershipRole::MEMBER, $trooper->fresh()->membership_role);
+    }
+
     public function test_handle_makes_trooper_moderator_of_requested_organizations(): void
     {
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();

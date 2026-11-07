@@ -107,6 +107,34 @@ A time-limited role for prospective members or guests. Access renews in 6-month 
 
 ---
 
+### EVENT_COORDINATOR
+
+For troopers who set up and run events but are not command staff. Stored as `event_coordinator`.
+Cannot be self-assigned.
+
+**Can:**
+- Everything a MEMBER can
+- Create events for organizations they belong to: any organization they are a member of, and
+  every organization above it (a squad member can also host for the squad's garrison)
+- Edit and run the events they created (`tt_events.created_id`): details, shifts, roster,
+  charity, photos and mission review
+- Copy any event hosted by an organization they belong to; the copy is their own event
+
+**Cannot:**
+- Manage events created by someone else
+- Access the Command Staff dashboard or any other admin page
+- Approve troopers or manage notices, awards and costumes
+
+**Not command staff:** they are not in the command staff list, receive no staff notifications
+(those go to MODERATOR and ADMINISTRATOR only), and the role changes nothing on the forum.
+
+**Navigation:** the Events menu shows **My Events** (`/admin/events`, limited to their own
+events) and **Create Event**.
+
+**Assigned by:** Admin via authority panel, or by approving a [permission request](#permission-requests)
+
+---
+
 ### MODERATOR
 
 An elevated role scoped to specific organizations. Cannot be self-assigned.
@@ -144,15 +172,17 @@ Full unrestricted system access. Cannot be self-assigned.
 
 ## Permissions Comparison
 
-| Capability | MEMBER | HANDLER | VISITOR | MODERATOR | ADMINISTRATOR |
-|---|:---:|:---:|:---:|:---:|:---:|
-| Sign up for events | ✓ | ✓ (handler) | ✓ (top-level only) | ✓ | ✓ |
-| Manage own costumes | ✓ | — | ✓ | ✓ | ✓ |
-| Create/manage events | — | — | — | ✓ (scoped) | ✓ |
-| Approve/deny troopers | — | — | — | ✓ (scoped) | ✓ |
-| Manage notices/awards | — | — | — | ✓ (scoped) | ✓ |
-| Change trooper roles | — | — | — | — | ✓ |
-| Unrestricted org scope | — | — | — | — | ✓ |
+| Capability | MEMBER | HANDLER | VISITOR | EVENT_COORDINATOR | MODERATOR | ADMINISTRATOR |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| Sign up for events | ✓ | ✓ (handler) | ✓ (top-level only) | ✓ | ✓ | ✓ |
+| Manage own costumes | ✓ | — | ✓ | ✓ | ✓ | ✓ |
+| Create events | — | — | — | ✓ (own orgs) | ✓ (scoped) | ✓ |
+| Manage events | — | — | — | ✓ (own events) | ✓ (scoped) | ✓ |
+| Approve/deny troopers | — | — | — | — | ✓ (scoped) | ✓ |
+| Manage notices/awards | — | — | — | — | ✓ (scoped) | ✓ |
+| Command staff notifications | — | — | — | — | ✓ | ✓ |
+| Change trooper roles | — | — | — | — | — | ✓ |
+| Unrestricted org scope | — | — | — | — | — | ✓ |
 
 ---
 
@@ -205,7 +235,8 @@ apply the change.
    (`/admin/troopers/permissions/request`), picks a trooper, and requests any of:
    - make the trooper a MODERATOR of organizations the requester moderates
      (administrators can pick any organization)
-   - set a MODERATOR back to a regular MEMBER
+   - make the trooper an EVENT_COORDINATOR
+   - set a MODERATOR or EVENT_COORDINATOR back to a regular MEMBER
    - add or remove XenForo secondary user groups, when the XenForo integration is configured
 2. The moderator adds an optional note explaining what the trooper will do. The request is
    stored in `tt_permission_requests` with status `pending`, and every administrator is
@@ -249,6 +280,8 @@ Rules:
 | Visitor expiry middleware | `app/Http/Middleware/CheckVisitorAccessMiddleware.php` |
 | Role gate middleware | `app/Http/Middleware/CheckActorRoleMiddleware.php` |
 | Permission trait | `app/Policies/Concerns/HasTrooperPermissionsTrait.php` |
+| Event create/manage/copy rules | `app/Policies/EventPolicy.php` |
+| Event coordinator scopes | `Event::managedBy()` in `app/Models/Scopes/HasEventScopes.php`, `Organization::eventHostableBy()` in `app/Models/Scopes/HasOrganizationScopes.php` |
 | Register handler | `app/Messages/Troopers/Commands/CreateTrooper.php` |
 | Approve handler | `app/Messages/Troopers/Commands/Membership/ApproveTrooperMembership.php` |
 | Role change handler | `app/Messages/Troopers/Commands/UpdateTrooperAuthority.php` |

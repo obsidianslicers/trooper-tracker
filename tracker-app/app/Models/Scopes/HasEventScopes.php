@@ -200,6 +200,26 @@ trait HasEventScopes
     }
 
     /**
+     * Scope a query to the events a trooper may edit and run.
+     *
+     * Event coordinators manage only the events they created; everyone else gets the
+     * moderator scope (all events for administrators).
+     *
+     * @param Builder<self> $query The Eloquent query builder.
+     * @param Trooper $trooper The trooper managing events.
+     * @return Builder<self>
+     */
+    public function scopeManagedBy(Builder $query, Trooper $trooper): Builder
+    {
+        if ($trooper->is_event_coordinator)
+        {
+            return $query->where('tt_events.created_id', $trooper->id);
+        }
+
+        return $query->moderatedBy($trooper);
+    }
+
+    /**
      * Scope a query to search for events by a given search term.
      *
      * Automatically adds wildcard characters to the beginning and end of the
