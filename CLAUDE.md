@@ -348,7 +348,7 @@ npm run build    # Production build
 
 All enums are backed strings using `HasEnumHelpers`:
 - `AchievementType`, `AwardFrequency`, `EventStatus`, `EventTrooperStatus`, `EventType`
-- `MembershipRole` (`member`, `moderator`, `administrator`)
+- `MembershipRole` (`member`, `handler`, `visitor`, `moderator`, `staff_officer`, `administrator`); `staff_officer` is an administrator without Plugins, System Check, or Merge (`is_administrator` vs `has_system_owner`)
 - `MembershipStatus` (`pending`, `active`, `retired`)
 - `NoticeType`, `NotificationFrequency`, `OrganizationType`, `TrooperTheme`
 

@@ -66,6 +66,7 @@ class RegisterPageDataTest extends TestCase
             MembershipRole::toValueLabels([
                 MembershipRole::EVENT_COORDINATOR,
                 MembershipRole::MODERATOR,
+                MembershipRole::STAFF_OFFICER,
                 MembershipRole::ADMINISTRATOR,
             ]),
             $result['membership_roles']

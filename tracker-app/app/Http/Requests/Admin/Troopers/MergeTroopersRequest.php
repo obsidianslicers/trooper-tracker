@@ -17,7 +17,7 @@ class MergeTroopersRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->is_administrator;
+        return $this->user()->has_system_owner;
     }
 
     /**

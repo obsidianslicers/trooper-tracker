@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 //  ADMIN/ORGANIZATIONS
 Route::prefix('admin/organizations')
     ->name('admin.organizations.')
-    ->middleware(['auth', 'check.role:moderator,administrator'])
+    ->middleware(['auth', 'check.role:moderator,staff_officer,administrator'])
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');

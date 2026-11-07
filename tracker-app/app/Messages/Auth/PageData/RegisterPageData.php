@@ -56,7 +56,12 @@ final class RegisterPageData extends Message
 
     private function getMembershipRoles(): array
     {
-        $exclude = [MembershipRole::EVENT_COORDINATOR, MembershipRole::MODERATOR, MembershipRole::ADMINISTRATOR];
+        $exclude = [
+            MembershipRole::EVENT_COORDINATOR,
+            MembershipRole::MODERATOR,
+            MembershipRole::STAFF_OFFICER,
+            MembershipRole::ADMINISTRATOR,
+        ];
 
         return MembershipRole::toValueLabels(exclude: $exclude);
     }

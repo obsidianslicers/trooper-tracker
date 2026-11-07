@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
+use App\Enums\MembershipRole;
 use App\Http\Controllers\PageController;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -42,8 +43,24 @@ class AuthorityController extends PageController
         $data = [
             'trooper' => $trooper,
             'organization_authorities' => $organization_authorities,
+            'role_options' => $this->roleOptions($request),
         ];
 
         return view('pages.admin.troopers.authority', $data);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function roleOptions(Request $request): array
+    {
+        $options = MembershipRole::toArray();
+
+        if (!$request->user()->has_system_owner)
+        {
+            unset($options[MembershipRole::ADMINISTRATOR->value]);
+        }
+
+        return $options;
     }
 }

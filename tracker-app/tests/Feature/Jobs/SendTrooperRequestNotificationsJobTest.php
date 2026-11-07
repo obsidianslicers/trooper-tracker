@@ -6,6 +6,7 @@ namespace Tests\Feature\Jobs;
 
 use App\Enums\MembershipRole;
 use App\Jobs\SendTrooperRequestNotificationsJob;
+use App\Messages\Troopers\Queries\GetAdministrators;
 use App\Messages\Troopers\Queries\GetTroopersByRole;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -42,9 +43,9 @@ class SendTrooperRequestNotificationsJobTest extends TestCase
         $admin_invalid = Trooper::factory()->asAdministrator()->withInvalidEmail()->create();
 
         $messages = $this->fakeMessages([
+            GetAdministrators::class => collect([$admin_valid, $admin_invalid]),
             GetTroopersByRole::class => fn (array $params): mixed => match (true)
             {
-                $params['membership_role'] === MembershipRole::ADMINISTRATOR => collect([$admin_valid, $admin_invalid]),
                 $params['membership_role'] === MembershipRole::MODERATOR => collect([]),
             },
         ]);
@@ -52,10 +53,7 @@ class SendTrooperRequestNotificationsJobTest extends TestCase
         $subject = new SendTrooperRequestNotificationsJob($trooper_request);
         $subject->handle();
 
-        $messages->assertCalled(
-            GetTroopersByRole::class,
-            fn (array $params): bool => $params['membership_role'] === MembershipRole::ADMINISTRATOR
-        );
+        $messages->assertCalled(GetAdministrators::class);
         $messages->assertCalled(
             GetTroopersByRole::class,
             fn (array $params): bool => $params['membership_role'] === MembershipRole::MODERATOR
@@ -88,9 +86,9 @@ class SendTrooperRequestNotificationsJobTest extends TestCase
         TrooperAssignment::factory()->forTrooper($moderator_outside_tree)->forOrganization($other_org)->asModerator()->create();
 
         $messages = $this->fakeMessages([
+            GetAdministrators::class => collect([]),
             GetTroopersByRole::class => fn (array $params): mixed => match (true)
             {
-                $params['membership_role'] === MembershipRole::ADMINISTRATOR => collect([]),
                 $params['membership_role'] === MembershipRole::MODERATOR => collect([$moderator_in_tree, $moderator_outside_tree]),
             },
         ]);
@@ -98,10 +96,7 @@ class SendTrooperRequestNotificationsJobTest extends TestCase
         $subject = new SendTrooperRequestNotificationsJob($trooper_request);
         $subject->handle();
 
-        $messages->assertCalled(
-            GetTroopersByRole::class,
-            fn (array $params): bool => $params['membership_role'] === MembershipRole::ADMINISTRATOR
-        );
+        $messages->assertCalled(GetAdministrators::class);
         $messages->assertCalled(
             GetTroopersByRole::class,
             fn (array $params): bool => $params['membership_role'] === MembershipRole::MODERATOR

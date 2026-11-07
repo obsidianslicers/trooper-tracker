@@ -11,6 +11,7 @@ use App\Models\TrooperAssignment;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
+use Mockery;
 use Tests\TestCase;
 
 class AuthorityRequestTest extends TestCase
@@ -35,20 +36,20 @@ class AuthorityRequestTest extends TestCase
      */
     private function setupMockedRoute(AuthorityRequest $request, Trooper $trooper): void
     {
-        $mock_route = \Mockery::mock();
+        $mock_route = Mockery::mock();
         $mock_route->shouldReceive('parameter')
             ->with('trooper')
             ->andReturn($trooper);
         $mock_route->shouldReceive('parameter')
-            ->with('trooper', \Mockery::any())
+            ->with('trooper', Mockery::any())
             ->andReturn($trooper);
-        $request->setRouteResolver(fn() => $mock_route);
+        $request->setRouteResolver(fn () => $mock_route);
     }
 
     public function test_authorize_returns_true_for_administrator(): void
     {
         $subject = new AuthorityRequest;
-        $subject->setUserResolver(fn() => $this->admin);
+        $subject->setUserResolver(fn () => $this->admin);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $this->assertTrue($subject->authorize());
@@ -58,7 +59,7 @@ class AuthorityRequestTest extends TestCase
     {
         $moderator = Trooper::factory()->asModerator()->create();
         $subject = new AuthorityRequest;
-        $subject->setUserResolver(fn() => $moderator);
+        $subject->setUserResolver(fn () => $moderator);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $this->assertFalse($subject->authorize());
@@ -70,11 +71,11 @@ class AuthorityRequestTest extends TestCase
         $this->expectExceptionMessage('Trooper not found or unauthorized.');
 
         $subject = new AuthorityRequest;
-        $subject->setUserResolver(fn() => $this->admin);
-        $mock_route = \Mockery::mock();
+        $subject->setUserResolver(fn () => $this->admin);
+        $mock_route = Mockery::mock();
         $mock_route->shouldReceive('parameter')->with('trooper')->andReturn(null);
-        $mock_route->shouldReceive('parameter')->with('trooper', \Mockery::any())->andReturn(null);
-        $subject->setRouteResolver(fn() => $mock_route);
+        $mock_route->shouldReceive('parameter')->with('trooper', Mockery::any())->andReturn(null);
+        $subject->setRouteResolver(fn () => $mock_route);
 
         $subject->authorize();
     }
@@ -131,9 +132,44 @@ class AuthorityRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
+    public function test_authorize_returns_true_for_staff_officer(): void
+    {
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
+        $subject = new AuthorityRequest;
+        $subject->setUserResolver(fn () => $staff_officer);
+        $this->setupMockedRoute($subject, $this->target_trooper);
+
+        $this->assertTrue($subject->authorize());
+    }
+
+    public function test_authorize_returns_false_for_staff_officer_editing_administrator(): void
+    {
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
+        $subject = new AuthorityRequest;
+        $subject->setUserResolver(fn () => $staff_officer);
+        $this->setupMockedRoute($subject, $this->admin);
+
+        $this->assertFalse($subject->authorize());
+    }
+
+    public function test_rules_rejects_administrator_role_from_staff_officer(): void
+    {
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
+        $subject = new AuthorityRequest;
+        $subject->setUserResolver(fn () => $staff_officer);
+
+        $validator = Validator::make(
+            [Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR->value],
+            $subject->rules()
+        );
+
+        $this->assertTrue($validator->fails());
+    }
+
     public function test_rules_accepts_administrator_role(): void
     {
         $subject = new AuthorityRequest;
+        $subject->setUserResolver(fn () => $this->admin);
 
         $validator = Validator::make(
             [
@@ -159,7 +195,7 @@ class AuthorityRequestTest extends TestCase
         $subject = new AuthorityRequest;
         $rules = $subject->rules();
 
-        $validator_path = 'organizations.*.' . TrooperAssignment::IS_MODERATOR;
+        $validator_path = 'organizations.*.'.TrooperAssignment::IS_MODERATOR;
         $this->assertArrayHasKey($validator_path, $rules);
         $this->assertContains('boolean', $rules[$validator_path]);
     }

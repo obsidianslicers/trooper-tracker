@@ -115,7 +115,7 @@ plugins/hello/
 ├── plugin.json
 ├── config/config.php              # optional, merged into config('plugins.hello')
 ├── routes/web.php                 # optional, /plugins/hello, plugins.hello.*, signed-in troopers
-├── routes/admin.php               # optional, /plugins/hello/admin, plugins.hello.admin.*, administrators
+├── routes/admin.php               # optional, /plugins/hello/admin, plugins.hello.admin.*, administrators and staff officers
 ├── routes/public.php              # optional, /plugins/hello, plugins.hello.*, anyone
 ├── resources/views/               # optional, as the hello:: view namespace
 ├── database/migrations/           # optional, run on enable and by php artisan migrate
@@ -196,7 +196,7 @@ Slots, System Check rows, notification categories and settings need no capabilit
 
 ### Plugin pages
 
-Pages in `routes/web.php` need a signed-in, verified, active trooper; `routes/admin.php` pages (under `/plugins/<slug>/admin`) also need an administrator; only `routes/public.php` pages are open to anyone. Check finer permissions in the controller with a policy. Routes a plugin registers itself in its provider (such as XenForo's account pages) set their own middleware.
+Pages in `routes/web.php` need a signed-in, verified, active trooper; `routes/admin.php` pages (under `/plugins/<slug>/admin`) also need an administrator or staff officer; only `routes/public.php` pages are open to anyone. Check finer permissions in the controller with a policy. Routes a plugin registers itself in its provider (such as XenForo's account pages) set their own middleware.
 
 ### The service provider
 

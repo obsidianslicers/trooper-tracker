@@ -62,6 +62,7 @@ class RegisterControllerTest extends TestCase
             ->where('membership_roles', MembershipRole::toValueLabels([
                 MembershipRole::EVENT_COORDINATOR,
                 MembershipRole::MODERATOR,
+                MembershipRole::STAFF_OFFICER,
                 MembershipRole::ADMINISTRATOR,
             ]))
         );

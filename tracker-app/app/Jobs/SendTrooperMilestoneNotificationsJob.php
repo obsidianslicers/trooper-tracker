@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Enums\AchievementType;
 use App\Enums\MembershipRole;
+use App\Messages\Troopers\Queries\GetAdministrators;
 use App\Messages\Troopers\Queries\GetTroopersByRole;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
@@ -75,7 +76,7 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
         /** @var Collection<int, Collection<int, TrooperAchievement>> $roundups */
         $roundups = collect();
 
-        $admins = GetTroopersByRole::call(membership_role: MembershipRole::ADMINISTRATOR);
+        $admins = GetAdministrators::call();
 
         foreach ($admins as $admin)
         {
