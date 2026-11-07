@@ -54,13 +54,14 @@ class AuthorityController extends PageController
      */
     private function roleOptions(Request $request): array
     {
-        $options = MembershipRole::toArray();
+        $roles = collect(MembershipRole::cases())
+            ->when(
+                !$request->user()->has_system_owner,
+                fn ($roles) => $roles->reject(fn ($role) => $role === MembershipRole::ADMINISTRATOR)
+            );
 
-        if (!$request->user()->has_system_owner)
-        {
-            unset($options[MembershipRole::ADMINISTRATOR->value]);
-        }
-
-        return $options;
+        return $roles->mapWithKeys(
+            fn (MembershipRole $role): array => [$role->value => to_title($role->name)->toString()]
+        )->all();
     }
 }

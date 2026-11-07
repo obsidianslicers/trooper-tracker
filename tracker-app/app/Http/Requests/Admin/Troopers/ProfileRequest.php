@@ -42,7 +42,7 @@ class ProfileRequest extends FormRequest
             throw new AuthorizationException('Trooper not found or unauthorized.');
         }
 
-        return $this->user()->can('update', $trooper);
+        return $this->user()->can('updateProfile', $trooper);
     }
 
     /**

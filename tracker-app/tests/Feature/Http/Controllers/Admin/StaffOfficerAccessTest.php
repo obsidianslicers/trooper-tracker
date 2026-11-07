@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Enums\MembershipRole;
+use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -157,5 +158,70 @@ class StaffOfficerAccessTest extends TestCase
         $response->assertOk();
         $response->assertSee('value="staff_officer"', false);
         $response->assertDontSee('value="administrator"', false);
+    }
+
+    public function test_staff_officer_cannot_make_themselves_an_administrator(): void
+    {
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
+
+        $response = $this->actingAs($staff_officer)
+            ->post(route('admin.troopers.authority', $staff_officer), [
+                Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR->value,
+                'organizations' => [],
+            ]);
+
+        $response->assertSessionHasErrors(Trooper::MEMBERSHIP_ROLE);
+        $this->assertSame(
+            MembershipRole::STAFF_OFFICER,
+            $staff_officer->fresh()->membership_role
+        );
+    }
+
+    public function test_staff_officer_cannot_change_an_administrators_profile(): void
+    {
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
+        $administrator = Trooper::factory()->asAdministrator()->create();
+
+        $response = $this->actingAs($staff_officer)
+            ->post(route('admin.troopers.profile', $administrator), [
+                Trooper::LEGAL_NAME => 'Taken Over',
+                Trooper::DISPLAY_NAME => 'Taken Over',
+                Trooper::EMAIL => 'staff@example.com',
+                Trooper::MEMBERSHIP_STATUS => MembershipStatus::RETIRED->value,
+            ]);
+
+        $response->assertForbidden();
+        $this->assertSame(MembershipStatus::ACTIVE, $administrator->fresh()->membership_status);
+    }
+
+    public function test_staff_officer_cannot_void_an_administrator(): void
+    {
+        $staff_officer = Trooper::factory()->asStaffOfficer()->create();
+        $administrator = Trooper::factory()->asAdministrator()->create();
+
+        $this->actingAs($staff_officer)
+            ->post(route('admin.troopers.void', $administrator))
+            ->assertForbidden();
+
+        $this->assertSame(MembershipStatus::ACTIVE, $administrator->fresh()->membership_status);
+    }
+
+    public function test_authority_roles_are_listed_by_rank(): void
+    {
+        $administrator = Trooper::factory()->asAdministrator()->create();
+        $subject = Trooper::factory()->create();
+
+        $response = $this->actingAs($administrator)
+            ->get(route('admin.troopers.authority', $subject));
+
+        $response->assertSeeInOrder([
+            'value="member"',
+            'value="handler"',
+            'value="visitor"',
+            'value="event_coordinator"',
+            'value="moderator"',
+            'value="staff_officer"',
+            'value="administrator"',
+        ], false);
     }
 }
