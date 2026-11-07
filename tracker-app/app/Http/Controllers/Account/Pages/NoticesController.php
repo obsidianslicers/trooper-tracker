@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Account;
+namespace App\Http\Controllers\Account\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Messages\Notices\Queries\GetUnreadNotices;

@@ -18,9 +18,9 @@ use App\Http\Controllers\Account\Commands\UpdateNotificationPreferenceController
 use App\Http\Controllers\Account\Commands\UpdateOrganizationNotificationsController;
 use App\Http\Controllers\Account\Commands\UpdateProfileController;
 use App\Http\Controllers\Account\Commands\UpdatePushNotificationsController;
-use App\Http\Controllers\Account\NoticesController;
 use App\Http\Controllers\Account\Pages\DeniedController;
 use App\Http\Controllers\Account\Pages\IndexController;
+use App\Http\Controllers\Account\Pages\NoticesController;
 use App\Http\Controllers\Account\Pages\PendingMembershipController;
 use App\Http\Controllers\Account\Pages\PushNotificationInboxController;
 use App\Http\Controllers\Account\Pages\RenewVisitorController;
