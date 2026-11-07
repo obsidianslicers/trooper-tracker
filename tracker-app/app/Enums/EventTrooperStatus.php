@@ -57,7 +57,7 @@ enum EventTrooperStatus: string
     /**
      * A flagged trooper confirmed attendance; a moderator must verify it before it counts.
      */
-    case AWAITING_VERIFICATION = 'verifying';
+    case AWAITING_VERIFICATION = 'awaiting_verification';
 
     /**
      * Get an array of available sign-up statuses.

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\EventTrooperStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -22,6 +23,7 @@ return new class extends Migration {
         {
             $table->json('requested_organization_ids')->nullable()->after('costume_organization_ids');
             $table->timestamp('verification_requested_at')->nullable()->after('requested_organization_ids');
+            $table->string('status', 32)->default(EventTrooperStatus::NONE->value)->change();
         });
     }
 
@@ -33,6 +35,7 @@ return new class extends Migration {
         Schema::table('tt_event_troopers', function (Blueprint $table)
         {
             $table->dropColumn(['requested_organization_ids', 'verification_requested_at']);
+            $table->string('status', 16)->default(EventTrooperStatus::NONE->value)->change();
         });
 
         Schema::table('tt_troopers', function (Blueprint $table)

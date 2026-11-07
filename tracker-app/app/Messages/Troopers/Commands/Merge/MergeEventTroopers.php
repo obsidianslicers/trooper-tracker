@@ -133,7 +133,7 @@ final class MergeEventTroopers extends Message
             'tentative' => 20,
             'standby' => 30,
             'going' => 40,
-            'verifying' => 45,
+            'awaiting_verification' => 45,
             'attended' => 50,
             'notpicked' => 60,
             'unabletoattend' => 70,
