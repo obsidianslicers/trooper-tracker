@@ -43,7 +43,11 @@ class RequestPermissionsRequest extends FormRequest
             ],
             'membership_role' => [
                 'nullable',
-                Rule::in([MembershipRole::MODERATOR->value, MembershipRole::MEMBER->value]),
+                Rule::in([
+                    MembershipRole::MODERATOR->value,
+                    MembershipRole::EVENT_COORDINATOR->value,
+                    MembershipRole::MEMBER->value,
+                ]),
             ],
             'moderated_organization_ids' => ['array', 'required_if:membership_role,moderator'],
             'moderated_organization_ids.*' => ['integer', Rule::in($organization_ids)],
@@ -114,9 +118,14 @@ class RequestPermissionsRequest extends FormRequest
             $validator->errors()->add('membership_role', 'Administrator roles cannot be changed.');
         }
         elseif ($this->input('membership_role') === MembershipRole::MEMBER->value
-            && $trooper->membership_role !== MembershipRole::MODERATOR)
+            && !in_array($trooper->membership_role, [MembershipRole::MODERATOR, MembershipRole::EVENT_COORDINATOR], true))
         {
-            $validator->errors()->add('membership_role', 'This trooper is not a moderator.');
+            $validator->errors()->add('membership_role', 'This trooper is not a moderator or event coordinator.');
+        }
+        elseif ($this->input('membership_role') === MembershipRole::EVENT_COORDINATOR->value
+            && $trooper->membership_role === MembershipRole::EVENT_COORDINATOR)
+        {
+            $validator->errors()->add('membership_role', 'This trooper is already an event coordinator.');
         }
     }
 

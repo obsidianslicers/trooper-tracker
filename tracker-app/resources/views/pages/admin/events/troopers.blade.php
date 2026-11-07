@@ -85,7 +85,9 @@
                         @forelse($event_shift->event_troopers as $event_trooper)
                             <tr data-roster-row>
                                 <td class="ps-4">
-                                    <a href="{{ route('admin.troopers.profile', ['trooper' => $event_trooper->trooper_id]) }}">
+                                    <a href="{{ Auth::user()->is_event_coordinator
+                                        ? route('service-records.trooper', ['trooper' => $event_trooper->trooper_id])
+                                        : route('admin.troopers.profile', ['trooper' => $event_trooper->trooper_id]) }}">
                                         {{ $event_trooper->trooper->display_name }}
                                     </a>
                                     @if($event_trooper->trooper->legal_name)

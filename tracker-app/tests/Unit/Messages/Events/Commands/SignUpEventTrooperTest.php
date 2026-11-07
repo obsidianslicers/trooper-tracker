@@ -165,6 +165,43 @@ class SignUpEventTrooperTest extends TestCase
         });
     }
 
+    public function test_handle_does_not_befriend_when_an_event_coordinator_fills_their_own_roster(): void
+    {
+        Bus::fake();
+        Notification::fake();
+
+        $event_coordinator = Trooper::factory()->asEventCoordinator()->create();
+        $event = Event::factory()->withCreatedByTrooper($event_coordinator)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $trooper = Trooper::factory()->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $event_coordinator
+        ))->handle(new EventRosterCapacityService);
+
+        Bus::assertNotDispatched(CreateTrooperFriendshipJob::class);
+    }
+
+    public function test_handle_befriends_when_an_event_coordinator_adds_someone_to_another_event(): void
+    {
+        Bus::fake();
+        Notification::fake();
+
+        $event_coordinator = Trooper::factory()->asEventCoordinator()->create();
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $event_coordinator
+        ))->handle(new EventRosterCapacityService);
+
+        Bus::assertDispatched(CreateTrooperFriendshipJob::class);
+    }
+
     public function test_handle_sets_added_by_trooper_id_null_when_same_as_trooper(): void
     {
         Bus::fake();
