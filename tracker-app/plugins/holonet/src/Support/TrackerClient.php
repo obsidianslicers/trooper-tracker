@@ -20,6 +20,25 @@ class TrackerClient
     public function __construct(private readonly ThisTracker $this_tracker) {}
 
     /**
+     * Check HoloNet is running on the other tracker, and whether it shares history.
+     *
+     * @throws TrackerUnavailableException
+     */
+    public function sharesHistory(string $tracker_url): bool
+    {
+        $response = $this->send(fn (): Response => $this->request()
+            ->timeout(5)
+            ->get($tracker_url.ThisTracker::INSTANCE_PATH));
+
+        if (!$response->successful() || !is_int($response->json('holonet')))
+        {
+            throw new TrackerUnavailableException('HoloNet isn\'t turned on there yet.');
+        }
+
+        return $response->json('shares_history') === true;
+    }
+
+    /**
      * Swap a one-time code for an access key.
      *
      * @return array{token: string, tracker_name: string, display_name: string|null}

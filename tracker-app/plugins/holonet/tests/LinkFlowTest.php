@@ -55,6 +55,48 @@ class LinkFlowTest extends TestCase
         $this->assertSame(Pkce::challenge($pending['verifier']), $query['code_challenge']);
     }
 
+    public function test_start_stops_when_the_other_tracker_has_not_turned_holonet_on(): void
+    {
+        $this->fakeTrackers([self::GEORGIA.'/plugins/holonet/instance' => Http::response('Not Found', 404)]);
+
+        $this->actingAs($this->trooper)
+            ->post(route('plugins.holonet.links.start'), ['tracker_url' => self::GEORGIA])
+            ->assertRedirect(route('plugins.holonet.index'));
+
+        $this->assertNull(session(StartTrackerLinkController::SESSION_KEY));
+    }
+
+    public function test_start_stops_when_the_other_tracker_does_not_share(): void
+    {
+        $this->fakeTrackers([self::GEORGIA.'/plugins/holonet/instance' => Http::response([
+            'holonet' => 1,
+            'shares_history' => false,
+        ])]);
+
+        $this->actingAs($this->trooper)
+            ->post(route('plugins.holonet.links.start'), ['tracker_url' => self::GEORGIA])
+            ->assertRedirect(route('plugins.holonet.index'));
+
+        $this->assertNull(session(StartTrackerLinkController::SESSION_KEY));
+    }
+
+    public function test_the_tracker_card_says_holonet_is_running(): void
+    {
+        $this->getJson('/plugins/holonet/instance')
+            ->assertOk()
+            ->assertJson(['holonet' => 1, 'url' => 'https://florida.test', 'shares_history' => true]);
+    }
+
+    public function test_page_warns_when_this_tracker_is_not_on_the_list(): void
+    {
+        config(['app.url' => 'http://localhost:8000']);
+
+        $this->actingAs($this->trooper)->get(route('plugins.holonet.index'))
+            ->assertOk()
+            ->assertSee("isn't on the HoloNet list", false)
+            ->assertSee('501st Florida Garrison');
+    }
+
     public function test_start_refuses_an_unlisted_tracker(): void
     {
         $this->actingAs($this->trooper)

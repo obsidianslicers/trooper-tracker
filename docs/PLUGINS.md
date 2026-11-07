@@ -552,11 +552,14 @@ Garrisons run their own trackers. The HoloNet plugin (`holonet`), named after th
 
 **How it works.** It follows the OAuth authorization code flow with PKCE:
 
+1. The trooper's tracker checks `GET /plugins/holonet/instance` on the other tracker. If HoloNet isn't turned on there, or it doesn't share history, the trooper gets a message instead of a page that doesn't exist.
 1. The trooper's tracker sends them to `/plugins/holonet/authorize` on the other tracker with its own address, its callback (`/plugins/holonet/callback`), a random `state` and a `code_challenge`.
 2. After Allow, the other tracker sends them back with a one-time code (valid for 5 minutes, stored hashed).
 3. The trooper's tracker swaps it at `POST /webhooks/holonet/token` (with the PKCE verifier) for an access key that only reads that trooper's history. Only a hash of the key is kept on the sharing side.
 4. It reads `POST /webhooks/holonet/history` with the key as a Bearer token, right away, every night between 4:00 and 5:00 (`php artisan holonet:refresh-links`), and when the trooper presses Refresh. The copy is replaced whole each time. If the other tracker can't be reached the old copy stays; if it refuses the key, the copy is removed.
 5. Unlinking calls `POST /webhooks/holonet/revoke`, so the other tracker forgets the key.
+
+**Trying it locally.** A link only works between two trackers that are both on the list, at the addresses in their `APP_URL`. A copy running at `http://localhost:8000` is not the Florida tracker, so it offers Florida, and Florida refuses it; the HoloNet page warns when this tracker isn't on the list. To try it, run two copies (for example on ports 8000 and 8001, with separate databases), put a list such as `{"trackers": [{"name": "Local A", "url": "http://localhost:8000"}, {"name": "Local B", "url": "http://localhost:8001"}]}` in `public/holonet-trackers.json` of one of them, and set **Tracker list URL** on both to that file's address. Plain `http://` addresses are only accepted when `APP_ENV` is `local` or `testing`.
 
 **Rate limits.** Every limit is in `plugins/holonet/config/config.php` (with a `HOLONET_LIMIT_*` .env override); a tracker over a limit gets HTTP 429 with `Retry-After`.
 
@@ -565,6 +568,7 @@ Garrisons run their own trackers. The HoloNet plugin (`holonet`), named after th
 | Code exchanges (`/webhooks/holonet/token`) | 30 a minute per IP address |
 | History reads (`/webhooks/holonet/history`) | 60 a minute per access key, 300 a minute per IP address |
 | Unlink notices (`/webhooks/holonet/revoke`) | 30 a minute per IP address |
+| HoloNet checks (`/plugins/holonet/instance`) | 60 a minute per IP address |
 | A trooper's Refresh button | once every 5 minutes per link (sooner just says it is up to date) |
 | A trooper starting a link, or pressing Allow | 10 an hour |
 

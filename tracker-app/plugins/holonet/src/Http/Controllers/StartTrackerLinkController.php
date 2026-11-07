@@ -9,11 +9,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use TroopTracker\Plugins\Holonet\Directory\DirectoryTracker;
 use TroopTracker\Plugins\Holonet\Directory\TrackerDirectory;
+use TroopTracker\Plugins\Holonet\Exceptions\TrackerUnavailableException;
 use TroopTracker\Plugins\Holonet\Support\LinkEligibility;
 use TroopTracker\Plugins\Holonet\Support\Pkce;
 use TroopTracker\Plugins\Holonet\Support\RequestLimit;
 use TroopTracker\Plugins\Holonet\Support\ThisTracker;
+use TroopTracker\Plugins\Holonet\Support\TrackerClient;
 
 /**
  * Sends the trooper to the tracker they picked, to sign in there and allow the link.
@@ -26,6 +29,7 @@ class StartTrackerLinkController extends Controller
         Request $request,
         TrackerDirectory $directory,
         ThisTracker $this_tracker,
+        TrackerClient $client,
     ): RedirectResponse {
         $validated = $request->validate(['tracker_url' => ['required', 'string', 'max:255']]);
         $tracker = $directory->others()->get(TrackerDirectory::normalizeUrl($validated['tracker_url']));
@@ -40,6 +44,15 @@ class StartTrackerLinkController extends Controller
         if (!RequestLimit::attemptLink($request->user()->id))
         {
             FlashType::danger('Too many link attempts. Please try again in an hour.');
+
+            return redirect()->route('plugins.holonet.index');
+        }
+
+        $problem = $this->problemWith($tracker, $client);
+
+        if ($problem !== null)
+        {
+            FlashType::warning("{$tracker->name} can't be linked: {$problem}");
 
             return redirect()->route('plugins.holonet.index');
         }
@@ -59,5 +72,23 @@ class StartTrackerLinkController extends Controller
             'state' => $state,
             'code_challenge' => Pkce::challenge($verifier),
         ]));
+    }
+
+    /**
+     * Why the trooper shouldn't be sent over, or null. Saves them landing on a
+     * page that doesn't exist when the other tracker hasn't turned HoloNet on.
+     */
+    private function problemWith(DirectoryTracker $tracker, TrackerClient $client): ?string
+    {
+        try
+        {
+            return $client->sharesHistory($tracker->url)
+                ? null
+                : 'it doesn\'t share troop history with other trackers.';
+        }
+        catch (TrackerUnavailableException $e)
+        {
+            return $e->getMessage();
+        }
     }
 }

@@ -4,6 +4,13 @@
 
 @section('content')
     <x-slim-container class="mt-4">
+        @if(!$is_listed)
+            <div class="alert alert-warning">
+                This tracker (<code>{{ $tracker_url }}</code>) isn't on the HoloNet list, so other
+                trackers won't accept links from it. Check <code>APP_URL</code> matches the address
+                in the list, or add this tracker to <code>plugins/holonet/trackers.json</code>.
+            </div>
+        @endif
         <x-card label="Your linked trackers">
             <p class="small text-muted">
                 Troops from trackers you link show on your service record here, and count in your

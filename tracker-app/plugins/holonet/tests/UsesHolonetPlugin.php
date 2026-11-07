@@ -11,6 +11,7 @@ use App\Models\Trooper;
 use App\Plugins\PluginManager;
 use Carbon\Carbon;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 
@@ -45,7 +46,14 @@ trait UsesHolonetPlugin
      */
     protected function fakeTrackers(array $responses = []): void
     {
+        Http::swap(new Factory);
         Http::fake($responses + [
+            self::GEORGIA.'/plugins/holonet/instance' => Http::response([
+                'holonet' => 1,
+                'name' => 'Georgia',
+                'url' => self::GEORGIA,
+                'shares_history' => true,
+            ]),
             self::DIRECTORY => Http::response(['trackers' => [
                 ['name' => '501st Florida Garrison', 'url' => 'https://florida.test'],
                 ['name' => '501st Georgia Garrison', 'url' => self::GEORGIA.'/'],

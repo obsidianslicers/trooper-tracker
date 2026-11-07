@@ -45,6 +45,8 @@ final class LinkedTrackersPageData extends Message
             'can_link' => LinkEligibility::canLink($this->trooper),
             'tracker_name' => $this_tracker->name(),
             'shares_history' => $this_tracker->sharesHistory(),
+            'is_listed' => $directory->listsThisTracker(),
+            'tracker_url' => $this_tracker->url(),
         ];
     }
 }

@@ -21,6 +21,7 @@ return [
         'history_per_key' => (int) env('HOLONET_LIMIT_HISTORY_PER_KEY', 60),
         'history_per_ip' => (int) env('HOLONET_LIMIT_HISTORY_PER_IP', 300),
         'revoke_per_ip' => (int) env('HOLONET_LIMIT_REVOKE_PER_IP', 30),
+        'instance_per_ip' => (int) env('HOLONET_LIMIT_INSTANCE_PER_IP', 60),
 
         // Minutes between a trooper's refreshes of one link.
         'refresh_cooldown_minutes' => (int) env('HOLONET_REFRESH_COOLDOWN', 5),

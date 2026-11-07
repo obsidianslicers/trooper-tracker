@@ -19,6 +19,9 @@ class ThisTracker
     /** Where a trooper is sent to allow a link. */
     public const AUTHORIZE_PATH = '/plugins/holonet/authorize';
 
+    /** Where another tracker checks HoloNet is running here. */
+    public const INSTANCE_PATH = '/plugins/holonet/instance';
+
     public const TOKEN_PATH = '/webhooks/holonet/token';
 
     public const HISTORY_PATH = '/webhooks/holonet/history';
