@@ -10,6 +10,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Handles the validation for updating a trooper's authority settings.
@@ -41,7 +42,7 @@ class AuthorityRequest extends FormRequest
             throw new AuthorizationException('Trooper not found or unauthorized.');
         }
 
-        return $this->user()->is_administrator;
+        return $this->user()->can('updateAuthority', $trooper);
     }
 
     /**
@@ -57,7 +58,13 @@ class AuthorityRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            Trooper::MEMBERSHIP_ROLE => ['nullable', 'string', 'max:16', MembershipRole::toValidator()],
+            Trooper::MEMBERSHIP_ROLE => [
+                'nullable',
+                'string',
+                'max:16',
+                MembershipRole::toValidator(),
+                Rule::notIn($this->restrictedRoles()),
+            ],
             'organizations' => ['array'],
             'organizations.*.'.TrooperAssignment::IS_MODERATOR => ['boolean'],
         ];
@@ -79,5 +86,17 @@ class AuthorityRequest extends FormRequest
         );
 
         $this->merge(['organizations' => $organizations]);
+    }
+
+    /**
+     * Only an Administrator may make someone an Administrator.
+     *
+     * @return array<int, string>
+     */
+    private function restrictedRoles(): array
+    {
+        return $this->user()?->has_system_owner === true
+            ? []
+            : [MembershipRole::ADMINISTRATOR->value];
     }
 }

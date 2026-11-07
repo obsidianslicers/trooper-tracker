@@ -7,6 +7,7 @@ namespace Tests\Feature\Jobs;
 use App\Enums\AchievementType;
 use App\Enums\MembershipRole;
 use App\Jobs\SendTrooperMilestoneNotificationsJob;
+use App\Messages\Troopers\Queries\GetAdministrators;
 use App\Messages\Troopers\Queries\GetTroopersByRole;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -53,9 +54,9 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
             ->create();
 
         $messages = $this->fakeMessages([
+            GetAdministrators::class => collect([$admin_opted_in, $admin_opted_out]),
             GetTroopersByRole::class => fn (array $params): mixed => match (true)
             {
-                $params['membership_role'] === MembershipRole::ADMINISTRATOR => collect([$admin_opted_in, $admin_opted_out]),
                 $params['membership_role'] === MembershipRole::MODERATOR => collect([]),
             },
         ]);
@@ -63,10 +64,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         $subject = new SendTrooperMilestoneNotificationsJob;
         $subject->handle();
 
-        $messages->assertCalled(
-            GetTroopersByRole::class,
-            fn (array $params): bool => $params['membership_role'] === MembershipRole::ADMINISTRATOR
-        );
+        $messages->assertCalled(GetAdministrators::class);
         $messages->assertCalled(
             GetTroopersByRole::class,
             fn (array $params): bool => $params['membership_role'] === MembershipRole::MODERATOR
@@ -157,9 +155,9 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         $mod_out_of_scope = Trooper::factory()->asModerator()->withEmail('other@example.com')->create();
 
         $messages = $this->fakeMessages([
+            GetAdministrators::class => collect([]),
             GetTroopersByRole::class => fn (array $params): mixed => match (true)
             {
-                $params['membership_role'] === MembershipRole::ADMINISTRATOR => collect([]),
                 $params['membership_role'] === MembershipRole::MODERATOR => collect([$mod_in_scope, $mod_out_of_scope]),
             },
         ]);
@@ -167,10 +165,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         $subject = new SendTrooperMilestoneNotificationsJob;
         $subject->handle();
 
-        $messages->assertCalled(
-            GetTroopersByRole::class,
-            fn (array $params): bool => $params['membership_role'] === MembershipRole::ADMINISTRATOR
-        );
+        $messages->assertCalled(GetAdministrators::class);
         $messages->assertCalled(
             GetTroopersByRole::class,
             fn (array $params): bool => $params['membership_role'] === MembershipRole::MODERATOR
@@ -211,9 +206,9 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
             ->create();
 
         $messages = $this->fakeMessages([
+            GetAdministrators::class => collect([]),
             GetTroopersByRole::class => fn (array $params): mixed => match (true)
             {
-                $params['membership_role'] === MembershipRole::ADMINISTRATOR => collect([]),
                 $params['membership_role'] === MembershipRole::MODERATOR => collect([$mod_opted_out]),
             },
         ]);
@@ -221,10 +216,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         $subject = new SendTrooperMilestoneNotificationsJob;
         $subject->handle();
 
-        $messages->assertCalled(
-            GetTroopersByRole::class,
-            fn (array $params): bool => $params['membership_role'] === MembershipRole::ADMINISTRATOR
-        );
+        $messages->assertCalled(GetAdministrators::class);
         $messages->assertCalled(
             GetTroopersByRole::class,
             fn (array $params): bool => $params['membership_role'] === MembershipRole::MODERATOR
@@ -246,13 +238,15 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         $achievement->setRelation('trooper', $trooper);
 
         $messages = $this->fakeMessages([
+            GetAdministrators::class => collect(),
             GetTroopersByRole::class => collect(),
         ]);
 
         $subject = new SendTrooperMilestoneNotificationsJob;
         $subject->handle();
 
-        $messages->assertCalled(GetTroopersByRole::class, null, times: 2);
+        $messages->assertCalled(GetAdministrators::class);
+        $messages->assertCalled(GetTroopersByRole::class);
 
         Notification::assertNothingSent();
         $this->assertNotNull($achievement->fresh()->notification_sent_at);
@@ -311,9 +305,9 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
             ->create();
 
         $this->fakeMessages([
+            GetAdministrators::class => collect([$admin]),
             GetTroopersByRole::class => fn (array $params): mixed => match (true)
             {
-                $params['membership_role'] === MembershipRole::ADMINISTRATOR => collect([$admin]),
                 $params['membership_role'] === MembershipRole::MODERATOR => collect([]),
             },
         ]);

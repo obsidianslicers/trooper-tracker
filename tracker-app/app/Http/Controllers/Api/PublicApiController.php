@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Enums\MembershipRole;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
@@ -165,8 +164,10 @@ class PublicApiController
 
     private function rosterResponse(Collection $troopers, Collection $staff_ids): Response
     {
-        $command_staff = $troopers->filter(fn ($t) => $staff_ids->contains($t->id) || $t->membership_role === MembershipRole::ADMINISTRATOR);
-        $members = $troopers->reject(fn ($t) => $staff_ids->contains($t->id) || $t->membership_role === MembershipRole::ADMINISTRATOR);
+        $is_staff = fn ($t) => $staff_ids->contains($t->id)
+            || $t->membership_role->hasAdministratorAccess();
+        $command_staff = $troopers->filter($is_staff);
+        $members = $troopers->reject($is_staff);
 
         $html = '<style>
 body{margin:0;padding:10px;font-family:Arial,sans-serif;background:#fff;color:#323f4e}

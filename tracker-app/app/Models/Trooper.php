@@ -124,13 +124,23 @@ class Trooper extends BaseTrooper implements
     }
 
     /**
-     * Check if the trooper's membership role is admin.
+     * Check if the trooper has administrator access (Administrator or Staff Officer).
      *
-     * @return bool True if the trooper is admin, false otherwise.
+     * @return bool True if the trooper is an active administrator or staff officer.
      */
     public function getIsAdministratorAttribute(): bool
     {
-        return $this->is_active && $this->membership_role == MembershipRole::ADMINISTRATOR;
+        return $this->is_active && $this->membership_role->hasAdministratorAccess();
+    }
+
+    /**
+     * Check if the trooper may use the developer tools (Plugins, System Check, Merge).
+     *
+     * @return bool True only for an active Administrator, never a Staff Officer.
+     */
+    public function getHasSystemOwnerAttribute(): bool
+    {
+        return $this->is_active && $this->membership_role->hasSystemOwner();
     }
 
     /**

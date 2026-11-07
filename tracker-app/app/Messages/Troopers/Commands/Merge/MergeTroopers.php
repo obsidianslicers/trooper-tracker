@@ -211,7 +211,8 @@ final class MergeTroopers extends Message
             MembershipRole::MEMBER->value => 2,
             MembershipRole::EVENT_COORDINATOR->value => 3,
             MembershipRole::MODERATOR->value => 4,
-            MembershipRole::ADMINISTRATOR->value => 5,
+            MembershipRole::STAFF_OFFICER->value => 5,
+            MembershipRole::ADMINISTRATOR->value => 6,
         ];
 
         $target_role = $this->target_trooper->membership_role;

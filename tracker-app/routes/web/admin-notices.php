@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 //  ADMIN/NOTICES
 Route::prefix('admin/notices')
     ->name('admin.notices.')
-    ->middleware(['auth', 'check.role:moderator,administrator'])
+    ->middleware(['auth', 'check.role:moderator,staff_officer,administrator'])
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');

@@ -41,6 +41,11 @@ enum MembershipRole: string
     case MODERATOR = 'moderator';
 
     /**
+     * An administrator without the developer tools (Plugins, System Check, Merge).
+     */
+    case STAFF_OFFICER = 'staff_officer';
+
+    /**
      * An administrator with full system access and control.
      */
     case ADMINISTRATOR = 'administrator';
@@ -52,6 +57,22 @@ enum MembershipRole: string
             MembershipRole::VISITOR, MembershipRole::HANDLER => $this->value,
             default => 'member',
         };
+    }
+
+    /**
+     * Whether the role carries administrator access (Administrator or Staff Officer).
+     */
+    public function hasAdministratorAccess(): bool
+    {
+        return $this === self::ADMINISTRATOR || $this === self::STAFF_OFFICER;
+    }
+
+    /**
+     * Whether the role may use the developer tools (Plugins, System Check, Merge).
+     */
+    public function hasSystemOwner(): bool
+    {
+        return $this === self::ADMINISTRATOR;
     }
 
     public function isHandler(): bool
