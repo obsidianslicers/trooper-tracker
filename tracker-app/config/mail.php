@@ -116,7 +116,7 @@ return [
     ],
 
     /*
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     | Mail Subject Prefix
     |--------------------------------------------------------------------------
     |
@@ -126,5 +126,19 @@ return [
     |
     */
     'prefix' => env('MAIL_SUBJECT_PREFIX', '[Troop Tracker]'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Recipients Per Hour
+    |--------------------------------------------------------------------------
+    |
+    | Many hosts cap how many recipients one address may send to in an hour
+    | (DreamHost: 100, and going over blocks the address). Set this a little
+    | under the cap and queued mail waits for room instead of failing. Mail
+    | sent right away (sign-in emails) still counts but is never held. Empty
+    | means no limit.
+    |
+    */
+    'recipients_per_hour' => env('MAIL_RECIPIENTS_PER_HOUR'),
 
 ];
