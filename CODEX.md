@@ -42,52 +42,67 @@ the user asks otherwise.
 
 ### Action-Domain-Responder
 
-- **Action**: Thin invokable controllers. Validate input, dispatch through
-  MagicBus or Hyperdrive messages, and return a response.
-- **Domain**: Business logic lives in `app/Features/` handlers and message
-  classes, not in controllers.
-- **Responder**: Controllers format handler results into Blade views, redirects,
-  or JSON.
+- **Action**: Thin invokable controllers. Validate input, call Hyperdrive Messages, and return a response.
+- **Domain**: Business logic lives in single-file Hyperdrive Messages (Commands, Queries, PageData) in `app/Messages/`, not in controllers.
+- **Responder**: Controllers format message results into Blade views, redirects, or JSON.
 
 Controllers should orchestrate only. Do not put business logic in them.
 
-### MagicBus Command/Query Separation
+### Hyperdrive Messages — Command/Query Separation
 
-MagicBus resolves handlers by convention:
+All domain operations are single-file message classes that extend `Hyperdrive\Message` with a `handle()` method. See [Hyperdrive Message Architecture](tracker-app/packages/hyperdrive/README.md) for complete details.
 
-- `CreateEventCommand` -> `CreateEventCommandHandler`
-- `GetTroopersByRoleQuery` -> `GetTroopersByRoleQueryHandler`
+**Commands** — write operations (state change):
+```php
+/**
+ * @method static void call(Event $event)
+ */
+final class UpdateEvent extends Message
+{
+    use ShouldBeTransactional;
 
-Commands are write operations. Queries are read operations and should not create
-side effects.
+    public function __construct(private readonly Event $event) {}
 
-Handler modifier traits:
+    public function handle(): void
+    {
+        // Business logic here
+    }
+}
+```
 
-- `ShouldBeTransactional` wraps the handler in a database transaction.
-- `ShouldRunAfterResponse` defers execution until the HTTP response is sent.
+**Queries** — read operations (no side effects):
+```php
+/**
+ * @method static Collection<int, Trooper> call(MembershipRole $membership_role)
+ */
+final class GetTroopersByRole extends Message
+{
+    public function __construct(private readonly MembershipRole $membership_role) {}
 
-Jobs and Artisan commands are also thin orchestrators. They should dispatch
-commands or queries rather than contain domain logic.
+    public function handle(): Collection
+    {
+        return Trooper::active()->where(...)->get();
+    }
+}
+```
 
-### Hyperdrive Message Pattern
+**Calling a message from a controller:**
+```php
+class UpdateEventController extends Controller
+{
+    public function __invoke(UpdateEventRequest $request, Event $event): RedirectResponse
+    {
+        UpdateEvent::call(event: $event);
+        return redirect()->route('events.show', $event);
+    }
+}
+```
 
-Hyperdrive is the request-driven transport layer used for message objects that
-hydrate constructor arguments from request data, route parameters, auth context,
-and explicit overrides. Use it when the logic is best expressed as a single
-message class rather than a separate command/query pair.
+**Message modifier traits:**
 
-Current behavior in the package is intentionally strict:
+- `ShouldBeTransactional` wraps `handle()` in a database transaction.
 
-- `FormRequest` inputs are hydrated from `validated()`.
-- Plain `Request` objects use `query()` as the payload source.
-- Route parameters are merged next.
-- The authenticated actor is injected as `actor` when the constructor parameter is
-  exactly type-hinted as `Hyperdrive\Contracts\Actor`.
-- Explicit `::call([...])` arguments win last.
-- Missing or invalid required constructor values throw `InvalidArgumentException`.
-
-This pattern is used for page-data and request-scoped messages, not as a
-replacement for the app's command/query layer.
+Jobs and Artisan commands are also thin orchestrators. They should call messages rather than contain domain logic.
 
 ### Feature Naming (Verb + Object)
 
@@ -191,10 +206,12 @@ resources/svelte/
 ```text
 tracker-app/
 ├── app/
-│   ├── Features/              # Domain logic by feature
+│   ├── Messages/              # Hyperdrive Messages organized by feature
+│   │   ├── Concerns/          # Traits shared by messages
 │   │   ├── Events/
 │   │   │   ├── Commands/
-│   │   │   └── Queries/
+│   │   │   ├── Queries/
+│   │   │   └── PageData/
 │   │   ├── Troopers/
 │   │   ├── Organizations/
 │   │   ├── Reports/           # Queries only
@@ -203,12 +220,11 @@ tracker-app/
 │   ├── Http/Controllers/      # Invokable single-action controllers
 │   ├── Models/                # Extended Eloquent models
 │   ├── Models/Base/           # Generated from schema; never edit directly
-│   ├── Bus/                   # MagicBus dispatcher and interfaces
 │   ├── Jobs/                  # Queueable orchestration jobs
 │   ├── Console/Commands/      # Artisan orchestration commands
 │   ├── Policies/              # Authorization
 │   ├── Rules/                 # Custom validation rules
-│   └── Services/              # Standalone services
+│   └── Services/              # Standalone services (Flash, BreadCrumb, etc.)
 ├── tests/
 │   ├── Feature/
 │   └── Unit/
@@ -223,7 +239,7 @@ tracker-app/
 
 | Element | Convention | Example |
 |---------|------------|---------|
-| Classes | PascalCase | `CreateEventCommandHandler` |
+| Classes | PascalCase | `UpdateEvent`, `GetTroopersByRole` |
 | Methods / functions | camelCase | `handleRequest()` |
 | Parameters and local variables | snake_case | `$local_variable` |
 | Class properties | snake_case | `private string $class_property` |
@@ -242,17 +258,15 @@ tracker-app/
 Controllers should be invokable single-action classes:
 
 ```php
-class CreateEventController extends Controller
+class UpdateEventController extends Controller
 {
-    public function __invoke(CreateEventRequest $request, MagicBus $bus)
+    public function __invoke(UpdateEventRequest $request, Event $event): RedirectResponse
     {
-        // Validate, dispatch, respond.
+        UpdateEvent::call(event: $event);
+        return redirect()->route('events.show', $event);
     }
 }
 ```
-
-For simple CRUD where a dedicated controller is not needed, routes may use
-`MagicBusController` with command defaults.
 
 ---
 
