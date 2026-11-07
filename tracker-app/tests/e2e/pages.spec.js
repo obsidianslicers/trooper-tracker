@@ -26,7 +26,6 @@ const MODERATOR_PAGES = [
     '/admin/troopers/approvals/index',
     '/admin/troopers/permissions',
     '/admin/troopers/recruit',
-    '/admin/troopers/merge',
     '/admin/events',
     '/admin/events/create',
     '/admin/awards',
@@ -40,6 +39,7 @@ const MODERATOR_PAGES = [
 
 const ADMIN_ONLY_PAGES = [
     '/admin/system-check',
+    '/admin/troopers/merge',
     '/admin/troopers/permissions/approvals',
     '/admin/costumes',
     '/admin/costumes/create',
