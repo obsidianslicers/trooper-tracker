@@ -2,37 +2,44 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Account;
+namespace App\Messages\Account\PageData;
 
 use App\Enums\MembershipRole;
 use App\Enums\OrganizationType;
-use App\Http\Controllers\PageController;
 use App\Messages\Organizations\Queries\GetOrganizationTree;
 use App\Messages\Troopers\Queries\Membership\GetDeniedTrooperRequests;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
 use App\Notifications\Troopers\TrooperDeniedNotification;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Hyperdrive\Message;
 use Illuminate\Support\Facades\DB;
 
-class DeniedController extends PageController
+/**
+ * Aggregates data needed for the Denied membership page.
+ *
+ * Retrieves denied trooper requests, denial reasons, organization hierarchy,
+ * and prepares form state for resubmission.
+ *
+ * @method static array call(Trooper $trooper)
+ */
+final class DeniedPageData extends Message
 {
-    public function __invoke(Request $request): View|RedirectResponse
+    public function __construct(
+        private readonly Trooper $trooper
+    ) {}
+
+    /**
+     * Retrieve page data for the denied membership page.
+     *
+     * @return array<string, mixed> Page data including trooper, denied requests, organization hierarchy, etc.
+     */
+    public function handle(): array
     {
-        $trooper = $request->user();
-
-        if (!$trooper->is_denied)
-        {
-            return redirect()->route($trooper->is_pending ? 'account.pending' : 'account.index');
-        }
-
-        $denied_requests = GetDeniedTrooperRequests::call(trooper: $trooper);
+        $denied_requests = GetDeniedTrooperRequests::call(trooper: $this->trooper);
 
         $denial_reason = $denied_requests->first()?->denial_reason
-            ?? $this->resolveDenialReasonFromNotification($trooper->id);
+            ?? $this->resolveDenialReasonFromNotification($this->trooper->id);
 
         $specific_orgs = Organization::whereIn(
             Organization::ID,
@@ -58,10 +65,9 @@ class DeniedController extends PageController
             $org->unit_id = old("organizations.{$org->id}.unit_id", $this->resolveUnitId($specific));
         }
 
-        $account_type = $trooper->membership_role?->toAccountType() ?? MembershipRole::MEMBER->toAccountType();
+        $account_type = $this->trooper->membership_role?->toAccountType() ?? MembershipRole::MEMBER->toAccountType();
 
-        $data = compact(
-            'trooper',
+        return compact(
             'denied_requests',
             'denial_reason',
             'specific_orgs',
@@ -69,8 +75,6 @@ class DeniedController extends PageController
             'organization_hierarchy',
             'account_type',
         );
-
-        return view('pages.account.denied', $data);
     }
 
     private function resolveDenialReasonFromNotification(int $trooper_id): ?string

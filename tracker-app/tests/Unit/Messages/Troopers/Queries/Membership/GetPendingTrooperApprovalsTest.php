@@ -9,7 +9,6 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperRequest;
-use Database\Factories\TrooperRequestFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

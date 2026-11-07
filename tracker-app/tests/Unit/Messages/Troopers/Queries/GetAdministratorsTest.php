@@ -21,7 +21,7 @@ class GetAdministratorsTest extends TestCase
         Trooper::factory()->asMember()->withDisplayName('Member Trooper')->create();
         Trooper::factory()->asAdministrator()->asRetired()->withDisplayName('Retired Admin')->create();
 
-        $subject = new GetAdministrators();
+        $subject = new GetAdministrators;
 
         $result = $subject->handle();
 

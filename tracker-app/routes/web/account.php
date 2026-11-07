@@ -5,26 +5,26 @@ declare(strict_types=1);
 use App\Http\Controllers\Account\Commands\AddCostumeController;
 use App\Http\Controllers\Account\Commands\AddTrooperRequestController;
 use App\Http\Controllers\Account\Commands\CancelDeletionController;
+use App\Http\Controllers\Account\Commands\DeniedResubmitController;
+use App\Http\Controllers\Account\Commands\PushNotificationClearController;
+use App\Http\Controllers\Account\Commands\PushNotificationReadController;
 use App\Http\Controllers\Account\Commands\RemoveCostumeController;
 use App\Http\Controllers\Account\Commands\RenewVisitorMembershipController;
 use App\Http\Controllers\Account\Commands\RequestDeletionController;
 use App\Http\Controllers\Account\Commands\SetupSubmitController;
+use App\Http\Controllers\Account\Commands\UpdateNoticeAsReadHtmxController;
 use App\Http\Controllers\Account\Commands\UpdateNotificationFrequencyController;
 use App\Http\Controllers\Account\Commands\UpdateNotificationPreferenceController;
 use App\Http\Controllers\Account\Commands\UpdateOrganizationNotificationsController;
 use App\Http\Controllers\Account\Commands\UpdateProfileController;
 use App\Http\Controllers\Account\Commands\UpdatePushNotificationsController;
-use App\Http\Controllers\Account\DeniedController;
-use App\Http\Controllers\Account\DeniedResubmitController;
 use App\Http\Controllers\Account\NoticesController;
-use App\Http\Controllers\Account\NoticesSubmitHtmxController;
+use App\Http\Controllers\Account\Pages\DeniedController;
 use App\Http\Controllers\Account\Pages\IndexController;
 use App\Http\Controllers\Account\Pages\PendingMembershipController;
+use App\Http\Controllers\Account\Pages\PushNotificationInboxController;
 use App\Http\Controllers\Account\Pages\RenewVisitorController;
 use App\Http\Controllers\Account\Pages\SetupController;
-use App\Http\Controllers\Account\PushNotificationClearController;
-use App\Http\Controllers\Account\PushNotificationInboxController;
-use App\Http\Controllers\Account\PushNotificationReadController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -61,7 +61,7 @@ Route::prefix('account')
         Route::post('/visitor/renew', RenewVisitorMembershipController::class)->name('renew-visitor-membership');
 
         Route::get('/notices', NoticesController::class)->name('notices');
-        Route::post('/notices-htmx/{notice}', NoticesSubmitHtmxController::class)->name('notices-htmx');
+        Route::post('/notices-htmx/{notice}', UpdateNoticeAsReadHtmxController::class)->name('notices-htmx');
 
         //  needed a post name to get the middleware to work properly
         Route::get('/push-notifications', PushNotificationInboxController::class)->name('push-notifications');

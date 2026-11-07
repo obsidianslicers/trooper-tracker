@@ -2,34 +2,33 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Account;
+namespace App\Http\Controllers\Account\Commands;
 
-use App\Http\Controllers\PageController;
+use App\Http\Controllers\Controller;
 use App\Messages\Notices\Commands\UpdateNoticeAsRead;
 use App\Models\Notice;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Marks a notice as read for the authenticated trooper via HTMX.
  *
  * This controller follows the Action-Domain-Responder (ADR) pattern:
  * - **Action (Controller):** Receives HTMX request with notice route parameter
- * - **Domain (Models):** Uses NoticeTrooper::firstOrCreate() to mark notice as read
+ * - **Domain (Message):** Uses UpdateNoticeAsRead command to mark notice as read
  * - **Responder:** Returns HTML button fragment for HTMX swap
  *
  * When a trooper clicks the "Mark as Read" button in the notices list, this endpoint:
- * 1. Creates or updates NoticeTrooper pivot record
+ * 1. Calls UpdateNoticeAsRead command to create/update NoticeTrooper pivot record
  * 2. Sets is_read flag to true
  * 3. Returns "Read" button HTML for HTMX to swap into the DOM
  *
  * This enables dynamic notice marking without full page reload.
  */
-class NoticesSubmitHtmxController extends PageController
+class UpdateNoticeAsReadHtmxController extends Controller
 {
     /**
-     * Mark a notice as read for the authenticated trooper.
+     * Mark a notice as read for the authenticated trooper via HTMX.
      *
      * Creates or updates a NoticeTrooper record marking the notice as read.
      * Returns an HTML button fragment that HTMX will swap into the page.
@@ -38,7 +37,7 @@ class NoticesSubmitHtmxController extends PageController
      * @param  Notice  $notice  The notice to mark as read (route model binding)
      * @return Response The HTML button response for HTMX replacement
      */
-    public function __invoke(Request $request, Notice $notice): Response|View
+    public function __invoke(Request $request, Notice $notice): Response
     {
         $trooper = $request->user();
 
