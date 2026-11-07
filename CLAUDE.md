@@ -247,6 +247,7 @@ Controllers that render pages extend `PageController`, which provides the breadc
 | Pivot tables | Alphabetized singular names | `event_trooper` |
 | Timestamps | `created_at`, `updated_at` | Standard Eloquent |
 | Soft deletes | `deleted_at` | SoftDeletes trait |
+| Plugin tables | `tt_<core entity>_<plugin>[_<things>]` (see `docs/PLUGINS.md`) | `tt_organization_google_sheets`, `tt_trooper_holonet_links` |
 
 After any schema change, regenerate base models:
 ```bash
