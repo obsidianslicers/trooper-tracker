@@ -45,7 +45,7 @@ trait CommonRules
             Event::ORGANIZATION_ID => [
                 'required',
                 Rule::exists(Organization::class, Organization::ID)
-                    ->whereIn('id', Organization::moderatedBy($this->user())->pluck('id')),
+                    ->whereIn('id', Organization::eventHostableBy($this->user())->pluck('id')),
             ],
             Event::NAME => ['required', 'string', 'max:128'],
             Event::TYPE => ['required', 'string', 'max:32', EventType::toValidator()],

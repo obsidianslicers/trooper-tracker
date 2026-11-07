@@ -45,4 +45,12 @@ class PermissionRequestsCollectionTest extends TestCase
         $this->assertNull(PermissionRequestsCollection::roleLabel(null));
         $this->assertSame('Regular Trooper', PermissionRequestsCollection::roleLabel(MembershipRole::MEMBER));
     }
+
+    public function test_role_label_spells_out_event_coordinator(): void
+    {
+        $this->assertSame(
+            'Event Coordinator',
+            PermissionRequestsCollection::roleLabel(MembershipRole::EVENT_COORDINATOR)
+        );
+    }
 }

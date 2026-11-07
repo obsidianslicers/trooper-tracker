@@ -40,7 +40,7 @@ export type TrooperPermissionsLookup = {
 
 type RequestPermissionsFormData = {
     trooper_id: string | number | null;
-    membership_role: "" | "moderator" | "member";
+    membership_role: "" | "moderator" | "event_coordinator" | "member";
     moderated_organization_ids: number[];
     note: string | null;
     extensions: ExtensionInputs;
@@ -147,13 +147,18 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
         const options: Option[] = [{ value: "", label: "No change" }];
 
         const is_moderator = this.current_role === "moderator";
+        const is_event_coordinator = this.current_role === "event_coordinator";
+
+        if (!is_event_coordinator) {
+            options.push({ value: "event_coordinator", label: "Make event coordinator" });
+        }
 
         options.push({
             value: "moderator",
             label: is_moderator ? "Moderator (change organizations)" : "Make moderator",
         });
 
-        if (is_moderator) {
+        if (is_moderator || is_event_coordinator) {
             options.push({ value: "member", label: "Set back to regular trooper" });
         }
 

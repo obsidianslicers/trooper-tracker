@@ -23,7 +23,7 @@ export type PermissionRequestTrooper = {
 export type PermissionRequest = {
     id: number;
     status: "pending" | "approved" | "denied";
-    membership_role: "moderator" | "member" | null;
+    membership_role: "moderator" | "event_coordinator" | "member" | null;
     membership_role_label: string | null;
     moderated_organizations_to_add: PermissionRequestOrganization[];
     moderated_organizations_to_remove: PermissionRequestOrganization[];

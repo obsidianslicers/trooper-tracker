@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Mail;
 
+use App\Mail\HasRetryPolicy;
 use App\Models\Event;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -14,6 +15,7 @@ use Illuminate\Queue\SerializesModels;
 
 class EventForumPostMail extends Mailable implements ShouldQueue
 {
+    use HasRetryPolicy;
     use Queueable, SerializesModels;
 
     public function __construct(

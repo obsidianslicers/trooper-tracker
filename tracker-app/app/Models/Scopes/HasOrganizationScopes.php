@@ -151,6 +151,37 @@ trait HasOrganizationScopes
     }
 
     /**
+     * Scope: limit to organizations a trooper may host events for.
+     *
+     * Administrators and moderators: the organizations they moderate. Event coordinators:
+     * the organizations they belong to, i.e. each organization they are a member of and
+     * everything above it (a squad member can also host for the squad's garrison).
+     * Anyone else: none.
+     *
+     * @param Builder<Organization> $query The Eloquent query builder.
+     * @param Trooper $trooper The trooper creating or editing the event.
+     * @return Builder<Organization>
+     */
+    public function scopeEventHostableBy(Builder $query, Trooper $trooper): Builder
+    {
+        if (!$trooper->is_event_coordinator)
+        {
+            return $query->moderatedBy($trooper);
+        }
+
+        return $query->whereExists(function ($sub) use ($trooper)
+        {
+            $sub->select(DB::raw(1))
+                ->from('tt_trooper_assignments as ta_member')
+                ->join('tt_organizations as org_member', 'ta_member.organization_id', '=', 'org_member.id')
+                ->where('ta_member.trooper_id', $trooper->id)
+                ->where('ta_member.is_member', true)
+                ->whereNull('ta_member.deleted_at')
+                ->whereRaw('org_member.node_path LIKE CONCAT(tt_organizations.node_path, "%")');
+        });
+    }
+
+    /**
      * Scope: the organization at the given node path and everything beneath it.
      *
      * @param Builder<Organization> $query The Eloquent query builder.
