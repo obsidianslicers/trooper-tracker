@@ -18,24 +18,10 @@ return new class extends Migration {
             $table->index('approved_at');
         });
 
-        //  existing costumes are trusted, except self-added costumes in clubs that sync
-        //  from an API: those were never confirmed by the club and wait for an officer
-        DB::table('tt_trooper_costumes')
-            ->where(function ($query): void
-            {
-                $query->whereNotNull('synchronized_at')
-                    ->orWhereNotExists(function ($synced_club): void
-                    {
-                        $synced_club->select(DB::raw(1))
-                            ->from('tt_organization_costumes as oc')
-                            ->join('tt_organizations as o', 'o.id', '=', 'oc.organization_id')
-                            ->whereColumn('oc.id', 'tt_trooper_costumes.organization_costume_id')
-                            ->whereNotNull('o.synchronizer');
-                    });
-            })
-            ->update([
-                'approved_at' => DB::raw('COALESCE(synchronized_at, created_at, CURRENT_TIMESTAMP)'),
-            ]);
+        //  every costume a trooper already has is approved; the gate only covers new adds
+        DB::table('tt_trooper_costumes')->update([
+            'approved_at' => DB::raw('COALESCE(synchronized_at, created_at, CURRENT_TIMESTAMP)'),
+        ]);
     }
 
     /**

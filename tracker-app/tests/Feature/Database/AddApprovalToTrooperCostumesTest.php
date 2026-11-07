@@ -24,7 +24,7 @@ class AddApprovalToTrooperCostumesTest extends TestCase
         $this->subject()->down();
     }
 
-    public function test_up_approves_existing_costumes_except_unconfirmed_ones_in_synced_clubs(): void
+    public function test_up_approves_every_existing_costume(): void
     {
         $synced_club = Organization::factory()->create();
         DB::table('tt_organizations')->where('id', $synced_club->id)->update(['synchronizer' => 'legion']);
@@ -38,7 +38,7 @@ class AddApprovalToTrooperCostumesTest extends TestCase
         $this->subject()->up();
 
         $this->assertNotNull($this->approvedAt($from_api));
-        $this->assertNull($this->approvedAt($self_added_synced));
+        $this->assertNotNull($this->approvedAt($self_added_synced));
         $this->assertNotNull($this->approvedAt($self_added_local));
     }
 
