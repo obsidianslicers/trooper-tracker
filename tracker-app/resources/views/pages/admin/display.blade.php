@@ -104,6 +104,17 @@
             <p class="text-success mb-0">No pending requests</p>
         @endif
     </x-dashboard-card>
+    <x-dashboard-card :label="'Costume Approvals'"
+                      :icon="'fa-user-astronaut'"
+                      :url="route('admin.troopers.costume-approvals')">
+        @if($pending_costumes > 0)
+            <p class="text-warning mb-0">
+                {{ $pending_costumes }} costume{{ $pending_costumes === 1 ? '' : 's' }} awaiting review
+            </p>
+        @else
+            <p class="text-success mb-0">No costumes waiting</p>
+        @endif
+    </x-dashboard-card>
     <x-dashboard-card :label="'Troopers'"
                       :icon="'fa-users-gear'"
                       :url="route('admin.troopers.list')">

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\Troopers\ApproveCostumeController;
 use App\Http\Controllers\Admin\Troopers\ApproveMembershipsController;
 use App\Http\Controllers\Admin\Troopers\ApprovePermissionsController;
 use App\Http\Controllers\Admin\Troopers\ApproveTrooperMembershipController;
@@ -9,7 +10,9 @@ use App\Http\Controllers\Admin\Troopers\ApproveTrooperRequestController;
 use App\Http\Controllers\Admin\Troopers\AuthorityController;
 use App\Http\Controllers\Admin\Troopers\AuthoritySubmitController;
 use App\Http\Controllers\Admin\Troopers\ChangesController;
+use App\Http\Controllers\Admin\Troopers\CostumeApprovalsController;
 use App\Http\Controllers\Admin\Troopers\CostumesController;
+use App\Http\Controllers\Admin\Troopers\DenyCostumeController;
 use App\Http\Controllers\Admin\Troopers\DenyPermissionsController;
 use App\Http\Controllers\Admin\Troopers\DenyTrooperMembershipController;
 use App\Http\Controllers\Admin\Troopers\DenyTrooperRequestController;
@@ -32,6 +35,8 @@ use App\Http\Controllers\Admin\Troopers\RecruitController;
 use App\Http\Controllers\Admin\Troopers\RecruitSubmitController;
 use App\Http\Controllers\Admin\Troopers\RequestPermissionsController;
 use App\Http\Controllers\Admin\Troopers\RequestPermissionsSubmitController;
+use App\Http\Controllers\Admin\Troopers\RevokeCostumeController;
+use App\Http\Controllers\Admin\Troopers\UndoRevokeCostumeController;
 use App\Http\Controllers\Admin\Troopers\UnmarkRipSubmitController;
 use App\Http\Controllers\Admin\Troopers\UnvoidSubmitController;
 use App\Http\Controllers\Admin\Troopers\VoidSubmitController;
@@ -80,6 +85,17 @@ Route::prefix('admin/troopers')
                             ->name('deny');
                     });
             });
+
+        Route::get('/costume-approvals', CostumeApprovalsController::class)->name('costume-approvals');
+        Route::post('/costumes/{trooper_costume}/approve', ApproveCostumeController::class)
+            ->name('costumes.approve');
+        Route::post('/costumes/{trooper_costume}/deny', DenyCostumeController::class)
+            ->name('costumes.deny');
+        Route::post('/costumes/{trooper_costume}/revoke', RevokeCostumeController::class)
+            ->name('costumes.revoke');
+        Route::post('/costumes/{trooper_costume}/undo-revoke', UndoRevokeCostumeController::class)
+            ->name('costumes.undo-revoke')
+            ->withTrashed();
 
         Route::get('/recruit', RecruitController::class)->name('recruit');
         Route::post('/recruit', RecruitSubmitController::class);

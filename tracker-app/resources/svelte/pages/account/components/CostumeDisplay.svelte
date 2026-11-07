@@ -29,6 +29,12 @@
                         <span class="text-muted small">
                             {trooper_costume.costume_organizations}
                         </span>
+                        {#if trooper_costume.pending_organizations?.length > 0}
+                            <br />
+                            <span class="badge text-bg-warning">
+                                Pending officer review: {trooper_costume.pending_organizations.join(", ")}
+                            </span>
+                        {/if}
                     </td>
                     <td class="text-end">
                         <DeleteButton

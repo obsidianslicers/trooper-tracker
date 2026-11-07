@@ -7,6 +7,7 @@ namespace App\Messages\Troopers\Queries\Costumes;
 use App\Messages\Troopers\Queries\Membership\GetTrooperOrganizations;
 use App\Models\Costume;
 use App\Models\Trooper;
+use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
 use Hyperdrive\Message;
 use Illuminate\Support\Collection;
@@ -28,12 +29,14 @@ final class GetTrooperCostumes extends Message
 
         $relations = [
             'organization_costumes.organization',
-            'organization_costumes.trooper_costumes',
+            'organization_costumes.trooper_costumes' => fn ($query) => $query
+                ->withPending()
+                ->where(TrooperCostume::TROOPER_ID, $this->trooper->id),
         ];
 
         $costumes = Costume::query()
             ->with($relations)
-            ->forTrooper($this->trooper->id, $organization_ids)
+            ->forTrooper($this->trooper->id, $organization_ids, include_pending: true)
             ->whereNotIn(Costume::NAME, [Costume::COMMAND_STAFF, Costume::HANDLER])
             ->orderBy(Costume::NAME)
             ->get();
@@ -42,6 +45,7 @@ final class GetTrooperCostumes extends Message
         $results = $costumes->each(function (Costume $costume)
         {
             $costume->costume_organizations = $this->getOrganizationNames($costume);
+            $costume->pending_organizations = $this->getPendingOrganizationNames($costume);
             $costume->image_urls = $this->getImageUrls($costume);
         });
 
@@ -73,6 +77,21 @@ final class GetTrooperCostumes extends Message
         }
 
         return "{$prefix}{$name_list}";
+    }
+
+    /**
+     * Clubs where the trooper added this costume themselves and an officer hasn't approved it yet.
+     *
+     * @return array<int, string>
+     */
+    private function getPendingOrganizationNames(Costume $costume): array
+    {
+        return $costume->organization_costumes
+            ->filter(fn ($oc) => $oc->trooper_costumes->contains(fn ($tc) => $tc->isPending()))
+            ->map(fn ($oc) => $oc->organization->name)
+            ->sort()
+            ->values()
+            ->all();
     }
 
     private function getImageUrls(Costume $costume): array

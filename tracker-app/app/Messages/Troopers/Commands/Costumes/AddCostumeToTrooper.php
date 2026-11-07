@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\Commands\Costumes;
 
+use App\Jobs\SendCostumeRequestNotificationsJob;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
@@ -39,23 +40,53 @@ final class AddCostumeToTrooper extends Message
             })
             ->get();
 
+        $pending_ids = [];
+
         foreach ($organization_costumes as $organization_costume)
         {
-            $trooper_costume = $this->trooper->trooper_costumes()
-                ->withTrashed()
-                ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $organization_costume->id)
-                ->first();
+            $trooper_costume = $this->requestCostume($organization_costume);
 
-            if ($trooper_costume === null)
+            if ($trooper_costume?->isPending())
             {
-                $attributes = [TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id];
-
-                $this->trooper->trooper_costumes()->create($attributes);
-            }
-            else
-            {
-                $trooper_costume->restore();
+                $pending_ids[] = $trooper_costume->id;
             }
         }
+
+        if ($pending_ids !== [])
+        {
+            SendCostumeRequestNotificationsJob::dispatch($this->trooper, $pending_ids);
+        }
+    }
+
+    /**
+     * Self-added costumes wait for an officer of that club. A costume the trooper removed
+     * themselves comes back as it was; one an officer revoked was reset to pending.
+     * Returns the row only when this call created or restored it, so a costume that
+     * is already listed doesn't notify officers again.
+     */
+    private function requestCostume(OrganizationCostume $organization_costume): ?TrooperCostume
+    {
+        $trooper_costume = TrooperCostume::withTrashed()
+            ->withPending()
+            ->where(TrooperCostume::TROOPER_ID, $this->trooper->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $organization_costume->id)
+            ->first();
+
+        if ($trooper_costume === null)
+        {
+            return $this->trooper->trooper_costumes()->create([
+                TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
+                TrooperCostume::APPROVED_AT => null,
+            ]);
+        }
+
+        if (!$trooper_costume->trashed())
+        {
+            return null;
+        }
+
+        $trooper_costume->restore();
+
+        return $trooper_costume;
     }
 }

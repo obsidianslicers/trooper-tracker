@@ -144,10 +144,17 @@ abstract class BaseOrganizationService implements MemberLookupSource, Synchroniz
     protected function syncTrooperCostume(Trooper $trooper, OrganizationCostume $org_costume, array $attributes): void
     {
         $trooper_costume = TrooperCostume::withTrashed()
+            ->withPending()
             ->firstOrNew([
                 TrooperCostume::TROOPER_ID => $trooper->id,
                 TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
             ]);
+
+        if ($trooper_costume->exists && $trooper_costume->isRevoked())
+        {
+            //  an officer revoked it; that outranks the club's records until undone
+            return;
+        }
 
         if ($trooper_costume->exists && $trooper_costume->trashed())
         {
@@ -162,6 +169,12 @@ abstract class BaseOrganizationService implements MemberLookupSource, Synchroniz
         }
 
         $trooper_costume->{TrooperCostume::SYNCHRONIZED_AT} = now();
+
+        if ($trooper_costume->exists && $trooper_costume->isPending())
+        {
+            //  the club's own records list this costume, which is the approval
+            $trooper_costume->markApproved(null);
+        }
 
         $trooper_costume->save();
     }

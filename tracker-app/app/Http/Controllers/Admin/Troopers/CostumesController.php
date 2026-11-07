@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Http\Controllers\PageController;
 use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForDisplay;
+use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForReview;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -41,7 +42,12 @@ class CostumesController extends PageController
 
         $costumes = GetTrooperCostumesForDisplay::call(trooper: $trooper);
 
-        $data = compact('trooper', 'costumes');
+        $trooper_costumes = GetTrooperCostumesForReview::call(
+            trooper: $trooper,
+            moderator: $request->user(),
+        );
+
+        $data = compact('trooper', 'costumes', 'trooper_costumes');
 
         return view('pages.admin.troopers.costumes', $data);
     }
