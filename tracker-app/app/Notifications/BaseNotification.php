@@ -7,7 +7,10 @@ namespace App\Notifications;
 use App\Channels\FcmChannel;
 use App\Enums\AdministrativeNotifications;
 use App\Enums\TrooperNotifications;
+use App\Mail\OutgoingMailBudget;
+use App\Mail\ThrottleOutgoingMail;
 use App\Models\Trooper;
+use DateTimeInterface;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
@@ -34,6 +37,11 @@ class BaseNotification extends Notification implements ShouldQueueAfterCommit
      */
     public int $tries = 3;
 
+    /**
+     * Still caps real failures once retryUntil() takes over from $tries.
+     */
+    public int $maxExceptions = 3;
+
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = null;
 
     /**
@@ -42,6 +50,21 @@ class BaseNotification extends Notification implements ShouldQueueAfterCommit
     public function backoff(): array
     {
         return [30, 60];
+    }
+
+    public function retryUntil(): ?DateTimeInterface
+    {
+        return app(OutgoingMailBudget::class)->retryUntil();
+    }
+
+    /**
+     * Only email counts against the host's sending cap.
+     *
+     * @return list<object>
+     */
+    public function middleware(object $notifiable, string $channel): array
+    {
+        return $channel === 'mail' ? [new ThrottleOutgoingMail] : [];
     }
 
     public function via(Trooper $notifiable): array

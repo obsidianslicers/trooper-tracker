@@ -29,6 +29,13 @@ enum MembershipRole: string
     case VISITOR = 'visitor';
 
     /**
+     * A member who creates events for organizations they belong to and manages the
+     * events they created. Not command staff: no other admin access, notifications
+     * or forum permissions.
+     */
+    case EVENT_COORDINATOR = 'event_coordinator';
+
+    /**
      * A member with moderation privileges to manage events and members.
      */
     case MODERATOR = 'moderator';

@@ -144,6 +144,16 @@ class Trooper extends BaseTrooper implements
     }
 
     /**
+     * Check if the trooper's membership role is event coordinator.
+     *
+     * @return bool True if the trooper is an event coordinator, false otherwise.
+     */
+    public function getIsEventCoordinatorAttribute(): bool
+    {
+        return $this->is_active && $this->membership_role == MembershipRole::EVENT_COORDINATOR;
+    }
+
+    /**
      * Check if the trooper's membership role is handler.
      *
      * @return bool True if the trooper is handler, false otherwise.
