@@ -52,6 +52,14 @@ class TrooperFactory extends BaseTrooperFactory
         ]);
     }
 
+    public function asEventCoordinator(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::EVENT_COORDINATOR,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+    }
+
     public function asMember(): static
     {
         return $this->state(fn (array $attributes): array => [

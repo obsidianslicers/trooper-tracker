@@ -1,0 +1,26 @@
+// Seeded by database/seeders/E2eSeeder.php. Every persona's password is "password".
+import path from 'node:path';
+import { APP_ROOT } from './env.js';
+
+export const PASSWORD = 'password';
+
+const AUTH_DIR = path.join(APP_ROOT, 'tests', 'e2e', '.auth');
+
+function persona(key, email, name) {
+    return { key, email, name, storageState: path.join(AUTH_DIR, `${key}.json`) };
+}
+
+export const personas = {
+    admin: persona('admin', 'admin@e2e.test', 'E2E Administrator'),
+    moderator: persona('moderator', 'moderator@e2e.test', 'E2E Moderator'),
+    member: persona('member', 'member@e2e.test', 'E2E Member'),
+};
+
+export const seeded = {
+    recruit: { email: 'recruit@e2e.test', name: 'E2E Pending Recruit' },
+    mergeSource: { email: 'merge-source@e2e.test', name: 'E2E Merge Source' },
+    mergeTarget: { email: 'merge-target@e2e.test', name: 'E2E Merge Target' },
+    duplicateCostume: 'E2E Duplicate Armor',
+    keptCostume: 'E2E Kept Armor',
+    openEvent: 'E2E Open Troop',
+};

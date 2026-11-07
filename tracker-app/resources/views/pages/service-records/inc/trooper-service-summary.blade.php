@@ -21,6 +21,7 @@
                 </div>
             </div>
         </div>
+        @pluginSlot('service-records.trooper.summary')
         <table class="table table-sm mt-3 mb-0">
             <tbody>
                 <tr class="small">

@@ -29,7 +29,7 @@ class CopyRequest extends FormRequest
             throw new AuthorizationException('Event not found or unauthorized.');
         }
 
-        return $this->user()->can('update', $event);
+        return $this->user()->can('copy', $event);
     }
 
     /**

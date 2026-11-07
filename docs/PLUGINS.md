@@ -158,6 +158,25 @@ plugins/hello/
 | `capabilities` | if it uses those hooks | What the plugin does to the site, shown on the Plugins page and confirmed when it is turned on (see [Capabilities](#capabilities)). |
 | `requires` | no | What the plugin needs before it can be turned on. `trooptracker` is the plugin API range it works with (the app's is `App\Plugins\PluginApi::VERSION`, currently 1.0.0); also `php`, `ext-*` and Composer packages, each with a Composer version constraint, and `plugins`, other plugins' slugs with the versions it works with. The plugin's `composer.json` `require` list is checked the same way. |
 
+### Database tables
+
+A plugin's tables are named so they read as the plugin's at a glance and sort next to the core data they belong to:
+
+```
+tt_<core entity>_<plugin>[_<things>]
+```
+
+- `tt_` like every table, then the **core entity** the rows hang off, singular (`trooper`, `organization`, `event`).
+- Then the **plugin slug**, with `-` as `_` (`google_sheets`, `holonet`).
+- Then what the rows are, plural, when the plugin has more than one table for that entity.
+
+| Plugin | Table |
+|--------|-------|
+| Google Sheets | `tt_organization_google_sheets` |
+| HoloNet | `tt_trooper_holonet_links`, `tt_trooper_holonet_troops`, `tt_trooper_holonet_grants`, `tt_trooper_holonet_codes` |
+
+Data that belongs to no core entity uses `tt_<plugin>_<things>`. Name the model after the table without the core entity (`HolonetLink` for `tt_trooper_holonet_links`), and foreign keys to the plugin's own tables after that model (`holonet_link_id`). The Discord and XenForo tables (`tt_discord_organization_mentions`, `tt_xenforo_*`) were named before this rule and keep their names, because renaming a table sites already have needs a migration of its own.
+
 ### Capabilities
 
 A plugin lists in `capabilities` the hooks that change what the site does, so an administrator can see that before turning it on. The Plugins page shows them under the plugin, and Enable asks first. A hook the plugin did not list refuses to run, and the plugin fails to load with a log error naming the missing capability.
@@ -275,7 +294,9 @@ $this->addToSlot(
 | `admin.events.form.fields` | Event create and edit forms, Miscellaneous section. Pair with `extendForm(PluginForms::EVENT_UPDATE)`. | `$event` |
 | `admin.organizations.update.fields` | Organization edit form, inside the `<form>`. Pair with `extendForm`. | `$organization` |
 | `service-records.trooper.badges` | Service record, under the trooper's name. | `$trooper` |
+| `service-records.trooper.summary` | Service record, Service Summary card, below the troop and hour totals. | `$trooper`, `$service_summary` |
 | `service-records.trooper.actions` | Service record, in the button group at the top right. Render buttons. | `$trooper` |
+| `service-records.trooper.history` | Service record, History tab, below the trooper's shifts. | `$trooper` |
 | `service-records.trooper.donations` | Service record, Donations tab, above the local donation records. | `$trooper` |
 
 Svelte pages have slots too. Their names are listed in `App\Plugins\PluginSlots::SVELTE_SLOTS`; the server renders them to HTML on every Inertia request and the page shows them with `<PluginSlot name="..." />` (`resources/svelte/lib/components/PluginSlot.svelte`). The views get `$request` and `$actor` (the signed-in trooper) instead of page variables. The markup is inserted as plain HTML, so `<script>` tags in it do not run; use links and forms.
@@ -516,6 +537,44 @@ Google Maps geocoding of event addresses stays in core (`GoogleService`, `GOOGLE
 Sites that sync clubs from Google Sheets must enable the plugin (Admin > Plugins, or `php artisan plugins:enable google-sheets`) and deploy once, or those syncs read nothing.
 
 ---
+
+---
+
+## The HoloNet plugin
+
+Garrisons run their own trackers. The HoloNet plugin (`holonet`), named after the Star Wars galaxy-wide network, lets a trooper link their account on another garrison's tracker, so their service record here also shows the troops they did there. There is no central server: every tracker is equal, and each link is made by the trooper.
+
+**What a trooper sees.** Profile > HoloNet (also a button on their own service record) lists their links. To add one they pick a tracker, sign in there with their normal login, and press Allow. Their service record here then shows "HoloNet", "All-Time Troops" and "All-Time Hours" in the Service Summary, and a "Troops from the HoloNet" table under History. A troop that overlaps one recorded here, or one from another linked tracker, counts once. Linked troops never count toward this tracker's reports, leaderboards, awards, achievements or club credit. A trooper can link as many trackers as they like, and unlink any of them; unlinking removes the copied troops.
+
+**What is shared.** Only attended shifts of closed events recorded on that tracker: event name, type and venue, shift times, costume, the clubs credited, and whether the trooper was a handler. Never emails, phones, legal names, contacts or other troopers. A tracker only shares troops it recorded itself, never ones it copied from another tracker. Troopers under 18 (or with a guardian) can't link or allow a link. Under "Trackers that can see your history here" a trooper can remove another tracker's access; that tracker then removes the copy on its next refresh.
+
+**Which trackers can link.** `plugins/holonet/trackers.json` in this repository lists the supported trackers (name and HTTPS address). A garrison joins with a pull request adding its tracker. Each tracker reads that list from GitHub (cached for a day, or from the **Tracker list URL** setting) plus the copy bundled with the plugin. Links only work between trackers on the list, and a trooper is only ever sent back to the tracker that asked. The System Check row "Linked trackers: this tracker is on the list" warns while this tracker is missing from it.
+
+**How it works.** It follows the OAuth authorization code flow with PKCE:
+
+1. The trooper's tracker checks `GET /plugins/holonet/instance` on the other tracker. If HoloNet isn't turned on there, or it doesn't share history, the trooper gets a message instead of a page that doesn't exist.
+1. The trooper's tracker sends them to `/plugins/holonet/authorize` on the other tracker with its own address, its callback (`/plugins/holonet/callback`), a random `state` and a `code_challenge`.
+2. After Allow, the other tracker sends them back with a one-time code (valid for 5 minutes, stored hashed).
+3. The trooper's tracker swaps it at `POST /webhooks/holonet/token` (with the PKCE verifier) for an access key that only reads that trooper's history. Only a hash of the key is kept on the sharing side.
+4. It reads `POST /webhooks/holonet/history` with the key as a Bearer token, right away, every night between 4:00 and 5:00 (`php artisan holonet:refresh-links`), and when the trooper presses Refresh. The copy is replaced whole each time. If the other tracker can't be reached the old copy stays; if it refuses the key, the copy is removed.
+5. Unlinking calls `POST /webhooks/holonet/revoke`, so the other tracker forgets the key.
+
+**Trying it locally.** A link only works between two trackers that are both on the list, at the addresses in their `APP_URL`. A copy running at `http://localhost:8000` is not the Florida tracker, so it offers Florida, and Florida refuses it; the HoloNet page warns when this tracker isn't on the list. To try it, run two copies (for example on ports 8000 and 8001, with separate databases), put a list such as `{"trackers": [{"name": "Local A", "url": "http://localhost:8000"}, {"name": "Local B", "url": "http://localhost:8001"}]}` in `public/holonet-trackers.json` of one of them, and set **Tracker list URL** on both to that file's address. Plain `http://` addresses are only accepted when `APP_ENV` is `local` or `testing`.
+
+**Rate limits.** Every limit is in `plugins/holonet/config/config.php` (with a `HOLONET_LIMIT_*` .env override); a tracker over a limit gets HTTP 429 with `Retry-After`.
+
+| What | Default |
+|------|---------|
+| Code exchanges (`/webhooks/holonet/token`) | 30 a minute per IP address |
+| History reads (`/webhooks/holonet/history`) | 60 a minute per access key, 300 a minute per IP address |
+| Unlink notices (`/webhooks/holonet/revoke`) | 30 a minute per IP address |
+| HoloNet checks (`/plugins/holonet/instance`) | 60 a minute per IP address |
+| A trooper's Refresh button | once every 5 minutes per link (sooner just says it is up to date) |
+| A trooper starting a link, or pressing Allow | 10 an hour |
+
+The nightly refresh starts at a random time between 4:00 and 5:00 (`--spread`), runs one request at a time, and goes through links tracker by tracker. When a tracker answers 429, no request goes to it until its `Retry-After` has passed (at least a minute, at most a day); its links keep their last copy and are tried again on the next refresh.
+
+**Turning it on.** Enable **HoloNet** on the Plugins page; make sure `APP_URL` is the tracker's public HTTPS address, since that is how other trackers know it. Settings: **Tracker name** (shown to other trackers; defaults to the site name), **Let troopers share their history with other trackers** (on by default; off still lets troopers link other trackers here), and **Tracker list URL**.
 
 ---
 

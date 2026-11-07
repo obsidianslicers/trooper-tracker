@@ -150,6 +150,32 @@ class UpdateTrooperAuthorityTest extends TestCase
         ]);
     }
 
+    public function test_handle_clears_moderator_flags_when_a_moderator_becomes_an_event_coordinator(): void
+    {
+        $trooper = Trooper::factory()->asModerator()->create();
+        $org = Organization::factory()->create();
+
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($org)
+            ->asModerator()
+            ->create();
+
+        $command = new UpdateTrooperAuthority(
+            trooper: $trooper,
+            membership_role: MembershipRole::EVENT_COORDINATOR,
+            valid_data: [$org->id => ['is_moderator' => true]]
+        );
+        $command->handle();
+
+        $trooper->refresh();
+        $this->assertEquals(MembershipRole::EVENT_COORDINATOR, $trooper->membership_role);
+        $this->assertDatabaseMissing('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::IS_MODERATOR => true,
+        ]);
+    }
+
     public function test_handle_skips_moderator_assignment_when_trooper_is_not_moderator(): void
     {
         $trooper = Trooper::factory()->asMember()->create();

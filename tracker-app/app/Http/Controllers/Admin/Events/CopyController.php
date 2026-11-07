@@ -38,7 +38,7 @@ class CopyController extends PageController
      */
     public function __invoke(Request $request, Event $event): View
     {
-        $this->authorize('update', $event);
+        $this->authorize('copy', $event);
 
         $event->name = 'COPY OF '.$event->name;
 

@@ -247,6 +247,7 @@ Controllers that render pages extend `PageController`, which provides the breadc
 | Pivot tables | Alphabetized singular names | `event_trooper` |
 | Timestamps | `created_at`, `updated_at` | Standard Eloquent |
 | Soft deletes | `deleted_at` | SoftDeletes trait |
+| Plugin tables | `tt_<core entity>_<plugin>[_<things>]` (see `docs/PLUGINS.md`) | `tt_organization_google_sheets`, `tt_trooper_holonet_links` |
 
 After any schema change, regenerate base models:
 ```bash
@@ -273,6 +274,7 @@ Do not edit anything in `app/Models/Base/` — it is overwritten on regeneration
 | Services | Unit | Isolated, no framework infrastructure |
 | Plugin code (`plugins/<slug>/src`) | `plugins/<slug>/tests` | Runs in the `Plugins` suite; core tests must not depend on a real plugin |
 | Front-end modules (`resources/js`) | Vitest | Plain JS logic such as the request parsers; `tests/js` mirrors `resources/js` |
+| Pages and user flows | Playwright (`tests/e2e`) | Real browser against a seeded app; see `docs/E2E_TESTING.md` |
 
 ### Conventions
 
@@ -317,6 +319,7 @@ php artisan test
 php artisan test --filter=TestClassName
 php artisan test --testsuite=Plugins      # Plugin tests only
 npm test                                  # Front-end unit tests (Vitest)
+npm run test:e2e                          # Browser tests (Playwright, needs npm run build)
 
 # Code quality
 ./vendor/bin/pint                         # Format code
@@ -380,3 +383,4 @@ Available policies: `AwardPolicy`, `EventPolicy`, `NoticePolicy`, `OrganizationP
 | Console commands reference | `docs/COMMANDS.md` |
 | Deployment | `docs/DEPLOY.md` |
 | Plugins (hooks, slots, settings) | `docs/PLUGINS.md` |
+| Browser tests & coverage plan | `docs/E2E_TESTING.md` |
