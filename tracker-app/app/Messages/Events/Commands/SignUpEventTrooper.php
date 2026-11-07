@@ -119,8 +119,8 @@ final class SignUpEventTrooper extends Message
 
         if ($event_trooper->added_by_trooper_id !== null)
         {
-            $moderator = $this->added_by_trooper->membership_role === MembershipRole::MODERATOR ||
-                $this->added_by_trooper->membership_role === MembershipRole::ADMINISTRATOR;
+            $role = $this->added_by_trooper->membership_role;
+            $moderator = $role === MembershipRole::MODERATOR || $role->hasAdministratorAccess();
 
             if (!$moderator)
             {

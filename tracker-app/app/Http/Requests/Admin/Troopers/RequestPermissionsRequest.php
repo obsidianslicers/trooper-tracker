@@ -109,9 +109,12 @@ class RequestPermissionsRequest extends FormRequest
             return;
         }
 
-        if ($trooper->membership_role === MembershipRole::ADMINISTRATOR)
+        if ($trooper->membership_role->hasAdministratorAccess())
         {
-            $validator->errors()->add('membership_role', 'Administrator roles cannot be changed.');
+            $validator->errors()->add(
+                'membership_role',
+                'Administrator and staff officer roles cannot be changed.'
+            );
         }
         elseif ($this->input('membership_role') === MembershipRole::MEMBER->value
             && $trooper->membership_role !== MembershipRole::MODERATOR)

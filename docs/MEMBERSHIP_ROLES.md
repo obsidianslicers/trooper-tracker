@@ -127,6 +127,25 @@ An elevated role scoped to specific organizations. Cannot be self-assigned.
 
 ---
 
+### STAFF_OFFICER
+
+Administrator access without the developer tools. Sits just below ADMINISTRATOR.
+
+**Can:**
+- Everything an ADMINISTRATOR can (`Trooper::is_administrator` is true for staff officers)
+- Approve or deny permission requests, edit the FAQ, manage costumes, and use plugin admin pages
+
+**Cannot:**
+- Open Plugins, System Check, Merge Troopers, or Merge Costumes
+  (`Trooper::has_developer_access`, routes use `check.role:administrator`)
+- Make anyone an ADMINISTRATOR, or change an ADMINISTRATOR's role
+- Be changed through a permission request
+
+**Assigned by:** Admin or staff officer via the authority panel  
+**Changed by:** Admin or staff officer
+
+---
+
 ### ADMINISTRATOR
 
 Full unrestricted system access. Cannot be self-assigned.
@@ -144,15 +163,16 @@ Full unrestricted system access. Cannot be self-assigned.
 
 ## Permissions Comparison
 
-| Capability | MEMBER | HANDLER | VISITOR | MODERATOR | ADMINISTRATOR |
-|---|:---:|:---:|:---:|:---:|:---:|
-| Sign up for events | ✓ | ✓ (handler) | ✓ (top-level only) | ✓ | ✓ |
-| Manage own costumes | ✓ | — | ✓ | ✓ | ✓ |
-| Create/manage events | — | — | — | ✓ (scoped) | ✓ |
-| Approve/deny troopers | — | — | — | ✓ (scoped) | ✓ |
-| Manage notices/awards | — | — | — | ✓ (scoped) | ✓ |
-| Change trooper roles | — | — | — | — | ✓ |
-| Unrestricted org scope | — | — | — | — | ✓ |
+| Capability | MEMBER | HANDLER | VISITOR | MODERATOR | STAFF_OFFICER | ADMINISTRATOR |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| Sign up for events | ✓ | ✓ (handler) | ✓ (top-level only) | ✓ | ✓ | ✓ |
+| Manage own costumes | ✓ | — | ✓ | ✓ | ✓ | ✓ |
+| Create/manage events | — | — | — | ✓ (scoped) | ✓ | ✓ |
+| Approve/deny troopers | — | — | — | ✓ (scoped) | ✓ | ✓ |
+| Manage notices/awards | — | — | — | ✓ (scoped) | ✓ | ✓ |
+| Change trooper roles | — | — | — | — | ✓ (not to/from admin) | ✓ |
+| Unrestricted org scope | — | — | — | — | ✓ | ✓ |
+| Plugins, System Check, Merge | — | — | — | — | — | ✓ |
 
 ---
 
@@ -231,7 +251,7 @@ apply the change.
 Rules:
 
 - A moderator cannot request changes for themselves, and the target must be an active trooper.
-- Administrators cannot be changed through a request; approving a role change for a trooper
+- Administrators and staff officers cannot be changed through a request; approving a role change for a trooper
   who became an administrator after the request was made is rejected.
 - XenForo groups that are mapped to organizations are not requestable, because the forum user
   sync already manages them. Groups granted by XenForo user upgrades (e.g. FLG Supporter) are

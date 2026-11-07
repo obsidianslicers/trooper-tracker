@@ -2,11 +2,11 @@
     <x-tab :label="'Profile'"
            :target="route('admin.troopers.profile', compact('trooper'))"
            :active="request()->routeIs('admin.troopers.profile')" />
-    @if(Auth::user()->is_administrator)
+    @can('updateAuthority', $trooper)
         <x-tab :label="'Authority'"
                :target="route('admin.troopers.authority', compact('trooper'))"
                :active="request()->routeIs('admin.troopers.authority')" />
-    @endif
+    @endcan
     <x-tab :label="'Memberships'"
            :target="route('admin.troopers.membership', compact('trooper'))"
            :active="request()->routeIs('admin.troopers.membership')" />

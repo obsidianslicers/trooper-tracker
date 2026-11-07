@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Enums\MembershipRole;
+use App\Messages\Troopers\Queries\GetAdministrators;
 use App\Messages\Troopers\Queries\GetTroopersByRole;
 use App\Models\TrooperRequest;
 use App\Notifications\Admin\TrooperRequestSubmittedNotification;
@@ -30,7 +31,7 @@ class SendTrooperRequestNotificationsJob implements ShouldQueue
 
     public function handle(): void
     {
-        $admins = GetTroopersByRole::call(membership_role: MembershipRole::ADMINISTRATOR);
+        $admins = GetAdministrators::call();
 
         foreach ($admins as $admin)
         {

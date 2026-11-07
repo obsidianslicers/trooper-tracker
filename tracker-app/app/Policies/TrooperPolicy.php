@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use App\Policies\Concerns\HasTrooperPermissionsTrait;
@@ -67,14 +68,21 @@ class TrooperPolicy
 
     /**
      * Determine whether the user can update a trooper's authority/role.
+     * Staff officers may not change an Administrator's role.
      *
      * @param  Trooper  $trooper  The authenticated user performing the action.
      * @param  Trooper  $subject  The trooper whose authority is being updated.
-     * @return bool True if the user is an administrator, false otherwise.
+     * @return bool True if the user is an administrator or staff officer allowed to edit the subject.
      */
     public function updateAuthority(Trooper $trooper, Trooper $subject): bool
     {
-        return $this->isAdministrator($trooper);
+        if (!$this->isAdministrator($trooper))
+        {
+            return false;
+        }
+
+        return $trooper->has_developer_access
+            || $subject->membership_role !== MembershipRole::ADMINISTRATOR;
     }
 
     /**

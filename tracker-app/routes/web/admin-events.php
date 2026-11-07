@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\Route;
 //  ADMIN/EVENTS
 Route::prefix('admin/events')
     ->name('admin.events.')
-    ->middleware(['auth', 'check.role:moderator,administrator'])
+    ->middleware(['auth', 'check.role:moderator,staff_officer,administrator'])
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');
