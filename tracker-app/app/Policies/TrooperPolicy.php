@@ -81,7 +81,7 @@ class TrooperPolicy
             return false;
         }
 
-        return $trooper->has_developer_access
+        return $trooper->has_system_owner
             || $subject->membership_role !== MembershipRole::ADMINISTRATOR;
     }
 

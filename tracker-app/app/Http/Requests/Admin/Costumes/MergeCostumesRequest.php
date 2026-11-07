@@ -13,7 +13,7 @@ class MergeCostumesRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->has_developer_access;
+        return $this->user()->has_system_owner;
     }
 
     /**

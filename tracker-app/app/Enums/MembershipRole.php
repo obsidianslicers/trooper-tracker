@@ -70,7 +70,7 @@ enum MembershipRole: string
     /**
      * Whether the role may use the developer tools (Plugins, System Check, Merge).
      */
-    public function hasDeveloperAccess(): bool
+    public function hasSystemOwner(): bool
     {
         return $this === self::ADMINISTRATOR;
     }

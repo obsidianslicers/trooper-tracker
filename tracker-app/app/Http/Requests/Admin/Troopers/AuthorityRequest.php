@@ -95,7 +95,7 @@ class AuthorityRequest extends FormRequest
      */
     private function restrictedRoles(): array
     {
-        return $this->user()?->has_developer_access === true
+        return $this->user()?->has_system_owner === true
             ? []
             : [MembershipRole::ADMINISTRATOR->value];
     }

@@ -138,9 +138,9 @@ class Trooper extends BaseTrooper implements
      *
      * @return bool True only for an active Administrator, never a Staff Officer.
      */
-    public function getHasDeveloperAccessAttribute(): bool
+    public function getHasSystemOwnerAttribute(): bool
     {
-        return $this->is_active && $this->membership_role->hasDeveloperAccess();
+        return $this->is_active && $this->membership_role->hasSystemOwner();
     }
 
     /**

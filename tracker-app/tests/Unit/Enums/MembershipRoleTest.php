@@ -21,19 +21,19 @@ class MembershipRoleTest extends TestCase
         $this->assertFalse(MembershipRole::MEMBER->hasAdministratorAccess());
     }
 
-    public function test_only_administrator_has_developer_access(): void
+    public function test_only_administrator_has_system_owner(): void
     {
-        $this->assertTrue(MembershipRole::ADMINISTRATOR->hasDeveloperAccess());
-        $this->assertFalse(MembershipRole::STAFF_OFFICER->hasDeveloperAccess());
-        $this->assertFalse(MembershipRole::MODERATOR->hasDeveloperAccess());
+        $this->assertTrue(MembershipRole::ADMINISTRATOR->hasSystemOwner());
+        $this->assertFalse(MembershipRole::STAFF_OFFICER->hasSystemOwner());
+        $this->assertFalse(MembershipRole::MODERATOR->hasSystemOwner());
     }
 
-    public function test_staff_officer_trooper_is_administrator_without_developer_access(): void
+    public function test_staff_officer_trooper_is_administrator_without_system_owner(): void
     {
         $subject = Trooper::factory()->asStaffOfficer()->create();
 
         $this->assertTrue($subject->is_administrator);
-        $this->assertFalse($subject->has_developer_access);
+        $this->assertFalse($subject->has_system_owner);
     }
 
     public function test_retired_staff_officer_has_no_administrator_access(): void

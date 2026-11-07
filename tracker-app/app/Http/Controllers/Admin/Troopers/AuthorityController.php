@@ -56,7 +56,7 @@ class AuthorityController extends PageController
     {
         $options = MembershipRole::toArray();
 
-        if (!$request->user()->has_developer_access)
+        if (!$request->user()->has_system_owner)
         {
             unset($options[MembershipRole::ADMINISTRATOR->value]);
         }

@@ -165,7 +165,7 @@ Administrator access without the developer tools. Sits just below ADMINISTRATOR.
 
 **Cannot:**
 - Open Plugins, System Check, Merge Troopers, or Merge Costumes
-  (`Trooper::has_developer_access`, routes use `check.role:administrator`)
+  (`Trooper::has_system_owner`, routes use `check.role:administrator`)
 - Make anyone an ADMINISTRATOR, or change an ADMINISTRATOR's role
 - Be changed through a permission request
 
