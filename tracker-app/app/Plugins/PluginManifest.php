@@ -93,7 +93,7 @@ final readonly class PluginManifest
         $namespace = self::namespace($data, $slug);
         $requires = self::requires($data, $slug);
 
-        $normalized_path = rtrim($path, DIRECTORY_SEPARATOR);
+        $normalized_path = rtrim($path, '/\\');
 
         return new self(
             slug: $slug,

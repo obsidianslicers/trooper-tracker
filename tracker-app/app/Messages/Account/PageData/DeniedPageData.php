@@ -66,6 +66,7 @@ final class DeniedPageData extends Message
         }
 
         $account_type = $this->trooper->membership_role?->toAccountType() ?? MembershipRole::MEMBER->toAccountType();
+        $trooper = $this->trooper;
 
         return compact(
             'denied_requests',
@@ -74,6 +75,7 @@ final class DeniedPageData extends Message
             'org_paths',
             'organization_hierarchy',
             'account_type',
+            'trooper',
         );
     }
 
