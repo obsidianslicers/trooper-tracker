@@ -169,6 +169,16 @@ class TrooperPolicy
     }
 
     /**
+     * Determine whether the user can flag a trooper as "do not trust" or clear the flag.
+     * Only administrators can, and never on their own account.
+     */
+    public function markUntrusted(Trooper $trooper, Trooper $subject): bool
+    {
+        return $this->isAdministrator($trooper)
+            && $trooper->id !== $subject->id;
+    }
+
+    /**
      * Determine whether the user can mark a trooper's account as created in error.
      *
      * @param  Trooper  $trooper  The authenticated user performing the action.

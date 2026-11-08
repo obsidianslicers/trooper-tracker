@@ -65,6 +65,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
  * @property Carbon|null $deletion_requested_at
+ * @property bool $is_untrusted
+ * @property string|null $untrusted_reason
+ * @property Carbon|null $untrusted_at
+ * @property int|null $untrusted_id
  * 
  * @property TrooperCostume|null $trooper_costume
  * @property \App\Models\Trooper|null $trooper
@@ -120,6 +124,10 @@ class Trooper extends Model
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
     const DELETION_REQUESTED_AT = 'deletion_requested_at';
+    const IS_UNTRUSTED = 'is_untrusted';
+    const UNTRUSTED_REASON = 'untrusted_reason';
+    const UNTRUSTED_AT = 'untrusted_at';
+    const UNTRUSTED_ID = 'untrusted_id';
     protected $table = 'tt_troopers';
 
     protected $casts = [
@@ -137,7 +145,10 @@ class Trooper extends Model
         self::DATE_OF_BIRTH => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
-        self::DELETION_REQUESTED_AT => 'datetime'
+        self::DELETION_REQUESTED_AT => 'datetime',
+        self::IS_UNTRUSTED => 'bool',
+        self::UNTRUSTED_AT => 'datetime',
+        self::UNTRUSTED_ID => 'int'
     ];
 
     protected $hidden = [
@@ -167,7 +178,11 @@ class Trooper extends Model
         self::GUARDIAN_ID,
         self::DATE_OF_BIRTH,
         self::REMEMBER_TOKEN,
-        self::DELETION_REQUESTED_AT
+        self::DELETION_REQUESTED_AT,
+        self::IS_UNTRUSTED,
+        self::UNTRUSTED_REASON,
+        self::UNTRUSTED_AT,
+        self::UNTRUSTED_ID
     ];
 
     public function trooper_costume(): BelongsTo

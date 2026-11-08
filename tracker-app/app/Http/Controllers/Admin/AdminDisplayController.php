@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\MembershipStatus;
 use App\Http\Controllers\PageController;
+use App\Messages\Events\Queries\Verification\GetTroopsAwaitingVerification;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
@@ -34,6 +35,8 @@ class AdminDisplayController extends PageController
             ->whereHas('trooper')
             ->count();
 
+        $troops_awaiting_verification = GetTroopsAwaitingVerification::call(moderator: $trooper)->count();
+
         $pending_permission_requests = $trooper->is_administrator
             ? PermissionRequest::pending()->count()
             : 0;
@@ -43,6 +46,7 @@ class AdminDisplayController extends PageController
             'pending_join_requests',
             'pending_permission_requests',
             'pending_costumes',
+            'troops_awaiting_verification',
         ));
     }
 }

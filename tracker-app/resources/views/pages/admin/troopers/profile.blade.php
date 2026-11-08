@@ -24,6 +24,18 @@
             </div>
         @endif
 
+        @if($trooper->is_untrusted)
+            <div class="alert alert-warning mb-3"
+                 role="alert">
+                <strong>Do not trust.</strong>
+                This trooper's troop confirmations wait for a moderator before they count.
+                @if($trooper->untrusted_reason)
+                    <br />
+                    <span class="small">Reason: {{ $trooper->untrusted_reason }}</span>
+                @endif
+            </div>
+        @endif
+
         <x-card>
 
             <form method="POST"
@@ -99,6 +111,10 @@
             </form>
 
         </x-card>
+
+        @can('markUntrusted', $trooper)
+            @include('pages.admin.troopers.partials.untrusted-form', compact('trooper'))
+        @endcan
 
     </x-slim-container>
 

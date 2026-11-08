@@ -55,6 +55,11 @@ enum EventTrooperStatus: string
     case UNABLE_TO_ATTEND = 'unabletoattend';
 
     /**
+     * A flagged trooper confirmed attendance; a moderator must verify it before it counts.
+     */
+    case AWAITING_VERIFICATION = 'awaiting_verification';
+
+    /**
      * Get an array of available sign-up statuses.
      *
      * Returns the statuses that a trooper can select when signing up for an event.
@@ -97,6 +102,7 @@ enum EventTrooperStatus: string
             self::NOT_PICKED => 'fa-ban',
             self::NO_SHOW => 'fa-user-slash',
             self::UNABLE_TO_ATTEND => 'fa-circle-xmark',
+            self::AWAITING_VERIFICATION => 'fa-user-clock',
         };
     }
 
@@ -119,6 +125,7 @@ enum EventTrooperStatus: string
             self::NOT_PICKED => 'text-secondary',
             self::NO_SHOW => 'text-muted',
             self::UNABLE_TO_ATTEND => 'text-danger',
+            self::AWAITING_VERIFICATION => 'text-info',
         };
     }
 

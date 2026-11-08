@@ -5,11 +5,13 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\Troopers\ApproveCostumeController;
 use App\Http\Controllers\Admin\Troopers\ApproveMembershipsController;
 use App\Http\Controllers\Admin\Troopers\ApprovePermissionsController;
+use App\Http\Controllers\Admin\Troopers\ApproveTroopCreditController;
 use App\Http\Controllers\Admin\Troopers\ApproveTrooperMembershipController;
 use App\Http\Controllers\Admin\Troopers\ApproveTrooperRequestController;
 use App\Http\Controllers\Admin\Troopers\AuthorityController;
 use App\Http\Controllers\Admin\Troopers\AuthoritySubmitController;
 use App\Http\Controllers\Admin\Troopers\ChangesController;
+use App\Http\Controllers\Admin\Troopers\ClearUntrustedSubmitController;
 use App\Http\Controllers\Admin\Troopers\CostumeApprovalsController;
 use App\Http\Controllers\Admin\Troopers\CostumesController;
 use App\Http\Controllers\Admin\Troopers\DenyCostumeController;
@@ -23,6 +25,7 @@ use App\Http\Controllers\Admin\Troopers\ListController;
 use App\Http\Controllers\Admin\Troopers\LookupMembershipController;
 use App\Http\Controllers\Admin\Troopers\LookupTrooperPermissionsController;
 use App\Http\Controllers\Admin\Troopers\MarkRipSubmitController;
+use App\Http\Controllers\Admin\Troopers\MarkUntrustedSubmitController;
 use App\Http\Controllers\Admin\Troopers\MembershipController;
 use App\Http\Controllers\Admin\Troopers\MembershipRemoveController;
 use App\Http\Controllers\Admin\Troopers\MembershipSubmitController;
@@ -33,9 +36,11 @@ use App\Http\Controllers\Admin\Troopers\ProfileController;
 use App\Http\Controllers\Admin\Troopers\ProfileSubmitController;
 use App\Http\Controllers\Admin\Troopers\RecruitController;
 use App\Http\Controllers\Admin\Troopers\RecruitSubmitController;
+use App\Http\Controllers\Admin\Troopers\RejectTroopCreditController;
 use App\Http\Controllers\Admin\Troopers\RequestPermissionsController;
 use App\Http\Controllers\Admin\Troopers\RequestPermissionsSubmitController;
 use App\Http\Controllers\Admin\Troopers\RevokeCostumeController;
+use App\Http\Controllers\Admin\Troopers\TroopVerificationsController;
 use App\Http\Controllers\Admin\Troopers\UndoRevokeCostumeController;
 use App\Http\Controllers\Admin\Troopers\UnmarkRipSubmitController;
 use App\Http\Controllers\Admin\Troopers\UnvoidSubmitController;
@@ -97,6 +102,17 @@ Route::prefix('admin/troopers')
             ->name('costumes.undo-revoke')
             ->withTrashed();
 
+        Route::get('/troop-verifications', TroopVerificationsController::class)
+            ->name('troop-verifications');
+        Route::post(
+            '/troop-verifications/{event_trooper}/{organization}/approve',
+            ApproveTroopCreditController::class
+        )->name('troop-verifications.approve');
+        Route::post(
+            '/troop-verifications/{event_trooper}/{organization}/reject',
+            RejectTroopCreditController::class
+        )->name('troop-verifications.reject');
+
         Route::get('/recruit', RecruitController::class)->name('recruit');
         Route::post('/recruit', RecruitSubmitController::class);
 
@@ -123,4 +139,6 @@ Route::prefix('admin/troopers')
         Route::post('/{trooper}/unvoid', UnvoidSubmitController::class)->name('unvoid');
         Route::post('/{trooper}/rip', MarkRipSubmitController::class)->name('rip');
         Route::post('/{trooper}/unrip', UnmarkRipSubmitController::class)->name('unrip');
+        Route::post('/{trooper}/untrusted', MarkUntrustedSubmitController::class)->name('untrusted');
+        Route::post('/{trooper}/trusted', ClearUntrustedSubmitController::class)->name('trusted');
     });
