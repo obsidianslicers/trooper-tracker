@@ -81,10 +81,10 @@ All new and refactored code follows the ADR pattern:
   - Use single-action controllers: `Route::post('/login', LoginSubmitController::class)`
   - Controllers are thin orchestrators, not business logic containers
 
-- **Domain (Services):** Business logic lives in Service classes, independent of web context, commands and queries are executed as messages thru the MagicBus
-  - Located in `app/Services/`
-  - Examples: `BreadCrumbService`, event notification services
-  - Service classes are reusable across Controllers, Jobs, and Commands
+- **Domain (Hyperdrive Messages):** Business logic lives in single-file Hyperdrive Messages (Commands, Queries, PageData) in `app/Messages/`, independent of web context
+  - Located in `app/Messages/[Feature]/{Commands,Queries,PageData}/`
+  - Each message class extends `Hyperdrive\Message` with a `handle()` method containing business logic
+  - Messages are reusable across Controllers, Jobs, and Commands. See [Hyperdrive Message Architecture](tracker-app/packages/hyperdrive/README.md) for details
 
 - **Responder:** Blade views, JSON responses, or redirects
   - Located in `resources/views/`
@@ -95,14 +95,12 @@ All new and refactored code follows the ADR pattern:
 Jobs and Commands follow the **Orchestration Pattern** - they coordinate Service class calls, not implement business logic:
 
 ```php
-// ✅ GOOD: Job orchestrates service
+// ✅ GOOD: Job orchestrates via Hyperdrive Message
 class SendEventCreatedNotificationsJob implements ShouldQueue
 {
-    public function handle(MagicBus $magic_bus): void
+    public function handle(): void
     {
-      $cmd = new SendEventNotificationsCommand($this->event);
-      
-      $magic_bus->send($cmd);
+        SendEventCreatedNotification::call(event: $this->event, trooper: $trooper);
     }
 }
 
