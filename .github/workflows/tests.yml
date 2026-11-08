@@ -13,15 +13,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # Production runs PHP 8.5.
-          - php: '8.5'
-            plugins: 'bundled'
-          - php: '8.5'
-            plugins: 'composer'
-          # Older PHP still supported by composer.json.
-          - php: '8.4'
-            plugins: 'composer'
+        # Production runs PHP 8.5.
+        php: ['8.5']
+        plugins: ['bundled', 'composer']
 
     steps:
       - name: Checkout Code
