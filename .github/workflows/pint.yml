@@ -1,0 +1,38 @@
+name: Code Style (PR)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ "main" ]
+
+jobs:
+  pint-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+
+      - name: Locate Composer cache
+        id: composer-cache
+        run: echo "dir=$(composer config --global cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-bundled-${{ hashFiles('tracker-app/composer.lock', 'tracker-app/plugins/*/composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        working-directory: ./tracker-app
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run Pint in test mode
+        working-directory: ./tracker-app
+        run: composer pint:test

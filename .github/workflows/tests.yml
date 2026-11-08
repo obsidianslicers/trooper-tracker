@@ -7,7 +7,7 @@ on:
 
 jobs:
   laravel-tests:
-    name: PHP ${{ matrix.php }}, ${{ matrix.plugins }} plugins${{ matrix.pint && ', code style' || '' }}
+    name: PHP ${{ matrix.php }}, ${{ matrix.plugins }} plugins
     runs-on: ubuntu-latest
 
     strategy:
@@ -17,14 +17,11 @@ jobs:
           # Production runs PHP 8.5.
           - php: '8.5'
             plugins: 'bundled'
-            pint: true
           - php: '8.5'
             plugins: 'composer'
-            pint: false
           # Older PHP still supported by composer.json.
           - php: '8.4'
             plugins: 'composer'
-            pint: false
 
     steps:
       - name: Checkout Code
@@ -52,7 +49,6 @@ jobs:
             ${{ runner.os }}-composer-
 
       - name: Install Composer Dependencies
-        id: composer-install
         working-directory: ./tracker-app
         run: composer install --no-interaction --prefer-dist --no-progress
 
@@ -78,14 +74,6 @@ jobs:
         env:
           TERM: xterm
         run: composer test:ci
-
-      # Runs even when the tests fail, so a style problem is reported alongside them.
-      - name: Check code style (Pint)
-        if: >-
-          matrix.pint && (success() || failure())
-          && steps.composer-install.outcome == 'success'
-        working-directory: ./tracker-app
-        run: composer pint:test
 
   e2e-tests:
     name: Browser and JS tests
