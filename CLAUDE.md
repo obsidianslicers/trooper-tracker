@@ -290,7 +290,7 @@ public function test_handle_returns_troopers_with_role(): void
 {
     $admin = Trooper::factory()->asSystemOwner()->create();
 
-    $subject = new GetTroopersByRole(MembershipRole::ADMINISTRATOR);
+    $subject = new GetTroopersByRole(MembershipRole::SYSTEM_OWNER);
     $result = $subject->handle();
 
     $this->assertTrue($result->contains($admin));

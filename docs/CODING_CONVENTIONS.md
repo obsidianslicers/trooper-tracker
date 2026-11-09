@@ -262,7 +262,7 @@ public function test_handle_returns_troopers_with_role(): void
 {
     $admin = Trooper::factory()->asSystemOwner()->create();
 
-    $subject = new GetTroopersByRole(MembershipRole::ADMINISTRATOR);
+    $subject = new GetTroopersByRole(MembershipRole::SYSTEM_OWNER);
 
     $result = $subject->handle();
 
@@ -336,7 +336,7 @@ When instantiating the class being tested, the variable name **must** be `$subje
 ```php
 public function test_something(): void
 {
-    $subject = new GetTroopersByRole(MembershipRole::ADMINISTRATOR);
+    $subject = new GetTroopersByRole(MembershipRole::SYSTEM_OWNER);
     $result = $subject->handle();
     $this->assertNotEmpty($result);
 }
