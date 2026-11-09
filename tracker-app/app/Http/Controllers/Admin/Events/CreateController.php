@@ -59,6 +59,15 @@ class CreateController extends PageController
         $event->status = EventStatus::DRAFT;
         $event->require_mission_brief_ack = false;
 
+        // The form has always opened with these on "Yes" (the browser picked the first option
+        // while Alpine blanked the select), so keep that now that the form shows these values.
+        $event->tentative_signups_allowed = true;
+        $event->secure_staging_area = true;
+        $event->allow_blasters = true;
+        $event->allow_props = true;
+        $event->parking_available = true;
+        $event->accessible = true;
+
         // Fill with old input if available
         if (!empty(old()))
         {
@@ -80,9 +89,12 @@ class CreateController extends PageController
     {
         $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
 
+        //  An unchecked box isn't submitted, so after a failed submit a missing value means "no".
+        $resubmitted = !empty(old());
+
         foreach ($organizations as $organization)
         {
-            $default = $organization->can_attend_default ? 'true' : 'false';
+            $default = !$resubmitted && $organization->can_attend_default ? 'true' : 'false';
 
             $organization->pivot = new EventOrganization;
 

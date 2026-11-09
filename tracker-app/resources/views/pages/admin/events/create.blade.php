@@ -79,7 +79,7 @@
                         <x-input-text :property="'source'"
                                       :multiline="true"
                                       :placeholder="'Event Name: Name of Event'"
-                                      x-model="sourceContent"
+                                      x-model.fill="sourceContent"
                                       x-on:change="parseSource()" />
                         <x-input-help>
                             Paste the request for appearance message here, and the

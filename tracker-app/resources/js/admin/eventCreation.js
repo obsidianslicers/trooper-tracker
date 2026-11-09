@@ -5,11 +5,13 @@ export default function ({ mode, organizationId, organizationName, clubName }) {
     return {
         mode: mode || 'email',
         sourceContent: '',
+        // The event fields aren't listed here on purpose: their inputs use x-model.fill, so each
+        // one starts from the value the server rendered (old input after a failed submit).
+        // A field listed here would overwrite that value.
         form: {
             organization_id: organizationId || 0,
             organization_name: organizationName || '',
             club_name: clubName || '',
-            require_mission_brief_ack: 0,
         },
 
         init() {
