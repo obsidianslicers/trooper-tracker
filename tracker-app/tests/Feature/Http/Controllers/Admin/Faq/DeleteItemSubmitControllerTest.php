@@ -15,7 +15,7 @@ class DeleteItemSubmitControllerTest extends TestCase
 
     public function test_invoke_soft_deletes_faq_item_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $faq = Faq::factory()->create();
 
         $response = $this->actingAs($trooper)->post(

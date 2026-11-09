@@ -15,7 +15,7 @@ class UpdateControllerTest extends TestCase
 
     public function test_invoke_displays_update_organization_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.organizations.update', ['organization' => $organization->id]));
@@ -35,7 +35,7 @@ class UpdateControllerTest extends TestCase
 
     public function test_invoke_shows_the_roster_sync_choice_for_a_club(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->asOrganization()->create([
             Organization::SYNCHRONIZER => 'from-a-disabled-plugin',
         ]);
@@ -49,7 +49,7 @@ class UpdateControllerTest extends TestCase
 
     public function test_invoke_hides_the_roster_sync_choice_for_a_region(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->asRegion()->create();
 
         $this->actingAs($trooper)

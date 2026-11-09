@@ -19,7 +19,7 @@ class UpdateImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create();
         $logo = UploadedFile::fake()->image('logo.png');
 

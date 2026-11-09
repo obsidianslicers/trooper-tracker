@@ -37,7 +37,7 @@ class ApproveTrooperPermissionsTest extends TestCase
 
         Bus::fake([SendPermissionRequestReviewedNotificationsJob::class]);
 
-        $this->admin = Trooper::factory()->asAdministrator()->create();
+        $this->admin = Trooper::factory()->asSystemOwner()->create();
         $this->actingAs($this->admin);
     }
 
@@ -282,7 +282,7 @@ class ApproveTrooperPermissionsTest extends TestCase
 
     public function test_handle_refuses_to_change_an_administrator(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $permission_request = PermissionRequest::factory()
             ->forTrooper($trooper)

@@ -32,7 +32,7 @@ class Fix208 extends Seeder
             return;
         }
 
-        $administrator = Trooper::where(Trooper::MEMBERSHIP_ROLE, MembershipRole::ADMINISTRATOR)->first();
+        $administrator = Trooper::where(Trooper::MEMBERSHIP_ROLE, MembershipRole::SYSTEM_OWNER)->first();
 
         if ($administrator === null)
         {

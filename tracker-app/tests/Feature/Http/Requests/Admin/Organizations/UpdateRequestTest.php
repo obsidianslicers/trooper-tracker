@@ -26,7 +26,7 @@ class UpdateRequestTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = Trooper::factory()->asAdministrator()->create();
+        $this->admin = Trooper::factory()->asSystemOwner()->create();
         $this->organization = Organization::factory()->create();
         $this->actingAs($this->admin);
     }

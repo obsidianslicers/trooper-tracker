@@ -15,7 +15,7 @@ class CreateSubmitControllerTest extends TestCase
 
     public function test_invoke_creates_suborganization_and_redirects(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $parent = Organization::factory()->asOrganization()->create();
 
         $response = $this->actingAs($trooper)->post('/admin/organizations/' . $parent->id . '/create', [

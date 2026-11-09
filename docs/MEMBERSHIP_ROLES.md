@@ -126,7 +126,7 @@ Cannot be self-assigned.
 - Approve troopers or manage notices, awards and costumes
 
 **Not command staff:** they are not in the command staff list, receive no staff notifications
-(those go to MODERATOR and ADMINISTRATOR only), and the role changes nothing on the forum.
+(those go to MODERATOR, STAFF_OFFICER and SYSTEM_OWNER only), and the role changes nothing on the forum.
 
 **Navigation:** the Events menu shows **My Events** (`/admin/events`, limited to their own
 events) and **Create Event**.
@@ -157,16 +157,16 @@ An elevated role scoped to specific organizations. Cannot be self-assigned.
 
 ### STAFF_OFFICER
 
-Administrator access without the developer tools. Sits just below ADMINISTRATOR.
+System Owner access without the developer tools. Sits just below SYSTEM_OWNER.
 
 **Can:**
-- Everything an ADMINISTRATOR can (`Trooper::is_administrator` is true for staff officers)
+- Everything a SYSTEM_OWNER can (`Trooper::is_administrator` is true for staff officers)
 - Approve or deny permission requests, edit the FAQ, manage costumes, and use plugin admin pages
 
 **Cannot:**
 - Open Plugins, System Check, Merge Troopers, or Merge Costumes
   (`Trooper::has_system_owner`, routes use `check.role:administrator`)
-- Make anyone an ADMINISTRATOR, or change an ADMINISTRATOR's role
+- Make anyone a SYSTEM_OWNER, or change a SYSTEM_OWNER's role
 - Be changed through a permission request
 
 **Assigned by:** Admin or staff officer via the authority panel  
@@ -174,9 +174,9 @@ Administrator access without the developer tools. Sits just below ADMINISTRATOR.
 
 ---
 
-### ADMINISTRATOR
+### SYSTEM_OWNER
 
-Full unrestricted system access. Cannot be self-assigned.
+Full unrestricted system access, shown as **System Owner** (stored value `administrator`). Cannot be self-assigned.
 
 **Can:**
 - Everything a MODERATOR can, without any org scoping
@@ -184,14 +184,14 @@ Full unrestricted system access. Cannot be self-assigned.
 - Manage all organizations, costumes, events, awards, and notices globally
 - Access all admin-only routes (`CheckActorRoleMiddleware` passes unconditionally)
 
-**Assigned by:** Admin only  
-**Changed by:** Admin only
+**Assigned by:** System Owner only  
+**Changed by:** System Owner only
 
 ---
 
 ## Permissions Comparison
 
-| Capability | MEMBER | HANDLER | VISITOR | EVENT_COORDINATOR | MODERATOR | STAFF_OFFICER | ADMINISTRATOR |
+| Capability | MEMBER | HANDLER | VISITOR | EVENT_COORDINATOR | MODERATOR | STAFF_OFFICER | SYSTEM_OWNER |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | Sign up for events | ✓ | ✓ (handler) | ✓ (top-level only) | ✓ | ✓ | ✓ | ✓ |
 | Manage own costumes | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ |

@@ -38,7 +38,7 @@ class UnmarkRipSubmitControllerTest extends TestCase
 
     public function test_invoke_unmarks_trooper_rip_and_redirects_to_profile(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::DEPARTED]);
 
         $response = $this->actingAs($admin)
@@ -51,7 +51,7 @@ class UnmarkRipSubmitControllerTest extends TestCase
 
     public function test_invoke_denies_when_trooper_is_not_rip(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
 
         $response = $this->actingAs($admin)

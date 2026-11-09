@@ -20,7 +20,7 @@ class NoticePolicyTest extends TestCase
     {
         $policy = new NoticePolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $member = Trooper::factory()->asMember()->create();
 
@@ -33,7 +33,7 @@ class NoticePolicyTest extends TestCase
     {
         $policy = new NoticePolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->withNodePath('org.any')->create();
         $notice = Notice::factory()->withOrganization($organization)->create();
 
@@ -67,7 +67,7 @@ class NoticePolicyTest extends TestCase
     {
         $policy = new NoticePolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $notice = Notice::factory()->create();
 
         $this->assertFalse($policy->delete($administrator, $notice));

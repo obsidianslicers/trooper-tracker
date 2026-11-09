@@ -36,10 +36,10 @@ class TrooperFactory extends BaseTrooperFactory
         ]);
     }
 
-    public function asAdministrator(): static
+    public function asSystemOwner(): static
     {
         return $this->state(fn (array $attributes): array => [
-            Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR,
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::SYSTEM_OWNER,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
     }

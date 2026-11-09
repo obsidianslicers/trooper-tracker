@@ -144,7 +144,7 @@ class TrooperControllerTest extends TestCase
 
     public function test_invoke_shows_edit_link_when_authenticated_trooper_can_update_target(): void
     {
-        $auth_trooper = Trooper::factory()->asAdministrator()->withVerifiedEmail()->create();
+        $auth_trooper = Trooper::factory()->asSystemOwner()->withVerifiedEmail()->create();
         $target_trooper = Trooper::factory()->asMember()->create();
 
         $this->mockServiceRecordQueries($target_trooper);

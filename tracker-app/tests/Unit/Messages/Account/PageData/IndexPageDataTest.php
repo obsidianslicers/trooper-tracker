@@ -18,7 +18,7 @@ class IndexPageDataTest extends TestCase
 
     public function test_handle_gives_administrators_every_administrative_notification(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $subject = new IndexPageData($trooper);
 
         $values = $this->administrativeValues($subject->handle());
@@ -75,7 +75,7 @@ class IndexPageDataTest extends TestCase
         $plugins->add('forum_audit', 'Forum Audit', administrator_only: true);
 
         $moderator = (new IndexPageData(Trooper::factory()->asModerator()->create()))->handle();
-        $administrator = (new IndexPageData(Trooper::factory()->asAdministrator()->create()))->handle();
+        $administrator = (new IndexPageData(Trooper::factory()->asSystemOwner()->create()))->handle();
 
         $trooper_values = array_column($moderator['notifications']['trooper_notification_enums'], 'value');
         $this->assertContains('forum_reply', $trooper_values);

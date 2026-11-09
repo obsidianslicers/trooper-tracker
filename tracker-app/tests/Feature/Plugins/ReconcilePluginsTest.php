@@ -73,7 +73,7 @@ class ReconcilePluginsTest extends TestCase
 
     public function test_uploaded_plugins_survive_repeated_deploys(): void
     {
-        $this->actingAs(Trooper::factory()->asAdministrator()->create())
+        $this->actingAs(Trooper::factory()->asSystemOwner()->create())
             ->post(route('admin.plugins.install'), [
                 'archive' => $this->pluginArchive($this->greeterFiles()),
             ])
@@ -179,7 +179,7 @@ class ReconcilePluginsTest extends TestCase
         $this->assertSame(PluginStatus::MISSING->value, $this->record('keeper')->status);
         $this->assertSame(['greeting' => 'Kept'], $this->record('keeper')->settings);
 
-        $this->actingAs(Trooper::factory()->asAdministrator()->create())
+        $this->actingAs(Trooper::factory()->asSystemOwner()->create())
             ->get(route('admin.plugins.list'))
             ->assertSee('Missing plugins')
             ->assertSee('keeper');
@@ -323,7 +323,7 @@ class ReconcilePluginsTest extends TestCase
         $this->assertTrue($this->plugins->isEnabled('keeper'));
         $this->assertTrue(Schema::hasTable('tt_keeper_items'));
 
-        $this->actingAs(Trooper::factory()->asAdministrator()->create())
+        $this->actingAs(Trooper::factory()->asSystemOwner()->create())
             ->get(route('admin.plugins.list'))
             ->assertSee('Needs attention')
             ->assertSee('did not finish');
@@ -405,7 +405,7 @@ class ReconcilePluginsTest extends TestCase
 
         (new Filesystem)->deleteDirectory($folder);
 
-        return $this->actingAs(Trooper::factory()->asAdministrator()->create())
+        return $this->actingAs(Trooper::factory()->asSystemOwner()->create())
             ->post(route('admin.plugins.install'), ['archive' => $this->pluginArchive($files)]);
     }
 

@@ -18,7 +18,7 @@ class MissingCreditsPageDataTest extends TestCase
 
     public function test_handle_pages_rows_and_reports_more_remaining(): void
     {
-        $actor = Trooper::factory()->asAdministrator()->create();
+        $actor = Trooper::factory()->asSystemOwner()->create();
         $messages = $this->fakeMessages([
             GetEventTroopersMissingCredit::class => ['rows' => collect([['id' => 1], ['id' => 2]]), 'total' => 5],
         ]);
@@ -37,7 +37,7 @@ class MissingCreditsPageDataTest extends TestCase
 
     public function test_handle_describes_the_filtered_trooper(): void
     {
-        $actor = Trooper::factory()->asAdministrator()->create();
+        $actor = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->withDisplayName('TK-421')->create();
         $this->fakeMessages([
             GetEventTroopersMissingCredit::class => ['rows' => collect([['id' => 1]]), 'total' => 1],
@@ -51,7 +51,7 @@ class MissingCreditsPageDataTest extends TestCase
 
     public function test_handle_returns_no_filtered_trooper_for_unknown_id(): void
     {
-        $actor = Trooper::factory()->asAdministrator()->create();
+        $actor = Trooper::factory()->asSystemOwner()->create();
         $this->fakeMessages([
             GetEventTroopersMissingCredit::class => ['rows' => collect(), 'total' => 0],
         ]);

@@ -15,7 +15,7 @@ class ListControllerTest extends TestCase
 
     public function test_invoke_displays_notices_list_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         Notice::factory()->count(2)->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.notices.list'));

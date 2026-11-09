@@ -37,7 +37,7 @@ class GetEventsForModeratorTest extends TestCase
 
     public function test_handle_returns_all_events_for_administrator(): void
     {
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
 
         Event::factory()->count(3)->create();
 

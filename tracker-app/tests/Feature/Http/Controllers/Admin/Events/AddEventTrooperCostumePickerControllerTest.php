@@ -22,7 +22,7 @@ class AddEventTrooperCostumePickerControllerTest extends TestCase
 
     public function test_invoke_renders_approved_costumes_for_trooper(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -52,7 +52,7 @@ class AddEventTrooperCostumePickerControllerTest extends TestCase
 
     public function test_invoke_renders_eligible_organizations_for_trooper(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $eligible_organization = Organization::factory()->create();
         $ineligible_organization = Organization::factory()->create();
@@ -95,7 +95,7 @@ class AddEventTrooperCostumePickerControllerTest extends TestCase
 
     public function test_invoke_returns_404_for_shift_from_different_event(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $other_event = Event::factory()->create();

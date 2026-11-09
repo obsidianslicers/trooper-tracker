@@ -123,7 +123,7 @@ class PluginUpgradeTest extends TestCase
             '000001_create_items' => self::ITEMS,
             '000002_broken' => "throw new RuntimeException('boom');",
         ]);
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($admin)
             ->post(route('admin.plugins.enable', ['slug' => 'greeter']))
@@ -183,7 +183,7 @@ class PluginUpgradeTest extends TestCase
      */
     private function postZip(array $files): TestResponse
     {
-        return $this->actingAs(Trooper::factory()->asAdministrator()->create())
+        return $this->actingAs(Trooper::factory()->asSystemOwner()->create())
             ->post(route('admin.plugins.install'), ['archive' => $this->pluginArchive($files)]);
     }
 

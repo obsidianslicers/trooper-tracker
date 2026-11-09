@@ -20,7 +20,7 @@ class SendPermissionRequestNotificationsTest extends TestCase
     {
         Notification::fake();
 
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $permission_request = PermissionRequest::factory()->requestedBy($moderator)->create();
 

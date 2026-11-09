@@ -21,7 +21,7 @@ class GetCostumeEventSummaryTest extends TestCase
 
     public function test_handle_returns_costumes_with_attended_closed_events(): void
     {
-        $moderator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
 
         $used_costume = Costume::factory()->withName('Used Costume')->create();
@@ -45,7 +45,7 @@ class GetCostumeEventSummaryTest extends TestCase
 
     public function test_handle_excludes_non_attended_statuses(): void
     {
-        $moderator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $costume = Costume::factory()->create();
 
@@ -66,7 +66,7 @@ class GetCostumeEventSummaryTest extends TestCase
 
     public function test_handle_excludes_attended_shifts_on_non_closed_events(): void
     {
-        $moderator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $costume = Costume::factory()->create();
 
@@ -87,7 +87,7 @@ class GetCostumeEventSummaryTest extends TestCase
 
     public function test_handle_adds_uses_count_and_events_count_properties(): void
     {
-        $moderator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $costume = Costume::factory()->withName('Deathtrooper')->create();
 
@@ -110,7 +110,7 @@ class GetCostumeEventSummaryTest extends TestCase
 
     public function test_handle_respects_date_start_and_date_end(): void
     {
-        $moderator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $costume = Costume::factory()->create();
 
@@ -141,7 +141,7 @@ class GetCostumeEventSummaryTest extends TestCase
     {
         $this->skipIfSqlite();
 
-        $moderator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $costume = Costume::factory()->create();
         $org = Organization::factory()->create();
@@ -163,7 +163,7 @@ class GetCostumeEventSummaryTest extends TestCase
     {
         $this->skipIfSqlite();
 
-        $moderator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $costume = Costume::factory()->create();
         $accessible_org = Organization::factory()->create();
@@ -184,7 +184,7 @@ class GetCostumeEventSummaryTest extends TestCase
 
     public function test_handle_sorts_by_name_ascending(): void
     {
-        $moderator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
 
         $zulu = Costume::factory()->withName('Zulu Costume')->create();
@@ -205,7 +205,7 @@ class GetCostumeEventSummaryTest extends TestCase
 
     public function test_handle_falls_back_to_default_sort_for_invalid_sort_or_dir(): void
     {
-        $moderator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
 
         $few = Costume::factory()->withName('Few Uses')->create();
@@ -227,7 +227,7 @@ class GetCostumeEventSummaryTest extends TestCase
 
     public function test_handle_paginates_results(): void
     {
-        $moderator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
 
         foreach (range(1, 5) as $i)

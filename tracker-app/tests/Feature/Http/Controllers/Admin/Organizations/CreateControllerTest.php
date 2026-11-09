@@ -15,7 +15,7 @@ class CreateControllerTest extends TestCase
 
     public function test_invoke_displays_create_organization_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $parent = Organization::factory()->asOrganization()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.organizations.create', ['parent' => $parent->id]));

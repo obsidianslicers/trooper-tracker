@@ -24,7 +24,7 @@ final class DenyTrooperRequestRequestTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = Trooper::factory()->asAdministrator()->create();
+        $this->admin = Trooper::factory()->asSystemOwner()->create();
         $this->pending_request = TrooperRequest::factory()->asPending()->create();
     }
 

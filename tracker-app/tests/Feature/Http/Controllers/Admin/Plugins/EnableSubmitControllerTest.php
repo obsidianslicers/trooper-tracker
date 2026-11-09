@@ -17,7 +17,7 @@ class EnableSubmitControllerTest extends TestCase
     public function test_invoke_enables_the_plugin(): void
     {
         $plugins = $this->useFixturePlugins();
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->post(route(
             'admin.plugins.enable',
@@ -33,7 +33,7 @@ class EnableSubmitControllerTest extends TestCase
     public function test_invoke_returns_not_found_for_an_unknown_plugin(): void
     {
         $this->useFixturePlugins();
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->post(route(
             'admin.plugins.enable',

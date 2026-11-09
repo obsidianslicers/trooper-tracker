@@ -18,7 +18,7 @@ class CostumePolicyTest extends TestCase
     {
         $policy = new CostumePolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $member = Trooper::factory()->asMember()->create();
         $costume = Costume::factory()->create();
 
@@ -33,7 +33,7 @@ class CostumePolicyTest extends TestCase
     {
         $policy = new CostumePolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $member = Trooper::factory()->asMember()->create();
         $costume = Costume::factory()->create();
@@ -47,7 +47,7 @@ class CostumePolicyTest extends TestCase
     {
         $policy = new CostumePolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $costume = Costume::factory()->create();
 
         $this->assertFalse($policy->restore($administrator, $costume));

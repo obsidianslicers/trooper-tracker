@@ -89,7 +89,7 @@ class AuthorityRequest extends FormRequest
     }
 
     /**
-     * Only an Administrator may make someone an Administrator.
+     * Only a System Owner may make someone a System Owner.
      *
      * @return array<int, string>
      */
@@ -97,6 +97,6 @@ class AuthorityRequest extends FormRequest
     {
         return $this->user()?->has_system_owner === true
             ? []
-            : [MembershipRole::ADMINISTRATOR->value];
+            : [MembershipRole::SYSTEM_OWNER->value];
     }
 }

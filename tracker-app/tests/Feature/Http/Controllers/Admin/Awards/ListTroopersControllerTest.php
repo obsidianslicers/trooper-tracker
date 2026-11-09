@@ -16,7 +16,7 @@ class ListTroopersControllerTest extends TestCase
 
     public function test_invoke_displays_award_trooper_list_for_admin(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $recipient = Trooper::factory()->asMember()->create();
         $award = Award::factory()->create();
 

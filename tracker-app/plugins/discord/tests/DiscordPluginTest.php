@@ -90,7 +90,7 @@ class DiscordPluginTest extends TestCase
     public function test_organization_form_shows_and_saves_the_mention(): void
     {
         $this->enableDiscord();
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create();
         DiscordOrganizationMention::store($organization->id, '<@&111>');
 
@@ -117,7 +117,7 @@ class DiscordPluginTest extends TestCase
     public function test_organization_form_validates_the_mention_length(): void
     {
         $this->enableDiscord();
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create();
 
         $this->actingAs($admin)->post(route(
@@ -131,7 +131,7 @@ class DiscordPluginTest extends TestCase
 
     public function test_organization_form_has_no_discord_field_while_disabled(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create();
 
         $this->actingAs($admin)

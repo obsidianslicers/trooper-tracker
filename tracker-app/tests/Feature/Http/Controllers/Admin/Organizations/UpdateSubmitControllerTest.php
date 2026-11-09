@@ -15,7 +15,7 @@ class UpdateSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_organization_and_redirects(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create(['name' => 'Old Org']);
 
         $response = $this->actingAs($trooper)->post('/admin/organizations/'.$organization->id.'/update', [
@@ -42,7 +42,7 @@ class UpdateSubmitControllerTest extends TestCase
 
     public function test_invoke_saves_the_roster_sync_for_an_administrator(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->asOrganization()->create();
 
         $this->actingAs($trooper)->post($this->updateUrl($organization), [
@@ -55,7 +55,7 @@ class UpdateSubmitControllerTest extends TestCase
 
     public function test_invoke_clears_the_roster_sync(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->asOrganization()->create([
             Organization::SYNCHRONIZER => '501st',
         ]);
@@ -70,7 +70,7 @@ class UpdateSubmitControllerTest extends TestCase
 
     public function test_invoke_refuses_an_unknown_roster_sync(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->asOrganization()->create();
 
         $this->actingAs($trooper)->post($this->updateUrl($organization), [
@@ -81,7 +81,7 @@ class UpdateSubmitControllerTest extends TestCase
 
     public function test_invoke_keeps_a_roster_sync_whose_plugin_is_off(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->asOrganization()->create([
             Organization::SYNCHRONIZER => 'from-a-disabled-plugin',
         ]);

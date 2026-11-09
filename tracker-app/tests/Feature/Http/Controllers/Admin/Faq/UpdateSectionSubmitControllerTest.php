@@ -15,7 +15,7 @@ class UpdateSectionSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_faq_section_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $section = FaqSection::factory()->create();
 
         $response = $this->actingAs($trooper)->post(

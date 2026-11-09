@@ -22,7 +22,7 @@ class UploadImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $admin = Trooper::factory()->asAdministrator()->withVerifiedEmail()->create();
+        $admin = Trooper::factory()->asSystemOwner()->withVerifiedEmail()->create();
         $event = Event::factory()->create();
         $file = UploadedFile::fake()->image('admin-upload.jpg', 800, 600)->size(2048);
 

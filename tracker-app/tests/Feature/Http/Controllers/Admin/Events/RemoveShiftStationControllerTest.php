@@ -18,7 +18,7 @@ class RemoveShiftStationControllerTest extends TestCase
 
     public function test_invoke_removes_station_without_signups(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $shift = EventShift::factory()->forEvent($event)->create();
         $station = EventShiftStation::factory()->forEventShift($shift)->create();
@@ -40,7 +40,7 @@ class RemoveShiftStationControllerTest extends TestCase
 
     public function test_invoke_does_not_remove_station_with_signups(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $shift = EventShift::factory()->forEvent($event)->create();
         $station = EventShiftStation::factory()->forEventShift($shift)->create();
@@ -62,7 +62,7 @@ class RemoveShiftStationControllerTest extends TestCase
 
     public function test_invoke_returns_404_for_station_from_different_shift(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $shift = EventShift::factory()->forEvent($event)->create();
         $other_shift = EventShift::factory()->forEvent($event)->create();

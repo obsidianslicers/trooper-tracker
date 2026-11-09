@@ -19,7 +19,7 @@ class OrganizationPolicyTest extends TestCase
     {
         $policy = new OrganizationPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $member = Trooper::factory()->asMember()->create();
 
         $this->assertTrue($policy->create($administrator));
@@ -30,7 +30,7 @@ class OrganizationPolicyTest extends TestCase
     {
         $policy = new OrganizationPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->withNodePath('org.any')->create();
 
         $this->assertTrue($policy->update($administrator, $organization));
@@ -63,7 +63,7 @@ class OrganizationPolicyTest extends TestCase
     {
         $policy = new OrganizationPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create();
 
         $this->assertFalse($policy->delete($administrator, $organization));

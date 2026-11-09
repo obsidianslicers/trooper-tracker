@@ -46,7 +46,7 @@ class MergeTroopersTest extends TestCase
             ]);
 
         $source_trooper = Trooper::factory()
-            ->asAdministrator()
+            ->asSystemOwner()
             ->withNotificationFrequency(NotificationFrequency::INSTANT)
             ->create([
                 Trooper::PHONE => '404-555-1212',
@@ -76,7 +76,7 @@ class MergeTroopersTest extends TestCase
 
         $this->assertSame('404-555-1212', $target_trooper->{Trooper::PHONE});
         $this->assertSame(MembershipStatus::ACTIVE, $target_trooper->{Trooper::MEMBERSHIP_STATUS});
-        $this->assertSame(MembershipRole::ADMINISTRATOR, $target_trooper->{Trooper::MEMBERSHIP_ROLE});
+        $this->assertSame(MembershipRole::SYSTEM_OWNER, $target_trooper->{Trooper::MEMBERSHIP_ROLE});
         $this->assertSame(
             NotificationFrequency::INSTANT,
             $target_trooper->{Trooper::NOTIFICATION_FREQUENCY},

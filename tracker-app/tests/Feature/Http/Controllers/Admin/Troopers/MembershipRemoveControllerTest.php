@@ -30,7 +30,7 @@ class MembershipRemoveControllerTest extends TestCase
 
     public function test_invoke_removes_membership_and_redirects(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 

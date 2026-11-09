@@ -22,7 +22,7 @@ class TrooperRequestPolicyTest extends TestCase
     public function test_moderate_allows_administrator_for_any_join_request(): void
     {
         $policy = new TrooperRequestPolicy;
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
 
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
         $member = Trooper::factory()->asMember()->create();

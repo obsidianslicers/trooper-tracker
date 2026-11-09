@@ -24,7 +24,7 @@ class AddEventTrooperControllerTest extends TestCase
 
     public function test_invoke_adds_trooper_to_event_shift(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -44,7 +44,7 @@ class AddEventTrooperControllerTest extends TestCase
 
     public function test_invoke_adds_trooper_with_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -68,7 +68,7 @@ class AddEventTrooperControllerTest extends TestCase
 
     public function test_invoke_ignores_unapproved_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -89,7 +89,7 @@ class AddEventTrooperControllerTest extends TestCase
 
     public function test_invoke_adds_trooper_with_eligible_organization(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $organization = Organization::factory()->create();
         $event = Event::factory()
@@ -124,7 +124,7 @@ class AddEventTrooperControllerTest extends TestCase
 
     public function test_invoke_ignores_ineligible_organization(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $eligible_organization = Organization::factory()->create();
         $ineligible_organization = Organization::factory()->create();
@@ -160,7 +160,7 @@ class AddEventTrooperControllerTest extends TestCase
 
     public function test_invoke_uses_organization_for_limited_event_capacity(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $existing_trooper = Trooper::factory()->asActive()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $organization = Organization::factory()->create();
@@ -210,7 +210,7 @@ class AddEventTrooperControllerTest extends TestCase
 
     public function test_invoke_returns_404_for_inactive_trooper(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asPending()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -225,7 +225,7 @@ class AddEventTrooperControllerTest extends TestCase
 
     public function test_invoke_returns_404_for_missing_trooper(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
 
@@ -239,7 +239,7 @@ class AddEventTrooperControllerTest extends TestCase
 
     public function test_invoke_returns_no_content_if_trooper_already_signed_up(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -261,7 +261,7 @@ class AddEventTrooperControllerTest extends TestCase
 
     public function test_invoke_re_adds_trooper_previously_removed_from_shift(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -285,7 +285,7 @@ class AddEventTrooperControllerTest extends TestCase
 
     public function test_invoke_returns_404_if_shift_not_in_event(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $other_event = Event::factory()->create();

@@ -23,7 +23,7 @@ final class DenyTrooperMembershipRequestTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = Trooper::factory()->asAdministrator()->create();
+        $this->admin = Trooper::factory()->asSystemOwner()->create();
         $this->pending_trooper = Trooper::factory()->asPending()->create();
     }
 

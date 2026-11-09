@@ -26,7 +26,7 @@ class AuthorityRequestTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = Trooper::factory()->asAdministrator()->create();
+        $this->admin = Trooper::factory()->asSystemOwner()->create();
         $this->target_trooper = Trooper::factory()->asMember()->create();
         $this->actingAs($this->admin);
     }
@@ -159,7 +159,7 @@ class AuthorityRequestTest extends TestCase
         $subject->setUserResolver(fn () => $staff_officer);
 
         $validator = Validator::make(
-            [Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR->value],
+            [Trooper::MEMBERSHIP_ROLE => MembershipRole::SYSTEM_OWNER->value],
             $subject->rules()
         );
 
@@ -173,7 +173,7 @@ class AuthorityRequestTest extends TestCase
 
         $validator = Validator::make(
             [
-                Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR->value,
+                Trooper::MEMBERSHIP_ROLE => MembershipRole::SYSTEM_OWNER->value,
             ],
             $subject->rules()
         );

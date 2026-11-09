@@ -21,7 +21,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_shifts_and_redirects(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
 
         $response = $this->actingAs($trooper)->post('/admin/events/' . $event->id . '/shifts', [
@@ -39,7 +39,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_parent_event_date_range_from_shifts(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()
             ->withEventStart(Carbon::parse('2026-05-01 10:00:00'))
             ->withEventEnd(Carbon::parse('2026-05-01 12:00:00'))
@@ -72,7 +72,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
 
     public function test_invoke_creates_and_updates_shift_stations(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $shift = EventShift::factory()->forEvent($event)->create();
         $station = EventShiftStation::factory()
@@ -121,7 +121,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
 
     public function test_invoke_creates_multiple_new_shift_stations_at_once(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $shift = EventShift::factory()->forEvent($event)->create();
 
@@ -172,7 +172,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
     {
         Notification::fake();
 
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $shift = EventShift::factory()->forEvent($event)->create();
         $station = EventShiftStation::factory()
@@ -211,7 +211,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
 
     public function test_invoke_demotes_latest_station_going_troopers_when_station_capacity_is_lowered(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $shift = EventShift::factory()->forEvent($event)->create();
         $station = EventShiftStation::factory()

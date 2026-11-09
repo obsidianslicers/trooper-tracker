@@ -15,7 +15,7 @@ class MembershipRoleTest extends TestCase
 
     public function test_administrator_and_staff_officer_have_administrator_access(): void
     {
-        $this->assertTrue(MembershipRole::ADMINISTRATOR->hasAdministratorAccess());
+        $this->assertTrue(MembershipRole::SYSTEM_OWNER->hasAdministratorAccess());
         $this->assertTrue(MembershipRole::STAFF_OFFICER->hasAdministratorAccess());
         $this->assertFalse(MembershipRole::MODERATOR->hasAdministratorAccess());
         $this->assertFalse(MembershipRole::MEMBER->hasAdministratorAccess());
@@ -23,7 +23,7 @@ class MembershipRoleTest extends TestCase
 
     public function test_only_administrator_has_system_owner(): void
     {
-        $this->assertTrue(MembershipRole::ADMINISTRATOR->hasSystemOwner());
+        $this->assertTrue(MembershipRole::SYSTEM_OWNER->hasSystemOwner());
         $this->assertFalse(MembershipRole::STAFF_OFFICER->hasSystemOwner());
         $this->assertFalse(MembershipRole::MODERATOR->hasSystemOwner());
     }

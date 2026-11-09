@@ -17,7 +17,7 @@ class UpdateSettingsSubmitControllerTest extends TestCase
     public function test_invoke_saves_the_settings(): void
     {
         $plugins = $this->useFixturePlugins();
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->post(route(
             'admin.plugins.settings',
@@ -36,7 +36,7 @@ class UpdateSettingsSubmitControllerTest extends TestCase
     public function test_invoke_validates_values_against_the_setting_type(): void
     {
         $plugins = $this->useFixturePlugins();
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->post(route(
             'admin.plugins.settings',

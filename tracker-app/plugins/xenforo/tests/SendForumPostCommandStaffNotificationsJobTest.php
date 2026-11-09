@@ -66,8 +66,8 @@ class SendForumPostCommandStaffNotificationsJobTest extends TestCase
         $event = Event::factory()->withOrganization($organization)->create();
         $poster = Trooper::factory()->asMember()->create();
 
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $retired_admin = Trooper::factory()->asAdministrator()->asRetired()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
+        $retired_admin = Trooper::factory()->asSystemOwner()->asRetired()->create();
 
         $subject = new SendForumPostCommandStaffNotificationsJob($event, $poster);
         $subject->handle();
@@ -83,8 +83,8 @@ class SendForumPostCommandStaffNotificationsJobTest extends TestCase
         $organization = Organization::factory()->create();
         $event = Event::factory()->withOrganization($organization)->create();
 
-        $poster = Trooper::factory()->asAdministrator()->create();
-        $other_admin = Trooper::factory()->asAdministrator()->create();
+        $poster = Trooper::factory()->asSystemOwner()->create();
+        $other_admin = Trooper::factory()->asSystemOwner()->create();
 
         $subject = new SendForumPostCommandStaffNotificationsJob($event, $poster);
         $subject->handle();
@@ -101,7 +101,7 @@ class SendForumPostCommandStaffNotificationsJobTest extends TestCase
         $event = Event::factory()->withOrganization($organization)->create();
         $poster = Trooper::factory()->asMember()->create();
 
-        $admin_and_moderator = Trooper::factory()->asAdministrator()->create();
+        $admin_and_moderator = Trooper::factory()->asSystemOwner()->create();
         TrooperAssignment::factory()
             ->forTrooper($admin_and_moderator)
             ->forOrganization($organization)
@@ -123,7 +123,7 @@ class SendForumPostCommandStaffNotificationsJobTest extends TestCase
         $event = Event::factory()->withOrganization($organization)->create();
         $poster = Trooper::factory()->asMember()->create();
 
-        $opted_out_admin = Trooper::factory()->asAdministrator()->create([
+        $opted_out_admin = Trooper::factory()->asSystemOwner()->create([
             Trooper::NOTIFICATION_PREFERENCES => [
                 'forum_post_command_staff' => [
                     'database' => false,

@@ -27,7 +27,7 @@ class RequestPermissionsPageDataTest extends TestCase
             GetRequestedPermissionRequests::class => collect(),
         ]);
 
-        $subject = new RequestPermissionsPageData(Trooper::factory()->asAdministrator()->create());
+        $subject = new RequestPermissionsPageData(Trooper::factory()->asSystemOwner()->create());
         $result = $subject->handle();
 
         $this->assertSame($organization->id, $result['organizations'][0]['id']);

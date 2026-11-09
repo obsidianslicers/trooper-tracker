@@ -18,7 +18,7 @@ class MergeCostumesRequestTest extends TestCase
     public function test_authorize_returns_true_for_administrator(): void
     {
         $subject = new MergeCostumesRequest;
-        $subject->setUserResolver(fn () => Trooper::factory()->asAdministrator()->create());
+        $subject->setUserResolver(fn () => Trooper::factory()->asSystemOwner()->create());
 
         $this->assertTrue($subject->authorize());
     }

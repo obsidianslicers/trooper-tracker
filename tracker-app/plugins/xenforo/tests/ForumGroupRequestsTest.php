@@ -254,7 +254,7 @@ class ForumGroupRequestsTest extends TestCase
         array $add = [],
         array $remove = [],
     ): PermissionRequest {
-        $this->actingAs(Trooper::factory()->asAdministrator()->create());
+        $this->actingAs(Trooper::factory()->asSystemOwner()->create());
 
         $permission_request = PermissionRequest::factory()
             ->forTrooper($trooper)

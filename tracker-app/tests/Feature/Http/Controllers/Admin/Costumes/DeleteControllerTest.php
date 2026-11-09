@@ -15,7 +15,7 @@ class DeleteControllerTest extends TestCase
 
     public function test_invoke_displays_confirmation_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $costume = Costume::factory()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.costumes.delete', compact('costume')));
@@ -35,7 +35,7 @@ class DeleteControllerTest extends TestCase
 
     public function test_invoke_prevents_deletion_of_handler_costume(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $costume = Costume::factory()->withName(Costume::HANDLER)->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.costumes.delete', compact('costume')));
@@ -45,7 +45,7 @@ class DeleteControllerTest extends TestCase
 
     public function test_invoke_prevents_deletion_of_command_staff_costume(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $costume = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.costumes.delete', compact('costume')));

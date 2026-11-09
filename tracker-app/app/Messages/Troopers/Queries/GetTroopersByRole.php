@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 /**
  * Query to retrieve all troopers with administrator role.
  *
- * Returns all active troopers who have the ADMINISTRATOR membership_role
+ * Returns all active troopers who have the SYSTEM_OWNER membership_role
  * on any organization assignment. Used for sending system notifications
  * and administrative functions.
  *
@@ -32,7 +32,7 @@ final class GetTroopersByRole extends Message
      *
      * Process:
      * 1. Filter active troopers
-     * 2. Filter by membership_role = ADMINISTRATOR
+     * 2. Filter by membership_role = SYSTEM_OWNER
      * 3. Order by name
      * 4. Return collection of Trooper models
      *

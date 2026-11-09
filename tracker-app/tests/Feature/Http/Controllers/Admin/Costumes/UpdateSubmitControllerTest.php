@@ -17,7 +17,7 @@ class UpdateSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_costume_and_redirects(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $costume = Costume::factory()->create(['name' => 'Old Name']);
         $organization = Organization::factory()->create();
         $other_organization = Organization::factory()->create();
@@ -43,7 +43,7 @@ class UpdateSubmitControllerTest extends TestCase
 
     public function test_invoke_removes_unselected_organizations(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $costume = Costume::factory()->create(['name' => 'Old Name']);
         $organization = Organization::factory()->create();
         $removed_organization = Organization::factory()->create();

@@ -28,7 +28,7 @@ class CommandStaffControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
         $command_staff = collect([
-            Trooper::factory()->asAdministrator()->withDisplayName('Alpha Admin')->create(),
+            Trooper::factory()->asSystemOwner()->withDisplayName('Alpha Admin')->create(),
             Trooper::factory()->asModerator()->withDisplayName('Bravo Moderator')->create(),
         ]);
 

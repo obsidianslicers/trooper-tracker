@@ -15,7 +15,7 @@ class CreateControllerTest extends TestCase
 
     public function test_invoke_displays_create_award_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.awards.create'));
 

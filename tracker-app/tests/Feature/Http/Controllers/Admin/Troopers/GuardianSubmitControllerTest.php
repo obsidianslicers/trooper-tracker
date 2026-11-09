@@ -15,7 +15,7 @@ class GuardianSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_date_of_birth_and_sets_guardian_id(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $guardian = Trooper::factory()->create();
         $trooper = Trooper::factory()->create();
         $dob = Carbon::now()->subYears(20)->toDateString();
@@ -34,7 +34,7 @@ class GuardianSubmitControllerTest extends TestCase
 
     public function test_invoke_clears_guardian_and_dob_when_both_null(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $guardian = Trooper::factory()->create();
         $trooper = Trooper::factory()->withGuardian($guardian)->create([
             Trooper::DATE_OF_BIRTH => Carbon::now()->subYears(20)->toDateString(),
@@ -54,7 +54,7 @@ class GuardianSubmitControllerTest extends TestCase
 
     public function test_invoke_redirects_to_guardian_route_after_success(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->create();
 
         $response = $this->actingAs($admin)->post(route('admin.troopers.guardian', $trooper), [
@@ -67,7 +67,7 @@ class GuardianSubmitControllerTest extends TestCase
 
     public function test_invoke_requires_guardian_email_when_dob_makes_trooper_a_minor(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->create();
         $dob = Carbon::now()->subYears(16)->toDateString();
 
@@ -80,7 +80,7 @@ class GuardianSubmitControllerTest extends TestCase
 
     public function test_invoke_rejects_guardian_email_not_in_troopers_table(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->create();
         $dob = Carbon::now()->subYears(20)->toDateString();
 

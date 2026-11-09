@@ -133,7 +133,7 @@ class GoogleSheetsPluginTest extends TestCase
     public function test_organization_form_shows_and_saves_the_sheet_for_clubs(): void
     {
         $this->enablePlugin();
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $club = Organization::factory()->asOrganization()->create();
         OrganizationSheet::store($club->id, 'sheet-old');
 
@@ -154,7 +154,7 @@ class GoogleSheetsPluginTest extends TestCase
     public function test_organization_form_has_no_sheet_field_for_regions(): void
     {
         $this->enablePlugin();
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $region = Organization::factory()->asRegion()->create();
 
         $this->actingAs($admin)

@@ -21,7 +21,7 @@ class RemoveEventTrooperControllerTest extends TestCase
 
     public function test_invoke_soft_deletes_event_trooper(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -44,7 +44,7 @@ class RemoveEventTrooperControllerTest extends TestCase
 
     public function test_invoke_promotes_next_stand_by_when_removing_going_trooper(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $org = Organization::factory()->create();
         $event = Event::factory()->create([Event::ORGANIZATION_ID => $org->id]);
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -94,7 +94,7 @@ class RemoveEventTrooperControllerTest extends TestCase
 
     public function test_invoke_removing_cancelled_trooper_does_not_promote_stand_by(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $org = Organization::factory()->create();
         $event = Event::factory()->create([Event::ORGANIZATION_ID => $org->id]);
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -138,7 +138,7 @@ class RemoveEventTrooperControllerTest extends TestCase
 
     public function test_invoke_removing_stand_by_trooper_does_not_promote_another_stand_by(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $org = Organization::factory()->create();
         $event = Event::factory()->create([Event::ORGANIZATION_ID => $org->id]);
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -181,7 +181,7 @@ class RemoveEventTrooperControllerTest extends TestCase
 
     public function test_invoke_returns_404_if_event_trooper_belongs_to_different_event(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $other_event = Event::factory()->create();

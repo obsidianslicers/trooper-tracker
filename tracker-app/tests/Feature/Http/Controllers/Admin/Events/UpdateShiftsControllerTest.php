@@ -16,7 +16,7 @@ class UpdateShiftsControllerTest extends TestCase
 
     public function test_invoke_displays_update_shifts_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         EventShift::factory()->forEvent($event)->create();
 

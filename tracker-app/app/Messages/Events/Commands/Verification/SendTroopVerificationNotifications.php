@@ -31,7 +31,7 @@ final class SendTroopVerificationNotifications extends Message
             return;
         }
 
-        $officers = GetTroopersByRole::call(membership_role: MembershipRole::ADMINISTRATOR)
+        $officers = GetTroopersByRole::call(membership_role: MembershipRole::SYSTEM_OWNER)
             ->merge(GetTroopersByRole::call(membership_role: MembershipRole::MODERATOR))
             ->unique('id');
 

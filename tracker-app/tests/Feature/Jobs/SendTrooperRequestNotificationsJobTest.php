@@ -39,8 +39,8 @@ class SendTrooperRequestNotificationsJobTest extends TestCase
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $admin_valid = Trooper::factory()->asAdministrator()->withEmail('admin@example.com')->create();
-        $admin_invalid = Trooper::factory()->asAdministrator()->withInvalidEmail()->create();
+        $admin_valid = Trooper::factory()->asSystemOwner()->withEmail('admin@example.com')->create();
+        $admin_invalid = Trooper::factory()->asSystemOwner()->withInvalidEmail()->create();
 
         $messages = $this->fakeMessages([
             GetAdministrators::class => collect([$admin_valid, $admin_invalid]),

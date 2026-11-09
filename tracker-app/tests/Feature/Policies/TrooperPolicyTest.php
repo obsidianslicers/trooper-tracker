@@ -20,7 +20,7 @@ class TrooperPolicyTest extends TestCase
     {
         $policy = new TrooperPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $subject = Trooper::factory()->asMember()->create();
 
         $this->assertFalse($policy->create($administrator));
@@ -33,7 +33,7 @@ class TrooperPolicyTest extends TestCase
     {
         $policy = new TrooperPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $subject = Trooper::factory()->asMember()->create();
 
@@ -45,7 +45,7 @@ class TrooperPolicyTest extends TestCase
     {
         $policy = new TrooperPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $subject = Trooper::factory()->asMember()->create();
 
         $this->assertTrue($policy->view($administrator, $subject));
@@ -74,7 +74,7 @@ class TrooperPolicyTest extends TestCase
     {
         $policy = new TrooperPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $active_trooper = Trooper::factory()->asActive()->create();
         $void_trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::INVALID]);
@@ -92,7 +92,7 @@ class TrooperPolicyTest extends TestCase
     {
         $policy = new TrooperPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $active_trooper = Trooper::factory()->asActive()->create();
         $rip_trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::DEPARTED]);

@@ -14,7 +14,7 @@ class MembershipControllerTest extends TestCase
 
     public function test_invoke_displays_membership_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $subject = Trooper::factory()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.troopers.membership', $subject));

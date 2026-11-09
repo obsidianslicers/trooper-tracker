@@ -14,7 +14,7 @@ class TrooperEventSummaryControllerTest extends TestCase
 
     public function test_invoke_displays_trooper_event_summary_report(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.reports.trooper-event-summary'));
 

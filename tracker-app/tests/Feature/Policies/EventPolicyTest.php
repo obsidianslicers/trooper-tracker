@@ -20,7 +20,7 @@ class EventPolicyTest extends TestCase
     {
         $policy = new EventPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $member = Trooper::factory()->asMember()->create();
 
@@ -33,7 +33,7 @@ class EventPolicyTest extends TestCase
     {
         $policy = new EventPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->withNodePath('org.any')->create();
         $event = Event::factory()->withOrganization($organization)->create();
 
@@ -100,7 +100,7 @@ class EventPolicyTest extends TestCase
     {
         $policy = new EventPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
 
         $this->assertFalse($policy->delete($administrator, $event));

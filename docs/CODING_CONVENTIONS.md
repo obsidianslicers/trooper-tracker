@@ -260,7 +260,7 @@ Construct the message and call `handle()` directly:
 ```php
 public function test_handle_returns_troopers_with_role(): void
 {
-    $admin = Trooper::factory()->asAdministrator()->create();
+    $admin = Trooper::factory()->asSystemOwner()->create();
 
     $subject = new GetTroopersByRole(MembershipRole::ADMINISTRATOR);
 
@@ -511,7 +511,7 @@ All enums are backed by strings and use the `HasEnumHelpers` trait.
 - **EventStatus:** `draft`, `open`, `closed`, `cancelled`
 - **EventTrooperStatus:** `none`, `going`, `tentative`, `unavailable`
 - **EventType:** `regular`, `special`, `fundraiser`
-- **MembershipRole:** `member`, `moderator`, `administrator`
+- **MembershipRole:** `member`, `handler`, `visitor`, `event_coordinator`, `moderator`, `staff_officer`, `administrator` (System Owner)
 - **MembershipStatus:** `pending`, `active`, `retired`
 - **NoticeType:** `info`, `warning`, `alert`
 - **NotificationFrequency:** `never`, `instant`, `daily`

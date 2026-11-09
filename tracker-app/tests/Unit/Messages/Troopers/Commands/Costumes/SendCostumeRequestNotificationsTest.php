@@ -29,7 +29,7 @@ class SendCostumeRequestNotificationsTest extends TestCase
     {
         $trooper = $this->memberOf($this->garrison);
         $trooper_costume = $this->costumeFor($trooper, $this->club);
-        $admin = Trooper::factory()->asAdministrator()->asActive()->create();
+        $admin = Trooper::factory()->asSystemOwner()->asActive()->create();
         $garrison_moderator = $this->moderatorOf($this->garrison);
         $other_moderator = $this->moderatorOf($this->other_club);
 
@@ -49,7 +49,7 @@ class SendCostumeRequestNotificationsTest extends TestCase
             $this->costumeFor($trooper, $this->club)->id,
             $this->costumeFor($trooper, $this->other_club)->id,
         ];
-        $admin = Trooper::factory()->asAdministrator()->asActive()->create();
+        $admin = Trooper::factory()->asSystemOwner()->asActive()->create();
         $other_moderator = $this->moderatorOf($this->other_club);
 
         $subject = new SendCostumeRequestNotifications($trooper, $ids);
@@ -72,7 +72,7 @@ class SendCostumeRequestNotificationsTest extends TestCase
     {
         $trooper = $this->memberOf($this->garrison);
         $trooper_costume = $this->costumeFor($trooper, $this->club, pending: false);
-        $admin = Trooper::factory()->asAdministrator()->asActive()->create();
+        $admin = Trooper::factory()->asSystemOwner()->asActive()->create();
 
         $subject = new SendCostumeRequestNotifications($trooper, [$trooper_costume->id]);
         $subject->handle();
@@ -82,7 +82,7 @@ class SendCostumeRequestNotificationsTest extends TestCase
 
     public function test_handle_never_notifies_the_trooper_about_their_own_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->asActive()->create();
+        $admin = Trooper::factory()->asSystemOwner()->asActive()->create();
         $this->memberOf($this->garrison, $admin);
         $trooper_costume = $this->costumeFor($admin, $this->club);
 
@@ -94,7 +94,7 @@ class SendCostumeRequestNotificationsTest extends TestCase
 
     public function test_notification_renders_mail_and_database_payload(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
 
         $subject = new CostumeRequestSubmittedNotification(
             trooper_name: 'TK-1480',

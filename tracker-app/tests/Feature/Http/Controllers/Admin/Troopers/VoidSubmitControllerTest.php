@@ -38,7 +38,7 @@ class VoidSubmitControllerTest extends TestCase
 
     public function test_invoke_voids_trooper_and_redirects_to_profile(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
 
         $response = $this->actingAs($admin)
@@ -51,7 +51,7 @@ class VoidSubmitControllerTest extends TestCase
 
     public function test_invoke_denies_when_trooper_is_already_void(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::INVALID]);
 
         $response = $this->actingAs($admin)

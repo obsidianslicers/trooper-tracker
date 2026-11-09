@@ -20,7 +20,7 @@ class ApprovePermissionsControllerTest extends TestCase
 
     public function test_invoke_approves_request(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $permission_request = PermissionRequest::factory()
             ->forTrooper($trooper)
@@ -40,7 +40,7 @@ class ApprovePermissionsControllerTest extends TestCase
         $this->addBadgeRequests();
         BadgeRequests::$approval_failure = 'The badge office is closed.';
 
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $permission_request = PermissionRequest::factory()->withRole(null)->create();
 
         $response = $this->actingAs($admin)
@@ -53,7 +53,7 @@ class ApprovePermissionsControllerTest extends TestCase
 
     public function test_invoke_rejects_already_reviewed_request(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $permission_request = PermissionRequest::factory()->asDenied()->create();
 
         $response = $this->actingAs($admin)
@@ -64,8 +64,8 @@ class ApprovePermissionsControllerTest extends TestCase
 
     public function test_invoke_rejects_role_change_for_trooper_who_became_administrator(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $permission_request = PermissionRequest::factory()
             ->forTrooper($trooper)
             ->withRole(MembershipRole::MEMBER)
@@ -75,7 +75,7 @@ class ApprovePermissionsControllerTest extends TestCase
             ->post(route('admin.troopers.permissions.approve', $permission_request));
 
         $response->assertSessionHasErrors('permission_request');
-        $this->assertSame(MembershipRole::ADMINISTRATOR, $trooper->fresh()->membership_role);
+        $this->assertSame(MembershipRole::SYSTEM_OWNER, $trooper->fresh()->membership_role);
         $this->assertSame(PermissionRequestStatus::PENDING, $permission_request->fresh()->status);
     }
 

@@ -16,7 +16,7 @@ class UpdateSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_notice_and_redirects(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $notice = Notice::factory()->create();
 
         $response = $this->actingAs($trooper)->post('/admin/notices/' . $notice->id . '/update', [

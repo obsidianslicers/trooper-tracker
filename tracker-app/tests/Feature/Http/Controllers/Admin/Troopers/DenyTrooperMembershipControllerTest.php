@@ -19,7 +19,7 @@ final class DenyTrooperMembershipControllerTest extends TestCase
     {
         Notification::fake();
 
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asPending()->create();
 
         $response = $this->actingAs($admin)
@@ -45,7 +45,7 @@ final class DenyTrooperMembershipControllerTest extends TestCase
 
     public function test_invoke_rejects_a_trooper_who_is_not_pending(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
 
         $response = $this->actingAs($admin)

@@ -31,7 +31,7 @@ class CheckSupervisorHealthCommandTest extends TestCase
             'tracker.supervisor_check.email_enabled' => true,
             'queue.default' => 'sync',
         ]);
-        Trooper::factory()->asAdministrator()->create();
+        Trooper::factory()->asSystemOwner()->create();
         Mail::fake();
 
         $this->artisan('tracker:check-supervisor-health')->assertExitCode(0);
@@ -42,7 +42,7 @@ class CheckSupervisorHealthCommandTest extends TestCase
     public function test_sends_no_email_when_feature_disabled(): void
     {
         config(['tracker.supervisor_check.email_enabled' => false]);
-        Trooper::factory()->asAdministrator()->create();
+        Trooper::factory()->asSystemOwner()->create();
         Mail::fake();
 
         $this->artisan('tracker:check-supervisor-health')->assertExitCode(0);
@@ -53,7 +53,7 @@ class CheckSupervisorHealthCommandTest extends TestCase
     public function test_sends_no_email_when_heartbeat_is_fresh(): void
     {
         config(['tracker.supervisor_check.email_enabled' => true]);
-        Trooper::factory()->asAdministrator()->create();
+        Trooper::factory()->asSystemOwner()->create();
         app(QueueWorkerHeartbeatService::class)->recordHeartbeat();
         Mail::fake();
 
@@ -68,7 +68,7 @@ class CheckSupervisorHealthCommandTest extends TestCase
             'tracker.supervisor_check.email_enabled' => true,
             'tracker.supervisor_check.heartbeat_down_minutes' => 10,
         ]);
-        $admin = Trooper::factory()->asAdministrator()->withEmail('admin@example.com')->create();
+        $admin = Trooper::factory()->asSystemOwner()->withEmail('admin@example.com')->create();
         Mail::fake();
 
         $this->artisan('tracker:check-supervisor-health')->assertExitCode(0);
@@ -85,7 +85,7 @@ class CheckSupervisorHealthCommandTest extends TestCase
             'tracker.supervisor_check.heartbeat_down_minutes' => 10,
             'tracker.supervisor_check.renotify_after_minutes' => 60,
         ]);
-        Trooper::factory()->asAdministrator()->create();
+        Trooper::factory()->asSystemOwner()->create();
         app(QueueWorkerHeartbeatService::class)->markDownNotified();
         Mail::fake();
 
@@ -97,7 +97,7 @@ class CheckSupervisorHealthCommandTest extends TestCase
     public function test_sends_recovery_email_after_prior_down_alert(): void
     {
         config(['tracker.supervisor_check.email_enabled' => true]);
-        $admin = Trooper::factory()->asAdministrator()->withEmail('admin@example.com')->create();
+        $admin = Trooper::factory()->asSystemOwner()->withEmail('admin@example.com')->create();
         $heartbeat = app(QueueWorkerHeartbeatService::class);
         $heartbeat->markDownNotified();
         $heartbeat->recordHeartbeat();

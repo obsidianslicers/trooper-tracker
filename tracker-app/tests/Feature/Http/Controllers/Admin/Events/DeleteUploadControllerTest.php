@@ -20,7 +20,7 @@ class DeleteUploadControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $upload = EventUpload::factory()->for($event)->create([EventUpload::IS_ADMINISTRATIVE => false]);
 
@@ -36,7 +36,7 @@ class DeleteUploadControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $upload = EventUpload::factory()->for($event)->create([EventUpload::IS_ADMINISTRATIVE => false]);
 
@@ -52,7 +52,7 @@ class DeleteUploadControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $upload = EventUpload::factory()->for($event)->create([EventUpload::IS_ADMINISTRATIVE => true]);
 
@@ -68,7 +68,7 @@ class DeleteUploadControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $upload = EventUpload::factory()->for($event)->create();
         $trooper = Trooper::factory()->create();
@@ -82,7 +82,7 @@ class DeleteUploadControllerTest extends TestCase
 
     public function test_invoke_returns_403_when_upload_belongs_to_different_event(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $other_event = Event::factory()->create();
         $upload = EventUpload::factory()->for($other_event)->create();

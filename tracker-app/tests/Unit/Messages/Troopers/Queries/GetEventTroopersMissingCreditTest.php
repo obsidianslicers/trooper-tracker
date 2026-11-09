@@ -21,7 +21,7 @@ class GetEventTroopersMissingCreditTest extends TestCase
 
     public function test_handle_finds_shift_with_null_credit_columns(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event_trooper = $this->makeAttendedEventTrooper($trooper);
         $event_trooper->updateQuietly([
@@ -37,7 +37,7 @@ class GetEventTroopersMissingCreditTest extends TestCase
 
     public function test_handle_detects_orphaned_credit_pointing_at_missing_organization(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
 
         $event_trooper = $this->makeAttendedEventTrooper($trooper);
@@ -56,7 +56,7 @@ class GetEventTroopersMissingCreditTest extends TestCase
     {
         // Credit is historical: leaving a club (or never having a tt_trooper_organizations row
         // for it) must not turn that club's troops into "missing credit".
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $former_org = $this->makeRootOrganization();
         TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($former_org)
@@ -74,7 +74,7 @@ class GetEventTroopersMissingCreditTest extends TestCase
 
     public function test_handle_does_not_flag_shift_with_resolvable_credit(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = $this->makeRootOrganization();
 
@@ -96,7 +96,7 @@ class GetEventTroopersMissingCreditTest extends TestCase
     {
         // Fallback options come from current memberships, so with none the UI needs this flag
         // to explain why there's nothing to pick until the trooper is added to a club.
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event_trooper = $this->makeAttendedEventTrooper($trooper);
         $event_trooper->updateQuietly([
@@ -111,7 +111,7 @@ class GetEventTroopersMissingCreditTest extends TestCase
 
     public function test_handle_does_not_flag_trooper_with_some_club_membership(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = $this->makeRootOrganization();
         TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
@@ -150,7 +150,7 @@ class GetEventTroopersMissingCreditTest extends TestCase
 
     public function test_handle_filters_to_single_trooper_when_given(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper_one = Trooper::factory()->asActive()->create();
         $trooper_two = Trooper::factory()->asActive()->create();
         $this->makeAttendedEventTrooper($trooper_one);
@@ -163,7 +163,7 @@ class GetEventTroopersMissingCreditTest extends TestCase
 
     public function test_handle_exposes_fallback_org_options_scoped_to_trooper_membership_and_actor_authority(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $root_org = $this->makeRootOrganization();
         $other_org = $this->makeRootOrganization();
 
@@ -198,7 +198,7 @@ class GetEventTroopersMissingCreditTest extends TestCase
     {
         // The fallback list is limited to the trooper's current clubs; it must never offer an
         // unrelated club.
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper_org = $this->makeRootOrganization();
         $other_org = $this->makeRootOrganization();
 
@@ -236,7 +236,7 @@ class GetEventTroopersMissingCreditTest extends TestCase
 
     public function test_handle_paginates_results_and_reports_total(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
 
         $event_trooper_ids = collect(range(1, 3))
@@ -269,7 +269,7 @@ class GetEventTroopersMissingCreditTest extends TestCase
 
     public function test_handle_caps_page_size(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
 
         collect(range(1, GetEventTroopersMissingCredit::PAGE_SIZE + 5))

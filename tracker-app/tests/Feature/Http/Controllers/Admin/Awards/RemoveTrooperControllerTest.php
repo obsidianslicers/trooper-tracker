@@ -18,7 +18,7 @@ class RemoveTrooperControllerTest extends TestCase
 
     public function test_invoke_removes_award_from_trooper_and_redirects(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $recipient = Trooper::factory()->asMember()->create();
         $award = Award::factory()->create();
 
@@ -62,7 +62,7 @@ class RemoveTrooperControllerTest extends TestCase
     public function test_invoke_fires_award_revoked(): void
     {
         EventFacade::fake([AwardRevoked::class]);
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $award = Award::factory()->create();
         $award_trooper = AwardTrooper::factory()->create([
             AwardTrooper::AWARD_ID => $award->id,

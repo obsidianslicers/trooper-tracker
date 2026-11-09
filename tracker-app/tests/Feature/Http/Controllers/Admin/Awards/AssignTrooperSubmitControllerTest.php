@@ -17,7 +17,7 @@ class AssignTrooperSubmitControllerTest extends TestCase
 
     public function test_invoke_assigns_award_to_trooper_and_redirects(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $recipient = Trooper::factory()->asMember()->create();
         $award = Award::factory()->create();
 
@@ -49,7 +49,7 @@ class AssignTrooperSubmitControllerTest extends TestCase
     public function test_invoke_fires_award_granted(): void
     {
         EventFacade::fake([AwardGranted::class]);
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $recipient = Trooper::factory()->asMember()->create();
         $award = Award::factory()->create();
 

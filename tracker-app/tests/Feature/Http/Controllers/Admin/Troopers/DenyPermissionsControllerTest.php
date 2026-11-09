@@ -16,7 +16,7 @@ class DenyPermissionsControllerTest extends TestCase
 
     public function test_invoke_denies_request_with_reason(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $permission_request = PermissionRequest::factory()->create();
 
         $response = $this->actingAs($admin)

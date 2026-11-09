@@ -105,14 +105,14 @@ class PluginCapabilitiesTest extends TestCase
         $this->actingAs($member)->get('/plugins/pages/members')->assertOk();
         $this->actingAs($member)->get('/plugins/pages/admin')->assertForbidden();
 
-        $admin = Trooper::factory()->asAdministrator()->create(['email_verified_at' => now()]);
+        $admin = Trooper::factory()->asSystemOwner()->create(['email_verified_at' => now()]);
         $this->actingAs($admin)->get('/plugins/pages/admin')->assertOk()->assertSee('admins');
     }
 
     public function test_the_list_says_what_a_plugin_can_do_and_asks_before_enabling(): void
     {
         $this->writePlugin('honest', ['middleware', 'login']);
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)->get(route('admin.plugins.list'))
             ->assertSee('It runs on every page request and adds a way to sign in.')

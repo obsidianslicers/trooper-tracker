@@ -15,7 +15,7 @@ class PermissionApprovalsControllerTest extends TestCase
 
     public function test_invoke_lists_pending_requests_for_admin(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $pending = PermissionRequest::factory()->create(['note' => 'Helps with events']);
         PermissionRequest::factory()->asApproved()->create();
 

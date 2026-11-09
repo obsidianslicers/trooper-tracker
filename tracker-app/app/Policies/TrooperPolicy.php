@@ -68,7 +68,7 @@ class TrooperPolicy
 
     /**
      * Determine whether the user can update a trooper's authority/role.
-     * Staff officers may not change an Administrator's role.
+     * Staff officers may not change a System Owner's role.
      *
      * @param  Trooper  $trooper  The authenticated user performing the action.
      * @param  Trooper  $subject  The trooper whose authority is being updated.
@@ -86,7 +86,7 @@ class TrooperPolicy
 
     /**
      * Determine whether the user can change a trooper's profile, email, or status.
-     * Only an Administrator may change another Administrator's account.
+     * Only a System Owner may change another System Owner's account.
      *
      * @param  Trooper  $trooper  The authenticated user performing the action.
      * @param  Trooper  $subject  The trooper whose account is being changed.
@@ -271,6 +271,6 @@ class TrooperPolicy
     private function canChangeAccount(Trooper $trooper, Trooper $subject): bool
     {
         return $trooper->has_system_owner
-            || $subject->membership_role !== MembershipRole::ADMINISTRATOR;
+            || $subject->membership_role !== MembershipRole::SYSTEM_OWNER;
     }
 }

@@ -49,7 +49,7 @@ class MembershipRequest extends FormRequest
         }
 
         return in_array($this->user()->membership_role, [
-            MembershipRole::ADMINISTRATOR,
+            MembershipRole::SYSTEM_OWNER,
             MembershipRole::STAFF_OFFICER,
             MembershipRole::MODERATOR,
         ]);

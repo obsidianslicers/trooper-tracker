@@ -39,14 +39,14 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         ]);
         $achievement->setRelation('trooper', $trooper);
 
-        $admin_opted_in = Trooper::factory()->asAdministrator()->withEmail('in@example.com')->create();
+        $admin_opted_in = Trooper::factory()->asSystemOwner()->withEmail('in@example.com')->create();
         TrooperAssignment::factory()
             ->forTrooper($admin_opted_in)
             ->forOrganization($org)
             ->withShouldNotify(true)
             ->create();
 
-        $admin_opted_out = Trooper::factory()->asAdministrator()->withEmail('out@example.com')->create();
+        $admin_opted_out = Trooper::factory()->asSystemOwner()->withEmail('out@example.com')->create();
         TrooperAssignment::factory()
             ->forTrooper($admin_opted_out)
             ->forOrganization($org)
@@ -297,7 +297,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         ]);
         $achievement->setRelation('trooper', $trooper);
 
-        $admin = Trooper::factory()->asAdministrator()->withEmail('in@example.com')->create();
+        $admin = Trooper::factory()->asSystemOwner()->withEmail('in@example.com')->create();
         TrooperAssignment::factory()
             ->forTrooper($admin)
             ->forOrganization($org)

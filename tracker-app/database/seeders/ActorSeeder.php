@@ -32,7 +32,7 @@ class ActorSeeder extends Seeder
         $actor->email = 'sith@sw.com';
         $actor->password = Hash::make('password');
         $actor->membership_status = MembershipStatus::ACTIVE;
-        $actor->membership_role = MembershipRole::ADMINISTRATOR;
+        $actor->membership_role = MembershipRole::SYSTEM_OWNER;
         $actor->email_verified_at = now();
 
         $actor->save();

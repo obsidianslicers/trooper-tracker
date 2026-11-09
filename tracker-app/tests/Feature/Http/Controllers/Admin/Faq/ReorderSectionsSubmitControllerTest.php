@@ -15,7 +15,7 @@ class ReorderSectionsSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_section_sort_order_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $section_a = FaqSection::factory()->create([FaqSection::SORT_ORDER => 1]);
         $section_b = FaqSection::factory()->create([FaqSection::SORT_ORDER => 2]);
         $section_c = FaqSection::factory()->create([FaqSection::SORT_ORDER => 3]);

@@ -18,7 +18,7 @@ class FaqSectionPolicyTest extends TestCase
     {
         $policy = new FaqSectionPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $member = Trooper::factory()->asMember()->create();
 
@@ -31,7 +31,7 @@ class FaqSectionPolicyTest extends TestCase
     {
         $policy = new FaqSectionPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $member = Trooper::factory()->asMember()->create();
         $section = FaqSection::factory()->create();
@@ -45,7 +45,7 @@ class FaqSectionPolicyTest extends TestCase
     {
         $policy = new FaqSectionPolicy;
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $member = Trooper::factory()->asMember()->create();
         $section = FaqSection::factory()->create();

@@ -188,7 +188,7 @@ class SearchTroopersTest extends TestCase
 
     public function test_handle_with_admin_search_mode_allows_administrator_to_search_all_troopers(): void
     {
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $guardian = Trooper::factory()->asMember()->create();
 
         Trooper::factory()

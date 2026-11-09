@@ -14,7 +14,7 @@ class CreateControllerTest extends TestCase
 
     public function test_invoke_displays_create_notice_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.notices.create'));
 

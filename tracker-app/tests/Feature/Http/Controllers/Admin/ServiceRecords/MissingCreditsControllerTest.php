@@ -20,7 +20,7 @@ class MissingCreditsControllerTest extends TestCase
 
     public function test_invoke_displays_page_for_administrator(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($admin)->get(route('admin.service-records.missing-credits'));
 
@@ -30,7 +30,7 @@ class MissingCreditsControllerTest extends TestCase
 
     public function test_invoke_links_breadcrumb_back_to_command_staff(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($admin)->get(route('admin.service-records.missing-credits'));
 
@@ -65,7 +65,7 @@ class MissingCreditsControllerTest extends TestCase
 
     public function test_invoke_honors_offset_and_reports_pagination_fields(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
 
         collect(range(1, 3))->each(fn () => $this->makeAttendedEventTrooper($trooper));

@@ -46,7 +46,7 @@ class HasEventScopesTest extends TestCase
 
     public function test_moderated_by_returns_unmodified_query_for_administrator(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $base_sql = Event::query()->toBase()->toSql();
         $moderated_sql = Event::query()->moderatedBy($trooper)->toBase()->toSql();

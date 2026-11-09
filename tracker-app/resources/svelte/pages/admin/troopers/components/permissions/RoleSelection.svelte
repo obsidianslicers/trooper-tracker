@@ -25,6 +25,6 @@
     </InputContainer>
 {:else}
     <p class="text-muted small">
-        Administrator roles cannot be changed with a request.
+        System Owner and Staff Officer roles cannot be changed with a request.
     </p>
 {/if}

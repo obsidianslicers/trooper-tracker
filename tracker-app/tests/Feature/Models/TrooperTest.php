@@ -37,7 +37,7 @@ class TrooperTest extends TestCase
 
     public function test_get_is_administrator_attribute_returns_true_when_active_and_admin(): void
     {
-        $subject = Trooper::factory()->asAdministrator()->create();
+        $subject = Trooper::factory()->asSystemOwner()->create();
 
         $this->assertTrue($subject->is_administrator);
     }
@@ -46,7 +46,7 @@ class TrooperTest extends TestCase
     {
         $subject = Trooper::factory()
             ->state([Trooper::MEMBERSHIP_STATUS => MembershipStatus::PENDING])
-            ->state([Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR])
+            ->state([Trooper::MEMBERSHIP_ROLE => MembershipRole::SYSTEM_OWNER])
             ->create();
 
         $this->assertFalse($subject->is_administrator);
@@ -261,7 +261,7 @@ class TrooperTest extends TestCase
 
     public function test_is_moderator_for_organization_returns_true_when_administrator(): void
     {
-        $subject = Trooper::factory()->asAdministrator()->create();
+        $subject = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create();
 
         $result = $subject->isModeratorForOrganization($organization);
@@ -322,7 +322,7 @@ class TrooperTest extends TestCase
 
     public function test_resolve_moderator_org_ids_returns_null_for_administrator(): void
     {
-        $subject = Trooper::factory()->asAdministrator()->create();
+        $subject = Trooper::factory()->asSystemOwner()->create();
 
         $result = $subject->resolveModeratorOrgIds();
 
@@ -675,10 +675,10 @@ class TrooperTest extends TestCase
 
     public function test_membership_role_cast_works(): void
     {
-        $subject = Trooper::factory()->asAdministrator()->create();
+        $subject = Trooper::factory()->asSystemOwner()->create();
 
         $this->assertInstanceOf(MembershipRole::class, $subject->{Trooper::MEMBERSHIP_ROLE});
-        $this->assertSame(MembershipRole::ADMINISTRATOR, $subject->{Trooper::MEMBERSHIP_ROLE});
+        $this->assertSame(MembershipRole::SYSTEM_OWNER, $subject->{Trooper::MEMBERSHIP_ROLE});
     }
 
     public function test_eligible_orgs_for_event_returns_empty_when_event_has_no_can_attend_orgs(): void

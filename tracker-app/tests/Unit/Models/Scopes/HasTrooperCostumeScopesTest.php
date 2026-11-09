@@ -55,7 +55,7 @@ class HasTrooperCostumeScopesTest extends TestCase
 
     public function test_administrator_reviews_everything_but_their_own_costumes(): void
     {
-        $subject = Trooper::factory()->asAdministrator()->create();
+        $subject = Trooper::factory()->asSystemOwner()->create();
         $trooper = $this->memberOf($this->garrison);
         $theirs = $this->costumeFor($trooper, $this->club);
         $own = $this->costumeFor($this->memberOf($this->garrison, $subject), $this->club, name: 'Jedi');

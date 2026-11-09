@@ -17,7 +17,7 @@ class UpdateItemControllerTest extends TestCase
 
     public function test_invoke_displays_update_item_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $section = FaqSection::factory()->create();
         $faq = Faq::factory()->withSection($section)->create();
 

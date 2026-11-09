@@ -28,7 +28,7 @@ class SendTrooperResubmittedNotificationsJobTest extends TestCase
 
         $resubmitted_trooper = Trooper::factory()->asDenied()->create();
 
-        $admin = Trooper::factory()->asAdministrator()->withEmail('admin@example.com')->create();
+        $admin = Trooper::factory()->asSystemOwner()->withEmail('admin@example.com')->create();
 
         $messages = $this->fakeMessages([
             GetAdministrators::class => collect([$admin]),

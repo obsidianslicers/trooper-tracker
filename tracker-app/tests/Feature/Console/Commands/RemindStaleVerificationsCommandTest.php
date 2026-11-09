@@ -22,7 +22,7 @@ class RemindStaleVerificationsCommandTest extends TestCase
     public function test_notifies_admins_about_verifications_older_than_30_days(): void
     {
         Notification::fake();
-        $admin = Trooper::factory()->asAdministrator()->asActive()->create();
+        $admin = Trooper::factory()->asSystemOwner()->asActive()->create();
         $this->awaiting(now()->subDays(31));
         $this->awaiting(now()->subDays(2));
 
@@ -34,7 +34,7 @@ class RemindStaleVerificationsCommandTest extends TestCase
     public function test_does_nothing_when_nothing_is_stale(): void
     {
         Notification::fake();
-        Trooper::factory()->asAdministrator()->asActive()->create();
+        Trooper::factory()->asSystemOwner()->asActive()->create();
         $this->awaiting(now()->subDays(2));
 
         $this->artisan('tracker:remind-stale-verifications')->assertSuccessful();
