@@ -19,6 +19,9 @@
                             {{ $event->name }}
                         </h4>
                     </span>
+                    <x-not-counted :event="$event"
+                                   variant="pill"
+                                   class="mx-2" />
                     @canany(['update', 'copy'], $event)
                         <div class="btn-group mb-2 ms-auto d-none d-md-flex">
                             @can('update', $event)
@@ -61,6 +64,8 @@
                             </div>
                         </div>
                     @endcanany
+                    <x-not-counted :event="$event"
+                                   class="mb-3" />
                     <div class="row mb-2 border-bottom">
                         <div class="col-12 col-md-6 small text-muted pb-3">
                             <div class="row">

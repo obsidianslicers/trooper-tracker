@@ -97,6 +97,27 @@ class DiscordNotifierTest extends TestCase
         });
     }
 
+    public function test_send_event_notification_says_when_the_event_does_not_count(): void
+    {
+        Http::fake();
+
+        $subject = new DiscordNotifier(webhook_url: 'https://discord.test/webhook');
+
+        $subject->sendEventNotification(5, 'Armor build night', null, null, "Armor Party events don't count toward troop totals.");
+
+        Http::assertSent(fn ($request) => $request->data()['content']
+            === "Armor build night has been posted.\nℹ️ **Armor Party events don't count toward troop totals.**");
+    }
+
+    public function test_send_event_notification_adds_nothing_for_a_counted_event(): void
+    {
+        Http::fake();
+
+        (new DiscordNotifier(webhook_url: 'https://discord.test/webhook'))->sendEventNotification(5, 'Hospital visit');
+
+        Http::assertSent(fn ($request) => $request->data()['content'] === 'Hospital visit has been posted.');
+    }
+
     private function organizationWithMention(string $name, string $mention): Organization
     {
         $organization = Organization::factory()->create([Organization::NAME => $name]);

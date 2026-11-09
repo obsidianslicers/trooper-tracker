@@ -109,6 +109,8 @@ final class DiscordNotifier
      * @param  string|null  $description  Optional event description displayed in the embed.
      * @param  Organization|int|string|null  $squad  The organization (preferred), its ID,
      *                                               or a name.
+     * @param  string|null  $not_counted_notice  Event::notCountedNotice(), shown on its own
+     *                                           line under the announcement.
      * @return bool True when the webhook was posted, false when no webhook is configured.
      */
     public function sendEventNotification(
@@ -116,6 +118,7 @@ final class DiscordNotifier
         string $title,
         ?string $description = null,
         Organization|int|string|null $squad = null,
+        ?string $not_counted_notice = null,
     ): bool {
         if (!$this->isConfigured())
         {
@@ -124,6 +127,11 @@ final class DiscordNotifier
 
         $mention = $this->getSquadMention($squad);
         $content = trim(($mention ? $mention.' ' : '')."$title has been posted.");
+
+        if ($not_counted_notice)
+        {
+            $content .= "\nℹ️ **{$not_counted_notice}**";
+        }
 
         Http::withHeaders(['Content-Type' => 'application/json'])
             ->post($this->webhook_url, [

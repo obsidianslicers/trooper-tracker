@@ -9,7 +9,7 @@ Event types are rows in `tt_event_types` that system owners and staff officers m
 | Name | `name` | Shown in the event form's Event Type list and on reports |
 | Description | `description` | Shown under the Event Type list once the type is picked |
 | Order | `sort_order` | Drag-sorted; the event form lists types in this order and preselects the first for new events |
-| Counts toward troop totals | `is_counted` | When off, attending doesn't add to troop totals (see below), and the event page warns members above the roster |
+| Counts toward troop totals | `is_counted` | When off, attending doesn't add to troop totals, and every place members see the event says so (see below) |
 | Offered on the event form | `is_active` | When off, new events can't pick it; events that already use it keep it |
 
 Events store their type's **slug** in `tt_events.type` (foreign key to `tt_event_types.slug`). Slugs never change, so renaming a type is safe. A type can only be deleted while no event uses it; otherwise hide it.
@@ -19,6 +19,19 @@ The `2026_11_08_000001_create_event_types_table` migration seeds the twelve form
 ### Types that don't count
 
 A type with `is_counted = false` is left out of everything that counts a trooper's troops: the shift count, rank and troop milestones (`RecalculateTrooperRank`, overall and per club), the service record's per-club troop counts, the leaderboard's top troopers and costume leaderboards, the trooper event summary report, the public API's trooper history (`troopCount`), and the troop history the HoloNet plugin shares. Volunteer hours and charity totals still include these events, and they still appear in a trooper's history.
+
+Members are told the same way everywhere, so nobody finds out after the fact. `Event::notCountedNotice()` is the one sentence ("Armor Party events don't count toward troop totals.") and `<x-not-counted>` draws it:
+
+| Where | What shows |
+|---|---|
+| Event list card | "Doesn't count" pill in the header, the sentence above the address |
+| Calendar | Info icon after the name, the sentence as its tooltip |
+| Event page | Pill in the title bar, the sentence at the top of the details and again above the roster |
+| Service record history | Pill next to the event (card and table views), so the history matches the totals |
+| Forum thread post (XenForo plugin) | The sentence in bold under the title and venue |
+| Discord announcement | The sentence on its own line under "… has been posted." |
+
+The header keeps its status color (open, at risk, locked): the pill is white on dark so it reads on every theme, and the notice borrows only its left edge from the theme's info color, since some themes' info color is close to the locked header's.
 
 Queries use `Event::counted()` / `EventTrooper::counted()`, or `whereNotIn('tt_events.type', EventType::query()->uncountedSlugs())` in raw joins. Because counts are worked out when queried, changing a type's setting applies to its past events too: leaderboards change right away, the stored shift count at the nightly `tracker:calculate-trooper-achievements` run. Milestones already awarded are not taken back.
 

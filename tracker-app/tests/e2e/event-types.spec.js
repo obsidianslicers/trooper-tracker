@@ -113,7 +113,7 @@ test.describe('as an administrator', () => {
             .getByRole('link', { name: seeded.uncountedType.name })
             .click();
 
-        const warning = page.getByText('This also applies to the 1 event(s) already using this type');
+        const warning = page.getByText('This also applies to the 2 event(s) already using this type');
         await expect(warning).toBeHidden();
 
         await page.getByLabel('Counts toward troop totals').check();
@@ -124,13 +124,32 @@ test.describe('as an administrator', () => {
 test.describe('as a member', () => {
     test.use({ storageState: personas.member.storageState });
 
+    const notice = `${seeded.uncountedType.name} events don't count toward troop totals.`;
+
+    function card(page, name) {
+        return page.locator('.event-cards .card').filter({ hasText: name });
+    }
+
+    test('sees which events do not count on the event list', async ({ page }) => {
+        await page.goto('/events');
+
+        const uncounted = card(page, seeded.uncountedEvent);
+        await expect(uncounted.locator('.card-header').getByText("Doesn't count")).toBeVisible();
+        await expect(uncounted.getByText(notice)).toBeVisible();
+
+        const counted = card(page, seeded.openEvent);
+        await expect(counted.getByText("Doesn't count")).toHaveCount(0);
+        await expect(counted.getByText("don't count toward troop totals")).toHaveCount(0);
+    });
+
     test('sees that an event of a non-counting type does not count', async ({ page }) => {
         await page.goto('/events');
         await page.getByRole('link', { name: seeded.uncountedEvent }).first().click();
 
-        await expect(
-            page.getByText(`${seeded.uncountedType.name} events don't count toward your troop total.`),
-        ).toBeVisible();
+        await expect(page.locator('.card-header').first().getByText("Doesn't count")).toBeVisible();
+        //  at the top of the details, and again above the roster where troopers sign up
+        await expect(page.getByText(notice)).toHaveCount(2);
+        await expect(page.getByText(notice).first()).toBeVisible();
     });
 
     test('sees no such notice on a regular event', async ({ page }) => {
@@ -138,6 +157,23 @@ test.describe('as a member', () => {
         await page.getByRole('link', { name: seeded.openEvent }).first().click();
 
         await expect(page.getByText('Mission Roster')).toBeVisible();
-        await expect(page.getByText("don't count toward your troop total")).toHaveCount(0);
+        await expect(page.getByText("don't count toward troop totals")).toHaveCount(0);
+        await expect(page.getByText("Doesn't count")).toHaveCount(0);
+    });
+
+    test('sees which past troops did not count on their service record', async ({ page }) => {
+        await page.goto('/events');
+        await page.getByRole('button', { name: 'Service Records' }).click();
+        await page.getByRole('link', { name: 'My Service', exact: true }).click();
+        await page.getByRole('tab', { name: 'History' }).click();
+
+        //  the history opens as a table on desktop
+        const history = page.locator('#recent-shifts');
+        const workshop = history.getByRole('row').filter({ hasText: seeded.pastUncountedEvent });
+        await expect(workshop.getByText("Doesn't count")).toBeVisible();
+
+        const hospital = history.getByRole('row').filter({ hasText: seeded.pastCountedEvent });
+        await expect(hospital).toBeVisible();
+        await expect(hospital.getByText("Doesn't count")).toHaveCount(0);
     });
 });

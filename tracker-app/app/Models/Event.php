@@ -76,6 +76,20 @@ class Event extends BaseEvent
     }
 
     /**
+     * The one sentence every page, forum post and announcement uses for an event that
+     * doesn't count toward troop totals; null when it counts.
+     */
+    public function notCountedNotice(): ?string
+    {
+        if ($this->isCounted())
+        {
+            return null;
+        }
+
+        return "{$this->event_type->name} events don't count toward troop totals.";
+    }
+
+    /**
      * Get the primary (top-level) organization for this event.
      *
      * @return BelongsTo<Organization, self>

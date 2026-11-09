@@ -10,6 +10,7 @@ use App\Enums\MembershipStatus;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
+use App\Models\EventTrooper;
 use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
@@ -61,7 +62,7 @@ class E2eSeeder extends Seeder
         $this->costume($legion, 'E2E Kept Armor');
 
         $event = $this->openEvent($legion, 'E2E Open Troop');
-        $this->eventTypes($legion);
+        $this->eventTypes($legion, $member);
 
         $this->notification($member, 'E2E Open Troop is open for sign-up', '/events/details/'.$event->id);
     }
@@ -114,13 +115,16 @@ class E2eSeeder extends Seeder
     }
 
     /**
-     * A type that doesn't count, with an open event of its own, and types the event type
+     * A type that doesn't count, with an open event of its own and a past one the member
+     * attended (next to a counted one, for their service record), and types the event type
      * specs reorder, hide and delete. They sort after the seeded defaults.
      */
-    private function eventTypes(Organization $organization): void
+    private function eventTypes(Organization $organization, Trooper $member): void
     {
         $workshop = $this->eventType('E2E Workshop', 101, is_counted: false, description: 'E2E armor build night.');
         $this->openEvent($organization, 'E2E Workshop Night', $workshop->slug);
+        $this->attendedEvent($organization, $member, 'E2E Past Workshop', $workshop->slug, days_ago: 14);
+        $this->attendedEvent($organization, $member, 'E2E Past Hospital Visit', EventType::DEFAULT_SLUG, days_ago: 21);
 
         $this->eventType('E2E Sort First', 102);
         $this->eventType('E2E Sort Second', 103);
@@ -137,6 +141,29 @@ class E2eSeeder extends Seeder
             EventType::SORT_ORDER => $sort_order,
             EventType::IS_COUNTED => $is_counted,
         ]);
+    }
+
+    private function attendedEvent(Organization $organization, Trooper $trooper, string $name, string $type, int $days_ago): void
+    {
+        $start = now()->subDays($days_ago)->setTime(10, 0);
+
+        $event = Event::factory()->create([
+            Event::ORGANIZATION_ID => $organization->id,
+            Event::NAME => $name,
+            Event::TYPE => $type,
+            Event::STATUS => EventStatus::CLOSED,
+            Event::EVENT_START => $start,
+            Event::EVENT_END => $start->copy()->addHours(4),
+        ]);
+
+        $shift = EventShift::factory()->create([
+            EventShift::EVENT_ID => $event->id,
+            EventShift::SHIFT_STARTS_AT => $start,
+            EventShift::SHIFT_ENDS_AT => $start->copy()->addHours(4),
+            EventShift::STATUS => EventStatus::CLOSED,
+        ]);
+
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
     }
 
     private function openEvent(Organization $organization, string $name, string $type = EventType::DEFAULT_SLUG): Event

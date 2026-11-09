@@ -30,10 +30,11 @@ class EventDisplayControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('pages.events.event-display');
-        $response->assertDontSee("doesn't count toward your troop total", false);
+        $response->assertDontSee("don't count toward troop totals", false);
+        $response->assertDontSee('not-counted-pill', false);
     }
 
-    public function test_invoke_warns_when_the_event_type_does_not_count(): void
+    public function test_invoke_marks_an_event_whose_type_does_not_count(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $event_type = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party Plus']);
@@ -42,7 +43,10 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSee("Armor Party Plus events don't count toward your troop total.", false);
+        $response->assertSee('not-counted-pill', false);
+        $response->assertSee("Armor Party Plus events don't count toward troop totals.");
+        //  at the top of the details and again above the roster, where troopers sign up
+        $this->assertSame(2, substr_count($response->getContent(), 'not-counted-notice'));
     }
 
     public function test_invoke_displays_charity_hours_and_notes_without_funds_or_name(): void

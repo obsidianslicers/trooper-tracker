@@ -74,6 +74,8 @@
                                                     <span class="ms-2">
                                                         {{ $event->name }}
                                                     </span>
+                                                    <x-not-counted :event="$event"
+                                                                   variant="icon" />
 
                                                     @foreach ($event->organizations as $organization)
                                                         <span class="d-none"

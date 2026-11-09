@@ -7,6 +7,7 @@ namespace TroopTracker\Plugins\Xenforo\Tests;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -41,6 +42,30 @@ class ForumBBCodeHelperTest extends TestCase
             '[center][size=6][url="'.url('/events/details/'.$event->id).'"]👉 CLICK HERE TO SIGN UP 👈[/url][/size][/center]',
             $result
         );
+    }
+
+    public function test_thread_template_says_when_the_event_does_not_count(): void
+    {
+        $event_type = EventType::factory()->uncounted()->create([EventType::NAME => "Members' Armor Party"]);
+        $event = Event::factory()
+            ->forForumBbcodeTemplate()
+            ->state([Event::TYPE => $event_type->slug])
+            ->create();
+
+        $result = ForumBBCodeHelper::threadTemplate($event);
+
+        //  under the title and venue, above the details, and the apostrophes stay readable
+        $this->assertStringContainsString(
+            "[/i][/size]\n\n[b]ℹ️ Members' Armor Party events don't count toward troop totals.[/b]\n\n[hr][/hr]",
+            $result
+        );
+    }
+
+    public function test_thread_template_says_nothing_about_counting_for_a_counted_event(): void
+    {
+        $event = Event::factory()->forForumBbcodeTemplate()->create();
+
+        $this->assertStringNotContainsString('troop totals', ForumBBCodeHelper::threadTemplate($event));
     }
 
     public function test_thread_template_shows_the_end_date_when_an_event_runs_past_one_day(): void

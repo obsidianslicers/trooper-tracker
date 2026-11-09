@@ -27,6 +27,8 @@ export const seeded = {
     legionId: 1,
     uncountedType: { name: 'E2E Workshop', description: 'E2E armor build night.' },
     uncountedEvent: 'E2E Workshop Night',
+    pastUncountedEvent: 'E2E Past Workshop',
+    pastCountedEvent: 'E2E Past Hospital Visit',
     sortFirstType: 'E2E Sort First',
     sortSecondType: 'E2E Sort Second',
     retiringType: 'E2E Retiring Type',

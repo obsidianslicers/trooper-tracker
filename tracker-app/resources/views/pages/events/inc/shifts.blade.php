@@ -9,11 +9,9 @@
     @endif
 </div>
 
-@unless($event->isCounted())
-    <x-message type="warning">
-        {{ $event->event_type->name }} events don't count toward your troop total.
-    </x-message>
-@endunless
+{{-- again where troopers sign up, so nobody signs up without seeing it --}}
+<x-not-counted :event="$event"
+               class="mb-3" />
 
 @php($count_of_shifts = $event->event_shifts->count())
 @if($count_of_shifts > 1)

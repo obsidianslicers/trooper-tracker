@@ -24,6 +24,9 @@
                 <span class="p-1 text-white">
                     {{ $event->name }}
                 </span>
+                <x-not-counted :event="$event"
+                               variant="pill"
+                               class="ms-auto" />
             </a>
         </div>
 
@@ -33,6 +36,8 @@
                     ** risk of cancellation **
                 </p>
             @endif
+            <x-not-counted :event="$event"
+                           class="small mb-3" />
             <p class="card-text position-relative"
                style="z-index: 2;">
                 <a href="https://www.google.com/maps/search/?api=1&query={{ $event->venue_address }}"
