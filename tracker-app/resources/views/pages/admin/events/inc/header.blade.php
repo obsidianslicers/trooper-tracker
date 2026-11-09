@@ -2,7 +2,7 @@
     <x-label>Name:</x-label>
     <x-input-text :property="'name'"
                   :value="$event->name"
-                  x-model="form.name" />
+                  x-model.fill="form.name" />
 </x-input-container>
 
 <x-input-container>

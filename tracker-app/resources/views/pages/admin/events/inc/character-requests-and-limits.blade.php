@@ -6,13 +6,13 @@
                 <x-label>Expected Attendees:</x-label>
                 <x-input-text :property="'expected_attendees'"
                               :value="$event->expected_attendees"
-                              x-model="form.expected_attendees" />
+                              x-model.fill="form.expected_attendees" />
             </div>
             <div class="col-12 col-md-6">
                 <x-label>Requested Number of Characters:</x-label>
                 <x-input-text :property="'requested_number_characters'"
                               :value="$event->requested_number_characters"
-                              x-model="form.requested_number_characters" />
+                              x-model.fill="form.requested_number_characters" />
             </div>
         </div>
     </x-input-container>
@@ -22,7 +22,7 @@
         <x-input-text :property="'requested_character_types'"
                       :multiline="true"
                       :value="$event->requested_character_types"
-                      x-model="form.requested_character_types" />
+                      x-model.fill="form.requested_character_types" />
     </x-input-container>
 
     <x-input-container>
@@ -31,14 +31,14 @@
                 <x-label>Maximum Shift Sign-Ups (per event):</x-label>
                 <x-input-text :property="'shifts_allowed'"
                               :value="$event->shifts_allowed"
-                              x-model="form.shifts_allowed"
+                              x-model.fill="form.shifts_allowed"
                               placeholder="blank=unlimited" />
             </div>
             <div class="col-12 col-md-6">
                 <x-label>Tentative Sign-Ups Allowed (per shift):</x-label>
                 <x-input-yesno :property="'tentative_signups_allowed'"
                                :value="$event->tentative_signups_allowed"
-                               x-model="form.tentative_signups_allowed" />
+                               x-model.fill="form.tentative_signups_allowed" />
             </div>
         </div>
     </x-input-container>
@@ -49,14 +49,14 @@
                 <x-label>Trooper Capacity (per shift):</x-label>
                 <x-input-text :property="'troopers_allowed'"
                               :value="$event->troopers_allowed"
-                              x-model="form.troopers_allowed"
+                              x-model.fill="form.troopers_allowed"
                               placeholder="blank=unlimited" />
             </div>
             <div class="col-12 col-md-6">
                 <x-label>Handler Capacity (per shift):</x-label>
                 <x-input-text :property="'handlers_allowed'"
                               :value="$event->handlers_allowed"
-                              x-model="form.handlers_allowed"
+                              x-model.fill="form.handlers_allowed"
                               placeholder="blank=unlimited, zero=none" />
             </div>
         </div>
@@ -68,14 +68,14 @@
                 <x-label>Limit <b class="text-success">Add a Trooper</b> Sign-Ups (per shift):</x-label>
                 <x-input-text :property="'friends_allowed'"
                               :value="$event->friends_allowed"
-                              x-model="form.friends_allowed"
+                              x-model.fill="form.friends_allowed"
                               placeholder="blank=unlimited, zero=none" />
             </div>
             <div class="col-12 col-md-6">
                 <x-label>Limit <b class="text-success">Add a Guest</b> Sign-Ups (per shift):</x-label>
                 <x-input-text :property="'guests_allowed'"
                               :value="$event->guests_allowed"
-                              x-model="form.guests_allowed"
+                              x-model.fill="form.guests_allowed"
                               placeholder="blank=unlimited, zero=none" />
             </div>
         </div>

@@ -4,7 +4,7 @@
         <x-input-text :property="'comments'"
                       :multiline="true"
                       :value="$event->comments"
-                      x-model="form.comments"
+                      x-model.fill="form.comments"
                       class="markdown-editor" />
         <x-smilies-picker :smilies="$smilies ?? []"
                           targetId="comments"
@@ -16,7 +16,7 @@
         <x-label>Require Mission Brief Acknowledgement Before Signup:</x-label>
         <x-input-yesno :property="'require_mission_brief_ack'"
                        :value="$event->require_mission_brief_ack ?? false"
-                       x-model="form.require_mission_brief_ack" />
+                       x-model.fill="form.require_mission_brief_ack" />
         <x-input-help>
             When set to "Yes", troopers must explicitly acknowledge that they have read the
             mission brief on the event page before any sign-up buttons are shown.
@@ -27,7 +27,7 @@
         <x-label>Referred By:</x-label>
         <x-input-text :property="'referred_by'"
                       :value="$event->referred_by"
-                      x-model="form.referred_by" />
+                      x-model.fill="form.referred_by" />
     </x-input-container>
 
     @pluginSlot('admin.events.form.fields')
