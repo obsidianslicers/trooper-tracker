@@ -21,7 +21,7 @@ class PushNotificationClearController extends Controller
      * Clear all push notifications for the trooper.
      *
      * @param  Request  $request  The incoming HTTP request
-     * @return RedirectResponse Redirect to push notifications page
+     * @return RedirectResponse Back to the page the bell's dropdown was opened on
      */
     public function __invoke(Request $request): RedirectResponse
     {
@@ -29,6 +29,6 @@ class PushNotificationClearController extends Controller
 
         ClearPushNotifications::call(trooper: $trooper);
 
-        return redirect()->route('account.push-notifications');
+        return redirect()->back(fallback: route('events.list'));
     }
 }

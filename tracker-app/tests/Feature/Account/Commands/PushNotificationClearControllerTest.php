@@ -22,9 +22,11 @@ class PushNotificationClearControllerTest extends TestCase
             ->forTrooper($trooper)
             ->create();
 
-        $response = $this->actingAs($trooper)->delete(route('account.push-notifications.clear'));
+        $response = $this->actingAs($trooper)
+            ->from(route('faq'))
+            ->delete(route('account.push-notifications.clear'));
 
-        $response->assertRedirect(route('account.push-notifications'));
+        $response->assertRedirect(route('faq'));
 
         $remaining = TrooperNotification::where('notifiable_id', $trooper->id)
             ->where('notifiable_type', Trooper::class)

@@ -12,6 +12,7 @@ use App\Mail\OutgoingMailBudget;
 use App\Models\TrooperRequest;
 use App\Policies\TrooperRequestPolicy;
 use App\Services\BreadCrumbService;
+use App\View\Composers\NavbarNotificationsComposer;
 use App\View\Composers\ShiftAddTrooperComposer;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Contracts\Foundation\Application;
@@ -162,6 +163,7 @@ class AppServiceProvider extends ServiceProvider
         //  VIEW COMPOSERS
         //
         View::composer('pages.events.inc.shift-add-trooper', ShiftAddTrooperComposer::class);
+        View::composer('partials.inc.navbar-notifications', NavbarNotificationsComposer::class);
 
         //
         //  BLADE BOOTS
