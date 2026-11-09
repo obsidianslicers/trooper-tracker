@@ -56,7 +56,7 @@ class GetTrooperOrganizationsTest extends TestCase
             $result->pluck(TrooperOrganization::ORGANIZATION_ID)->all(),
         );
         $this->assertFalse(
-            $result->contains(fn(TrooperOrganization $membership): bool => $membership->{TrooperOrganization::ORGANIZATION_ID} === $inactive_org->{Organization::ID}),
+            $result->contains(fn (TrooperOrganization $membership): bool => $membership->{TrooperOrganization::ORGANIZATION_ID} === $inactive_org->{Organization::ID}),
         );
     }
 }

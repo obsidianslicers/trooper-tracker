@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Troopers\Commands\Notifications;
 
-use PHPUnit\Framework\Attributes\DataProvider;
 use App\Enums\AdministrativeNotifications;
 use App\Enums\NotificationChannels;
 use App\Enums\TrooperNotifications;
 use App\Messages\Troopers\Commands\Notifications\UpdateNotificationPreference;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class UpdateNotificationPreferenceTest extends TestCase

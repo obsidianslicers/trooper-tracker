@@ -34,6 +34,6 @@ class GetTrooperFriendsTest extends TestCase
             ['Alpha Friend', 'Zulu Friend'],
             $result->pluck(Trooper::DISPLAY_NAME)->all(),
         );
-        $this->assertFalse($result->contains(fn(Trooper $candidate): bool => $candidate->is($non_friend)));
+        $this->assertFalse($result->contains(fn (Trooper $candidate): bool => $candidate->is($non_friend)));
     }
 }

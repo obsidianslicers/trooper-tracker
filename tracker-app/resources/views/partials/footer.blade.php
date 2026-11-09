@@ -137,6 +137,11 @@
                         Stu Ellerbusch <span class="text-muted">(BH51399)</span>
                     </a>
                 </li>
+                <li class="my-2">
+                    <a href="https://www.501st.com/member/60421/">
+                        Ben Rothman <span class="text-muted">(TK60421)</span>
+                    </a>
+                </li>
                 <li class="mt-5">
                     <p class="text-muted">
                         <a href="https://github.com/obsidianslicers"

@@ -13,6 +13,7 @@ use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use ReflectionMethod;
 use Tests\TestCase;
 
 class GetTrooperCostumesTest extends TestCase
@@ -28,7 +29,7 @@ class GetTrooperCostumesTest extends TestCase
         ]);
         $costume->setRelation('organization_costumes', collect());
 
-        $method = new \ReflectionMethod(GetTrooperCostumes::class, 'getOrganizationNames');
+        $method = new ReflectionMethod(GetTrooperCostumes::class, 'getOrganizationNames');
         $method->setAccessible(true);
 
         $this->assertSame('(inactive membership)', $method->invoke($subject, $costume));
@@ -103,7 +104,7 @@ class GetTrooperCostumesTest extends TestCase
             ],
             $result->first()->image_urls,
         );
-        $this->assertFalse($result->contains(fn(Costume $candidate): bool => in_array($candidate->{Costume::NAME}, [Costume::COMMAND_STAFF, Costume::HANDLER], true)));
-        $this->assertFalse($result->contains(fn(Costume $candidate): bool => $candidate->is($command_staff) || $candidate->is($handler)));
+        $this->assertFalse($result->contains(fn (Costume $candidate): bool => in_array($candidate->{Costume::NAME}, [Costume::COMMAND_STAFF, Costume::HANDLER], true)));
+        $this->assertFalse($result->contains(fn (Costume $candidate): bool => $candidate->is($command_staff) || $candidate->is($handler)));
     }
 }

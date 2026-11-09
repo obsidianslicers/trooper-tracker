@@ -596,4 +596,4 @@ $plugins->load($plugins->findOrFail('discord'));
 
 A plugin whose packages may not be installed skips its tests when they are missing (see the Google Sheets plugin's `setUp()`).
 
-CI (`.github/workflows/tests.yml`) runs every suite on PHP 8.4 twice: once with only bundled plugins, which checks the app and core tests work without the packages plugins bring, and once with the bundled plugins' packages installed, so their tests run. A PHP 8.5 run is an early warning and does not block a pull request.
+CI (`.github/workflows/tests.yml`) runs every suite on PHP 8.5, the version production runs, twice: once with only bundled plugins, which checks the app and core tests work without the packages plugins bring, and once with the bundled plugins' packages installed, so their tests run.

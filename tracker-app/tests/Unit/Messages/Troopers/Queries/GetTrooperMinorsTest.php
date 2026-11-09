@@ -42,9 +42,9 @@ class GetTrooperMinorsTest extends TestCase
             ['Alpha Minor', 'Zulu Minor'],
             $result->pluck(Trooper::DISPLAY_NAME)->all(),
         );
-        $this->assertTrue($result->contains(fn(Trooper $candidate): bool => $candidate->is($alpha_minor)));
-        $this->assertTrue($result->contains(fn(Trooper $candidate): bool => $candidate->is($zulu_minor)));
-        $this->assertFalse($result->contains(fn(Trooper $candidate): bool => $candidate->{Trooper::DISPLAY_NAME} === 'Other Guardian Minor'));
-        $this->assertFalse($result->contains(fn(Trooper $candidate): bool => $candidate->{Trooper::DISPLAY_NAME} === 'No Guardian Minor'));
+        $this->assertTrue($result->contains(fn (Trooper $candidate): bool => $candidate->is($alpha_minor)));
+        $this->assertTrue($result->contains(fn (Trooper $candidate): bool => $candidate->is($zulu_minor)));
+        $this->assertFalse($result->contains(fn (Trooper $candidate): bool => $candidate->{Trooper::DISPLAY_NAME} === 'Other Guardian Minor'));
+        $this->assertFalse($result->contains(fn (Trooper $candidate): bool => $candidate->{Trooper::DISPLAY_NAME} === 'No Guardian Minor'));
     }
 }
