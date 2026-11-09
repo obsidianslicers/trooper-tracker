@@ -99,6 +99,24 @@ class EventTypeForumsTest extends TestCase
         ));
     }
 
+    public function test_the_forum_section_shows_without_an_api_key(): void
+    {
+        config(['plugins.xenforo.api_key' => null]);
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $event_type = EventType::factory()->create();
+
+        $response = $this->actingAs($trooper)
+            ->get(route('admin.event-types.update', ['event_type' => $event_type]));
+
+        $response->assertInertia(fn (Assert $page) => $page->where(
+            'plugin_slots',
+            fn ($slots): bool => str_contains(
+                (string) collect($slots)->get('admin.event-types.update.sections', ''),
+                'Save forums',
+            ),
+        ));
+    }
+
     public function test_administrators_save_an_event_types_forums(): void
     {
         $trooper = Trooper::factory()->asAdministrator()->withVerifiedEmail()->create();

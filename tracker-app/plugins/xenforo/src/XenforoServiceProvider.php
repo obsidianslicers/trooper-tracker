@@ -259,8 +259,9 @@ class XenforoServiceProvider extends PluginServiceProvider
                 'event_type' => $event_type($context),
                 'xenforo_forum' => EventTypeForum::forEventType($event_type($context)->id),
             ],
-            when: fn (array $context): bool => XenforoService::isConfigured()
-                && $event_type($context) instanceof EventType,
+            //  like the organization forum fields: settable before the API key is,
+            //  and on a staging copy that has no key on purpose
+            when: fn (array $context): bool => $event_type($context) instanceof EventType,
         );
     }
 
