@@ -14,6 +14,7 @@ use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperNotification;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use RuntimeException;
@@ -40,7 +41,7 @@ class E2eSeeder extends Seeder
 
         $this->persona('admin@e2e.test', 'E2E Administrator', MembershipRole::ADMINISTRATOR);
         $moderator = $this->persona('moderator@e2e.test', 'E2E Moderator', MembershipRole::MODERATOR);
-        $this->persona('member@e2e.test', 'E2E Member', MembershipRole::MEMBER);
+        $member = $this->persona('member@e2e.test', 'E2E Member', MembershipRole::MEMBER);
 
         $this->assign($moderator, $legion, is_moderator: true);
 
@@ -58,7 +59,18 @@ class E2eSeeder extends Seeder
         $this->costume($legion, 'E2E Duplicate Armor');
         $this->costume($legion, 'E2E Kept Armor');
 
-        $this->openEvent($legion);
+        $event = $this->openEvent($legion);
+
+        $this->notification($member, 'E2E Open Troop is open for sign-up', '/events/details/'.$event->id);
+    }
+
+    private function notification(Trooper $trooper, string $title, string $url): void
+    {
+        TrooperNotification::factory()
+            ->forTrooper($trooper)
+            ->withData(['title' => $title, 'body' => 'Sign up on the event page.', 'url' => $url])
+            ->asUnread()
+            ->create();
     }
 
     private function persona(
@@ -99,7 +111,7 @@ class E2eSeeder extends Seeder
         ]);
     }
 
-    private function openEvent(Organization $organization): void
+    private function openEvent(Organization $organization): Event
     {
         $start = now()->addWeeks(2)->setTime(10, 0);
 
@@ -116,5 +128,7 @@ class E2eSeeder extends Seeder
             EventShift::SHIFT_STARTS_AT => $start,
             EventShift::SHIFT_ENDS_AT => $start->copy()->addHours(4),
         ]);
+
+        return $event;
     }
 }

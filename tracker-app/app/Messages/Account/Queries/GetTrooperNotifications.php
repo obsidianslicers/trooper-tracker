@@ -9,16 +9,18 @@ use Hyperdrive\Message;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
- * Retrieves all push notifications for the authenticated trooper.
+ * Retrieves push notifications for the authenticated trooper: all of them for the
+ * notifications page, or the most recent few for the bell in the navbar.
  *
  * Returns notifications ordered by most recent first.
  *
- * @method static Collection call(Trooper $trooper)
+ * @method static Collection call(Trooper $trooper, ?int $limit = null)
  */
 final class GetTrooperNotifications extends Message
 {
     public function __construct(
-        private readonly Trooper $trooper
+        private readonly Trooper $trooper,
+        private readonly ?int $limit = null,
     ) {}
 
     /**
@@ -28,6 +30,9 @@ final class GetTrooperNotifications extends Message
      */
     public function handle(): Collection
     {
-        return $this->trooper->notifications()->latest()->get();
+        return $this->trooper->notifications()
+            ->latest()
+            ->when($this->limit !== null, fn ($query) => $query->limit($this->limit))
+            ->get();
     }
 }

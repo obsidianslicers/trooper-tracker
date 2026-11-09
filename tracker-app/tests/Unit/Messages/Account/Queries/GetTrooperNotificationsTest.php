@@ -37,6 +37,35 @@ class GetTrooperNotificationsTest extends TestCase
         $this->assertTrue($result->first()->created_at >= $result->last()->created_at);
     }
 
+    public function test_call_returns_only_the_most_recent_up_to_the_limit(): void
+    {
+        $trooper = Trooper::factory()->asActive()->create();
+
+        foreach (range(1, 4) as $minutes_ago)
+        {
+            TrooperNotification::factory()
+                ->forTrooper($trooper)
+                ->withData(['title' => "{$minutes_ago} minutes ago"])
+                ->create(['created_at' => now()->subMinutes($minutes_ago)]);
+        }
+
+        $result = (new GetTrooperNotifications($trooper, limit: 2))->handle();
+
+        $this->assertSame(['1 minutes ago', '2 minutes ago'], $result->pluck('title')->all());
+    }
+
+    public function test_call_returns_all_without_a_limit(): void
+    {
+        $trooper = Trooper::factory()->asActive()->create();
+
+        TrooperNotification::factory()
+            ->count(25)
+            ->forTrooper($trooper)
+            ->create();
+
+        $this->assertCount(25, (new GetTrooperNotifications($trooper))->handle());
+    }
+
     public function test_call_returns_empty_collection_when_no_notifications(): void
     {
         $trooper = Trooper::factory()->asActive()->create();

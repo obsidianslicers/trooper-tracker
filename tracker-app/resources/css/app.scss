@@ -636,6 +636,14 @@ input.searching {
     box-shadow: inset 3px 0 0 var(--bs-primary);
 }
 
+//  the bell's dropdown in the navbar; scrolls once it outgrows the screen
+.notifications-menu {
+    width: 24rem;
+    max-width: calc(100vw - 2rem);
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
 img.forum-smiley {
     height: 1.2em;
     vertical-align: middle;
