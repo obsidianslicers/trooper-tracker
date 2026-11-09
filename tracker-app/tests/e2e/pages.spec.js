@@ -46,6 +46,8 @@ const ADMIN_ONLY_PAGES = [
     '/admin/costumes/merge',
     '/admin/faq/index',
     '/admin/plugins',
+    '/admin/event-types',
+    '/admin/event-types/create',
 ];
 
 test.describe('as a member', () => {

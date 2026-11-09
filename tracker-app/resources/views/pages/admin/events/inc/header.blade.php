@@ -8,7 +8,7 @@
 <x-input-container>
     {{-- x-data sits on a plain element: Blade doesn't compile @js inside a component tag's attributes. --}}
     <div x-data="{ event_type: @js(old('type', $event->type)), help: @js($event_type_help) }">
-        <x-label>Event Type:</x-label>
+        <x-label for="type">Event Type:</x-label>
         <x-input-select :property="'type'"
                         :options="$event_type_options"
                         :value="$event->type"

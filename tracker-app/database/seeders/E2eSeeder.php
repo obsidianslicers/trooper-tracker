@@ -10,6 +10,7 @@ use App\Enums\MembershipStatus;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -59,7 +60,8 @@ class E2eSeeder extends Seeder
         $this->costume($legion, 'E2E Duplicate Armor');
         $this->costume($legion, 'E2E Kept Armor');
 
-        $event = $this->openEvent($legion);
+        $event = $this->openEvent($legion, 'E2E Open Troop');
+        $this->eventTypes($legion);
 
         $this->notification($member, 'E2E Open Troop is open for sign-up', '/events/details/'.$event->id);
     }
@@ -111,13 +113,40 @@ class E2eSeeder extends Seeder
         ]);
     }
 
-    private function openEvent(Organization $organization): Event
+    /**
+     * A type that doesn't count, with an open event of its own, and types the event type
+     * specs reorder, hide and delete. They sort after the seeded defaults.
+     */
+    private function eventTypes(Organization $organization): void
+    {
+        $workshop = $this->eventType('E2E Workshop', 101, is_counted: false, description: 'E2E armor build night.');
+        $this->openEvent($organization, 'E2E Workshop Night', $workshop->slug);
+
+        $this->eventType('E2E Sort First', 102);
+        $this->eventType('E2E Sort Second', 103);
+        $this->eventType('E2E Retiring Type', 104);
+        $this->eventType('E2E Unused Type', 105);
+    }
+
+    private function eventType(string $name, int $sort_order, bool $is_counted = true, ?string $description = null): EventType
+    {
+        return EventType::create([
+            EventType::SLUG => EventType::uniqueSlugFor($name),
+            EventType::NAME => $name,
+            EventType::DESCRIPTION => $description,
+            EventType::SORT_ORDER => $sort_order,
+            EventType::IS_COUNTED => $is_counted,
+        ]);
+    }
+
+    private function openEvent(Organization $organization, string $name, string $type = EventType::DEFAULT_SLUG): Event
     {
         $start = now()->addWeeks(2)->setTime(10, 0);
 
         $event = Event::factory()->create([
             Event::ORGANIZATION_ID => $organization->id,
-            Event::NAME => 'E2E Open Troop',
+            Event::NAME => $name,
+            Event::TYPE => $type,
             Event::STATUS => EventStatus::OPEN,
             Event::EVENT_START => $start,
             Event::EVENT_END => $start->copy()->addHours(4),

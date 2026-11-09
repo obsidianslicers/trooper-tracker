@@ -23,4 +23,12 @@ export const seeded = {
     duplicateCostume: 'E2E Duplicate Armor',
     keptCostume: 'E2E Kept Armor',
     openEvent: 'E2E Open Troop',
+    // OrganizationSeeder creates the 501st Legion first, on a fresh database.
+    legionId: 1,
+    uncountedType: { name: 'E2E Workshop', description: 'E2E armor build night.' },
+    uncountedEvent: 'E2E Workshop Night',
+    sortFirstType: 'E2E Sort First',
+    sortSecondType: 'E2E Sort Second',
+    retiringType: 'E2E Retiring Type',
+    unusedType: 'E2E Unused Type',
 };
