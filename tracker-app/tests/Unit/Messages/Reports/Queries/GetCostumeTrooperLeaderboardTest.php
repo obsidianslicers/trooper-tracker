@@ -9,6 +9,7 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -64,6 +65,26 @@ class GetCostumeTrooperLeaderboardTest extends TestCase
 
         $this->assertSame(1, (int) $result['top_troopers']->first()->troop_count);
         $this->assertSame(1, $result['stats']['total_deployments']);
+    }
+
+    public function test_handle_top_troopers_leave_out_events_whose_type_does_not_count(): void
+    {
+        $costume = Costume::factory()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $only_uncounted_trooper = Trooper::factory()->asMember()->create();
+        $uncounted = EventType::factory()->uncounted()->create();
+
+        $this->createAttendance($trooper, $costume, now()->subDays(3));
+        $this->createAttendance($trooper, $costume, now()->subDays(4))
+            ->event_shift->event->update([Event::TYPE => $uncounted->slug]);
+        $this->createAttendance($only_uncounted_trooper, $costume, now()->subDays(5))
+            ->event_shift->event->update([Event::TYPE => $uncounted->slug]);
+
+        $top_troopers = (new GetCostumeTrooperLeaderboard($costume))->handle()['top_troopers'];
+
+        $this->assertCount(1, $top_troopers);
+        $this->assertSame($trooper->id, $top_troopers->first()->trooper_id);
+        $this->assertSame(1, (int) $top_troopers->first()->troop_count);
     }
 
     public function test_handle_only_counts_attended_status(): void

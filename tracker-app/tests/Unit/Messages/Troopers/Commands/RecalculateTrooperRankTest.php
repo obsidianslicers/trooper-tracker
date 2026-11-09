@@ -538,6 +538,38 @@ class RecalculateTrooperRankTest extends TestCase
         $this->assertGreaterThan(0, (float) $this->achievementValue($trooper, AchievementType::VOLUNTEER_HOURS));
     }
 
+    public function test_handle_drops_past_troops_once_their_type_stops_counting_but_keeps_milestones(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $club = $this->createClub('501st Legion');
+        $event_type = EventType::factory()->create();
+        $event = Event::factory()->asClosed()->create([Event::TYPE => $event_type->slug]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($shift)
+            ->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => $club->id]);
+
+        (new RecalculateTrooperRank(trooper_id: $trooper->id, send_milestone_notifications: false))->handle();
+
+        $this->assertAchievementValue($trooper, AchievementType::TROOPER_SHIFTS, 1);
+        $this->assertHasAchievement($trooper, AchievementType::FIRST_TROOP);
+        $club_first_troop = [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::ORGANIZATION_ID => $club->id,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP->value,
+        ];
+        $this->assertDatabaseHas('tt_trooper_achievements', $club_first_troop);
+
+        $event_type->update([EventType::IS_COUNTED => false]);
+        (new RecalculateTrooperRank(trooper_id: $trooper->id, send_milestone_notifications: false))->handle();
+
+        $this->assertAchievementValue($trooper, AchievementType::TROOPER_SHIFTS, 0);
+        $this->assertHasAchievement($trooper, AchievementType::FIRST_TROOP);
+        $this->assertDatabaseHas('tt_trooper_achievements', $club_first_troop);
+    }
+
     private function createClub(string $name): Organization
     {
         $club = Organization::factory()->asOrganization()->withName($name)->create();
