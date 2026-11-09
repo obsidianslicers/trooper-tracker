@@ -43,7 +43,6 @@ use TroopTracker\Plugins\Xenforo\Notifications\EventForumPostNotification;
 use TroopTracker\Plugins\Xenforo\Notifications\ForumPostCommandStaffNotification;
 use TroopTracker\Plugins\Xenforo\Observers\EventThreadObserver;
 use TroopTracker\Plugins\Xenforo\Observers\EventTrooperThreadObserver;
-use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 use TroopTracker\Plugins\Xenforo\Socialite\XenforoProvider;
 use TroopTracker\Plugins\Xenforo\Threads\EventComments;
 
