@@ -14,7 +14,7 @@ Event types are rows in `tt_event_types` that administrators and staff officers 
 
 Events store their type's **slug** in `tt_events.type` (foreign key to `tt_event_types.slug`). Slugs never change, so renaming a type is safe. A type can only be deleted while no event uses it; otherwise hide it.
 
-The `2026_11_08_000001_create_event_types_table` migration seeds the twelve former enum values (`regular`, `armorparty`, `charity`, `publicrelations`, `disney`, `lucasfilm`, `convention`, `hospital`, `wedding`, `birthdayparty`, `virtualtroop`, `other`), all counted and offered, so nothing changes until an administrator edits them.
+The `2026_11_08_000001_create_event_types_table` migration seeds the twelve former enum values, all counted and offered: Regular first (it was the preselected type before), then the rest alphabetically as the form listed them. Nothing else changes until an administrator edits them.
 
 ### Types that don't count
 

@@ -13,9 +13,12 @@ use Illuminate\Support\Facades\Schema;
  */
 return new class extends Migration {
     /**
-     * The former enum cases, in the order the event form listed them.
+     * The former enum cases in the order the event form listed them (alphabetical),
+     * except Regular goes first: the form preselects the first type, and new
+     * events defaulted to Regular before.
      */
     private const DEFAULTS = [
+        ['regular', 'Regular', 'Standard costuming event.'],
         ['armorparty', 'Armor Party', 'Social gathering for armor building and maintenance.'],
         ['birthdayparty', 'Birthday Party', 'Private birthday party appearance.'],
         ['charity', 'Charity', 'Charitable fundraising event.'],
@@ -25,7 +28,6 @@ return new class extends Migration {
         ['lucasfilm', 'Lucas Film Limited', 'Lucasfilm/official Star Wars event.'],
         ['other', 'Other', 'Any other kind of event.'],
         ['publicrelations', 'Public Relations', 'Public relations or promotional appearance.'],
-        ['regular', 'Regular', 'Standard costuming event.'],
         ['virtualtroop', 'Virtual Troop', 'Online or remote virtual event.'],
         ['wedding', 'Wedding', 'Private wedding appearance.'],
     ];

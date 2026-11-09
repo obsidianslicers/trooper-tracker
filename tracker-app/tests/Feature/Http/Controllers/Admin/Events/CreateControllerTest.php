@@ -98,6 +98,17 @@ class CreateControllerTest extends TestCase
         $response->assertDontSee('@js(', false);
     }
 
+    public function test_invoke_preselects_regular_with_the_seeded_types(): void
+    {
+        $trooper = Trooper::factory()->asAdministrator()->create();
+
+        $response = $this->actingAs($trooper)->get(route('admin.events.create'));
+
+        $response->assertOk();
+        $response->assertSee("x-data=\"{ event_type: 'regular'", false);
+        $response->assertSeeInOrder(['value="regular"', 'value="armorparty"'], false);
+    }
+
     public function test_invoke_requires_authentication(): void
     {
         $response = $this->get(route('admin.events.create'));
