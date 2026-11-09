@@ -25,7 +25,7 @@ class CreateControllerTest extends TestCase
 
     public function test_invoke_opens_the_yes_no_fields_as_before(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $event = $this->actingAs($trooper)->get(route('admin.events.create'))->viewData('event');
 
@@ -40,7 +40,7 @@ class CreateControllerTest extends TestCase
 
     public function test_invoke_keeps_old_input_over_the_defaults(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $event = $this->actingAs($trooper)
             ->withSession(['_old_input' => ['name' => '', 'allow_blasters' => '0', 'venue' => 'Old Venue']])
@@ -53,7 +53,7 @@ class CreateControllerTest extends TestCase
 
     public function test_invoke_defaults_can_attend_from_the_organization(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->asOrganization()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.events.create'));
@@ -64,7 +64,7 @@ class CreateControllerTest extends TestCase
 
     public function test_invoke_keeps_an_unchecked_can_attend_after_a_failed_submit(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $checked = Organization::factory()->asOrganization()->create();
         $unchecked = Organization::factory()->asOrganization()->create();
 
