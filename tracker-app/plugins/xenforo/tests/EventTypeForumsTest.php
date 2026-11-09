@@ -81,7 +81,7 @@ class EventTypeForumsTest extends TestCase
 
     public function test_the_update_event_type_page_shows_the_forum_section(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event_type = EventType::factory()->create();
         EventTypeForum::store($event_type->id, [EventTypeForum::EVENT_FORUM_ID => 314]);
 
@@ -102,7 +102,7 @@ class EventTypeForumsTest extends TestCase
     public function test_the_forum_section_shows_without_an_api_key(): void
     {
         config(['plugins.xenforo.api_key' => null]);
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event_type = EventType::factory()->create();
 
         $response = $this->actingAs($trooper)
@@ -119,7 +119,7 @@ class EventTypeForumsTest extends TestCase
 
     public function test_administrators_save_an_event_types_forums(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->withVerifiedEmail()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->withVerifiedEmail()->create();
         $event_type = EventType::factory()->create();
 
         $response = $this->actingAs($trooper)

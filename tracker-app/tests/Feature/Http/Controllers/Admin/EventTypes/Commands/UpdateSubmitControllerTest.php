@@ -21,7 +21,7 @@ class UpdateSubmitControllerTest extends TestCase
 
     public function test_invoke_saves_settings_and_keeps_the_slug(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $armor_party = EventType::where(EventType::SLUG, 'armorparty')->firstOrFail();
 
         $response = $this->actingAs($trooper)
@@ -48,7 +48,7 @@ class UpdateSubmitControllerTest extends TestCase
      */
     public function test_marking_a_type_as_not_counting_reaches_events_that_already_happened(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $armor_party = EventType::where(EventType::SLUG, 'armorparty')->firstOrFail();
         $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))
@@ -85,7 +85,7 @@ class UpdateSubmitControllerTest extends TestCase
 
     public function test_invoke_allows_keeping_its_own_name(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $charity = EventType::where(EventType::SLUG, 'charity')->firstOrFail();
 
         $response = $this->actingAs($trooper)

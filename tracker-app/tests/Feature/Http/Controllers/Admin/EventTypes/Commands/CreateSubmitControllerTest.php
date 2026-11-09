@@ -15,7 +15,7 @@ class CreateSubmitControllerTest extends TestCase
 
     public function test_invoke_adds_the_type_at_the_end_with_a_slug(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $last = EventType::max(EventType::SORT_ORDER);
 
         $response = $this->actingAs($trooper)->post(route('admin.event-types.create'), [
@@ -38,7 +38,7 @@ class CreateSubmitControllerTest extends TestCase
 
     public function test_invoke_rejects_a_name_already_in_use(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->post(route('admin.event-types.create'), [
             'name' => 'Charity',

@@ -16,7 +16,7 @@ class DeleteSubmitControllerTest extends TestCase
 
     public function test_invoke_deletes_an_unused_type(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event_type = EventType::factory()->create();
 
         $response = $this->actingAs($trooper)
@@ -28,7 +28,7 @@ class DeleteSubmitControllerTest extends TestCase
 
     public function test_invoke_keeps_a_type_events_use(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event_type = EventType::factory()->create();
         Event::factory()->create([Event::TYPE => $event_type->slug]);
 

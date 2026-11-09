@@ -67,7 +67,7 @@ class CreateSubmitControllerTest extends TestCase
 
     public function test_invoke_rejects_an_event_type_hidden_from_the_form(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->asOrganization()->create();
         $hidden = EventType::factory()->inactive()->create();
 

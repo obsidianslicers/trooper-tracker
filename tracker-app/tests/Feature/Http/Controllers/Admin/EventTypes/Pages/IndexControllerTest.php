@@ -17,7 +17,7 @@ class IndexControllerTest extends TestCase
 
     public function test_invoke_lists_event_types_in_order_for_administrators(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         EventType::query()->update([EventType::SORT_ORDER => 50]);
         $first = EventType::factory()->create([EventType::SORT_ORDER => 1]);
         Event::factory()->create([Event::TYPE => 'charity']);

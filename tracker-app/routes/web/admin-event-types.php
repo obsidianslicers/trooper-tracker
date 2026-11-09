@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin/event-types')
     ->name('admin.event-types.')
-    ->middleware(['auth', 'check.role:staff_officer,administrator'])
+    ->middleware(['auth', 'check.role:staff_officer,system_owner'])
     ->group(function ()
     {
         Route::get('/', IndexController::class)->name('index');

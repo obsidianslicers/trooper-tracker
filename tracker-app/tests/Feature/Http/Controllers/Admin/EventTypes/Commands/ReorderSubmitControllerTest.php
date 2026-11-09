@@ -15,7 +15,7 @@ class ReorderSubmitControllerTest extends TestCase
 
     public function test_invoke_saves_the_new_order(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $ids = EventType::query()->ordered()->pluck(EventType::ID)->reverse()->values()->all();
 
         $response = $this->actingAs($trooper)

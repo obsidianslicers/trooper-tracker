@@ -57,7 +57,7 @@ role is refused what it can't reach, and every key flow is driven end to end. St
 
 | Area | Status |
 |------|--------|
-| Event Types page opens for administrators, refused to moderators | ✅ |
+| Event Types page opens for system owners, refused to moderators | ✅ |
 | Create a type that doesn't count; drag to reorder; hide from the event form; delete an unused type (not one in use) | ✅ |
 | Warning on the edit page that changing "counts" also changes past events | ✅ |
 | Event form preselects the first type and shows the chosen type's description and "doesn't count" note | ✅ |

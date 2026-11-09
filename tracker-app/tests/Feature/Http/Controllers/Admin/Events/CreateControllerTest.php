@@ -100,7 +100,7 @@ class CreateControllerTest extends TestCase
 
     public function test_invoke_preselects_regular_with_the_seeded_types(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.events.create'));
 

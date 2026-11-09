@@ -212,7 +212,7 @@ class UpdateSubmitControllerTest extends TestCase
 
     public function test_invoke_keeps_an_event_type_hidden_since_the_event_was_made(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $hidden = EventType::factory()->inactive()->create();
         $other_hidden = EventType::factory()->inactive()->create();
         $event = Event::factory()->state([Event::TYPE => $hidden->slug])->create();

@@ -76,7 +76,7 @@ class GetTrooperEventSummaryTest extends TestCase
 
     public function test_handle_excludes_events_whose_type_does_not_count(): void
     {
-        $moderator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $uncounted = EventType::factory()->uncounted()->create();
 

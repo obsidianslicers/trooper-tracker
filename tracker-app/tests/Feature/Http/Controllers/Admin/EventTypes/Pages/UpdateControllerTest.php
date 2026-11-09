@@ -17,7 +17,7 @@ class UpdateControllerTest extends TestCase
 
     public function test_invoke_shows_the_event_type_and_how_many_events_use_it(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event_type = EventType::factory()->uncounted()->create();
         Event::factory()->count(2)->create([Event::TYPE => $event_type->slug]);
 
@@ -34,7 +34,7 @@ class UpdateControllerTest extends TestCase
 
     public function test_create_page_renders_for_administrators(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.event-types.create'));
 
