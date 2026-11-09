@@ -9,7 +9,8 @@ use App\Models\Trooper;
 use App\Policies\Concerns\HasTrooperPermissionsTrait;
 
 /**
- * Event types change every trooper's troop totals, so only administrators manage them.
+ * Event types change every trooper's troop totals, so only administrators
+ * (and staff officers, who share administrator access) manage them.
  */
 class EventTypePolicy
 {

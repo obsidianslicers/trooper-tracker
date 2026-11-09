@@ -34,6 +34,15 @@ class IndexControllerTest extends TestCase
                 ->firstWhere('name', 'Charity')['can_delete'] === false));
     }
 
+    public function test_invoke_allows_staff_officers(): void
+    {
+        $trooper = Trooper::factory()->asStaffOfficer()->create();
+
+        $response = $this->actingAs($trooper)->get(route('admin.event-types.index'));
+
+        $response->assertOk();
+    }
+
     public function test_invoke_forbids_moderators(): void
     {
         $trooper = Trooper::factory()->asModerator()->create();

@@ -2,7 +2,7 @@
 
 ## Event Types
 
-Event types are rows in `tt_event_types` that administrators manage under **Command Staff → Event Types** (`/admin/event-types`). Each type has:
+Event types are rows in `tt_event_types` that administrators and staff officers manage under **Command Staff → Event Types** (`/admin/event-types`). Each type has:
 
 | Setting | Column | Effect |
 |---|---|---|
