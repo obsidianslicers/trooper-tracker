@@ -9,12 +9,12 @@ use Illuminate\Support\Facades\Route;
 //  ADMIN
 Route::prefix('admin')
     ->name('admin.')
-    ->middleware(['auth', 'check.role:moderator,staff_officer,administrator'])
+    ->middleware(['auth', 'check.role:moderator,staff_officer,system_owner'])
     ->group(function ()
     {
         Route::get('/', AdminDisplayController::class)->name('display');
 
         Route::get('/system-check', SystemCheckController::class)
             ->name('system-check')
-            ->middleware('check.role:administrator');
+            ->middleware('check.role:system_owner');
     });

@@ -511,7 +511,7 @@ All enums are backed by strings and use the `HasEnumHelpers` trait.
 - **EventStatus:** `draft`, `open`, `closed`, `cancelled`
 - **EventTrooperStatus:** `none`, `going`, `tentative`, `unavailable`
 - **EventType:** `regular`, `special`, `fundraiser`
-- **MembershipRole:** `member`, `handler`, `visitor`, `event_coordinator`, `moderator`, `staff_officer`, `administrator` (System Owner)
+- **MembershipRole:** `member`, `handler`, `visitor`, `event_coordinator`, `moderator`, `staff_officer`, `system_owner`
 - **MembershipStatus:** `pending`, `active`, `retired`
 - **NoticeType:** `info`, `warning`, `alert`
 - **NotificationFrequency:** `never`, `instant`, `daily`

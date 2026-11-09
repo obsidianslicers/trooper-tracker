@@ -46,9 +46,9 @@ enum MembershipRole: string
     case STAFF_OFFICER = 'staff_officer';
 
     /**
-     * The System Owner: full access, including the developer tools. Stored as "administrator".
+     * The System Owner: full access, including the developer tools.
      */
-    case SYSTEM_OWNER = 'administrator';
+    case SYSTEM_OWNER = 'system_owner';
 
     public function toAccountType(): string
     {

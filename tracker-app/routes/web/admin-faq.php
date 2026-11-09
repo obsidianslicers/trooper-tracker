@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin/faq')
     ->name('admin.faq.')
-    ->middleware(['auth', 'check.role:staff_officer,administrator'])
+    ->middleware(['auth', 'check.role:staff_officer,system_owner'])
     ->group(function ()
     {
         Route::get('/index', IndexController::class)->name('index');

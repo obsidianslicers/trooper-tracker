@@ -157,7 +157,7 @@ class StaffOfficerAccessTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('value="staff_officer"', false);
-        $response->assertDontSee('value="administrator"', false);
+        $response->assertDontSee('value="system_owner"', false);
     }
 
     public function test_staff_officer_cannot_make_themselves_an_administrator(): void
@@ -221,7 +221,7 @@ class StaffOfficerAccessTest extends TestCase
             'value="event_coordinator"',
             'value="moderator"',
             'value="staff_officer"',
-            'value="administrator"',
+            'value="system_owner"',
         ], false);
     }
 }

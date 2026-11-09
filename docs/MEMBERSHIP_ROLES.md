@@ -165,7 +165,7 @@ System Owner access without the developer tools. Sits just below SYSTEM_OWNER.
 
 **Cannot:**
 - Open Plugins, System Check, Merge Troopers, or Merge Costumes
-  (`Trooper::has_system_owner`, routes use `check.role:administrator`)
+  (`Trooper::has_system_owner`, routes use `check.role:system_owner`)
 - Make anyone a SYSTEM_OWNER, or change a SYSTEM_OWNER's role
 - Be changed through a permission request
 
@@ -176,7 +176,7 @@ System Owner access without the developer tools. Sits just below SYSTEM_OWNER.
 
 ### SYSTEM_OWNER
 
-Full unrestricted system access, shown as **System Owner** (stored value `administrator`). Cannot be self-assigned.
+Full unrestricted system access, shown as **System Owner**. Cannot be self-assigned.
 
 **Can:**
 - Everything a MODERATOR can, without any org scoping
