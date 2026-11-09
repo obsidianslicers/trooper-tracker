@@ -400,7 +400,8 @@ class ReconcilePluginsTest extends TestCase
 
         foreach ((new Filesystem)->allFiles($folder.'/keeper') as $file)
         {
-            $files['keeper/'.$file->getRelativePathname()] = $file->getContents();
+            $relative = str_replace('\\', '/', $file->getRelativePathname());
+            $files['keeper/'.$relative] = $file->getContents();
         }
 
         (new Filesystem)->deleteDirectory($folder);

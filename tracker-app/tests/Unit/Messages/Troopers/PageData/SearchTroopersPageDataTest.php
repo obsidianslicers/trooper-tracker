@@ -35,10 +35,10 @@ class SearchTroopersPageDataTest extends TestCase
             Trooper::EMAIL => 'bravo@example.com',
         ]);
 
-        Mockery::mock('alias:' . SearchTroopers::class)
+        Mockery::mock('alias:'.SearchTroopers::class)
             ->shouldReceive('call')
             ->once()
-            ->withArgs(function (Trooper $trooper, string $search_term, ?int $organization_id, TrooperSearchMode $search_mode, ) use ($requesting_trooper): bool
+            ->withArgs(function (Trooper $trooper, string $search_term, ?int $organization_id, TrooperSearchMode $search_mode) use ($requesting_trooper): bool
             {
                 return $trooper === $requesting_trooper
                     && $search_term === 'Trooper'
@@ -79,7 +79,7 @@ class SearchTroopersPageDataTest extends TestCase
             Trooper::ID => 10,
         ]);
 
-        Mockery::mock('alias:' . SearchTroopers::class)
+        Mockery::mock('alias:'.SearchTroopers::class)
             ->shouldReceive('call')
             ->once()
             ->andReturn(collect());

@@ -21,7 +21,7 @@ class GetModeratorsTest extends TestCase
         Trooper::factory()->asMember()->withDisplayName('Member Trooper')->create();
         Trooper::factory()->asModerator()->asRetired()->withDisplayName('Retired Moderator')->create();
 
-        $subject = new GetModerators();
+        $subject = new GetModerators;
 
         $result = $subject->handle();
 

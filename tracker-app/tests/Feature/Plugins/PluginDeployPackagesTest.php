@@ -164,6 +164,11 @@ class PluginDeployPackagesTest extends TestCase
 
     public function test_the_saved_requirements_stay_writable_by_the_deploy_user(): void
     {
+        if (DIRECTORY_SEPARATOR === '\\')
+        {
+            $this->markTestSkipped('File permissions are not reliably reported on Windows.');
+        }
+
         $this->writePlugin('sheets', ['laravel/framework' => '*']);
         $this->plugins->enable('sheets');
 

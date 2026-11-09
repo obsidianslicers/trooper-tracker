@@ -109,11 +109,11 @@ class MergeTrooperAchievementsTest extends TestCase
         $this->assertTrue((bool) $target_achievement->{TrooperAchievement::VALUE});
         $this->assertTrue(
             $target_achievement->{TrooperAchievement::ACHIEVEMENT_DATE}
-                    ?->equalTo($source_achievement->{TrooperAchievement::ACHIEVEMENT_DATE}),
+                ?->equalTo($source_achievement->{TrooperAchievement::ACHIEVEMENT_DATE}),
         );
         $this->assertTrue(
             $target_achievement->{TrooperAchievement::NOTIFICATION_SENT_AT}
-                    ?->equalTo($source_achievement->{TrooperAchievement::NOTIFICATION_SENT_AT}),
+                ?->equalTo($source_achievement->{TrooperAchievement::NOTIFICATION_SENT_AT}),
         );
         $this->assertSame(
             1,

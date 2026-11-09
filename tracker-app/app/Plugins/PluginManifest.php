@@ -93,6 +93,8 @@ final readonly class PluginManifest
         $namespace = self::namespace($data, $slug);
         $requires = self::requires($data, $slug);
 
+        $normalized_path = rtrim($path, '/\\');
+
         return new self(
             slug: $slug,
             name: (string) ($data['name'] ?? $slug),
@@ -100,9 +102,9 @@ final readonly class PluginManifest
             description: (string) ($data['description'] ?? ''),
             author: (string) ($data['author'] ?? ''),
             provider: ltrim($data['provider'], '\\'),
-            path: rtrim($path, DIRECTORY_SEPARATOR),
+            path: $normalized_path,
             namespace: $namespace,
-            source_path: $namespace === null ? null : rtrim($path, DIRECTORY_SEPARATOR).'/src',
+            source_path: $namespace === null ? null : $normalized_path.'/src',
             settings: array_map(
                 fn (array $setting): PluginSetting => PluginSetting::fromArray($setting),
                 array_values($data['settings'] ?? []),

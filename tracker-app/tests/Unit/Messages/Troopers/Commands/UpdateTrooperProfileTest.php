@@ -70,7 +70,7 @@ class UpdateTrooperProfileTest extends TestCase
             trooper: $trooper,
             legal_name: 'Legal Name',
             display_name: 'Display Name',
-            theme: TrooperTheme::CLONE ,
+            theme: TrooperTheme::CLONE,
             phone: null,
             display_costume_id: null,
         );
@@ -81,7 +81,7 @@ class UpdateTrooperProfileTest extends TestCase
             Trooper::ID => $trooper->id,
             Trooper::LEGAL_NAME => 'Legal Name',
             Trooper::DISPLAY_NAME => 'Display Name',
-            Trooper::THEME => TrooperTheme::CLONE ->value,
+            Trooper::THEME => TrooperTheme::CLONE->value,
             Trooper::PHONE => null,
             Trooper::DISPLAY_COSTUME_ID => null,
         ]);
