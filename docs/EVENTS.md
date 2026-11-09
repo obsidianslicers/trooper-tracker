@@ -2,24 +2,27 @@
 
 ## Event Types
 
-Events are categorized by type for reporting and filtering. **Type does not affect business logic** — all 12 types share identical signup, capacity, and status-transition behavior.
+Event types are rows in `tt_event_types` that administrators manage under **Command Staff → Event Types** (`/admin/event-types`). Each type has:
 
-| Enum | DB Value | Description |
+| Setting | Column | Effect |
 |---|---|---|
-| `REGULAR` | `regular` | Standard costuming appearance |
-| `ARMOR_PARTY` | `armorparty` | Social armor build/maintenance gathering |
-| `CHARITY` | `charity` | Charitable fundraising event |
-| `PUBLIC_RELATIONS` | `publicrelations` | PR or promotional appearance |
-| `DISNEY` | `disney` | Disney-related appearance |
-| `LUCAS_FILM_LIMITED` | `lucasfilm` | Official Lucasfilm/Star Wars event |
-| `CONVENTION` | `convention` | Convention or expo |
-| `HOSPITAL` | `hospital` | Hospital visit or patient interaction |
-| `WEDDING` | `wedding` | Private wedding appearance |
-| `BIRTHDAY_PARTY` | `birthdayparty` | Private birthday party |
-| `VIRTUAL_TROOP` | `virtualtroop` | Online/remote virtual event |
-| `OTHER` | `other` | Anything else |
+| Name | `name` | Shown in the event form's Event Type list and on reports |
+| Description | `description` | Shown under the Event Type list once the type is picked |
+| Order | `sort_order` | Drag-sorted; the event form lists types in this order and preselects the first for new events |
+| Counts toward troop totals | `is_counted` | When off, attending doesn't add to troop totals (see below), and the event page warns members above the roster |
+| Offered on the event form | `is_active` | When off, new events can't pick it; events that already use it keep it |
 
-**Source:** `app/Enums/EventType.php`
+Events store their type's **slug** in `tt_events.type` (foreign key to `tt_event_types.slug`). Slugs never change, so renaming a type is safe. A type can only be deleted while no event uses it; otherwise hide it.
+
+The `2026_11_08_000001_create_event_types_table` migration seeds the twelve former enum values (`regular`, `armorparty`, `charity`, `publicrelations`, `disney`, `lucasfilm`, `convention`, `hospital`, `wedding`, `birthdayparty`, `virtualtroop`, `other`), all counted and offered, so nothing changes until an administrator edits them.
+
+### Types that don't count
+
+A type with `is_counted = false` is left out of everything that counts a trooper's troops: the shift count, rank and troop milestones (`RecalculateTrooperRank`, overall and per club), the service record's per-club troop counts, the leaderboard's top troopers and costume leaderboards, the trooper event summary report, the public API's trooper history (`troopCount`), and the troop history the HoloNet plugin shares. Volunteer hours and charity totals still include these events, and they still appear in a trooper's history.
+
+Queries use `Event::counted()` / `EventTrooper::counted()`, or `whereNotIn('tt_events.type', EventType::query()->uncountedSlugs())` in raw joins. Because counts are worked out when queried, changing a type's setting applies to its past events too: leaderboards change right away, the stored shift count at the nightly `tracker:calculate-trooper-achievements` run. Milestones already awarded are not taken back.
+
+**Source:** `app/Models/EventType.php`, `app/Messages/EventTypes/`
 
 ---
 

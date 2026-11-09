@@ -9,6 +9,12 @@
     @endif
 </div>
 
+@unless($event->isCounted())
+    <x-message type="warning">
+        {{ $event->event_type->name }} events don't count toward your troop total.
+    </x-message>
+@endunless
+
 @php($count_of_shifts = $event->event_shifts->count())
 @if($count_of_shifts > 1)
     <div class="row mb-3">

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\EventStatus;
-use App\Enums\EventType;
 use App\Models\Event;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Database\Factories\Base\EventFactory as BaseEventFactory;
@@ -30,7 +30,7 @@ class EventFactory extends BaseEventFactory
             Event::EVENT_END => $ends_at,
             Event::TROOPERS_ALLOWED => $this->faker->numberBetween(10, 50),
             Event::HANDLERS_ALLOWED => $this->faker->numberBetween(2, 5),
-            Event::TYPE => EventType::REGULAR->value,
+            Event::TYPE => EventType::DEFAULT_SLUG,
             Event::STATUS => EventStatus::OPEN,
 
             Event::LATITUDE => $this->faker->latitude(),

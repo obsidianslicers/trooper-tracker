@@ -10,6 +10,7 @@ use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -29,6 +30,19 @@ class EventDisplayControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('pages.events.event-display');
+        $response->assertDontSee("doesn't count toward your troop total", false);
+    }
+
+    public function test_invoke_warns_when_the_event_type_does_not_count(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event_type = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party Plus']);
+        $event = Event::factory()->create([Event::TYPE => $event_type->slug]);
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSee("Armor Party Plus events don't count toward your troop total.", false);
     }
 
     public function test_invoke_displays_charity_hours_and_notes_without_funds_or_name(): void

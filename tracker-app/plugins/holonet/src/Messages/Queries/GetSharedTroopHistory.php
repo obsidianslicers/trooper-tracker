@@ -36,7 +36,8 @@ final class GetSharedTroopHistory extends Message
             ->where(EventTrooper::TROOPER_ID, $this->trooper->id)
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
             ->whereHas('event_shift.event', fn ($query) => $query
-                ->where(Event::STATUS, EventStatus::CLOSED->value))
+                ->where(Event::STATUS, EventStatus::CLOSED->value)
+                ->counted())
             ->with(['event_shift.event', 'costume'])
             ->orderBy(EventTrooper::ID)
             ->get();
@@ -57,7 +58,7 @@ final class GetSharedTroopHistory extends Message
         return [
             'id' => (string) $signup->id,
             'event_name' => $event->name,
-            'event_type' => $event->type?->value,
+            'event_type' => $event->type,
             'venue' => $event->venue,
             'shift_starts_at' => $shift->shift_starts_at->toIso8601String(),
             'shift_ends_at' => $shift->shift_ends_at->toIso8601String(),

@@ -64,7 +64,9 @@ trait HasOrgCreditAnnotation
                 $candidate_orgs
             );
 
-            foreach ($credited_ids as $org_id)
+            $is_counted = !isset($shift->event) || $shift->event->isCounted();
+
+            foreach ($is_counted ? $credited_ids : [] as $org_id)
             {
                 $troop_counts[$org_id] = ($troop_counts[$org_id] ?? 0) + 1;
             }

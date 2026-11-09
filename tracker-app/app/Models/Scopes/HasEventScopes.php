@@ -10,6 +10,7 @@ use App\Enums\EventTrooperStatus;
 use App\Models\Base\EventGuest;
 use App\Models\Base\EventTrooper;
 use App\Models\EventShift;
+use App\Models\EventType;
 use App\Models\Trooper;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,20 @@ trait HasEventScopes
         ];
 
         return $query->whereIn(self::STATUS, $status_list);
+    }
+
+    /**
+     * Scope a query to events whose type counts toward troop totals.
+     *
+     * @param Builder<self> $query The Eloquent query builder.
+     * @return Builder<self>
+     */
+    public function scopeCounted(Builder $query): Builder
+    {
+        return $query->whereNotIn(
+            $query->qualifyColumn(self::TYPE),
+            EventType::query()->uncountedSlugs()
+        );
     }
 
     /**

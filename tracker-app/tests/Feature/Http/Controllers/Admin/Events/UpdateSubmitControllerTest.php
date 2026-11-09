@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Enums\EventType;
 use App\Jobs\SendEventCancelledNotificationsJob;
 use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -57,7 +57,7 @@ class UpdateSubmitControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/update', [
             'name' => 'Imperial Muster',
-            'type' => EventType::REGULAR->value,
+            'type' => 'regular',
             'status' => EventStatus::OPEN->value,
             'organization_id' => $event->organization_id,
             'event_start' => $event_start->format('Y-m-d H:i:s'),
@@ -92,7 +92,7 @@ class UpdateSubmitControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/update', [
             'name' => 'Imperial Muster',
-            'type' => EventType::REGULAR->value,
+            'type' => 'regular',
             'status' => EventStatus::CANCELLED->value,
             'organization_id' => $event->organization_id,
             'event_start' => $event_start->format('Y-m-d H:i:s'),
@@ -124,7 +124,7 @@ class UpdateSubmitControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/update', [
             'name' => 'Imperial Muster',
-            'type' => EventType::REGULAR->value,
+            'type' => 'regular',
             'status' => EventStatus::CANCELLED->value,
             'organization_id' => $event->organization_id,
             'event_start' => $event_start->format('Y-m-d H:i:s'),
@@ -153,7 +153,7 @@ class UpdateSubmitControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/update', [
             'name' => 'Imperial Muster',
-            'type' => EventType::REGULAR->value,
+            'type' => 'regular',
             'status' => EventStatus::OPEN->value,
             'organization_id' => $new_host->id,
             'event_start' => $event_start->format('Y-m-d H:i:s'),
@@ -194,7 +194,7 @@ class UpdateSubmitControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/update', [
             'name' => 'Imperial Muster',
-            'type' => EventType::REGULAR->value,
+            'type' => 'regular',
             'status' => EventStatus::OPEN->value,
             'organization_id' => $other_organization->id,
             'event_start' => now()->addDays(7)->format('Y-m-d H:i:s'),
@@ -208,5 +208,38 @@ class UpdateSubmitControllerTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(Event::ORGANIZATION_ID);
+    }
+
+    public function test_invoke_keeps_an_event_type_hidden_since_the_event_was_made(): void
+    {
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $hidden = EventType::factory()->inactive()->create();
+        $other_hidden = EventType::factory()->inactive()->create();
+        $event = Event::factory()->state([Event::TYPE => $hidden->slug])->create();
+
+        $this->actingAs($trooper)
+            ->post('/admin/events/'.$event->id.'/update', $this->typePayload($event, $hidden->slug))
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($trooper)
+            ->post('/admin/events/'.$event->id.'/update', $this->typePayload($event, $other_hidden->slug))
+            ->assertSessionHasErrors('type');
+
+        $this->assertSame($hidden->slug, $event->fresh()->type);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function typePayload(Event $event, string $type): array
+    {
+        return [
+            'name' => 'Imperial Muster',
+            'type' => $type,
+            'status' => EventStatus::DRAFT->value,
+            'organization_id' => $event->organization_id,
+            'event_start' => now()->addDays(7)->format('Y-m-d H:i:s'),
+            'event_end' => now()->addDays(7)->addHours(4)->format('Y-m-d H:i:s'),
+        ];
     }
 }

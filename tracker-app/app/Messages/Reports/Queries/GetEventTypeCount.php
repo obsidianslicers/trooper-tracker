@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Messages\Reports\Queries;
 
 use App\Enums\EventStatus;
-use App\Enums\EventType;
 use App\Messages\Concerns\HasLookback;
 use App\Models\Event;
+use App\Models\EventType;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Hyperdrive\Message;
@@ -67,17 +67,19 @@ final class GetEventTypeCount extends Message
                 ->count();
         };
 
+        $types = EventType::query()->ordered()->get()->keyBy(EventType::SLUG);
+
         return Event::with('event_shifts.event_troopers')
             ->moderatedBy($this->moderator)
             ->where(Event::STATUS, EventStatus::CLOSED)
             ->where(Event::EVENT_START, '>=', $lookback)
-            ->orderBy(Event::TYPE)
             ->get()
             ->groupBy(Event::TYPE)
-            ->map(function ($events, $type) use ($total_counter, $unique_counter)
+            ->sortBy(fn ($events, $type) => $types->keys()->search($type))
+            ->map(function ($events, $type) use ($types, $total_counter, $unique_counter)
             {
                 return (object) [
-                    'event_type' => EventType::from($type),
+                    'event_type' => $types->get($type),
                     'count' => $events->count(),
                     'total_trooper_count' => $events->sum($total_counter),
                     'unique_trooper_count' => $unique_counter($events),

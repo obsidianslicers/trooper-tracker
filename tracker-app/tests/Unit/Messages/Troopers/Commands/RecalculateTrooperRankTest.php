@@ -12,6 +12,7 @@ use App\Messages\Troopers\Commands\RecalculateTrooperRank;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
@@ -490,6 +491,51 @@ class RecalculateTrooperRankTest extends TestCase
             ->where(TrooperAchievement::TYPE, AchievementType::FIRST_TROOP)
             ->value(TrooperAchievement::NOTIFICATION_SENT_AT));
         Bus::assertNotDispatched(SendTrooperMilestoneNotificationsJob::class);
+    }
+
+    public function test_handle_skips_events_whose_type_does_not_count(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $club = $this->createClub('501st Legion');
+        $uncounted = EventType::factory()->uncounted()->create();
+
+        $counted_shift = $this->createClosedShift();
+        $uncounted_event = Event::factory()->asClosed()->create([Event::TYPE => $uncounted->slug]);
+        $uncounted_shift = EventShift::factory()->forEvent($uncounted_event)->create();
+
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($counted_shift)
+            ->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($uncounted_shift)
+            ->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => $club->id]);
+
+        (new RecalculateTrooperRank(trooper_id: $trooper->id))->handle();
+
+        $this->assertAchievementValue($trooper, AchievementType::TROOPER_SHIFTS, 1);
+        $this->assertDatabaseMissing('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::ORGANIZATION_ID => $club->id,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP->value,
+        ]);
+    }
+
+    public function test_handle_still_adds_hours_from_events_that_do_not_count(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $uncounted = EventType::factory()->uncounted()->create();
+        $event = Event::factory()->asClosed()->create([Event::TYPE => $uncounted->slug]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forTrooper($trooper)->forEventShift($shift)->asAttended()->create();
+
+        (new RecalculateTrooperRank(trooper_id: $trooper->id))->handle();
+
+        $this->assertAchievementValue($trooper, AchievementType::TROOPER_SHIFTS, 0);
+        $this->assertGreaterThan(0, (float) $this->achievementValue($trooper, AchievementType::VOLUNTEER_HOURS));
     }
 
     private function createClub(string $name): Organization

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Reports\Queries;
 
-use App\Enums\EventType;
 use App\Messages\Reports\Queries\GetEventTypeCount;
 use App\Models\Event;
 use App\Models\EventShift;
@@ -26,8 +25,8 @@ class GetEventTypeCountTest extends TestCase
         $org = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
 
-        Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(10))->create(['type' => EventType::REGULAR]);
-        Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create(['type' => EventType::CHARITY]);
+        Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(10))->create(['type' => 'regular']);
+        Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create(['type' => 'charity']);
 
         $result = (new GetEventTypeCount($moderator, 30))->handle();
 
@@ -40,12 +39,12 @@ class GetEventTypeCountTest extends TestCase
         $org = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
 
-        Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(10))->count(3)->create(['type' => EventType::REGULAR]);
+        Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(10))->count(3)->create(['type' => 'regular']);
 
         $result = (new GetEventTypeCount($moderator, 30))->handle();
 
         $this->assertSame(3, $result->first()->count);
-        $this->assertSame(EventType::REGULAR, $result->first()->event_type);
+        $this->assertSame('regular', $result->first()->event_type->slug);
     }
 
     public function test_handle_calculates_total_trooper_count(): void
@@ -54,7 +53,7 @@ class GetEventTypeCountTest extends TestCase
         $org = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
 
-        $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(10))->create(['type' => EventType::REGULAR]);
+        $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(10))->create(['type' => 'regular']);
         $shift = EventShift::factory()->forEvent($event)->create();
 
         EventTrooper::factory()->forEventShift($shift)->count(5)->create();
@@ -72,8 +71,8 @@ class GetEventTypeCountTest extends TestCase
 
         $trooper = Trooper::factory()->asMember()->create();
 
-        $event1 = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(10))->create(['type' => EventType::REGULAR]);
-        $event2 = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create(['type' => EventType::REGULAR]);
+        $event1 = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(10))->create(['type' => 'regular']);
+        $event2 = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create(['type' => 'regular']);
 
         $shift1 = EventShift::factory()->forEvent($event1)->create();
         $shift2 = EventShift::factory()->forEvent($event2)->create();
@@ -92,8 +91,8 @@ class GetEventTypeCountTest extends TestCase
         $org = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
 
-        Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-02-15'))->create(['type' => EventType::REGULAR]);
-        Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-15'))->create(['type' => EventType::REGULAR]);
+        Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-02-15'))->create(['type' => 'regular']);
+        Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-15'))->create(['type' => 'regular']);
 
         $result = (new GetEventTypeCount($moderator, Carbon::parse('2026-02-01')))->handle();
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Seeders\FloridaGarrison\Traits;
 
-use App\Enums\EventType;
 use App\Enums\MembershipStatus;
 
 trait HasEnumMaps
@@ -22,23 +21,27 @@ trait HasEnumMaps
         };
     }
 
-    public static function eventLabelFromLegacyId(int $id): EventType
+    /**
+     * The slug of the event type a legacy event label maps to. Every slug here is one
+     * of the types the create_event_types migration seeds.
+     */
+    public static function eventLabelFromLegacyId(int $id): string
     {
         return match ($id)
         {
-            0 => EventType::REGULAR,
-            10 => EventType::ARMOR_PARTY,
-            1 => EventType::CHARITY,
-            2 => EventType::PUBLIC_RELATIONS,
-            3 => EventType::DISNEY,
-            11 => EventType::LUCAS_FILM_LIMITED,
-            4 => EventType::CONVENTION,
-            9 => EventType::HOSPITAL,
-            5 => EventType::WEDDING,
-            6 => EventType::BIRTHDAY_PARTY,
-            7 => EventType::VIRTUAL_TROOP,
-            8 => EventType::OTHER,
-            default => EventType::OTHER,
+            0 => 'regular',
+            10 => 'armorparty',
+            1 => 'charity',
+            2 => 'publicrelations',
+            3 => 'disney',
+            11 => 'lucasfilm',
+            4 => 'convention',
+            9 => 'hospital',
+            5 => 'wedding',
+            6 => 'birthdayparty',
+            7 => 'virtualtroop',
+            8 => 'other',
+            default => 'other',
         };
     }
 

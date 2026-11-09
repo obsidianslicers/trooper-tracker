@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace TroopTracker\Plugins\Xenforo\Tests;
 
 use App\Enums\EventStatus;
-use App\Enums\EventType;
 use App\Events\EventClosed;
 use App\Events\EventPosted;
 use App\Models\Event;
@@ -116,7 +115,7 @@ class EventThreadsTest extends TestCase
 
         $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/update', [
             'name' => 'Imperial Muster',
-            'type' => EventType::REGULAR->value,
+            'type' => 'regular',
             'status' => EventStatus::DRAFT->value,
             'organization_id' => $event->organization_id,
             'event_start' => now()->addDays(7)->format('Y-m-d H:i:s'),

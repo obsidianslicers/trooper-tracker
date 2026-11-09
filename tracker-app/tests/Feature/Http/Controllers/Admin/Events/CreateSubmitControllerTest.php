@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Enums\EventType;
 use App\Jobs\SendEventCreatedNotificationsJob;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -47,7 +47,7 @@ class CreateSubmitControllerTest extends TestCase
         $response = $this->actingAs($trooper)->post('/admin/events/create', [
             'organization_id' => $organization->id,
             'name' => 'Imperial Muster',
-            'type' => EventType::REGULAR->value,
+            'type' => 'regular',
             'status' => EventStatus::OPEN->value,
             'event_start' => $event_start->format('Y-m-d H:i:s'),
             'event_end' => $event_end->format('Y-m-d H:i:s'),
@@ -63,6 +63,24 @@ class CreateSubmitControllerTest extends TestCase
         $this->assertDatabaseHas('tt_event_shifts', [
             'status' => EventStatus::OPEN->value,
         ]);
+    }
+
+    public function test_invoke_rejects_an_event_type_hidden_from_the_form(): void
+    {
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $organization = Organization::factory()->asOrganization()->create();
+        $hidden = EventType::factory()->inactive()->create();
+
+        $response = $this->actingAs($trooper)->post('/admin/events/create', [
+            'organization_id' => $organization->id,
+            'name' => 'Imperial Muster',
+            'type' => $hidden->slug,
+            'status' => EventStatus::DRAFT->value,
+            'event_start' => now()->addDays(7)->format('Y-m-d H:i:s'),
+            'event_end' => now()->addDays(7)->addHours(4)->format('Y-m-d H:i:s'),
+        ]);
+
+        $response->assertSessionHasErrors('type');
     }
 
 }

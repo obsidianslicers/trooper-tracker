@@ -29,8 +29,8 @@
             @forelse ($event_types as $event_type)
                 <tr>
                     <td class="text-nowrap">
-                        <a href="{{ route('admin.events.list', ['type' => $event_type->event_type]) }}">
-                            {{ to_title($event_type->event_type->name)}}
+                        <a href="{{ route('admin.events.list', ['type' => $event_type->event_type->slug]) }}">
+                            {{ $event_type->event_type->name }}
                         </a>
                     </td>
                     <td class="text-end">

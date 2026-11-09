@@ -8,6 +8,7 @@ use App\Messages\Reports\Queries\GetTrooperEventSummary;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -64,6 +65,23 @@ class GetTrooperEventSummaryTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
 
         $event = Event::factory()->withEventStart(now()->subDays(10))->create(); // open, not closed
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
+
+        $result = (new GetTrooperEventSummary($moderator))->handle();
+
+        $this->assertCount(0, $result);
+    }
+
+    public function test_handle_excludes_events_whose_type_does_not_count(): void
+    {
+        $moderator = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $uncounted = EventType::factory()->uncounted()->create();
+
+        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(10))
+            ->create([Event::TYPE => $uncounted->slug]);
         $shift = EventShift::factory()->forEvent($event)->create();
 
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();

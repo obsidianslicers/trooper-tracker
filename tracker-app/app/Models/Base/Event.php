@@ -11,6 +11,7 @@ use App\Models\EventNotification;
 use App\Models\EventOrganization;
 use App\Models\EventShare;
 use App\Models\EventShift;
+use App\Models\EventType;
 use App\Models\EventUpload;
 use App\Models\EventWatch;
 use App\Models\Organization;
@@ -70,6 +71,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $deleted_id
  * 
  * @property Organization $organization
+ * @property EventType $event_type
  * @property Collection|EventMissionAck[] $event_mission_acks
  * @property Collection|EventNotification[] $event_notifications
  * @property Collection|Organization[] $organizations
@@ -201,6 +203,11 @@ class Event extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, \App\Models\Event::PRIMARY_ORGANIZATION_ID);
+    }
+
+    public function event_type(): BelongsTo
+    {
+        return $this->belongsTo(EventType::class, \App\Models\Event::TYPE, EventType::SLUG);
     }
 
     public function event_mission_acks(): HasMany

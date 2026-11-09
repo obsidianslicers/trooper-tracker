@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Filters;
 
 use App\Enums\EventStatus;
-use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use Illuminate\Database\Eloquent\Builder;
@@ -52,9 +51,7 @@ class EventFilter extends QueryFilter
      */
     protected function type(Builder $query, $type): Builder
     {
-        $type = EventType::from($type);
-
-        return $query->where(Event::TYPE, $type);
+        return $query->where(Event::TYPE, (string) $type);
     }
 
     /**

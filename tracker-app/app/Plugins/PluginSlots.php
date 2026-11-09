@@ -51,6 +51,7 @@ class PluginSlots
         'account.profile.sections',
         'account.pending.sections',
         'admin.troopers.approvals.sections',
+        'admin.event-types.update.sections',
     ];
 
     /**

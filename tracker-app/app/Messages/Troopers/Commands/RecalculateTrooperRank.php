@@ -62,7 +62,7 @@ final class RecalculateTrooperRank extends Message
         $with_count = [
             'event_troopers as event_count' => function ($q)
             {
-                $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
+                $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)->counted();
             },
         ];
 
@@ -430,6 +430,7 @@ final class RecalculateTrooperRank extends Message
     {
         $event_troopers = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
+            ->counted()
             ->get([
                 EventTrooper::ID,
                 EventTrooper::ORGANIZATION_ID,

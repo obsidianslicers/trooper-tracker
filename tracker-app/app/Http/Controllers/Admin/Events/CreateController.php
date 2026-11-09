@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Enums\EventType;
 use App\Http\Controllers\PageController;
 use App\Messages\Organizations\Queries\GetOrganizationTree;
 use App\Models\Event;
 use App\Models\EventOrganization;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
@@ -36,7 +36,7 @@ class CreateController extends PageController
      * Displays the event creation form with a new event instance
      *
      * Authorizes the user can create events, initializes a new Event model
-     * with default values (REGULAR type, DRAFT status), and optionally assigns
+     * with default values (the first event type on the list, DRAFT status), and optionally assigns
      * an organization from query parameters. Returns the view with the event,
      * organization hierarchy, and available organizations.
      *
@@ -55,7 +55,7 @@ class CreateController extends PageController
         $event = new Event;
 
         // Set defaults
-        $event->type = EventType::REGULAR;
+        $event->type = EventType::query()->active()->ordered()->value(EventType::SLUG);
         $event->status = EventStatus::DRAFT;
         $event->require_mission_brief_ack = false;
 

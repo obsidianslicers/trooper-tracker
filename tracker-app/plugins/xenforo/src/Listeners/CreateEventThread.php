@@ -8,12 +8,14 @@ use App\Events\EventPosted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Models\EventTypeForum;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 use TroopTracker\Plugins\Xenforo\Services\ForumThreadMessageService;
 use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
- * Opens a forum thread for a newly posted event in its organization's forum.
+ * Opens a forum thread for a newly posted event in its event type's forum, or else its
+ * organization's.
  */
 class CreateEventThread implements ShouldQueue
 {
@@ -25,7 +27,8 @@ class CreateEventThread implements ShouldQueue
     public function handle(EventPosted $posted): void
     {
         $event = $posted->event;
-        $forum_id = OrganizationForum::forOrganization($event->organization?->id)?->event_forum_id;
+        $forum_id = EventTypeForum::forEvent($event)?->event_forum_id
+            ?: OrganizationForum::forOrganization($event->organization?->id)?->event_forum_id;
 
         if (empty($forum_id) || !$this->shouldCreate($event->id))
         {
@@ -45,7 +48,7 @@ class CreateEventThread implements ShouldQueue
         {
             Log::warning('Failed to create XenForo thread for event', [
                 'event' => $event->id,
-                'org' => $event->organization->id,
+                'org' => $event->organization?->id,
                 'status' => $result['status'] ?? null,
                 'body' => $result['body'] ?? null,
             ]);
