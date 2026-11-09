@@ -15,7 +15,7 @@ class ReorderItemsSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_item_sort_order_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $faq_a = Faq::factory()->create([Faq::SORT_ORDER => 1]);
         $faq_b = Faq::factory()->create([Faq::SORT_ORDER => 2]);
         $faq_c = Faq::factory()->create([Faq::SORT_ORDER => 3]);

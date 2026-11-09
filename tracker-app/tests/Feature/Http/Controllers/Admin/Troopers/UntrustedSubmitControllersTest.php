@@ -23,7 +23,7 @@ class UntrustedSubmitControllersTest extends TestCase
 
     public function test_admin_flags_trooper_and_sends_self_added_costumes_back_to_review(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = $this->memberOf($this->garrison);
         $self_added = $this->costumeFor($trooper, $this->club, pending: false);
         $synced = $this->costumeFor($trooper, $this->club, pending: false, name: 'Stormtrooper');
@@ -47,7 +47,7 @@ class UntrustedSubmitControllersTest extends TestCase
 
     public function test_reason_is_required(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = $this->memberOf($this->garrison);
 
         $this->actingAs($admin)
@@ -71,7 +71,7 @@ class UntrustedSubmitControllersTest extends TestCase
 
     public function test_admin_clears_the_flag(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asUntrusted()->create();
 
         $this->actingAs($admin)
@@ -96,7 +96,7 @@ class UntrustedSubmitControllersTest extends TestCase
             ->assertSee('Spite troops')
             ->assertDontSee('Clear do not trust');
 
-        $this->actingAs(Trooper::factory()->asAdministrator()->create())
+        $this->actingAs(Trooper::factory()->asSystemOwner()->create())
             ->get(route('admin.troopers.profile', compact('trooper')))
             ->assertOk()
             ->assertSee('Clear do not trust');

@@ -175,7 +175,7 @@ class Fix406Test extends TestCase
 
     public function test_emails_administrators_with_outstanding_rows_when_no_eligible_org(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
 
         $event = Event::factory()->create();
@@ -223,7 +223,7 @@ class Fix406Test extends TestCase
     public function test_reports_tt1_row_whose_legacy_costume_has_no_club(): void
     {
         $this->seedLegacyWorld();
-        Trooper::factory()->asAdministrator()->create();
+        Trooper::factory()->asSystemOwner()->create();
         $trooper = $this->laterRebelJoiner();
         $event_trooper = $this->tt1Row($trooper, '2018-06-01 10:00:00', 'Other', 4);
 
@@ -251,7 +251,7 @@ class Fix406Test extends TestCase
 
     public function test_does_not_email_administrators_when_nothing_outstanding(): void
     {
-        Trooper::factory()->asAdministrator()->create();
+        Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org)->asMember()->create();

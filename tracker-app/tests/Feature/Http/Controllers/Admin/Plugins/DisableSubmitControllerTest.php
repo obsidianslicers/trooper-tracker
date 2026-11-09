@@ -18,7 +18,7 @@ class DisableSubmitControllerTest extends TestCase
     {
         $plugins = $this->useFixturePlugins();
         $plugins->enable('hello');
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->post(route(
             'admin.plugins.disable',

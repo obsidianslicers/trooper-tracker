@@ -34,7 +34,7 @@ final class GetCommandStaff extends Message
     public function handle(): Collection
     {
         $roles = [
-            MembershipRole::ADMINISTRATOR,
+            MembershipRole::SYSTEM_OWNER,
             MembershipRole::STAFF_OFFICER,
             MembershipRole::MODERATOR,
         ];

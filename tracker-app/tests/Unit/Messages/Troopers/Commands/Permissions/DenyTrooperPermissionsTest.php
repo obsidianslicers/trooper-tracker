@@ -23,7 +23,7 @@ class DenyTrooperPermissionsTest extends TestCase
     {
         Bus::fake([SendPermissionRequestReviewedNotificationsJob::class]);
 
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $permission_request = PermissionRequest::factory()
             ->forTrooper($trooper)
@@ -43,7 +43,7 @@ class DenyTrooperPermissionsTest extends TestCase
 
     public function test_handle_rejects_request_that_is_not_pending(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $permission_request = PermissionRequest::factory()->asApproved()->create();
 
         $subject = new DenyTrooperPermissions($admin, $permission_request);

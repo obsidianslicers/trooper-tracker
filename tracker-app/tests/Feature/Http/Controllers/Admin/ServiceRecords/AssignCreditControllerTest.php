@@ -22,7 +22,7 @@ class AssignCreditControllerTest extends TestCase
 
     public function test_invoke_assigns_credit_for_administrator(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = $this->makeRootOrganization();
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org)->asMember()->create();
@@ -112,7 +112,7 @@ class AssignCreditControllerTest extends TestCase
 
     public function test_invoke_requires_organization_ids(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event_trooper = $this->makeAttendedEventTrooper($trooper);
 

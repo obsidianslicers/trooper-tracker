@@ -16,7 +16,7 @@ class CopySubmitControllerTest extends TestCase
 
     public function test_invoke_copies_event_and_redirects(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         EventShift::factory()->forEvent($event)->create();
 
@@ -30,7 +30,7 @@ class CopySubmitControllerTest extends TestCase
 
     public function test_invoke_resets_notification_state_on_copied_event(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()
             ->withCreateNotificationsSent()
             ->withCancelNotificationsSent()

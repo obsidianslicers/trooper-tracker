@@ -17,7 +17,7 @@ class AuthoritySubmitControllerTest extends TestCase
 
     public function test_invoke_updates_authority_and_redirects_to_list(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $subject = Trooper::factory()->create();
         $organization = Organization::factory()->create();
 

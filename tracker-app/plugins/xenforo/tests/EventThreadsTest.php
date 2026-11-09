@@ -111,7 +111,7 @@ class EventThreadsTest extends TestCase
     public function test_event_form_saves_the_thread_fields(): void
     {
         Queue::fake();
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->state([Event::STATUS => EventStatus::DRAFT])->create();
 
         $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/update', [

@@ -87,7 +87,7 @@ class Fix408Test extends TestCase
 
     public function test_leaves_an_active_membership_alone_and_reports_it(): void
     {
-        Trooper::factory()->asAdministrator()->create();
+        Trooper::factory()->asSystemOwner()->create();
         [$trooper, $membership, $assignment] = $this->falseRebelMember(MembershipStatus::ACTIVE);
         $rebel = $this->clubIds('Rebel Legion');
         $event_trooper = $this->attendedWithCredit($trooper, '2026-07-01 10:00:00', $rebel);

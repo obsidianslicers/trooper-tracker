@@ -23,7 +23,7 @@ class MergeTroopersRequestTest extends TestCase
     {
         parent::setUp();
 
-        $this->administrator = Trooper::factory()->asAdministrator()->asActive()->create();
+        $this->administrator = Trooper::factory()->asSystemOwner()->asActive()->create();
         $this->target_trooper = Trooper::factory()->asMember()->asActive()->create();
         $this->actingAs($this->administrator);
     }

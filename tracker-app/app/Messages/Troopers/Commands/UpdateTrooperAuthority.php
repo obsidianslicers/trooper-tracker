@@ -13,7 +13,7 @@ use Hyperdrive\Message;
  * Command to update a trooper's authority level within organizations.
  *
  * Updates TrooperAssignment records to set a trooper's membership_role
- * (MEMBER, MODERATOR, or ADMINISTRATOR) for specified organizations.
+ * (MEMBER, MODERATOR, STAFF_OFFICER, or SYSTEM_OWNER) for specified organizations.
  * This controls what permissions the trooper has within each organization.
  *
  * @method static void call(Trooper $trooper, string|MembershipRole $membership_role, array $valid_data)
@@ -24,7 +24,7 @@ final class UpdateTrooperAuthority extends Message
      * Create a new command instance.
      *
      * @param  Trooper  $trooper  The trooper whose authority to update
-     * @param  string|MembershipRole  $membership_role  The role to assign (MEMBER, MODERATOR, or ADMINISTRATOR)
+     * @param  string|MembershipRole  $membership_role  The role to assign (MEMBER, MODERATOR, STAFF_OFFICER, or SYSTEM_OWNER)
      * @param  array<int, array{is_moderator: bool|null}>  $valid_data  Organization IDs mapped to assignment data
      */
     public function __construct(
@@ -36,7 +36,7 @@ final class UpdateTrooperAuthority extends Message
     /**
      * Execute the command to update trooper authority level.
      *
-     * Sets the trooper's membership_role (MEMBER, MODERATOR, or ADMINISTRATOR)
+     * Sets the trooper's membership_role (MEMBER, MODERATOR, STAFF_OFFICER, or SYSTEM_OWNER)
      * and saves the trooper model.
      *
      * @return null

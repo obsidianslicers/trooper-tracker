@@ -20,7 +20,7 @@ final class GetAdministrators extends Message
     {
         return Trooper::active()
             ->whereIn(Trooper::MEMBERSHIP_ROLE, [
-                MembershipRole::ADMINISTRATOR,
+                MembershipRole::SYSTEM_OWNER,
                 MembershipRole::STAFF_OFFICER,
             ])
             ->orderBy(Trooper::DISPLAY_NAME)

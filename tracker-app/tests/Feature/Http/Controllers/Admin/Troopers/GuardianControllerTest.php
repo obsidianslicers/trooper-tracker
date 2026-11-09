@@ -14,7 +14,7 @@ class GuardianControllerTest extends TestCase
 
     public function test_invoke_displays_guardian_view_for_admin(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->create();
 
         $response = $this->actingAs($admin)->get(route('admin.troopers.guardian', $trooper));

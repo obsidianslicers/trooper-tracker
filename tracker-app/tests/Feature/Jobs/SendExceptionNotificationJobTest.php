@@ -24,8 +24,8 @@ class SendExceptionNotificationJobTest extends TestCase
     {
         Mail::fake();
 
-        $admin_one = Trooper::factory()->asAdministrator()->withEmail('first-admin@example.com')->create();
-        $admin_two = Trooper::factory()->asAdministrator()->withEmail('second-admin@example.com')->create();
+        $admin_one = Trooper::factory()->asSystemOwner()->withEmail('first-admin@example.com')->create();
+        $admin_two = Trooper::factory()->asSystemOwner()->withEmail('second-admin@example.com')->create();
 
         $messages = $this->fakeMessages([
             GetTroopersByRole::class => collect([$admin_one, $admin_two]),
@@ -37,7 +37,7 @@ class SendExceptionNotificationJobTest extends TestCase
 
         $messages->assertCalled(
             GetTroopersByRole::class,
-            fn (array $params): bool => $params['membership_role'] === MembershipRole::ADMINISTRATOR
+            fn (array $params): bool => $params['membership_role'] === MembershipRole::SYSTEM_OWNER
         );
 
         Mail::assertQueued(ExceptionOccurred::class, 2);

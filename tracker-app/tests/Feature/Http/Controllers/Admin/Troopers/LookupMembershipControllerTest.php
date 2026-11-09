@@ -16,7 +16,7 @@ final class LookupMembershipControllerTest extends TestCase
 
     public function test_invoke_returns_lookup_data_for_a_pending_request(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->asOrganization()->create();
         $trooper_request = TrooperRequest::factory()
             ->forPrimaryOrganization($organization)

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin/plugins')
     ->name('admin.plugins.')
-    ->middleware(['auth', 'check.role:administrator'])
+    ->middleware(['auth', 'check.role:system_owner'])
     ->group(function (): void
     {
         Route::get('/', ListController::class)->name('list');

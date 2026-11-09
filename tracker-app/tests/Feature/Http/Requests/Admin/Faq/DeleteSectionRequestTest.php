@@ -23,7 +23,7 @@ class DeleteSectionRequestTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = Trooper::factory()->asAdministrator()->create();
+        $this->admin = Trooper::factory()->asSystemOwner()->create();
         $this->actingAs($this->admin);
     }
 

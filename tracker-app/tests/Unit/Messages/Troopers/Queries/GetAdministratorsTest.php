@@ -15,11 +15,11 @@ class GetAdministratorsTest extends TestCase
 
     public function test_handle_returns_only_active_administrators_sorted_by_display_name(): void
     {
-        Trooper::factory()->asAdministrator()->withDisplayName('Zulu Admin')->create();
-        Trooper::factory()->asAdministrator()->withDisplayName('Alpha Admin')->create();
+        Trooper::factory()->asSystemOwner()->withDisplayName('Zulu Admin')->create();
+        Trooper::factory()->asSystemOwner()->withDisplayName('Alpha Admin')->create();
         Trooper::factory()->asModerator()->withDisplayName('Moderator Trooper')->create();
         Trooper::factory()->asMember()->withDisplayName('Member Trooper')->create();
-        Trooper::factory()->asAdministrator()->asRetired()->withDisplayName('Retired Admin')->create();
+        Trooper::factory()->asSystemOwner()->asRetired()->withDisplayName('Retired Admin')->create();
 
         $subject = new GetAdministrators;
 
@@ -34,7 +34,7 @@ class GetAdministratorsTest extends TestCase
 
     public function test_handle_includes_active_staff_officers(): void
     {
-        Trooper::factory()->asAdministrator()->withDisplayName('Bravo Admin')->create();
+        Trooper::factory()->asSystemOwner()->withDisplayName('Bravo Admin')->create();
         Trooper::factory()->asStaffOfficer()->withDisplayName('Alpha Staff Officer')->create();
         Trooper::factory()->asStaffOfficer()->asRetired()->withDisplayName('Retired Staff Officer')->create();
 

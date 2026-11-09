@@ -38,7 +38,7 @@ class UpdateEventRosterTest extends TestCase
         Notification::fake();
         $this->event = Event::factory()->create([Event::TROOPERS_ALLOWED => null]);
         $this->shift = EventShift::factory()->forEvent($this->event)->create();
-        $this->admin = Trooper::factory()->asAdministrator()->create();
+        $this->admin = Trooper::factory()->asSystemOwner()->create();
     }
 
     public function test_handle_updates_guest_status_and_ignores_unknown_or_blank_guests(): void

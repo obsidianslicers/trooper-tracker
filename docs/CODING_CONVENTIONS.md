@@ -260,9 +260,9 @@ Construct the message and call `handle()` directly:
 ```php
 public function test_handle_returns_troopers_with_role(): void
 {
-    $admin = Trooper::factory()->asAdministrator()->create();
+    $admin = Trooper::factory()->asSystemOwner()->create();
 
-    $subject = new GetTroopersByRole(MembershipRole::ADMINISTRATOR);
+    $subject = new GetTroopersByRole(MembershipRole::SYSTEM_OWNER);
 
     $result = $subject->handle();
 
@@ -336,7 +336,7 @@ When instantiating the class being tested, the variable name **must** be `$subje
 ```php
 public function test_something(): void
 {
-    $subject = new GetTroopersByRole(MembershipRole::ADMINISTRATOR);
+    $subject = new GetTroopersByRole(MembershipRole::SYSTEM_OWNER);
     $result = $subject->handle();
     $this->assertNotEmpty($result);
 }
@@ -511,7 +511,7 @@ All enums are backed by strings and use the `HasEnumHelpers` trait.
 - **EventStatus:** `draft`, `open`, `closed`, `cancelled`
 - **EventTrooperStatus:** `none`, `going`, `tentative`, `unavailable`
 - **EventType:** `regular`, `special`, `fundraiser`
-- **MembershipRole:** `member`, `moderator`, `administrator`
+- **MembershipRole:** `member`, `handler`, `visitor`, `event_coordinator`, `moderator`, `staff_officer`, `system_owner`
 - **MembershipStatus:** `pending`, `active`, `retired`
 - **NoticeType:** `info`, `warning`, `alert`
 - **NotificationFrequency:** `never`, `instant`, `daily`

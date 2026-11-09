@@ -50,7 +50,7 @@ use Illuminate\Support\Facades\Route;
 //  ADMIN/TROOPERs
 Route::prefix('admin/troopers')
     ->name('admin.troopers.')
-    ->middleware(['auth', 'check.role:moderator,staff_officer,administrator'])
+    ->middleware(['auth', 'check.role:moderator,staff_officer,system_owner'])
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');
@@ -77,7 +77,7 @@ Route::prefix('admin/troopers')
                 Route::get('/lookup/{trooper}', LookupTrooperPermissionsController::class)
                     ->name('lookup');
 
-                Route::middleware('check.role:staff_officer,administrator')
+                Route::middleware('check.role:staff_officer,system_owner')
                     ->group(function ()
                     {
                         Route::get('/approvals', PermissionApprovalsController::class)
@@ -116,7 +116,7 @@ Route::prefix('admin/troopers')
         Route::get('/recruit', RecruitController::class)->name('recruit');
         Route::post('/recruit', RecruitSubmitController::class);
 
-        Route::middleware('check.role:administrator')
+        Route::middleware('check.role:system_owner')
             ->group(function ()
             {
                 Route::get('/merge', MergeTroopersController::class)->name('merge');

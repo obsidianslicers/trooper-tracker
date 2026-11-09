@@ -25,7 +25,7 @@ class ProfileRequestTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = Trooper::factory()->asAdministrator()->create();
+        $this->admin = Trooper::factory()->asSystemOwner()->create();
         $this->target_trooper = Trooper::factory()->asMember()->create();
         $this->actingAs($this->admin);
     }

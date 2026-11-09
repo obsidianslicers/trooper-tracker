@@ -73,7 +73,7 @@ All sections render as accordion cards. When `video_url` is set, a YouTube embed
 
 ## Admin CRUD
 
-Both route groups are protected by `auth` and `check.role:administrator` middleware.
+Both route groups are protected by `auth` and `check.role:staff_officer,system_owner` middleware.
 
 ### FAQ Items
 

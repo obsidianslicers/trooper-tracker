@@ -17,7 +17,7 @@ class AdminDisplayControllerTest extends TestCase
 
     public function test_invoke_displays_admin_dashboard_for_admin_trooper(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.display'));
 
@@ -27,7 +27,7 @@ class AdminDisplayControllerTest extends TestCase
 
     public function test_invoke_counts_pending_permission_requests_for_admins(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         PermissionRequest::factory()->create();
         PermissionRequest::factory()->asApproved()->create();
 
@@ -60,7 +60,7 @@ class AdminDisplayControllerTest extends TestCase
 
     public function test_invoke_counts_pending_join_requests_from_join_requests_table(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $member = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
@@ -77,7 +77,7 @@ class AdminDisplayControllerTest extends TestCase
 
     public function test_invoke_does_not_count_pending_signup_join_requests_as_standalone_requests(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $pending_trooper = Trooper::factory()->asPending()->create();
         $active_member = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();

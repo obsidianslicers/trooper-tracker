@@ -17,7 +17,7 @@ class ListControllerTest extends TestCase
     public function test_invoke_lists_discovered_plugins_for_administrators(): void
     {
         $this->useFixturePlugins();
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.plugins.list'));
 

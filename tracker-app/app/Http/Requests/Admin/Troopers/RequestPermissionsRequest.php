@@ -117,7 +117,7 @@ class RequestPermissionsRequest extends FormRequest
         {
             $validator->errors()->add(
                 'membership_role',
-                'Administrator and staff officer roles cannot be changed.'
+                'System owner and staff officer roles cannot be changed.'
             );
         }
         elseif ($this->input('membership_role') === MembershipRole::MEMBER->value

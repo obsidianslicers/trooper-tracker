@@ -57,7 +57,7 @@ class AuthorityController extends PageController
         $roles = collect(MembershipRole::cases())
             ->when(
                 !$request->user()->has_system_owner,
-                fn ($roles) => $roles->reject(fn ($role) => $role === MembershipRole::ADMINISTRATOR)
+                fn ($roles) => $roles->reject(fn ($role) => $role === MembershipRole::SYSTEM_OWNER)
             );
 
         return $roles->mapWithKeys(

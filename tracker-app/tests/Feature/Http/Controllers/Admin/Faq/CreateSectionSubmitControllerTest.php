@@ -15,7 +15,7 @@ class CreateSectionSubmitControllerTest extends TestCase
 
     public function test_invoke_creates_faq_section_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)->post(route('admin.faq.sections.create'), [
             FaqSection::LABEL => 'Registration',

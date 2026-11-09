@@ -23,7 +23,7 @@ class DeleteSubmitControllerTest extends TestCase
 
     public function test_invoke_soft_deletes_costume_and_redirects_to_list(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $costume = Costume::factory()->create();
 
         $response = $this->actingAs($admin)
@@ -36,7 +36,7 @@ class DeleteSubmitControllerTest extends TestCase
 
     public function test_invoke_soft_deletes_organization_and_trooper_costumes(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $member = Trooper::factory()->asMember()->create();
         $costume = Costume::factory()->create();
         $organization = Organization::factory()->create();
@@ -63,7 +63,7 @@ class DeleteSubmitControllerTest extends TestCase
     {
         $this->skipIfSqlite();
 
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $member = Trooper::factory()->asMember()->create();
         $costume = Costume::factory()->create();
         $event = Event::factory()->create();
@@ -96,7 +96,7 @@ class DeleteSubmitControllerTest extends TestCase
 
     public function test_invoke_nulls_backup_costume_id_on_event_trooper(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $member = Trooper::factory()->asMember()->create();
         $costume = Costume::factory()->create();
         $event = Event::factory()->create();
@@ -123,7 +123,7 @@ class DeleteSubmitControllerTest extends TestCase
 
     public function test_invoke_prevents_deletion_of_handler_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $costume = Costume::factory()->withName(Costume::HANDLER)->create();
 
         $response = $this->actingAs($admin)
@@ -136,7 +136,7 @@ class DeleteSubmitControllerTest extends TestCase
 
     public function test_invoke_prevents_deletion_of_command_staff_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $costume = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
 
         $response = $this->actingAs($admin)

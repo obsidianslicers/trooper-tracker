@@ -17,10 +17,10 @@ class GetCommandStaffTest extends TestCase
 
     public function test_handle_returns_only_active_admins_and_moderators_sorted_by_name(): void
     {
-        Trooper::factory()->asAdministrator()->withDisplayName('Zulu Admin')->create();
+        Trooper::factory()->asSystemOwner()->withDisplayName('Zulu Admin')->create();
         Trooper::factory()->asModerator()->withDisplayName('Alpha Moderator')->create();
         Trooper::factory()->asMember()->withDisplayName('Member Trooper')->create();
-        Trooper::factory()->asAdministrator()->asPending()->withDisplayName('Pending Admin')->create();
+        Trooper::factory()->asSystemOwner()->asPending()->withDisplayName('Pending Admin')->create();
 
         $result = (new GetCommandStaff)->handle();
 

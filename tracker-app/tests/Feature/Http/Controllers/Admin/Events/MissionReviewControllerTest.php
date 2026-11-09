@@ -16,7 +16,7 @@ class MissionReviewControllerTest extends TestCase
 
     public function test_invoke_displays_mission_review_page_for_admin(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         EventUpload::factory()->for($event)->create([
             EventUpload::IS_ADMINISTRATIVE => false,
@@ -32,7 +32,7 @@ class MissionReviewControllerTest extends TestCase
 
     public function test_invoke_passes_only_non_administrative_uploads(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
 
         EventUpload::factory()->for($event)->create([EventUpload::IS_ADMINISTRATIVE => false]);

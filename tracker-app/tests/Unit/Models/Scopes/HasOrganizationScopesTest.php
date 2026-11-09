@@ -49,7 +49,7 @@ class HasOrganizationScopesTest extends TestCase
 
     public function test_moderated_by_returns_unmodified_query_for_administrator(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $base_sql = Organization::query()->toBase()->toSql();
         $moderated_sql = Organization::query()->moderatedBy($trooper)->toBase()->toSql();

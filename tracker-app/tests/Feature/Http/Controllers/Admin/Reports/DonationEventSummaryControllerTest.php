@@ -18,7 +18,7 @@ class DonationEventSummaryControllerTest extends TestCase
 
     public function test_invoke_displays_donation_event_summary_report(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.reports.donation-event-summary'));
 
@@ -29,7 +29,7 @@ class DonationEventSummaryControllerTest extends TestCase
     public function test_invoke_streams_donation_event_summary_csv(): void
     {
         $this->skipIfSqlite();
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create(['name' => 'Florida Garrison']);
         Organization::factory()->create(['name' => 'Makaze Squad']);
         $event = Event::factory()

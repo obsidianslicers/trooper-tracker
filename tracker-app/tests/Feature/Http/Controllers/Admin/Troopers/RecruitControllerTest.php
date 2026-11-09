@@ -40,7 +40,7 @@ class RecruitControllerTest extends TestCase
 
     public function test_invoke_renders_recruit_view_for_administrator(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($admin)->get(route('admin.troopers.recruit'));
 

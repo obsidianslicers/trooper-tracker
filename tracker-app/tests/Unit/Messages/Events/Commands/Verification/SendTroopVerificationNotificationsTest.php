@@ -32,7 +32,7 @@ class SendTroopVerificationNotificationsTest extends TestCase
     public function test_handle_notifies_administrators_and_moderators_in_scope(): void
     {
         $event_trooper = $this->awaitingTroop([$this->club->id]);
-        $admin = Trooper::factory()->asAdministrator()->asActive()->create();
+        $admin = Trooper::factory()->asSystemOwner()->asActive()->create();
         $garrison_moderator = $this->moderatorOf($this->garrison);
         $other_moderator = $this->moderatorOf($this->other_club);
 
@@ -71,7 +71,7 @@ class SendTroopVerificationNotificationsTest extends TestCase
         $event_trooper = $this->awaitingTroop([$this->club->id]);
         $event_trooper->rejectRequestedOrganization($this->club->id);
         $event_trooper->save();
-        $admin = Trooper::factory()->asAdministrator()->asActive()->create();
+        $admin = Trooper::factory()->asSystemOwner()->asActive()->create();
 
         $subject = new SendTroopVerificationNotifications($event_trooper);
         $subject->handle();
@@ -81,7 +81,7 @@ class SendTroopVerificationNotificationsTest extends TestCase
 
     public function test_notification_renders_mail_and_database_payload(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
 
         $subject = new TroopVerificationRequestedNotification(
             trooper_name: 'TK-1480',

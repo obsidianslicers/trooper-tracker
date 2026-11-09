@@ -16,7 +16,7 @@ class CreateItemSubmitControllerTest extends TestCase
 
     public function test_invoke_creates_faq_item_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $section = FaqSection::factory()->create();
 
         $this->actingAs($trooper)->post(route('admin.faq.items.create'), [

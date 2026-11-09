@@ -27,7 +27,7 @@ class RecruitSubmitControllerTest extends TestCase
 
     public function test_invoke_directly_adds_trooper_and_redirects(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
@@ -48,7 +48,7 @@ class RecruitSubmitControllerTest extends TestCase
 
     public function test_invoke_validates_trooper_id_required(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
         $response = $this->actingAs($admin)->post(route('admin.troopers.recruit'), [
@@ -60,7 +60,7 @@ class RecruitSubmitControllerTest extends TestCase
 
     public function test_invoke_validates_organization_id_required(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
 
         $response = $this->actingAs($admin)->post(route('admin.troopers.recruit'), [

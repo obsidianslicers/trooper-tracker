@@ -84,6 +84,6 @@ class CheckSupervisorHealthCommand extends Command
 
     private function getAdmins(): Collection
     {
-        return GetTroopersByRole::call(membership_role: MembershipRole::ADMINISTRATOR);
+        return GetTroopersByRole::call(membership_role: MembershipRole::SYSTEM_OWNER);
     }
 }

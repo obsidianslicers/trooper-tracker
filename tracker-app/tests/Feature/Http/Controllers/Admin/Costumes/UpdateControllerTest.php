@@ -15,7 +15,7 @@ class UpdateControllerTest extends TestCase
 
     public function test_invoke_displays_update_costume_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $costume = Costume::factory()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.costumes.update', ['costume' => $costume->id]));

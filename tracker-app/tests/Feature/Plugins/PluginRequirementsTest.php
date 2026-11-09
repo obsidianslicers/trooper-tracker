@@ -168,7 +168,7 @@ class PluginRequirementsTest extends TestCase
     public function test_the_list_shows_what_is_missing_and_disables_enable(): void
     {
         $this->writePlugin('needs-php', ['php' => '>=99.0']);
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)->get(route('admin.plugins.list'))
             ->assertSee('Needs PHP &gt;=99.0', false)
@@ -178,7 +178,7 @@ class PluginRequirementsTest extends TestCase
     public function test_the_enable_page_shows_the_reason_it_was_refused(): void
     {
         $this->writePlugin('needs-php', ['php' => '>=99.0']);
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)
             ->post(route('admin.plugins.enable', ['slug' => 'needs-php']))

@@ -14,7 +14,7 @@ class TroopersWithoutActivityControllerTest extends TestCase
 
     public function test_invoke_displays_troopers_without_activity_report(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.reports.troopers-without-activity'));
 

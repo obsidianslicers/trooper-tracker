@@ -159,7 +159,7 @@ class InstallSubmitControllerTest extends TestCase
 
     public function test_invoke_refuses_a_file_that_is_not_a_zip(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $file = \Illuminate\Http\UploadedFile::fake()->create('plugin.txt', 1, 'text/plain');
 
         $this->actingAs($trooper)
@@ -190,7 +190,7 @@ class InstallSubmitControllerTest extends TestCase
     public function test_uninstall_deletes_an_uploaded_plugin(): void
     {
         $this->postArchive($this->greeterFiles());
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)
             ->post(route('admin.plugins.uninstall', ['slug' => 'greeter']))
@@ -202,7 +202,7 @@ class InstallSubmitControllerTest extends TestCase
 
     public function test_list_shows_the_upload_form_only_when_uploads_are_on(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)->get(route('admin.plugins.list'))
             ->assertSee(route('admin.plugins.install'));
@@ -219,7 +219,7 @@ class InstallSubmitControllerTest extends TestCase
      */
     private function postArchive(array $files): \Illuminate\Testing\TestResponse
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         return $this->actingAs($trooper)->post(route('admin.plugins.install'), [
             'archive' => $this->pluginArchive($files),

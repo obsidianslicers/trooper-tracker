@@ -64,7 +64,7 @@ class RequestTrooperPermissionsTest extends TestCase
         $other = Organization::factory()->asOrganization()->create();
 
         $subject = new RequestTrooperPermissions(
-            actor: Trooper::factory()->asAdministrator()->create(),
+            actor: Trooper::factory()->asSystemOwner()->create(),
             trooper: Trooper::factory()->asMember()->create(),
             membership_role: MembershipRole::MODERATOR,
             moderated_organization_ids: [$child->id, $parent->id, $other->id],
@@ -86,7 +86,7 @@ class RequestTrooperPermissionsTest extends TestCase
         ]);
 
         $subject = new RequestTrooperPermissions(
-            actor: Trooper::factory()->asAdministrator()->create(),
+            actor: Trooper::factory()->asSystemOwner()->create(),
             trooper: $trooper,
             membership_role: MembershipRole::MODERATOR,
             moderated_organization_ids: [$cfl->id],

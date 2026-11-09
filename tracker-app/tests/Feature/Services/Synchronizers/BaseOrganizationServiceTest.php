@@ -186,7 +186,7 @@ class BaseOrganizationServiceTest extends TestCase
     {
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->create();
-        $officer = Trooper::factory()->asAdministrator()->create();
+        $officer = Trooper::factory()->asSystemOwner()->create();
 
         $subject = new BaseOrganizationServiceHarness($organization, app(PluginSheetSource::class));
         $org_costume = $subject->publicGetOrCreateOrganizationCostume('Scout Trooper');

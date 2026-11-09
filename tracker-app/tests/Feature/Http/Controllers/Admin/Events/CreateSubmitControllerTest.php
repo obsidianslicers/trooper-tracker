@@ -19,7 +19,7 @@ class CreateSubmitControllerTest extends TestCase
 
     public function test_invoke_returns_validation_errors_for_invalid_payload(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->post('/admin/events/create', []);
 
@@ -38,7 +38,7 @@ class CreateSubmitControllerTest extends TestCase
     {
         Queue::fake([SendEventCreatedNotificationsJob::class]);
 
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->asOrganization()->create();
 
         $event_start = now()->addDays(7);

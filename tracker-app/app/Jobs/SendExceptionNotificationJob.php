@@ -54,7 +54,7 @@ class SendExceptionNotificationJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $admins = GetTroopersByRole::call(membership_role: MembershipRole::ADMINISTRATOR);
+        $admins = GetTroopersByRole::call(membership_role: MembershipRole::SYSTEM_OWNER);
 
         foreach ($admins as $admin)
         {

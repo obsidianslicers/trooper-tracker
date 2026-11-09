@@ -15,7 +15,7 @@ class CreateSectionControllerTest extends TestCase
 
     public function test_invoke_displays_create_section_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.faq.sections.create'));
 

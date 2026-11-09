@@ -14,7 +14,7 @@ class EventsControllerTest extends TestCase
 
     public function test_invoke_displays_trooper_events_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $subject = Trooper::factory()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.troopers.events', $subject));

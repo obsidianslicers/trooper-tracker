@@ -105,7 +105,7 @@ class PublicApiControllerTest extends TestCase
     public function test_roster_places_administrators_in_staff_section(): void
     {
         $org = Organization::factory()->create();
-        $trooper = Trooper::factory()->asActive()->asAdministrator()->withDisplayName('Admin Member')->create();
+        $trooper = Trooper::factory()->asActive()->asSystemOwner()->withDisplayName('Admin Member')->create();
 
         TrooperAssignment::factory()
             ->forTrooper($trooper)

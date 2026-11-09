@@ -15,7 +15,7 @@ class CopyControllerTest extends TestCase
 
     public function test_invoke_displays_copy_event_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.events.copy', ['event' => $event->id]));

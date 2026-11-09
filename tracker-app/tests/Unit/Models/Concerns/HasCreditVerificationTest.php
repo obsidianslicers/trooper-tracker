@@ -93,14 +93,14 @@ class HasCreditVerificationTest extends TestCase
 
     public function test_nobody_verifies_their_own_troop(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $subject = $this->eventTrooperFor($this->memberOf($this->garrison, $admin));
         $subject->requestVerification([$this->garrison->id]);
 
         $this->assertSame([], $subject->verifiableOrganizationIdsFor($admin));
         $this->assertSame(
             [$this->garrison->id],
-            $subject->verifiableOrganizationIdsFor(Trooper::factory()->asAdministrator()->create())
+            $subject->verifiableOrganizationIdsFor(Trooper::factory()->asSystemOwner()->create())
         );
     }
 

@@ -19,7 +19,7 @@ class MergeCostumesSubmitControllerTest extends TestCase
 
     public function test_invoke_merges_source_into_target_and_redirects(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $source = Costume::factory()->create([Costume::NAME => 'TK Stormtroper']);
         $target = Costume::factory()->create([Costume::NAME => 'TK Stormtrooper']);
 
@@ -43,7 +43,7 @@ class MergeCostumesSubmitControllerTest extends TestCase
 
     public function test_invoke_runs_the_real_merge(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $source = Costume::factory()->create();
         $target = Costume::factory()->create();
 
@@ -60,7 +60,7 @@ class MergeCostumesSubmitControllerTest extends TestCase
 
     public function test_invoke_rejects_merging_a_costume_into_itself(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $costume = Costume::factory()->create();
 
         $messages = $this->fakeMessages([MergeCostumes::class => null]);

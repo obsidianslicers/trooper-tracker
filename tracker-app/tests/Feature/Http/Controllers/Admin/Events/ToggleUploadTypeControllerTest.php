@@ -17,7 +17,7 @@ class ToggleUploadTypeControllerTest extends TestCase
 
     public function test_invoke_moves_mission_review_upload_to_admin_uploads(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $upload = EventUpload::factory()->for($event)->create([
             EventUpload::IS_ADMINISTRATIVE => false,
@@ -33,7 +33,7 @@ class ToggleUploadTypeControllerTest extends TestCase
 
     public function test_invoke_moves_admin_upload_to_mission_review(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $upload = EventUpload::factory()->for($event)->create([
             EventUpload::IS_ADMINISTRATIVE => true,
@@ -49,7 +49,7 @@ class ToggleUploadTypeControllerTest extends TestCase
 
     public function test_invoke_preserves_tag_rows_when_moving_to_admin_uploads(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $upload = EventUpload::factory()->for($event)->create([
             EventUpload::IS_ADMINISTRATIVE => false,
@@ -67,7 +67,7 @@ class ToggleUploadTypeControllerTest extends TestCase
 
     public function test_invoke_returns_403_when_upload_belongs_to_different_event(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $other_event = Event::factory()->create();
         $upload = EventUpload::factory()->for($other_event)->create();

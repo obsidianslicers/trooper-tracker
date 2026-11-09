@@ -18,7 +18,7 @@ class UpdateSettingsControllerTest extends TestCase
     {
         $plugins = $this->useFixturePlugins();
         $plugins->updateSettings('hello', ['greeting' => 'Howdy', 'api_key' => 'super-secret']);
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route(
             'admin.plugins.settings',
@@ -35,7 +35,7 @@ class UpdateSettingsControllerTest extends TestCase
     public function test_invoke_returns_not_found_for_an_unknown_plugin(): void
     {
         $this->useFixturePlugins();
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)->get(route(
             'admin.plugins.settings',

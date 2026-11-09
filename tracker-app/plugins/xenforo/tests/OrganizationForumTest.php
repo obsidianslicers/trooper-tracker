@@ -56,7 +56,7 @@ class OrganizationForumTest extends TestCase
             'plugins.xenforo.api_key' => 'abc',
         ]);
         $this->enableXenforo();
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $organization = $this->createForumOrganization([OrganizationForum::EVENT_FORUM_ID => 9]);
 
         $this->actingAs($admin)

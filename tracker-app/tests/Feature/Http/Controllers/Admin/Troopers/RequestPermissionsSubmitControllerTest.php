@@ -128,7 +128,7 @@ class RequestPermissionsSubmitControllerTest extends TestCase
     public function test_invoke_rejects_role_change_for_administrator(): void
     {
         $response = $this->submit([
-            'trooper_id' => Trooper::factory()->asAdministrator()->create()->id,
+            'trooper_id' => Trooper::factory()->asSystemOwner()->create()->id,
             'membership_role' => 'member',
         ]);
 
@@ -205,7 +205,7 @@ class RequestPermissionsSubmitControllerTest extends TestCase
     public function test_invoke_rejects_event_coordinator_request_for_an_administrator(): void
     {
         $response = $this->submit([
-            'trooper_id' => Trooper::factory()->asAdministrator()->create()->id,
+            'trooper_id' => Trooper::factory()->asSystemOwner()->create()->id,
             'membership_role' => 'event_coordinator',
         ]);
 

@@ -281,16 +281,16 @@ Do not edit anything in `app/Models/Base/` — it is overwritten on regeneration
 - Subject under test is always `$subject`
 - Mocking: Mockery with `shouldReceive()` chain
 - Stubbing messages in controller/job/console tests: `Tests\Concerns\FakesMessages`
-- Factory states for setup: `asAdministrator()`, `asActive()`, etc.
+- Factory states for setup: `asSystemOwner()`, `asActive()`, etc.
 - Test DB: SQLite in-memory (configured in `phpunit.xml`)
 - Front-end: `npm test` runs Vitest (`vitest.config.js`, `tests/js/**/*.test.js`)
 
 ```php
 public function test_handle_returns_troopers_with_role(): void
 {
-    $admin = Trooper::factory()->asAdministrator()->create();
+    $admin = Trooper::factory()->asSystemOwner()->create();
 
-    $subject = new GetTroopersByRole(MembershipRole::ADMINISTRATOR);
+    $subject = new GetTroopersByRole(MembershipRole::SYSTEM_OWNER);
     $result = $subject->handle();
 
     $this->assertTrue($result->contains($admin));
@@ -348,7 +348,7 @@ npm run build    # Production build
 
 All enums are backed strings using `HasEnumHelpers`:
 - `AchievementType`, `AwardFrequency`, `EventStatus`, `EventTrooperStatus`, `EventType`
-- `MembershipRole` (`member`, `handler`, `visitor`, `moderator`, `staff_officer`, `administrator`); `staff_officer` is an administrator without Plugins, System Check, or Merge (`is_administrator` vs `has_system_owner`)
+- `MembershipRole` (`member`, `handler`, `visitor`, `event_coordinator`, `moderator`, `staff_officer`, `system_owner`); `staff_officer` is like a System Owner without Plugins, System Check, or Merge (`is_administrator` vs `has_system_owner`)
 - `MembershipStatus` (`pending`, `active`, `retired`)
 - `NoticeType`, `NotificationFrequency`, `OrganizationType`, `TrooperTheme`
 

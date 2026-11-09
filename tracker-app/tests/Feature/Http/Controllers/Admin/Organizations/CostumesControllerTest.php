@@ -17,7 +17,7 @@ class CostumesControllerTest extends TestCase
 
     public function test_invoke_displays_organization_costumes_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create();
         $costume = Costume::factory()->create();
 

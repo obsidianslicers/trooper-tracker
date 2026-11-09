@@ -52,7 +52,7 @@ class SendPermissionRequestReviewedNotificationsTest extends TestCase
     {
         Notification::fake();
 
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $request = $this->reviewed($admin, $trooper, PermissionRequestStatus::APPROVED, $admin);
 
@@ -69,7 +69,7 @@ class SendPermissionRequestReviewedNotificationsTest extends TestCase
         PermissionRequestStatus $status,
         ?Trooper $reviewer = null,
     ): PermissionRequest {
-        $reviewer ??= Trooper::factory()->asAdministrator()->create();
+        $reviewer ??= Trooper::factory()->asSystemOwner()->create();
 
         return PermissionRequest::factory()
             ->requestedBy($requester)

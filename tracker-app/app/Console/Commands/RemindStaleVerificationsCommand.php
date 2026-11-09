@@ -30,7 +30,7 @@ class RemindStaleVerificationsCommand extends Command
             return self::SUCCESS;
         }
 
-        foreach (GetTroopersByRole::call(membership_role: MembershipRole::ADMINISTRATOR) as $admin)
+        foreach (GetTroopersByRole::call(membership_role: MembershipRole::SYSTEM_OWNER) as $admin)
         {
             $admin->notify(new StaleVerificationsNotification($count));
         }

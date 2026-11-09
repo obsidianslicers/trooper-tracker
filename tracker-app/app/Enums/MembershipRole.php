@@ -46,9 +46,9 @@ enum MembershipRole: string
     case STAFF_OFFICER = 'staff_officer';
 
     /**
-     * An administrator with full system access and control.
+     * The System Owner: full access, including the developer tools.
      */
-    case ADMINISTRATOR = 'administrator';
+    case SYSTEM_OWNER = 'system_owner';
 
     public function toAccountType(): string
     {
@@ -60,11 +60,11 @@ enum MembershipRole: string
     }
 
     /**
-     * Whether the role carries administrator access (Administrator or Staff Officer).
+     * Whether the role carries administrator access (System Owner or Staff Officer).
      */
     public function hasAdministratorAccess(): bool
     {
-        return $this === self::ADMINISTRATOR || $this === self::STAFF_OFFICER;
+        return $this === self::SYSTEM_OWNER || $this === self::STAFF_OFFICER;
     }
 
     /**
@@ -72,7 +72,7 @@ enum MembershipRole: string
      */
     public function hasSystemOwner(): bool
     {
-        return $this === self::ADMINISTRATOR;
+        return $this === self::SYSTEM_OWNER;
     }
 
     public function isHandler(): bool

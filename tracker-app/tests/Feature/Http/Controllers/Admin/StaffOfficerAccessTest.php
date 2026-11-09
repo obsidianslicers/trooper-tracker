@@ -92,7 +92,7 @@ class StaffOfficerAccessTest extends TestCase
 
     public function test_dashboard_shows_developer_tools_to_administrator(): void
     {
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($administrator)->get(route('admin.display'));
 
@@ -121,7 +121,7 @@ class StaffOfficerAccessTest extends TestCase
         $subject = Trooper::factory()->create();
 
         $response = $this->actingAs($staff_officer)->post(route('admin.troopers.authority', $subject), [
-            Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR->value,
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::SYSTEM_OWNER->value,
             'organizations' => [],
         ]);
 
@@ -132,7 +132,7 @@ class StaffOfficerAccessTest extends TestCase
     public function test_staff_officer_cannot_change_an_administrator(): void
     {
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($staff_officer)
             ->get(route('admin.troopers.authority', $administrator))
@@ -145,7 +145,7 @@ class StaffOfficerAccessTest extends TestCase
             ])
             ->assertForbidden();
 
-        $this->assertSame(MembershipRole::ADMINISTRATOR, $administrator->fresh()->membership_role);
+        $this->assertSame(MembershipRole::SYSTEM_OWNER, $administrator->fresh()->membership_role);
     }
 
     public function test_authority_page_hides_administrator_option_from_staff_officer(): void
@@ -157,7 +157,7 @@ class StaffOfficerAccessTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('value="staff_officer"', false);
-        $response->assertDontSee('value="administrator"', false);
+        $response->assertDontSee('value="system_owner"', false);
     }
 
     public function test_staff_officer_cannot_make_themselves_an_administrator(): void
@@ -166,7 +166,7 @@ class StaffOfficerAccessTest extends TestCase
 
         $response = $this->actingAs($staff_officer)
             ->post(route('admin.troopers.authority', $staff_officer), [
-                Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR->value,
+                Trooper::MEMBERSHIP_ROLE => MembershipRole::SYSTEM_OWNER->value,
                 'organizations' => [],
             ]);
 
@@ -180,7 +180,7 @@ class StaffOfficerAccessTest extends TestCase
     public function test_staff_officer_cannot_change_an_administrators_profile(): void
     {
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($staff_officer)
             ->post(route('admin.troopers.profile', $administrator), [
@@ -197,7 +197,7 @@ class StaffOfficerAccessTest extends TestCase
     public function test_staff_officer_cannot_void_an_administrator(): void
     {
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($staff_officer)
             ->post(route('admin.troopers.void', $administrator))
@@ -208,7 +208,7 @@ class StaffOfficerAccessTest extends TestCase
 
     public function test_authority_roles_are_listed_by_rank(): void
     {
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $subject = Trooper::factory()->create();
 
         $response = $this->actingAs($administrator)
@@ -221,7 +221,7 @@ class StaffOfficerAccessTest extends TestCase
             'value="event_coordinator"',
             'value="moderator"',
             'value="staff_officer"',
-            'value="administrator"',
+            'value="system_owner"',
         ], false);
     }
 }

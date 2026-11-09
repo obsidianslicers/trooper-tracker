@@ -15,7 +15,7 @@ class AssignTrooperControllerTest extends TestCase
 
     public function test_invoke_displays_assign_trooper_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $award = Award::factory()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.awards.assign-trooper', ['award' => $award->id]));

@@ -26,7 +26,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_trooper_statuses_and_redirects(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
 
         $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/troopers', [
@@ -39,7 +39,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_rejects_truncated_submission_without_saving(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
         $event_trooper = EventTrooper::factory()->forEventShift($event_shift)->asGoing()->create();
@@ -56,7 +56,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_only_submitted_rows(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
         $edited = EventTrooper::factory()->forEventShift($event_shift)->asGoing()->create();
@@ -84,7 +84,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_saves_submitted_org_selection_when_costume_set(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org1 = Organization::factory()->create();
         $org2 = Organization::factory()->create();
@@ -131,7 +131,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_preserves_legacy_organization_id_when_org_selection_not_submitted(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = Organization::factory()->create();
         $event = Event::factory()->create();
@@ -162,7 +162,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_clears_organization_id_when_org_selection_submitted(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = Organization::factory()->create();
         $event = Event::factory()->withOrganization($org)->create();
@@ -198,7 +198,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_saves_submitted_station_selection(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -228,7 +228,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_moves_trooper_to_standby_when_selected_station_is_full(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
         $station = EventShiftStation::factory()
@@ -256,7 +256,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_does_not_clear_station_for_stationed_shift(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
         $station = EventShiftStation::factory()->forEventShift($event_shift)->create();
@@ -280,7 +280,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_ignores_station_selection_from_another_shift(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -312,7 +312,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_saves_regular_costume_org_selection_without_trooper_organization_rows(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org1 = Organization::factory()->create();
         $org2 = Organization::factory()->create();
@@ -350,7 +350,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_maps_selected_parent_org_to_approved_child_credit_without_trooper_organization_rows(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $parent_org = Organization::factory()->create();
         $child_org = Organization::factory()->withParent($parent_org)->create();
@@ -390,7 +390,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_strips_ineligible_org_selection(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $eligible_org = Organization::factory()->create();
         $ineligible_org = Organization::factory()->create();
@@ -435,7 +435,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_saves_any_member_club_for_handler_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event_org = Organization::factory()->create();
         $other_member_org = Organization::factory()->create();
@@ -476,7 +476,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_saves_any_member_club_when_no_costume_selected(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event_org = Organization::factory()->create();
         $other_member_org = Organization::factory()->create();
@@ -516,7 +516,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_can_clear_credited_org_selection_when_no_costume_selected(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = Organization::factory()->create();
         $event = Event::factory()->withOrganization($org)->create();
@@ -551,7 +551,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_can_clear_credited_org_selection_when_regular_costume_selected(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = Organization::factory()->create();
         $event = Event::factory()->create();
@@ -752,7 +752,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_does_not_touch_row_or_create_model_change_when_resubmitting_unchanged_status(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -783,7 +783,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_preserves_stale_credit_for_untouched_attended_trooper_when_another_row_is_saved(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $stale_trooper = Trooper::factory()->asActive()->create();
         $other_trooper = Trooper::factory()->asActive()->create();
         $org = Organization::factory()->create();
@@ -896,7 +896,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
      */
     private function makeFormerClubCreditRow(): array
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $former_club = Organization::factory()->create();
         $current_club = Organization::factory()->create();

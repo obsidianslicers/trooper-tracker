@@ -65,7 +65,7 @@ class Fix407Test extends TestCase
 
     public function test_reports_and_keeps_credit_when_the_legacy_costume_has_no_club(): void
     {
-        Trooper::factory()->asAdministrator()->create();
+        Trooper::factory()->asSystemOwner()->create();
         $trooper = $this->legacyMember(['p501' => 1]);
         $credit = $this->clubIds('Rebel Legion');
         $event_trooper = $this->tt1Row($trooper, self::SHIFT_AT, 'Other', 4, $credit);

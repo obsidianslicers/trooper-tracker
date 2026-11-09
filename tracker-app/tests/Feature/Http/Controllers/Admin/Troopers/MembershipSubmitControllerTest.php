@@ -17,7 +17,7 @@ class MembershipSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_memberships_and_redirects_back_to_membership(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $subject = Trooper::factory()->create();
         $organization = Organization::factory()->create();
 
@@ -37,7 +37,7 @@ class MembershipSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_organization_membership_status(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $subject = Trooper::factory()->create();
         $organization = Organization::factory()->create();
         TrooperOrganization::factory()

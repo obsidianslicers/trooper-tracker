@@ -21,7 +21,7 @@ class MimicTrooperPermissionsCommandTest extends TestCase
         Storage::fake('local');
 
         $target = Trooper::factory()->asMember()->create();
-        $source = Trooper::factory()->asAdministrator()->create();
+        $source = Trooper::factory()->asSystemOwner()->create();
 
         $target_org = Organization::factory()->create();
         $source_org = Organization::factory()->create();
@@ -44,7 +44,7 @@ class MimicTrooperPermissionsCommandTest extends TestCase
             ->assertExitCode(0);
 
         $target->refresh();
-        $this->assertSame(MembershipRole::ADMINISTRATOR, $target->membership_role);
+        $this->assertSame(MembershipRole::SYSTEM_OWNER, $target->membership_role);
 
         $this->assertDatabaseMissing('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $target->id,

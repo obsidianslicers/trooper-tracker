@@ -14,7 +14,7 @@ class AuthorityControllerTest extends TestCase
 
     public function test_invoke_displays_authority_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $subject = Trooper::factory()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.troopers.authority', $subject));

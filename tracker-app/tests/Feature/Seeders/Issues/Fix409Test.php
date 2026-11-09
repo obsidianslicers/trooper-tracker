@@ -73,7 +73,7 @@ class Fix409Test extends TestCase
 
     public function test_keeps_and_reports_credit_with_no_membership_evidence(): void
     {
-        Trooper::factory()->asAdministrator()->create();
+        Trooper::factory()->asSystemOwner()->create();
         $trooper = $this->laterRebelJoiner();
         $saber_guild = $this->clubIds('Saber Guild');
         $event_trooper = $this->attendedWithCredit($trooper, '2026-07-01 10:00:00', $saber_guild);
@@ -90,7 +90,7 @@ class Fix409Test extends TestCase
 
     public function test_reports_but_does_not_change_impossible_organization_id_credit(): void
     {
-        Trooper::factory()->asAdministrator()->create();
+        Trooper::factory()->asSystemOwner()->create();
         $trooper = $this->laterRebelJoiner();
         $event_trooper = $this->organizationIdRow($trooper, 'Rebel Legion');
 

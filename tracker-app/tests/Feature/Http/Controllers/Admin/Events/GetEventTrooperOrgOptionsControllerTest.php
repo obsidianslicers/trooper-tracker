@@ -25,7 +25,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
     public function test_invoke_returns_eligible_orgs_for_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $eligible_org = Organization::factory()->create();
         $ineligible_org = Organization::factory()->create();
@@ -74,7 +74,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
     public function test_invoke_returns_regular_costume_org_options_without_trooper_organization_rows(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org1 = Organization::factory()->create();
         $org2 = Organization::factory()->create();
@@ -115,7 +115,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
     public function test_invoke_pre_checks_all_eligible_orgs_when_costume_is_new(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = Organization::factory()->create();
         $org->update([Organization::NODE_PATH => (string) $org->id]);
@@ -151,7 +151,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
     public function test_invoke_returns_all_member_clubs_for_handler_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org1 = Organization::factory()->create();
         $org2 = Organization::factory()->create();
@@ -194,7 +194,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
     public function test_invoke_returns_all_member_clubs_when_changing_from_regular_costume_to_handler(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org1 = Organization::factory()->create();
         $org2 = Organization::factory()->create();
@@ -232,7 +232,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
     public function test_invoke_uses_stored_selection_when_costume_unchanged(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org1 = Organization::factory()->create();
         $org2 = Organization::factory()->create();
@@ -279,7 +279,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
     public function test_invoke_returns_all_member_clubs_when_no_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = Organization::factory()->create();
         $org->update([Organization::NODE_PATH => (string) $org->id]);
@@ -304,7 +304,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
     public function test_invoke_returns_all_member_clubs_when_changing_from_regular_costume_to_no_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org1 = Organization::factory()->create();
         $org2 = Organization::factory()->create();
@@ -341,7 +341,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
     public function test_invoke_keeps_former_club_credit_as_ticked_option_when_no_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $former_club = Organization::factory()->create();
         $current_club = Organization::factory()->create();
         $event_trooper = $this->makeFormerClubCreditRow($former_club, null);
@@ -362,7 +362,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
     public function test_invoke_keeps_former_club_credit_as_ticked_option_for_stored_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $former_club = Organization::factory()->create();
         $costume = Costume::factory()->create();
 
@@ -414,7 +414,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
     public function test_invoke_returns_404_if_event_trooper_belongs_to_different_event(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $other_event = Event::factory()->create();

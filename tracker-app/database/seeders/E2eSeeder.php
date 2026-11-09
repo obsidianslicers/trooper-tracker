@@ -38,7 +38,7 @@ class E2eSeeder extends Seeder
 
         $legion = Organization::where(Organization::NAME, '501st Legion')->firstOrFail();
 
-        $this->persona('admin@e2e.test', 'E2E Administrator', MembershipRole::ADMINISTRATOR);
+        $this->persona('admin@e2e.test', 'E2E Administrator', MembershipRole::SYSTEM_OWNER);
         $moderator = $this->persona('moderator@e2e.test', 'E2E Moderator', MembershipRole::MODERATOR);
         $this->persona('member@e2e.test', 'E2E Member', MembershipRole::MEMBER);
 

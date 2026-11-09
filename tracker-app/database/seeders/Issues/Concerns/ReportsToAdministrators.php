@@ -64,7 +64,7 @@ trait ReportsToAdministrators
             return;
         }
 
-        $admins = GetTroopersByRole::call(membership_role: MembershipRole::ADMINISTRATOR);
+        $admins = GetTroopersByRole::call(membership_role: MembershipRole::SYSTEM_OWNER);
 
         foreach ($admins as $admin)
         {

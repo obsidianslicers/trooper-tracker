@@ -705,7 +705,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
 
     public function test_invoke_manual_approval_blocked_when_trooper_needs_costume_decision(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->withVerifiedEmail()->create();
+        $admin = Trooper::factory()->asSystemOwner()->withVerifiedEmail()->create();
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $organization = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
@@ -738,7 +738,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
 
     public function test_invoke_manual_approval_succeeds_once_costume_decided(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->withVerifiedEmail()->create();
+        $admin = Trooper::factory()->asSystemOwner()->withVerifiedEmail()->create();
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $organization = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
@@ -776,7 +776,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         // Only a moderator can act on a manual-selection event trooper (per
         // SignupUpdateHtmxRequest::authorize()), and the costume_id branch also
         // requires ownership — so this is a moderator signed up for their own spot.
-        $admin = Trooper::factory()->asAdministrator()->withVerifiedEmail()->create();
+        $admin = Trooper::factory()->asSystemOwner()->withVerifiedEmail()->create();
         $organization = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($admin)->forOrganization($organization)->asMember()->create();
 
@@ -887,7 +887,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
     {
         [$trooper, $event_trooper] = $this->goingTrooper();
         $event_trooper->event_shift->event->update([Event::STATUS => EventStatus::MANUAL_SELECTION]);
-        $administrator = Trooper::factory()->asAdministrator()->asActive()->withVerifiedEmail()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->asActive()->withVerifiedEmail()->create();
 
         $this->actingAs($administrator)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
             'status' => EventTrooperStatus::STAND_BY->value,

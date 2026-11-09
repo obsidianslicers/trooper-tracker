@@ -39,7 +39,7 @@ class HasNoticeScopesTest extends TestCase
 
     public function test_moderated_by_returns_unmodified_query_for_administrator(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $base_sql = Notice::query()->toBase()->toSql();
         $moderated_sql = Notice::query()->moderatedBy($trooper)->toBase()->toSql();

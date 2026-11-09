@@ -60,7 +60,7 @@ final class RegisterPageData extends Message
             MembershipRole::EVENT_COORDINATOR,
             MembershipRole::MODERATOR,
             MembershipRole::STAFF_OFFICER,
-            MembershipRole::ADMINISTRATOR,
+            MembershipRole::SYSTEM_OWNER,
         ];
 
         return MembershipRole::toValueLabels(exclude: $exclude);

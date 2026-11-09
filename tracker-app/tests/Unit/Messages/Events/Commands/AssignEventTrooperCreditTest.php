@@ -22,7 +22,7 @@ class AssignEventTrooperCreditTest extends TestCase
 
     public function test_handle_assigns_org_credit_and_clears_legacy_organization_id(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $stale_org = $this->makeRootOrganization();
         $org = $this->makeRootOrganization();
@@ -75,7 +75,7 @@ class AssignEventTrooperCreditTest extends TestCase
         // the trooper's own live eligibility and intersects the submission against it, so when
         // that eligibility is empty (no TrooperAssignment at all), the submitted org is silently
         // dropped rather than saved — which is exactly the case the override path fixes below.
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = $this->makeRootOrganization();
 
@@ -93,7 +93,7 @@ class AssignEventTrooperCreditTest extends TestCase
 
     public function test_handle_override_assigns_credit_when_trooper_has_no_eligible_orgs(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = $this->makeRootOrganization();
         TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
@@ -143,7 +143,7 @@ class AssignEventTrooperCreditTest extends TestCase
         // selecting a club the trooper doesn't actually belong to must not write it — it would
         // save but never display, since HasOrgCreditAnnotation only resolves credit against the
         // trooper's current tt_trooper_organizations rows.
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $trooper_org = $this->makeRootOrganization();
         $other_org = $this->makeRootOrganization();
@@ -164,7 +164,7 @@ class AssignEventTrooperCreditTest extends TestCase
 
     public function test_handle_does_not_change_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = $this->makeRootOrganization();
         $costume = Costume::factory()->withName('TK Classic')->create();

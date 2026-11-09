@@ -17,7 +17,7 @@ class ReorderShiftStationsSubmitControllerTest extends TestCase
 
     public function test_invoke_updates_station_sequence_for_given_shift(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $shift = EventShift::factory()->forEvent($event)->create();
         $station_a = EventShiftStation::factory()->forEventShift($shift)->create([EventShiftStation::SEQUENCE => 10]);
@@ -37,7 +37,7 @@ class ReorderShiftStationsSubmitControllerTest extends TestCase
 
     public function test_invoke_ignores_station_from_another_shift(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $shift = EventShift::factory()->forEvent($event)->create();
         $other_shift = EventShift::factory()->forEvent($event)->create();

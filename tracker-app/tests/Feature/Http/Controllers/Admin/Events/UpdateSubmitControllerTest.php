@@ -24,7 +24,7 @@ class UpdateSubmitControllerTest extends TestCase
 
     public function test_invoke_returns_validation_errors_for_invalid_payload(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
 
         $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/update', []);
@@ -46,7 +46,7 @@ class UpdateSubmitControllerTest extends TestCase
     {
         Queue::fake([SendEventCreatedNotificationsJob::class]);
 
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->state([Event::STATUS => EventStatus::DRAFT])->create();
         $shift = EventShift::factory()->forEvent($event)
             ->state([EventShift::STATUS => EventStatus::DRAFT])
@@ -81,7 +81,7 @@ class UpdateSubmitControllerTest extends TestCase
     {
         Queue::fake([SendEventCancelledNotificationsJob::class]);
 
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
         $shift = EventShift::factory()->forEvent($event)
             ->state([EventShift::STATUS => EventStatus::OPEN])
@@ -112,7 +112,7 @@ class UpdateSubmitControllerTest extends TestCase
     {
         Queue::fake([SendEventCancelledNotificationsJob::class]);
 
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
         $shift = EventShift::factory()->forEvent($event)
             ->state([EventShift::STATUS => EventStatus::OPEN])
@@ -144,7 +144,7 @@ class UpdateSubmitControllerTest extends TestCase
     {
         Queue::fake();
 
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
         $new_host = Organization::factory()->create();
 

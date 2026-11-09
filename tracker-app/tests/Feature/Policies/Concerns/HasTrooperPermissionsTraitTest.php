@@ -25,7 +25,7 @@ class HasTrooperPermissionsTraitTest extends TestCase
             }
         };
 
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
         $moderator = Trooper::factory()->asModerator()->create();
 
         $this->assertTrue($policy->checkAdministrator($administrator));
@@ -45,7 +45,7 @@ class HasTrooperPermissionsTraitTest extends TestCase
         };
 
         $moderator = Trooper::factory()->asModerator()->create();
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $administrator = Trooper::factory()->asSystemOwner()->create();
 
         $this->assertTrue($policy->checkModerator($moderator));
         $this->assertFalse($policy->checkModerator($administrator));
@@ -63,7 +63,7 @@ class HasTrooperPermissionsTraitTest extends TestCase
             }
         };
 
-        $retired_administrator = Trooper::factory()->asAdministrator()->asRetired()->create();
+        $retired_administrator = Trooper::factory()->asSystemOwner()->asRetired()->create();
 
         $this->assertFalse($policy->checkAdministrator($retired_administrator));
     }

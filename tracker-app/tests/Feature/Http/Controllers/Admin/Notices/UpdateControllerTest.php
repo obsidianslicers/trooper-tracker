@@ -15,7 +15,7 @@ class UpdateControllerTest extends TestCase
 
     public function test_invoke_displays_update_notice_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $notice = Notice::factory()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.notices.update', ['notice' => $notice->id]));

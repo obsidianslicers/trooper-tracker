@@ -16,7 +16,7 @@ class DeleteSectionSubmitControllerTest extends TestCase
 
     public function test_invoke_soft_deletes_empty_section_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $section = FaqSection::factory()->create();
 
         $response = $this->actingAs($trooper)->post(
@@ -30,7 +30,7 @@ class DeleteSectionSubmitControllerTest extends TestCase
 
     public function test_invoke_refuses_to_delete_section_with_items(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $section = FaqSection::factory()->create();
         Faq::factory()->withSection($section)->create();
 

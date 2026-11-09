@@ -19,7 +19,7 @@ class UninstallSubmitControllerTest extends TestCase
     {
         $plugins = $this->useFixturePlugins();
         $plugins->enable('hello');
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->post(route(
             'admin.plugins.uninstall',
@@ -46,7 +46,7 @@ class UninstallSubmitControllerTest extends TestCase
     public function test_list_shows_uninstall_only_for_installed_plugins(): void
     {
         $plugins = $this->useFixturePlugins();
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)->get(route('admin.plugins.list'))
             ->assertDontSee(route('admin.plugins.uninstall', ['slug' => 'hello']));

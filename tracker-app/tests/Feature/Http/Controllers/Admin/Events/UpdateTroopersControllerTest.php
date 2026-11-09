@@ -24,7 +24,7 @@ class UpdateTroopersControllerTest extends TestCase
 
     public function test_invoke_displays_update_troopers_page_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         EventShift::factory()->forEvent($event)->create();
 
@@ -36,7 +36,7 @@ class UpdateTroopersControllerTest extends TestCase
 
     public function test_add_trooper_picker_uses_an_event_scoped_to_each_shift(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $first_shift = EventShift::factory()->forEvent($event)->create();
         $second_shift = EventShift::factory()->forEvent($event)->create();
@@ -51,7 +51,7 @@ class UpdateTroopersControllerTest extends TestCase
 
     public function test_invoke_shows_all_member_clubs_for_handler_costume(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event_org = Organization::factory()->create();
         $other_member_org = Organization::factory()->create();
@@ -91,7 +91,7 @@ class UpdateTroopersControllerTest extends TestCase
 
     public function test_invoke_shows_regular_costume_org_options(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = Organization::factory()->create();
         $org->update([Organization::NODE_PATH => (string) $org->id]);
@@ -158,7 +158,7 @@ class UpdateTroopersControllerTest extends TestCase
 
     public function test_invoke_shows_regular_costume_org_options_from_assignments_without_trooper_organization_rows(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org1 = Organization::factory()->create(['name' => 'Florida Garrison']);
         $org2 = Organization::factory()->create(['name' => 'Rebel Legion']);
@@ -207,7 +207,7 @@ class UpdateTroopersControllerTest extends TestCase
 
     public function test_invoke_shows_member_clubs_when_no_costume_selected(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org1 = Organization::factory()->create();
         $org2 = Organization::factory()->create();
@@ -281,7 +281,7 @@ class UpdateTroopersControllerTest extends TestCase
 
     public function test_invoke_shows_parent_org_checked_when_regular_costume_credit_is_child_org_without_trooper_organization_rows(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $parent_org = Organization::factory()->create(['name' => 'Parent Club']);
         $child_org = Organization::factory()->withParent($parent_org)->create(['name' => 'Child Base']);
@@ -353,7 +353,7 @@ class UpdateTroopersControllerTest extends TestCase
 
     public function test_invoke_preserves_stale_costume_no_longer_approved(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -379,7 +379,7 @@ class UpdateTroopersControllerTest extends TestCase
 
     public function test_invoke_preserves_stale_credited_org_no_longer_a_member(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
+        $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = Organization::factory()->create();
         $org->update([Organization::NODE_PATH => (string) $org->id]);

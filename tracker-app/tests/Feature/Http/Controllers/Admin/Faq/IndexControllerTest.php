@@ -15,7 +15,7 @@ class IndexControllerTest extends TestCase
 
     public function test_invoke_displays_faq_index_for_admin(): void
     {
-        $trooper = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.faq.index'));
 
