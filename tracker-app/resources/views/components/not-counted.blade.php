@@ -24,7 +24,7 @@
         <span {{ $attributes->class(['badge rounded-pill not-counted-pill']) }}
               title="{{ $event->notCountedNotice() }}">
             <i class="fa fa-fw fa-circle-info"></i>
-            Non-troop-credit
+            {{ \App\Models\EventType::NOT_COUNTED_LABEL }}
         </span>
     @else
         <div {{ $attributes->class(['not-counted-notice d-flex align-items-baseline gap-2']) }}

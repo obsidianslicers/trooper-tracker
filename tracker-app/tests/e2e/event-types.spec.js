@@ -3,7 +3,7 @@
 import { test, expect } from '@playwright/test';
 import { personas, seeded } from './support/personas.js';
 
-const FORM_NOTE = "Doesn't count toward troopers' troop totals.";
+const FORM_NOTE = 'Non-troop-credit event: Does not count toward troop totals.';
 
 function typeRow(page, name) {
     return page.getByRole('row').filter({ has: page.getByRole('link', { name, exact: true }) });
@@ -44,7 +44,7 @@ test.describe('as an administrator', () => {
         await expect(page).toHaveURL(/\/admin\/event-types$/);
         const row = typeRow(page, 'E2E Meetup');
         await expect(row).toContainText('E2E social night, no costumes.');
-        await expect(row).toContainText("Doesn't count");
+        await expect(row).toContainText('Non-troop-credit');
     });
 
     test('drags a type to change the order of the event form list', async ({ page }) => {

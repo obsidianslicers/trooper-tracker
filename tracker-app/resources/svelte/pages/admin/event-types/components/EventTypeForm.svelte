@@ -46,8 +46,8 @@
             errors={vm.errors.is_counted}
         />
         <InputHelp>
-            Uncheck for events that shouldn't add to troopers' troop counts, milestones,
-            leaderboards and tour of duty. Members see a notice on these events.
+            Uncheck to make this a non-troop-credit type: its events don't add to troop
+            totals, milestones, leaderboards or tour of duty. Members see a notice on them.
         </InputHelp>
         {@render counted_notice?.()}
     </InputContainer>

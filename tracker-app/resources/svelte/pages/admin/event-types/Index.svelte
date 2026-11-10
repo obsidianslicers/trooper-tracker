@@ -27,7 +27,7 @@
             <tr>
                 <th style="width: 80px;">Order</th>
                 <th>Event Type</th>
-                <th style="width: 140px;">Troop totals</th>
+                <th style="width: 140px;">Troop credit</th>
                 <th style="width: 80px;">Events</th>
                 <th class="text-end">
                     <CreateButton

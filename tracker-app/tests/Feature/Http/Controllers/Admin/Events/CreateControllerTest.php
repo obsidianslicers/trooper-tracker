@@ -96,6 +96,8 @@ class CreateControllerTest extends TestCase
         $response->assertDontSee('value="disney"', false);
         $response->assertSee("x-data=\"{ event_type: 'wedding'", false);
         $response->assertDontSee('@js(', false);
+        //  shown when a non-counting type is picked, in the words members see on the event
+        $response->assertSee(EventType::NOT_COUNTED_NOTICE);
     }
 
     public function test_invoke_preselects_regular_with_the_seeded_types(): void

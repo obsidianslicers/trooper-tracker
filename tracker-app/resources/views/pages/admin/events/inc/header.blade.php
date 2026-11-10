@@ -22,7 +22,7 @@
             <div class="text-warning"
                  x-show="help[event_type] && !help[event_type].is_counted">
                 <i class="fa fa-fw fa-circle-info"></i>
-                Doesn't count toward troopers' troop totals.
+                {{ \App\Models\EventType::NOT_COUNTED_NOTICE }}
             </div>
         </p>
     </div>

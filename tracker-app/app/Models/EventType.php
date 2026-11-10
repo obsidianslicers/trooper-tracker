@@ -28,6 +28,15 @@ class EventType extends BaseEventType
     public const DEFAULT_SLUG = 'regular';
 
     /**
+     * What members and coordinators are told about events of a type that doesn't count,
+     * word for word everywhere (the event list, event page, event form, service record,
+     * forum thread and Discord). The admin Event Types page uses the same label.
+     */
+    public const NOT_COUNTED_LABEL = 'Non-troop-credit';
+
+    public const NOT_COUNTED_NOTICE = 'Non-troop-credit event: Does not count toward troop totals.';
+
+    /**
      * @return HasMany<Event, self>
      */
     public function events(): HasMany

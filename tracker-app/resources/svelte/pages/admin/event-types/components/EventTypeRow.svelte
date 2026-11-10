@@ -30,7 +30,8 @@
             <i class="fa fa-fw fa-check text-success" aria-hidden="true"></i>
             <span class="visually-hidden">Counts</span>
         {:else}
-            <span class="badge text-bg-warning">Doesn't count</span>
+            <!-- the same label as EventType::NOT_COUNTED_LABEL -->
+            <span class="badge text-bg-warning">Non-troop-credit</span>
         {/if}
     </td>
     <td class="text-muted small">{event_type.events_count}</td>

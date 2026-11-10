@@ -86,7 +86,7 @@ class Event extends BaseEvent
             return null;
         }
 
-        return 'Non-troop-credit event: Does not count toward troop totals.';
+        return EventType::NOT_COUNTED_NOTICE;
     }
 
     /**

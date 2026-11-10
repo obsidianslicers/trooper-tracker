@@ -176,7 +176,7 @@
         <x-dashboard-card :label="'Event Types'"
                           :icon="'fa-tags'"
                           :url="route('admin.event-types.index')">
-            Order event types, describe them, and choose which count toward troop totals
+            Order event types, describe them, and choose which are non-troop-credit
         </x-dashboard-card>
     @endcan
     <x-dashboard-card :label="'Awards'"
