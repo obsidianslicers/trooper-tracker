@@ -63,7 +63,7 @@ class UpdateEventThreadJobTest extends TestCase
             ->andReturn(42);
         $xenforo->shouldReceive('update_thread')
             ->once()
-            ->with(123, (string) $target_event->name);
+            ->with(123, $target_event->event_start->format('Y/m/d D').' - '.$target_event->name);
         $xenforo->shouldReceive('update_post')
             ->once()
             ->with(456, 'updated forum message', 42);
@@ -83,7 +83,6 @@ class UpdateEventThreadJobTest extends TestCase
         config([
             'plugins.xenforo.base_url' => 'https://xf.test',
             'plugins.xenforo.api_key' => 'test-key',
-            'plugins.xenforo.date_in_thread_titles' => true,
         ]);
 
         //  the title is rebuilt from the event as it is now, so a moved date reaches the forum
