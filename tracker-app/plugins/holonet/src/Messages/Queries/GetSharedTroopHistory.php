@@ -58,7 +58,7 @@ final class GetSharedTroopHistory extends Message
         return [
             'id' => (string) $signup->id,
             'event_name' => $event->name,
-            'event_type' => $event->event_type?->slug,
+            'event_type' => $event->event_type?->name,
             'venue' => $event->venue,
             'shift_starts_at' => $shift->shift_starts_at->toIso8601String(),
             'shift_ends_at' => $shift->shift_ends_at->toIso8601String(),

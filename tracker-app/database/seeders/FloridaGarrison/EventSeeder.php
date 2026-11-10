@@ -195,11 +195,11 @@ class EventSeeder extends Seeder
     /**
      * The id of the seeded event type for a legacy label (see eventLabelFromLegacyId).
      */
-    private function eventTypeId(string $slug): int
+    private function eventTypeId(string $name): int
     {
-        $this->event_type_ids ??= EventType::query()->pluck(EventType::ID, EventType::SLUG)->all();
+        $this->event_type_ids ??= EventType::query()->pluck(EventType::ID, EventType::NAME)->all();
 
-        return $this->event_type_ids[$slug];
+        return $this->event_type_ids[$name];
     }
 
     private function overlayShiftCharity($legacy_shift, EventShift $shift): void

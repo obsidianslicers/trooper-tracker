@@ -9,7 +9,6 @@ use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventTypeScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 
 /**
  * A kind of event (troop) that coordinators pick on the event form.
@@ -17,15 +16,13 @@ use Illuminate\Support\Str;
  * Administrators manage the list: its order on the form, a description that helps
  * coordinators pick the right one, whether it is offered at all, and whether its
  * events count toward troopers' troop totals (milestones, leaderboards, service
- * records). Events reference a type by its slug, which never changes.
+ * records). Events reference a type by its id, so renaming one is safe.
  */
 class EventType extends BaseEventType
 {
     use HasEventTypeScopes;
     use HasFactory;
     use HasTrooperStamps;
-
-    public const DEFAULT_SLUG = 'regular';
 
     /**
      * What members and coordinators are told about events of a type that doesn't count,
@@ -59,22 +56,5 @@ class EventType extends BaseEventType
     public static function idNamed(string $name): ?int
     {
         return static::query()->where(self::NAME, $name)->value(self::ID);
-    }
-
-    /**
-     * A slug for a new type's name that no other type uses.
-     */
-    public static function uniqueSlugFor(string $name): string
-    {
-        $base = Str::limit(Str::slug($name, ''), 28, '') ?: 'type';
-        $slug = $base;
-        $suffix = 2;
-
-        while (static::query()->where(self::SLUG, $slug)->exists())
-        {
-            $slug = $base.$suffix++;
-        }
-
-        return $slug;
     }
 }

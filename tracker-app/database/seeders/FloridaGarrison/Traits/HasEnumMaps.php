@@ -22,26 +22,26 @@ trait HasEnumMaps
     }
 
     /**
-     * The slug of the event type a legacy event label maps to. Every slug here is one
+     * The name of the event type a legacy event label maps to. Every name here is one
      * of the types the create_event_types migration seeds.
      */
     public static function eventLabelFromLegacyId(int $id): string
     {
         return match ($id)
         {
-            0 => 'regular',
-            10 => 'armorparty',
-            1 => 'charity',
-            2 => 'publicrelations',
-            3 => 'disney',
-            11 => 'lucasfilm',
-            4 => 'convention',
-            9 => 'hospital',
-            5 => 'wedding',
-            6 => 'birthdayparty',
-            7 => 'virtualtroop',
-            8 => 'other',
-            default => 'other',
+            0 => 'Regular',
+            10 => 'Armor Party',
+            1 => 'Charity',
+            2 => 'Public Relations',
+            3 => 'Disney',
+            11 => 'Lucas Film Limited',
+            4 => 'Convention',
+            9 => 'Hospital',
+            5 => 'Wedding',
+            6 => 'Birthday Party',
+            7 => 'Virtual Troop',
+            8 => 'Other',
+            default => 'Other',
         };
     }
 

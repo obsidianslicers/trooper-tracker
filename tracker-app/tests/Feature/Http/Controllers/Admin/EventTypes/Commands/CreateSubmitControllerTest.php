@@ -13,7 +13,7 @@ class CreateSubmitControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_adds_the_type_at_the_end_with_a_slug(): void
+    public function test_invoke_adds_the_type_at_the_end(): void
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $last = EventType::max(EventType::SORT_ORDER);
@@ -27,7 +27,6 @@ class CreateSubmitControllerTest extends TestCase
 
         $response->assertRedirect(route('admin.event-types.index'));
         $this->assertDatabaseHas('tt_event_types', [
-            EventType::SLUG => 'squadmeeting',
             EventType::NAME => 'Squad Meeting',
             EventType::IS_COUNTED => false,
             EventType::IS_ACTIVE => true,

@@ -19,7 +19,7 @@ class UpdateSubmitControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_saves_settings_and_keeps_the_slug(): void
+    public function test_invoke_saves_settings_on_the_same_type(): void
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $armor_party = EventType::where(EventType::NAME, 'Armor Party')->firstOrFail();
@@ -35,7 +35,6 @@ class UpdateSubmitControllerTest extends TestCase
         $response->assertRedirect(route('admin.event-types.index'));
         $this->assertDatabaseHas('tt_event_types', [
             EventType::ID => $armor_party->id,
-            EventType::SLUG => 'armorparty',
             EventType::NAME => 'Armor Build Party',
             EventType::DESCRIPTION => 'Workshops. No troop credit.',
             EventType::IS_COUNTED => false,

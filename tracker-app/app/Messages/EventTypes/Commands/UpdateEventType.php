@@ -8,7 +8,7 @@ use App\Models\EventType;
 use Hyperdrive\Message;
 
 /**
- * Saves an event type's settings. Its slug never changes, so events keep pointing at it.
+ * Saves an event type's settings. Events point at it by id, so they keep it through a rename.
  *
  * @method static EventType call(EventType $event_type, string $name, ?string $description, bool $is_counted, bool $is_active)
  */

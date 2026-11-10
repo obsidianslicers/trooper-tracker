@@ -135,7 +135,6 @@ class E2eSeeder extends Seeder
     private function eventType(string $name, int $sort_order, bool $is_counted = true, ?string $description = null): EventType
     {
         return EventType::create([
-            EventType::SLUG => EventType::uniqueSlugFor($name),
             EventType::NAME => $name,
             EventType::DESCRIPTION => $description,
             EventType::SORT_ORDER => $sort_order,

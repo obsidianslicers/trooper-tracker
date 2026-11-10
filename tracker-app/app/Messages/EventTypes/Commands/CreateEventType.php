@@ -24,7 +24,6 @@ final class CreateEventType extends Message
     public function handle(): EventType
     {
         $event_type = new EventType;
-        $event_type->slug = EventType::uniqueSlugFor($this->name);
         $event_type->name = $this->name;
         $event_type->description = $this->description;
         $event_type->is_counted = $this->is_counted;

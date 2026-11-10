@@ -6,6 +6,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 /**
  * Event types move from a PHP enum to a table administrators manage. Each event's
@@ -38,7 +39,6 @@ return new class extends Migration {
         {
             $table->id();
 
-            $table->string('slug', 32)->unique();
             $table->string('name', 64);
             $table->text('description')->nullable();
             $table->unsignedInteger('sort_order')->default(0);
@@ -49,17 +49,17 @@ return new class extends Migration {
             $table->trooperstamps();
         });
 
-        $this->seedDefaults();
-        $this->addMissingTypes();
+        $ids = $this->seedDefaults() + $this->addMissingTypes();
 
         Schema::table('tt_events', function (Blueprint $table)
         {
             $table->foreignId('event_type_id')->nullable()->after('type')->constrained('tt_event_types');
         });
 
-        DB::table('tt_events')->update([
-            'event_type_id' => DB::raw('(SELECT id FROM tt_event_types WHERE tt_event_types.slug = tt_events.type)'),
-        ]);
+        foreach ($ids as $value => $id)
+        {
+            DB::table('tt_events')->where('type', $value)->update(['event_type_id' => $id]);
+        }
 
         Schema::table('tt_events', function (Blueprint $table)
         {
@@ -68,6 +68,10 @@ return new class extends Migration {
         });
     }
 
+    /**
+     * Puts the type strings back: a seeded type by its name, any other as its name in
+     * lowercase without spaces (as the enum spelled them).
+     */
     public function down(): void
     {
         Schema::table('tt_events', function (Blueprint $table)
@@ -75,9 +79,14 @@ return new class extends Migration {
             $table->string('type', 32)->default('regular')->after('name');
         });
 
-        DB::table('tt_events')->update([
-            'type' => DB::raw('(SELECT slug FROM tt_event_types WHERE tt_event_types.id = tt_events.event_type_id)'),
-        ]);
+        $values = array_column(self::DEFAULTS, 0, 1);
+
+        foreach (DB::table('tt_event_types')->pluck('name', 'id') as $id => $name)
+        {
+            DB::table('tt_events')->where('event_type_id', $id)->update([
+                'type' => $values[$name] ?? Str::limit(Str::slug((string) $name, ''), 32, '') ?: 'other',
+            ]);
+        }
 
         Schema::table('tt_events', function (Blueprint $table)
         {
@@ -87,48 +96,54 @@ return new class extends Migration {
         Schema::dropIfExists('tt_event_types');
     }
 
-    private function seedDefaults(): void
+    /**
+     * @return array<string, int> the new type's id for each former enum value
+     */
+    private function seedDefaults(): array
     {
         $now = now();
-        $rows = [];
+        $ids = [];
 
-        foreach (self::DEFAULTS as $index => [$slug, $name, $description])
+        foreach (self::DEFAULTS as $index => [$value, $name, $description])
         {
-            $rows[] = [
-                'slug' => $slug,
+            $ids[$value] = DB::table('tt_event_types')->insertGetId([
                 'name' => $name,
                 'description' => $description,
                 'sort_order' => $index + 1,
                 'created_at' => $now,
                 'updated_at' => $now,
-            ];
+            ]);
         }
 
-        DB::table('tt_event_types')->insert($rows);
+        return $ids;
     }
 
     /**
-     * Gives a value the enum never had a type of its own, so no event is left without one.
+     * Gives a value the enum never had a hidden type of its own, so no event is left without one.
+     *
+     * @return array<string, int>
      */
-    private function addMissingTypes(): void
+    private function addMissingTypes(): array
     {
         $known = array_column(self::DEFAULTS, 0);
+        $ids = [];
 
         $unknown = DB::table('tt_events')
             ->whereNotIn('type', $known)
             ->distinct()
             ->pluck('type');
 
-        foreach ($unknown as $offset => $slug)
+        foreach ($unknown as $offset => $value)
         {
-            DB::table('tt_event_types')->insert([
-                'slug' => $slug,
-                'name' => ucfirst((string) $slug),
+            $ids[$value] = DB::table('tt_event_types')->insertGetId([
+                'name' => ucfirst((string) $value),
                 'sort_order' => count($known) + $offset + 1,
                 'is_active' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
+
+        return $ids;
     }
 };

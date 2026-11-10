@@ -382,7 +382,7 @@ class EventTest extends TestCase
         $this->assertFalse($subject->minorAllowedToAttend());
     }
 
-    public function test_event_type_relation_resolves_by_slug(): void
+    public function test_event_type_relation_resolves_by_id(): void
     {
         $subject = Event::factory()
             ->state([Event::EVENT_TYPE_ID => EventType::idNamed('Charity')])

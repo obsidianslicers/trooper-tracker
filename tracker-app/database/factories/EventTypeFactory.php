@@ -14,7 +14,6 @@ class EventTypeFactory extends BaseEventTypeFactory
         $name = ucwords($this->faker->unique()->words(2, true));
 
         return array_merge(parent::definition(), [
-            EventType::SLUG => EventType::uniqueSlugFor($name),
             EventType::NAME => $name,
             EventType::DESCRIPTION => $this->faker->sentence(),
             EventType::SORT_ORDER => $this->faker->numberBetween(100, 999),

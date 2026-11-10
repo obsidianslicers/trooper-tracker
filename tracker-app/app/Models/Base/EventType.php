@@ -16,7 +16,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Class EventType
  * 
  * @property int $id
- * @property string $slug
  * @property string $name
  * @property string|null $description
  * @property int $sort_order
@@ -35,7 +34,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class EventType extends Model
 {
     const ID = 'id';
-    const SLUG = 'slug';
     const NAME = 'name';
     const DESCRIPTION = 'description';
     const SORT_ORDER = 'sort_order';
@@ -61,7 +59,6 @@ class EventType extends Model
     ];
 
     protected $fillable = [
-        self::SLUG,
         self::NAME,
         self::DESCRIPTION,
         self::SORT_ORDER,
