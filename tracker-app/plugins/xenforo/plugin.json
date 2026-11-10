@@ -19,6 +19,7 @@
         { "key": "client_secret", "label": "OAuth client secret", "type": "secret", "help": "Leave empty to use XENFORO_CLIENT_SECRET." },
         { "key": "redirect", "label": "OAuth redirect URL", "type": "url", "help": "Leave empty to use XENFORO_REDIRECT_URI." },
         { "key": "webhook_secret", "label": "Webhook secret", "type": "secret", "help": "Leave empty to use XENFORO_WEBHOOK_SECRET." },
-        { "key": "require_xenforo", "label": "Require a linked forum account", "type": "boolean", "help": "Troopers must link their forum account to use the site. Until this is saved here, TRACKER_REQUIRE_XENFORO is used." }
+        { "key": "require_xenforo", "label": "Require a linked forum account", "type": "boolean", "help": "Troopers must link their forum account to use the site. Until this is saved here, TRACKER_REQUIRE_XENFORO is used." },
+        { "key": "date_in_thread_titles", "label": "Start event thread titles with the date", "type": "boolean", "help": "For example \"2026/03/14 Sat - Hospital Visit\". Set the event forum to sort threads by title and upcoming events list soonest first. Until this is saved here, XENFORO_DATE_IN_THREAD_TITLES is used." }
     ]
 }

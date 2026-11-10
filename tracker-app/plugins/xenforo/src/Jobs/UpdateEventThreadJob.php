@@ -11,6 +11,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
 use TroopTracker\Plugins\Xenforo\Services\ForumThreadMessageService;
 use TroopTracker\Plugins\Xenforo\Services\XenforoService;
+use TroopTracker\Plugins\Xenforo\Support\ForumThreadTitle;
 
 class UpdateEventThreadJob implements ShouldBeUnique, ShouldQueue
 {
@@ -84,7 +85,7 @@ class UpdateEventThreadJob implements ShouldBeUnique, ShouldQueue
         $message = $messages->buildThreadMessage($event);
         $user_id = $xenforo->resolve_user_id_for_trooper($event->created_id);
 
-        $xenforo->update_thread((int) $thread->thread_id, (string) $event->name);
+        $xenforo->update_thread((int) $thread->thread_id, ForumThreadTitle::for($event));
         $xenforo->update_post((int) $thread->post_id, $message, $user_id);
     }
 }

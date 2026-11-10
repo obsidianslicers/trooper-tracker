@@ -59,6 +59,7 @@ class XenforoServiceProvider extends PluginServiceProvider
         'redirect' => 'plugins.xenforo.redirect',
         'webhook_secret' => 'plugins.xenforo.webhook_secret',
         'require_xenforo' => 'plugins.xenforo.require_xenforo',
+        'date_in_thread_titles' => 'plugins.xenforo.date_in_thread_titles',
     ];
 
     protected function registerPlugin(): void

@@ -77,4 +77,30 @@ class UpdateEventThreadJobTest extends TestCase
 
         $subject->handle($xenforo, $forumThreadMessageService);
     }
+
+    public function test_handle_keeps_a_dated_title_in_step_with_the_event_date(): void
+    {
+        config([
+            'plugins.xenforo.base_url' => 'https://xf.test',
+            'plugins.xenforo.api_key' => 'test-key',
+            'plugins.xenforo.date_in_thread_titles' => true,
+        ]);
+
+        //  the title is rebuilt from the event as it is now, so a moved date reaches the forum
+        $event = $this->linkThread(Event::factory()->create([
+            Event::NAME => 'Hospital Visit',
+            Event::EVENT_START => '2027-03-21 10:00:00',
+            Event::EVENT_END => '2027-03-21 12:00:00',
+        ]), 123, 456);
+
+        $messages = Mockery::mock(ForumThreadMessageService::class);
+        $messages->shouldReceive('buildThreadMessage')->andReturn('updated forum message');
+
+        $xenforo = Mockery::mock(XenforoService::class);
+        $xenforo->shouldReceive('resolve_user_id_for_trooper')->andReturn(null);
+        $xenforo->shouldReceive('update_thread')->once()->with(123, '2027/03/21 Sun - Hospital Visit');
+        $xenforo->shouldReceive('update_post')->once();
+
+        (new UpdateEventThreadJob($event->id))->handle($xenforo, $messages);
+    }
 }

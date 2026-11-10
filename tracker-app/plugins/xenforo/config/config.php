@@ -13,6 +13,7 @@ return [
     'name' => env('XENFORO_NAME'),
     'webhook_secret' => env('XENFORO_WEBHOOK_SECRET'),
     'require_xenforo' => (bool) env('TRACKER_REQUIRE_XENFORO', false),
+    'date_in_thread_titles' => (bool) env('XENFORO_DATE_IN_THREAD_TITLES', false),
     // OAuth paths, so different XenForo setups can be supported. These default
     // to the standard XenForo 2.3 endpoints.
     'authorize_path' => env('XENFORO_AUTHORIZE_PATH', '/index.php?oauth2/authorize'),

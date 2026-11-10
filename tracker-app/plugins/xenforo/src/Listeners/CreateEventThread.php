@@ -11,6 +11,7 @@ use TroopTracker\Plugins\Xenforo\Models\EventThread;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 use TroopTracker\Plugins\Xenforo\Services\ForumThreadMessageService;
 use TroopTracker\Plugins\Xenforo\Services\XenforoService;
+use TroopTracker\Plugins\Xenforo\Support\ForumThreadTitle;
 
 /**
  * Opens a forum thread for a newly posted event in its organization's forum.
@@ -34,7 +35,7 @@ class CreateEventThread implements ShouldQueue
 
         $result = $this->xenforo->create_thread(
             $forum_id,
-            $event->name,
+            ForumThreadTitle::for($event),
             $this->messages->buildThreadMessage($event),
             $this->xenforo->resolve_user_id_for_trooper($event->created_id),
         );

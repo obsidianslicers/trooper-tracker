@@ -70,6 +70,31 @@ class EventThreadsTest extends TestCase
         $this->assertSame(654, $thread->post_id);
     }
 
+    public function test_posting_puts_the_date_in_front_of_the_title_when_the_setting_is_on(): void
+    {
+        config(['plugins.xenforo.date_in_thread_titles' => true]);
+        $organization = $this->createForumOrganization([OrganizationForum::EVENT_FORUM_ID => 42]);
+        $event = Event::factory()
+            ->withOrganization($organization)
+            ->create([
+                Event::NAME => 'Hospital Visit',
+                Event::EVENT_START => '2026-03-14 10:00:00',
+                Event::EVENT_END => '2026-03-14 12:00:00',
+            ]);
+
+        $messages = Mockery::mock(ForumThreadMessageService::class);
+        $messages->shouldReceive('buildThreadMessage')->andReturn('[b]Thread[/b]');
+
+        $xenforo = Mockery::mock(XenforoService::class);
+        $xenforo->shouldReceive('resolve_user_id_for_trooper')->andReturn(null);
+        $xenforo->shouldReceive('create_thread')
+            ->once()
+            ->with(42, '2026/03/14 Sat - Hospital Visit', '[b]Thread[/b]', null)
+            ->andReturn(['status' => 201, 'body' => ['thread' => ['thread_id' => 321, 'first_post_id' => 654]]]);
+
+        (new CreateEventThread($xenforo, $messages))->handle(new EventPosted($event));
+    }
+
     public function test_posting_skips_events_that_opted_out_or_already_have_a_thread(): void
     {
         $organization = $this->createForumOrganization([OrganizationForum::EVENT_FORUM_ID => 42]);
