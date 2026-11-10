@@ -86,7 +86,7 @@ class Event extends BaseEvent
             return null;
         }
 
-        return "{$this->event_type->name} events don't count toward troop totals.";
+        return 'Non-troop-credit event: Does not count toward troop totals.';
     }
 
     /**

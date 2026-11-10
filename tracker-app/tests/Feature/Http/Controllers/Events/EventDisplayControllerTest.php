@@ -30,8 +30,8 @@ class EventDisplayControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('pages.events.event-display');
-        $response->assertDontSee("don't count toward troop totals", false);
-        $response->assertDontSee('not-counted-pill', false);
+        $response->assertDontSee('Does not count toward troop totals', false);
+        $response->assertDontSee('not-counted-logo', false);
     }
 
     public function test_invoke_marks_an_event_whose_type_does_not_count(): void
@@ -43,8 +43,11 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSee('not-counted-pill', false);
-        $response->assertSee("Armor Party Plus events don't count toward troop totals.");
+        //  the info icon takes the unit logo's place in the title bar; the sentence says why
+        $response->assertSee('not-counted-logo', false);
+        $response->assertDontSee('organization-32x32.png', false);
+        $response->assertDontSee('not-counted-pill', false);
+        $response->assertSee('Non-troop-credit event: Does not count toward troop totals.');
         //  at the top of the details and again above the roster, where troopers sign up
         $this->assertSame(2, substr_count($response->getContent(), 'not-counted-notice'));
     }

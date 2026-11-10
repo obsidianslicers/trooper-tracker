@@ -38,10 +38,12 @@ class ListControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.list'));
 
         $response->assertOk();
-        $response->assertSeeInOrder(['Armor build night', 'not-counted-pill', 'not-counted-notice'], false);
-        $response->assertSee("Armor Party Plus events don't count toward troop totals.");
-        $this->assertSame(1, substr_count($response->getContent(), 'not-counted-pill'));
+        //  the info icon in place of the unit logo, then the sentence in the body; no pill
+        $response->assertSeeInOrder(['not-counted-logo', 'Armor build night', 'not-counted-notice'], false);
+        $response->assertSee('Non-troop-credit event: Does not count toward troop totals.');
+        $this->assertSame(1, substr_count($response->getContent(), 'not-counted-logo'));
         $this->assertSame(1, substr_count($response->getContent(), 'not-counted-notice'));
+        $response->assertDontSee('not-counted-pill', false);
     }
 
     public function test_invoke_loads_event_types_with_the_events(): void

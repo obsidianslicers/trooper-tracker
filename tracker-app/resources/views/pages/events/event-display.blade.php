@@ -9,19 +9,21 @@
             <div class="card">
                 <div class="card-header {{ $bg }} d-flex align-items-center">
                     <span class="p-2">
-                        <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
-                                :default_path="'img/icons/organization-32x32.png'"
-                                :width="32"
-                                :height="32" />
+                        @if(!$event->isCounted())
+                            <x-not-counted :event="$event"
+                                           variant="logo" />
+                        @else
+                            <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
+                                    :default_path="'img/icons/organization-32x32.png'"
+                                    :width="32"
+                                    :height="32" />
+                        @endif
                     </span>
                     <span class="p-2">
                         <h4 class=" text-white">
                             {{ $event->name }}
                         </h4>
                     </span>
-                    <x-not-counted :event="$event"
-                                   variant="pill"
-                                   class="mx-2" />
                     @canany(['update', 'copy'], $event)
                         <div class="btn-group mb-2 ms-auto d-none d-md-flex">
                             @can('update', $event)

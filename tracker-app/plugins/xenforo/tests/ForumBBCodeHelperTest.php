@@ -46,7 +46,7 @@ class ForumBBCodeHelperTest extends TestCase
 
     public function test_thread_template_says_when_the_event_does_not_count(): void
     {
-        $event_type = EventType::factory()->uncounted()->create([EventType::NAME => "Members' Armor Party"]);
+        $event_type = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party']);
         $event = Event::factory()
             ->forForumBbcodeTemplate()
             ->state([Event::TYPE => $event_type->slug])
@@ -54,9 +54,9 @@ class ForumBBCodeHelperTest extends TestCase
 
         $result = ForumBBCodeHelper::threadTemplate($event);
 
-        //  under the title and venue, above the details, and the apostrophes stay readable
+        //  under the title and venue, above the details
         $this->assertStringContainsString(
-            "[/i][/size]\n\n[b]ℹ️ Members' Armor Party events don't count toward troop totals.[/b]\n\n[hr][/hr]",
+            "[/i][/size]\n\n[b]ℹ️ Non-troop-credit event: Does not count toward troop totals.[/b]\n\n[hr][/hr]",
             $result
         );
     }

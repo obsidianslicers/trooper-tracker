@@ -219,9 +219,9 @@ class TrooperControllerTest extends TestCase
         ]);
 
         //  once in the card view and once in the table view, only for the uncounted troop
-        $response->assertSeeInOrder(['Armor build night', "Doesn't count", 'Hospital visit']);
+        $response->assertSeeInOrder(['Armor build night', 'Non-troop-credit', 'Hospital visit']);
         $this->assertSame(2, substr_count((string) $response, 'not-counted-pill'));
-        $response->assertSee("Armor Party Plus events don't count toward troop totals.");
+        $response->assertSee('Non-troop-credit event: Does not count toward troop totals.');
     }
 
     private function attendedShift(Trooper $trooper, Event $event): EventShift
