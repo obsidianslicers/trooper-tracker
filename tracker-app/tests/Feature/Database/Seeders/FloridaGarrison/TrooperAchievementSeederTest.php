@@ -9,6 +9,7 @@ use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
@@ -63,6 +64,39 @@ class TrooperAchievementSeederTest extends TestCase
         $this->assertAchievementValue($trooper, AchievementType::DIRECT_FUNDS, 125);
         $this->assertAchievementValue($trooper, AchievementType::INDIRECT_FUNDS, 75);
         $this->assertAchievementValue($trooper, AchievementType::VOLUNTEER_HOURS, 5);
+    }
+
+    public function test_run_for_leaves_events_that_do_not_count_out_of_the_troop_count(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $uncounted = EventType::factory()->uncounted()->create();
+        $event_start = Carbon::parse('2026-01-10 10:00:00');
+
+        foreach ([null, $uncounted->slug] as $offset => $type)
+        {
+            $starts_at = $event_start->copy()->addDays($offset);
+            $event = Event::factory()->create(array_filter([
+                Event::TYPE => $type,
+                Event::STATUS => EventStatus::CLOSED,
+                Event::EVENT_START => $starts_at,
+                Event::EVENT_END => $starts_at->copy()->addHours(2),
+            ]));
+            $shift = EventShift::factory()->forEvent($event)->create([
+                EventShift::STATUS => EventStatus::CLOSED,
+                EventShift::SHIFT_STARTS_AT => $starts_at,
+                EventShift::SHIFT_ENDS_AT => $starts_at->copy()->addHours(2),
+                EventShift::CHARITY_HOURS => 3,
+            ]);
+            EventTrooper::factory()->forTrooper($trooper)->forEventShift($shift)->asAttended()->create();
+        }
+
+        (new TrooperAchievementSeeder())->runFor(
+            Carbon::parse('2026-01-01'),
+            Carbon::parse('2026-01-31')->endOfDay()
+        );
+
+        $this->assertAchievementValue($trooper, AchievementType::TROOPER_SHIFTS, 1);
+        $this->assertAchievementValue($trooper, AchievementType::VOLUNTEER_HOURS, 6);
     }
 
     private function assertAchievementValue(Trooper $trooper, AchievementType $type, mixed $value): void
