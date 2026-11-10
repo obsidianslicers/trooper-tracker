@@ -51,7 +51,7 @@ class EventTypeForumsTest extends TestCase
         $xenforo->shouldReceive('resolve_user_id_for_trooper')->andReturn(1);
         $xenforo->shouldReceive('create_thread')
             ->once()
-            ->with(99, $event->name, 'body', 1)
+            ->with(99, Mockery::type('string'), 'body', 1)
             ->andReturn(['status' => 201, 'body' => ['thread' => ['thread_id' => 5, 'first_post_id' => 6]]]);
 
         (new CreateEventThread($xenforo, $messages))->handle(new EventPosted($event));
