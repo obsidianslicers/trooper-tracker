@@ -49,8 +49,8 @@ trait HasEventScopes
     public function scopeCounted(Builder $query): Builder
     {
         return $query->whereNotIn(
-            $query->qualifyColumn(self::TYPE),
-            EventType::query()->uncountedSlugs()
+            $query->qualifyColumn(self::EVENT_TYPE_ID),
+            EventType::query()->uncountedIds()
         );
     }
 

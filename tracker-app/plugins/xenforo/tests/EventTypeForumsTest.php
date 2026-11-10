@@ -43,7 +43,7 @@ class EventTypeForumsTest extends TestCase
         EventTypeForum::store($event_type->id, [EventTypeForum::EVENT_FORUM_ID => 99]);
         $event = Event::factory()
             ->withOrganization($organization)
-            ->create([Event::TYPE => $event_type->slug]);
+            ->create([Event::EVENT_TYPE_ID => $event_type->id]);
 
         $messages = Mockery::mock(ForumThreadMessageService::class);
         $messages->shouldReceive('buildThreadMessage')->andReturn('body');
@@ -66,9 +66,9 @@ class EventTypeForumsTest extends TestCase
         EventTypeForum::store($without_archive->id, [EventTypeForum::EVENT_FORUM_ID => 99]);
 
         $first = $this->linkThread(Event::factory()->withOrganization($organization)
-            ->create([Event::TYPE => $with_archive->slug]), 10, 11);
+            ->create([Event::EVENT_TYPE_ID => $with_archive->id]), 10, 11);
         $second = $this->linkThread(Event::factory()->withOrganization($organization)
-            ->create([Event::TYPE => $without_archive->slug]), 20, 21);
+            ->create([Event::EVENT_TYPE_ID => $without_archive->id]), 20, 21);
 
         $xenforo = Mockery::mock(XenforoService::class);
         $xenforo->shouldReceive('move_thread')->once()->with(10, 88)->andReturn(['status' => 200]);

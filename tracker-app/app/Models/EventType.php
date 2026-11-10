@@ -41,7 +41,24 @@ class EventType extends BaseEventType
      */
     public function events(): HasMany
     {
-        return $this->hasMany(Event::class, Event::TYPE, self::SLUG);
+        return $this->hasMany(Event::class);
+    }
+
+    /**
+     * The type a new event gets unless it picks one: the first offered, in the
+     * administrators' order (Regular, as seeded).
+     */
+    public static function defaultId(): ?int
+    {
+        return static::query()->active()->ordered()->value(self::ID);
+    }
+
+    /**
+     * The id of the type with this name, such as one of the seeded defaults ("Regular").
+     */
+    public static function idNamed(string $name): ?int
+    {
+        return static::query()->where(self::NAME, $name)->value(self::ID);
     }
 
     /**

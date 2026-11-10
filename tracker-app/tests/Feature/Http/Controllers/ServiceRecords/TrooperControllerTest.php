@@ -208,7 +208,7 @@ class TrooperControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $uncounted = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party Plus']);
         $shifts = collect([
-            $this->attendedShift($trooper, Event::factory()->create([Event::NAME => 'Armor build night', Event::TYPE => $uncounted->slug])),
+            $this->attendedShift($trooper, Event::factory()->create([Event::NAME => 'Armor build night', Event::EVENT_TYPE_ID => $uncounted->id])),
             $this->attendedShift($trooper, Event::factory()->create([Event::NAME => 'Hospital visit'])),
         ]);
 

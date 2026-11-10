@@ -12,9 +12,9 @@ Event types are rows in `tt_event_types` that system owners and staff officers m
 | Counts toward troop totals | `is_counted` | When off, attending doesn't add to troop totals, and every place members see the event says so (see below) |
 | Offered on the event form | `is_active` | When off, new events can't pick it; events that already use it keep it |
 
-Events store their type's **slug** in `tt_events.type` (foreign key to `tt_event_types.slug`). Slugs never change, so renaming a type is safe. A type can only be deleted while no event uses it; otherwise hide it.
+Each event points at its type with `tt_events.event_type_id` (foreign key to `tt_event_types.id`), so renaming a type is safe. A type can only be deleted while no event uses it; otherwise hide it. An event created without a type gets the first offered one (`EventType::defaultId()`, set in `EventObserver`), as the form preselects it.
 
-The `2026_11_08_000001_create_event_types_table` migration seeds the twelve former enum values, all counted and offered: Regular first (it was the preselected type before), then the rest alphabetically as the form listed them. Nothing else changes until a system owner or staff officer edits them.
+The `2026_11_08_000001_create_event_types_table` migration seeds the twelve former enum values, all counted and offered: Regular first (it was the preselected type before), then the rest alphabetically as the form listed them. It then replaces each event's old `type` string with the matching `event_type_id`. Nothing else changes until a system owner or staff officer edits them.
 
 ### Types that don't count
 
@@ -33,7 +33,7 @@ Members are told the same way everywhere, so nobody finds out after the fact. `E
 
 The header keeps its status color (open, at risk, locked): its icon is white like the at-risk warning, the service record's pill is white on dark so it reads on every theme, and the notice borrows only its left edge from the theme's info color, since some themes' info color is close to the locked header's.
 
-Queries use `Event::counted()` / `EventTrooper::counted()`, or `whereNotIn('tt_events.type', EventType::query()->uncountedSlugs())` in raw joins. Because counts are worked out when queried, changing a type's setting applies to its past events too: leaderboards change right away, the stored shift count at the nightly `tracker:calculate-trooper-achievements` run. Milestones already awarded are not taken back.
+Queries use `Event::counted()` / `EventTrooper::counted()`, or `whereNotIn('tt_events.event_type_id', EventType::query()->uncountedIds())` in raw joins. Because counts are worked out when queried, changing a type's setting applies to its past events too: leaderboards change right away, the stored shift count at the nightly `tracker:calculate-trooper-achievements` run. Milestones already awarded are not taken back.
 
 **Source:** `app/Models/EventType.php`, `app/Messages/EventTypes/`
 

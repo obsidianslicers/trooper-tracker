@@ -62,7 +62,7 @@ class GetLeaderboardMetricsTest extends TestCase
 
         $this->createAttendance($counted_trooper, now()->subDays(5));
         $this->createAttendance($uncounted_trooper, now()->subDays(5))
-            ->event_shift->event->update([Event::TYPE => $uncounted->slug]);
+            ->event_shift->event->update([Event::EVENT_TYPE_ID => $uncounted->id]);
 
         $operatives = (new GetLeaderboardMetrics)->handle()['operatives']->pluck('trooper_id');
 

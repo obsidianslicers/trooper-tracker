@@ -30,7 +30,7 @@ class DeleteSubmitControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $event_type = EventType::factory()->create();
-        Event::factory()->create([Event::TYPE => $event_type->slug]);
+        Event::factory()->create([Event::EVENT_TYPE_ID => $event_type->id]);
 
         $response = $this->actingAs($trooper)
             ->post(route('admin.event-types.delete', ['event_type' => $event_type]));

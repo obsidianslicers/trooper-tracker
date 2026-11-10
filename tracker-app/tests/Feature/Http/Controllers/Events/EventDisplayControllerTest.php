@@ -38,7 +38,7 @@ class EventDisplayControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $event_type = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party Plus']);
-        $event = Event::factory()->create([Event::TYPE => $event_type->slug]);
+        $event = Event::factory()->create([Event::EVENT_TYPE_ID => $event_type->id]);
 
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 

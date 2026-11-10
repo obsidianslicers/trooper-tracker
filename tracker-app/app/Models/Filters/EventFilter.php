@@ -21,7 +21,7 @@ class EventFilter extends QueryFilter
     {
         return [
             'status' => 'status',
-            'type' => 'type',
+            'event_type_id' => 'eventType',
             'organization_id' => 'organization',
             'costume_organization_id' => 'costume',
             'search_term' => 'searchTerm',
@@ -46,12 +46,12 @@ class EventFilter extends QueryFilter
      * Filters the query by event type.
      *
      * @param  Builder  $query  The Eloquent query builder.
-     * @param  string  $type  The type value from the request.
+     * @param  string  $type  The event type id from the request.
      * @return Builder The modified query builder.
      */
-    protected function type(Builder $query, $type): Builder
+    protected function eventType(Builder $query, $type): Builder
     {
-        return $query->where(Event::TYPE, (string) $type);
+        return $query->where(Event::EVENT_TYPE_ID, (int) $type);
     }
 
     /**

@@ -385,7 +385,7 @@ class EventTest extends TestCase
     public function test_event_type_relation_resolves_by_slug(): void
     {
         $subject = Event::factory()
-            ->state([Event::TYPE => 'charity'])
+            ->state([Event::EVENT_TYPE_ID => EventType::idNamed('Charity')])
             ->create();
 
         $this->assertInstanceOf(EventType::class, $subject->event_type);
@@ -397,7 +397,7 @@ class EventTest extends TestCase
         $uncounted = EventType::factory()->uncounted()->create();
 
         $counted_event = Event::factory()->create();
-        $uncounted_event = Event::factory()->state([Event::TYPE => $uncounted->slug])->create();
+        $uncounted_event = Event::factory()->state([Event::EVENT_TYPE_ID => $uncounted->id])->create();
 
         $this->assertTrue($counted_event->isCounted());
         $this->assertFalse($uncounted_event->isCounted());

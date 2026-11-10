@@ -20,7 +20,7 @@ class IndexControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         EventType::query()->update([EventType::SORT_ORDER => 50]);
         $first = EventType::factory()->create([EventType::SORT_ORDER => 1]);
-        Event::factory()->create([Event::TYPE => 'charity']);
+        Event::factory()->create([Event::EVENT_TYPE_ID => EventType::idNamed('Charity')]);
 
         $response = $this->actingAs($trooper)->get(route('admin.event-types.index'));
 

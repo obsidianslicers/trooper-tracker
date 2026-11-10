@@ -76,9 +76,9 @@ class GetCostumeTrooperLeaderboardTest extends TestCase
 
         $this->createAttendance($trooper, $costume, now()->subDays(3));
         $this->createAttendance($trooper, $costume, now()->subDays(4))
-            ->event_shift->event->update([Event::TYPE => $uncounted->slug]);
+            ->event_shift->event->update([Event::EVENT_TYPE_ID => $uncounted->id]);
         $this->createAttendance($only_uncounted_trooper, $costume, now()->subDays(5))
-            ->event_shift->event->update([Event::TYPE => $uncounted->slug]);
+            ->event_shift->event->update([Event::EVENT_TYPE_ID => $uncounted->id]);
 
         $top_troopers = (new GetCostumeTrooperLeaderboard($costume))->handle()['top_troopers'];
 

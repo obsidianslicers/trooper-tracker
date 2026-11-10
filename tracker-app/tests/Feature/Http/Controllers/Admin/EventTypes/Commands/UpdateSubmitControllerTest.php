@@ -22,7 +22,7 @@ class UpdateSubmitControllerTest extends TestCase
     public function test_invoke_saves_settings_and_keeps_the_slug(): void
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
-        $armor_party = EventType::where(EventType::SLUG, 'armorparty')->firstOrFail();
+        $armor_party = EventType::where(EventType::NAME, 'Armor Party')->firstOrFail();
 
         $response = $this->actingAs($trooper)
             ->post(route('admin.event-types.update', ['event_type' => $armor_party]), [
@@ -50,9 +50,9 @@ class UpdateSubmitControllerTest extends TestCase
     {
         $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
-        $armor_party = EventType::where(EventType::SLUG, 'armorparty')->firstOrFail();
+        $armor_party = EventType::where(EventType::NAME, 'Armor Party')->firstOrFail();
         $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))
-            ->create([Event::TYPE => $armor_party->slug]);
+            ->create([Event::EVENT_TYPE_ID => $armor_party->id]);
         EventTrooper::factory()->forTrooper($trooper)->asAttended()
             ->forEventShift(EventShift::factory()->forEvent($event)->create())
             ->create();
@@ -86,7 +86,7 @@ class UpdateSubmitControllerTest extends TestCase
     public function test_invoke_allows_keeping_its_own_name(): void
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
-        $charity = EventType::where(EventType::SLUG, 'charity')->firstOrFail();
+        $charity = EventType::where(EventType::NAME, 'Charity')->firstOrFail();
 
         $response = $this->actingAs($trooper)
             ->post(route('admin.event-types.update', ['event_type' => $charity]), [

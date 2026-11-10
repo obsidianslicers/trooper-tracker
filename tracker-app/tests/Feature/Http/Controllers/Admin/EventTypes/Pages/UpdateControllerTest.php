@@ -19,7 +19,7 @@ class UpdateControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $event_type = EventType::factory()->uncounted()->create();
-        Event::factory()->count(2)->create([Event::TYPE => $event_type->slug]);
+        Event::factory()->count(2)->create([Event::EVENT_TYPE_ID => $event_type->id]);
 
         $response = $this->actingAs($trooper)
             ->get(route('admin.event-types.update', ['event_type' => $event_type]));

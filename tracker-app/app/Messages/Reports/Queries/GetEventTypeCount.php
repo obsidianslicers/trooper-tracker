@@ -67,14 +67,14 @@ final class GetEventTypeCount extends Message
                 ->count();
         };
 
-        $types = EventType::query()->ordered()->get()->keyBy(EventType::SLUG);
+        $types = EventType::query()->ordered()->get()->keyBy(EventType::ID);
 
         return Event::with('event_shifts.event_troopers')
             ->moderatedBy($this->moderator)
             ->where(Event::STATUS, EventStatus::CLOSED)
             ->where(Event::EVENT_START, '>=', $lookback)
             ->get()
-            ->groupBy(Event::TYPE)
+            ->groupBy(Event::EVENT_TYPE_ID)
             ->sortBy(fn ($events, $type) => $types->keys()->search($type))
             ->map(function ($events, $type) use ($types, $total_counter, $unique_counter)
             {

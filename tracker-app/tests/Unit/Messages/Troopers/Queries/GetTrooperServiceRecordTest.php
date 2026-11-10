@@ -198,9 +198,9 @@ class GetTrooperServiceRecordTest extends TestCase
         TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
         $uncounted = EventType::factory()->uncounted()->create();
 
-        foreach (['regular', $uncounted->slug] as $index => $type)
+        foreach ([EventType::idNamed('Regular'), $uncounted->id] as $index => $type)
         {
-            $event = Event::factory()->asClosed()->create([Event::TYPE => $type]);
+            $event = Event::factory()->asClosed()->create([Event::EVENT_TYPE_ID => $type]);
             $shift = EventShift::factory()->forEvent($event)->asClosed()
                 ->withShiftStartsAt(now()->subDays(5 + $index))->create();
             EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()

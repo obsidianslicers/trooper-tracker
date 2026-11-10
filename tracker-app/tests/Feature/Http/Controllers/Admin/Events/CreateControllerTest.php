@@ -86,15 +86,16 @@ class CreateControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
         EventType::query()->update([EventType::SORT_ORDER => 50]);
-        EventType::where(EventType::SLUG, 'wedding')->update([EventType::SORT_ORDER => 1]);
-        EventType::where(EventType::SLUG, 'disney')->update([EventType::IS_ACTIVE => false]);
+        EventType::where(EventType::NAME, 'Wedding')->update([EventType::SORT_ORDER => 1]);
+        EventType::where(EventType::NAME, 'Disney')->update([EventType::IS_ACTIVE => false]);
 
         $response = $this->actingAs($trooper)->get(route('admin.events.create'));
 
         $response->assertOk();
-        $response->assertSeeInOrder(['value="wedding"', 'value="armorparty"'], false);
-        $response->assertDontSee('value="disney"', false);
-        $response->assertSee("x-data=\"{ event_type: 'wedding'", false);
+        $wedding = EventType::idNamed('Wedding');
+        $response->assertSeeInOrder(['value="'.$wedding.'"', 'value="'.EventType::idNamed('Armor Party').'"'], false);
+        $response->assertDontSee('value="'.EventType::idNamed('Disney').'"', false);
+        $response->assertSee("x-data=\"{ event_type: '{$wedding}'", false);
         $response->assertDontSee('@js(', false);
         //  shown when a non-counting type is picked, in the words members see on the event
         $response->assertSee(EventType::NOT_COUNTED_NOTICE);
@@ -107,8 +108,9 @@ class CreateControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.events.create'));
 
         $response->assertOk();
-        $response->assertSee("x-data=\"{ event_type: 'regular'", false);
-        $response->assertSeeInOrder(['value="regular"', 'value="armorparty"'], false);
+        $regular = EventType::idNamed('Regular');
+        $response->assertSee("x-data=\"{ event_type: '{$regular}'", false);
+        $response->assertSeeInOrder(['value="'.$regular.'"', 'value="'.EventType::idNamed('Armor Party').'"'], false);
     }
 
     public function test_invoke_requires_authentication(): void

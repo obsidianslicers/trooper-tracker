@@ -99,7 +99,7 @@ final class GetTrooperEventSummary extends Message
             ->join('tt_events', 'tt_event_shifts.event_id', '=', 'tt_events.id')
             ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value)
             ->where('tt_events.status', EventStatus::CLOSED->value)
-            ->whereNotIn('tt_events.type', EventType::query()->uncountedSlugs())
+            ->whereNotIn('tt_events.event_type_id', EventType::query()->uncountedIds())
             ->when($this->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $this->date_start))
             ->when($this->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $this->date_end))
             ->groupBy('tt_event_troopers.trooper_id');

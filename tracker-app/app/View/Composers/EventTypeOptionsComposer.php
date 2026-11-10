@@ -15,18 +15,18 @@ class EventTypeOptionsComposer
 {
     public function compose(View $view): void
     {
-        $current = $view->getData()['event']->type ?? null;
+        $current = $view->getData()['event']->event_type_id ?? null;
 
         $event_types = EventType::query()
             ->where(fn ($q) => $q->where(EventType::IS_ACTIVE, true)
-                ->when($current !== null, fn ($q) => $q->orWhere(EventType::SLUG, $current)))
+                ->when($current !== null, fn ($q) => $q->orWhere(EventType::ID, $current)))
             ->ordered()
             ->get();
 
         $view->with([
-            'event_type_options' => $event_types->pluck(EventType::NAME, EventType::SLUG)->all(),
+            'event_type_options' => $event_types->pluck(EventType::NAME, EventType::ID)->all(),
             'event_type_help' => $event_types
-                ->mapWithKeys(fn (EventType $type) => [$type->slug => [
+                ->mapWithKeys(fn (EventType $type) => [$type->id => [
                     'description' => (string) $type->description,
                     'is_counted' => $type->is_counted,
                 ]])

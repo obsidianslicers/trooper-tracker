@@ -19,7 +19,7 @@ class EventFactory extends Factory
             Event::ORGANIZATION_ID => \App\Models\Organization::factory(),
             Event::PRIMARY_ORGANIZATION_ID => \App\Models\Organization::factory(),
             Event::NAME => $this->faker->name(),
-            Event::TYPE => \App\Models\EventType::factory(),
+            Event::EVENT_TYPE_ID => \App\Models\EventType::factory(),
             Event::STATUS => $this->faker->word(),
             Event::TENTATIVE_SIGNUPS_ALLOWED => $this->faker->randomNumber(1),
             Event::SECURE_STAGING_AREA => $this->faker->randomNumber(1),

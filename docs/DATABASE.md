@@ -707,7 +707,7 @@ Purpose: Event master records.
 | organization_id | bigint unsigned | no | FK -> tt_organizations.id, cascadeOnDelete |
 | primary_organization_id | bigint unsigned | no | FK -> tt_organizations.id, cascadeOnDelete |
 | name | varchar(256) | no |  |
-| type | varchar(32) | no | default `regular`; FK -> tt_event_types.slug |
+| event_type_id | bigint unsigned | no | FK -> tt_event_types.id; EventObserver fills the first offered type when unset |
 | status | varchar(16) | no | default EventStatus::DRAFT->value |
 | create_notifications_sent_at | datetime | yes |  |
 | cancel_notifications_sent_at | datetime | yes |  |

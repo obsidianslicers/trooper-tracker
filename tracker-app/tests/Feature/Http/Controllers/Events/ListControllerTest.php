@@ -32,8 +32,8 @@ class ListControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $uncounted = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party Plus']);
-        $this->upcomingEvent('Armor build night', $uncounted->slug);
-        $this->upcomingEvent('Hospital visit', EventType::DEFAULT_SLUG);
+        $this->upcomingEvent('Armor build night', $uncounted->id);
+        $this->upcomingEvent('Hospital visit', EventType::idNamed('Regular'));
 
         $response = $this->actingAs($trooper)->get(route('events.list'));
 
@@ -52,7 +52,7 @@ class ListControllerTest extends TestCase
         $uncounted = EventType::factory()->uncounted()->create();
         foreach (range(1, 3) as $i)
         {
-            $this->upcomingEvent("Event {$i}", $uncounted->slug);
+            $this->upcomingEvent("Event {$i}", $uncounted->id);
         }
 
         DB::enableQueryLog();
@@ -63,12 +63,12 @@ class ListControllerTest extends TestCase
         $this->assertCount(1, $type_queries);
     }
 
-    private function upcomingEvent(string $name, string $type): Event
+    private function upcomingEvent(string $name, int $type): Event
     {
         $start = now()->addWeek();
         $event = Event::factory()->create([
             Event::NAME => $name,
-            Event::TYPE => $type,
+            Event::EVENT_TYPE_ID => $type,
             Event::STATUS => EventStatus::OPEN,
             Event::EVENT_START => $start,
             Event::EVENT_END => $start->copy()->addHours(4),

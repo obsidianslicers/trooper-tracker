@@ -35,13 +35,13 @@ trait HasEventTypeScopes
     }
 
     /**
-     * Slugs of the types whose events don't count toward troop totals, as a subquery.
+     * Ids of the types whose events don't count toward troop totals, as a subquery.
      *
      * @param  Builder<self>  $query
      * @return Builder<self>
      */
-    public function scopeUncountedSlugs(Builder $query): Builder
+    public function scopeUncountedIds(Builder $query): Builder
     {
-        return $query->select(EventType::SLUG)->where(EventType::IS_COUNTED, false);
+        return $query->select(EventType::ID)->where(EventType::IS_COUNTED, false);
     }
 }

@@ -72,11 +72,11 @@ class TrooperAchievementSeederTest extends TestCase
         $uncounted = EventType::factory()->uncounted()->create();
         $event_start = Carbon::parse('2026-01-10 10:00:00');
 
-        foreach ([null, $uncounted->slug] as $offset => $type)
+        foreach ([null, $uncounted->id] as $offset => $type)
         {
             $starts_at = $event_start->copy()->addDays($offset);
             $event = Event::factory()->create(array_filter([
-                Event::TYPE => $type,
+                Event::EVENT_TYPE_ID => $type,
                 Event::STATUS => EventStatus::CLOSED,
                 Event::EVENT_START => $starts_at,
                 Event::EVENT_END => $starts_at->copy()->addHours(2),

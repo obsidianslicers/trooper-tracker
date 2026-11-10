@@ -30,7 +30,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $organization_id
  * @property int $primary_organization_id
  * @property string $name
- * @property string $type
+ * @property int $event_type_id
  * @property string $status
  * @property Carbon|null $create_notifications_sent_at
  * @property Carbon|null $cancel_notifications_sent_at
@@ -70,8 +70,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $updated_id
  * @property int|null $deleted_id
  * 
- * @property Organization $organization
  * @property EventType $event_type
+ * @property Organization $organization
  * @property Collection|EventMissionAck[] $event_mission_acks
  * @property Collection|EventNotification[] $event_notifications
  * @property Collection|Organization[] $organizations
@@ -89,7 +89,7 @@ class Event extends Model
     const ORGANIZATION_ID = 'organization_id';
     const PRIMARY_ORGANIZATION_ID = 'primary_organization_id';
     const NAME = 'name';
-    const TYPE = 'type';
+    const EVENT_TYPE_ID = 'event_type_id';
     const STATUS = 'status';
     const CREATE_NOTIFICATIONS_SENT_AT = 'create_notifications_sent_at';
     const CANCEL_NOTIFICATIONS_SENT_AT = 'cancel_notifications_sent_at';
@@ -134,6 +134,7 @@ class Event extends Model
         self::ID => 'int',
         self::ORGANIZATION_ID => 'int',
         self::PRIMARY_ORGANIZATION_ID => 'int',
+        self::EVENT_TYPE_ID => 'int',
         self::CREATE_NOTIFICATIONS_SENT_AT => 'datetime',
         self::CANCEL_NOTIFICATIONS_SENT_AT => 'datetime',
         self::LATITUDE => 'float',
@@ -165,7 +166,7 @@ class Event extends Model
         self::ORGANIZATION_ID,
         self::PRIMARY_ORGANIZATION_ID,
         self::NAME,
-        self::TYPE,
+        self::EVENT_TYPE_ID,
         self::STATUS,
         self::CREATE_NOTIFICATIONS_SENT_AT,
         self::CANCEL_NOTIFICATIONS_SENT_AT,
@@ -200,14 +201,14 @@ class Event extends Model
         self::REQUIRE_MISSION_BRIEF_ACK
     ];
 
+    public function event_type(): BelongsTo
+    {
+        return $this->belongsTo(EventType::class);
+    }
+
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, \App\Models\Event::PRIMARY_ORGANIZATION_ID);
-    }
-
-    public function event_type(): BelongsTo
-    {
-        return $this->belongsTo(EventType::class, \App\Models\Event::TYPE, EventType::SLUG);
     }
 
     public function event_mission_acks(): HasMany

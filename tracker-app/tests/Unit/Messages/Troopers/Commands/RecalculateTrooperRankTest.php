@@ -500,7 +500,7 @@ class RecalculateTrooperRankTest extends TestCase
         $uncounted = EventType::factory()->uncounted()->create();
 
         $counted_shift = $this->createClosedShift();
-        $uncounted_event = Event::factory()->asClosed()->create([Event::TYPE => $uncounted->slug]);
+        $uncounted_event = Event::factory()->asClosed()->create([Event::EVENT_TYPE_ID => $uncounted->id]);
         $uncounted_shift = EventShift::factory()->forEvent($uncounted_event)->create();
 
         EventTrooper::factory()
@@ -528,7 +528,7 @@ class RecalculateTrooperRankTest extends TestCase
     {
         $trooper = Trooper::factory()->create();
         $uncounted = EventType::factory()->uncounted()->create();
-        $event = Event::factory()->asClosed()->create([Event::TYPE => $uncounted->slug]);
+        $event = Event::factory()->asClosed()->create([Event::EVENT_TYPE_ID => $uncounted->id]);
         $shift = EventShift::factory()->forEvent($event)->create();
         EventTrooper::factory()->forTrooper($trooper)->forEventShift($shift)->asAttended()->create();
 
@@ -543,7 +543,7 @@ class RecalculateTrooperRankTest extends TestCase
         $trooper = Trooper::factory()->create();
         $club = $this->createClub('501st Legion');
         $event_type = EventType::factory()->create();
-        $event = Event::factory()->asClosed()->create([Event::TYPE => $event_type->slug]);
+        $event = Event::factory()->asClosed()->create([Event::EVENT_TYPE_ID => $event_type->id]);
         $shift = EventShift::factory()->forEvent($event)->create();
         EventTrooper::factory()
             ->forTrooper($trooper)

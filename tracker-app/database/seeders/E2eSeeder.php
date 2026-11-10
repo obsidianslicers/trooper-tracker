@@ -122,9 +122,9 @@ class E2eSeeder extends Seeder
     private function eventTypes(Organization $organization, Trooper $member): void
     {
         $workshop = $this->eventType('E2E Workshop', 101, is_counted: false, description: 'E2E armor build night.');
-        $this->openEvent($organization, 'E2E Workshop Night', $workshop->slug);
-        $this->attendedEvent($organization, $member, 'E2E Past Workshop', $workshop->slug, days_ago: 14);
-        $this->attendedEvent($organization, $member, 'E2E Past Hospital Visit', EventType::DEFAULT_SLUG, days_ago: 21);
+        $this->openEvent($organization, 'E2E Workshop Night', $workshop->id);
+        $this->attendedEvent($organization, $member, 'E2E Past Workshop', $workshop->id, days_ago: 14);
+        $this->attendedEvent($organization, $member, 'E2E Past Hospital Visit', EventType::defaultId(), days_ago: 21);
 
         $this->eventType('E2E Sort First', 102);
         $this->eventType('E2E Sort Second', 103);
@@ -143,14 +143,14 @@ class E2eSeeder extends Seeder
         ]);
     }
 
-    private function attendedEvent(Organization $organization, Trooper $trooper, string $name, string $type, int $days_ago): void
+    private function attendedEvent(Organization $organization, Trooper $trooper, string $name, int $event_type_id, int $days_ago): void
     {
         $start = now()->subDays($days_ago)->setTime(10, 0);
 
         $event = Event::factory()->create([
             Event::ORGANIZATION_ID => $organization->id,
             Event::NAME => $name,
-            Event::TYPE => $type,
+            Event::EVENT_TYPE_ID => $event_type_id,
             Event::STATUS => EventStatus::CLOSED,
             Event::EVENT_START => $start,
             Event::EVENT_END => $start->copy()->addHours(4),
@@ -166,14 +166,14 @@ class E2eSeeder extends Seeder
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
     }
 
-    private function openEvent(Organization $organization, string $name, string $type = EventType::DEFAULT_SLUG): Event
+    private function openEvent(Organization $organization, string $name, ?int $event_type_id = null): Event
     {
         $start = now()->addWeeks(2)->setTime(10, 0);
 
         $event = Event::factory()->create([
             Event::ORGANIZATION_ID => $organization->id,
             Event::NAME => $name,
-            Event::TYPE => $type,
+            Event::EVENT_TYPE_ID => $event_type_id,
             Event::STATUS => EventStatus::OPEN,
             Event::EVENT_START => $start,
             Event::EVENT_END => $start->copy()->addHours(4),

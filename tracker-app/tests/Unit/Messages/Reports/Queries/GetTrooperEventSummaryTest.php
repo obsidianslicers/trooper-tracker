@@ -81,7 +81,7 @@ class GetTrooperEventSummaryTest extends TestCase
         $uncounted = EventType::factory()->uncounted()->create();
 
         $event = Event::factory()->asClosed()->withEventStart(now()->subDays(10))
-            ->create([Event::TYPE => $uncounted->slug]);
+            ->create([Event::EVENT_TYPE_ID => $uncounted->id]);
         $shift = EventShift::factory()->forEvent($event)->create();
 
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();

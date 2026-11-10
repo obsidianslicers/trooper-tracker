@@ -55,7 +55,7 @@ class CreateController extends PageController
         $event = new Event;
 
         // Set defaults
-        $event->type = EventType::query()->active()->ordered()->value(EventType::SLUG);
+        $event->event_type_id = EventType::defaultId();
         $event->status = EventStatus::DRAFT;
         $event->require_mission_brief_ack = false;
 

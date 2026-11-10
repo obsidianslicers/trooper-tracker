@@ -245,7 +245,7 @@ final class GetTrooperServiceRecord extends Message
         return array_merge([
             'event.organization',
             'event.event_type',
-            'event:'.implode(',', [Event::ID, Event::NAME, Event::ORGANIZATION_ID, Event::TYPE]),
+            'event:'.implode(',', [Event::ID, Event::NAME, Event::ORGANIZATION_ID, Event::EVENT_TYPE_ID]),
         ], $this->buildTrooperCostumeRelations());
     }
 

@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Event types move from a PHP enum to a table administrators manage. Events keep
- * their `type` column, which now holds an event type's slug.
+ * Event types move from a PHP enum to a table administrators manage. Each event's
+ * `type` string becomes `event_type_id`, a foreign key to the type.
  */
 return new class extends Migration {
     /**
@@ -54,8 +54,17 @@ return new class extends Migration {
 
         Schema::table('tt_events', function (Blueprint $table)
         {
-            $table->string('type', 32)->default('regular')->change();
-            $table->foreign('type')->references('slug')->on('tt_event_types');
+            $table->foreignId('event_type_id')->nullable()->after('type')->constrained('tt_event_types');
+        });
+
+        DB::table('tt_events')->update([
+            'event_type_id' => DB::raw('(SELECT id FROM tt_event_types WHERE tt_event_types.slug = tt_events.type)'),
+        ]);
+
+        Schema::table('tt_events', function (Blueprint $table)
+        {
+            $table->unsignedBigInteger('event_type_id')->nullable(false)->change();
+            $table->dropColumn('type');
         });
     }
 
@@ -63,7 +72,16 @@ return new class extends Migration {
     {
         Schema::table('tt_events', function (Blueprint $table)
         {
-            $table->dropForeign(['type']);
+            $table->string('type', 32)->default('regular')->after('name');
+        });
+
+        DB::table('tt_events')->update([
+            'type' => DB::raw('(SELECT slug FROM tt_event_types WHERE tt_event_types.id = tt_events.event_type_id)'),
+        ]);
+
+        Schema::table('tt_events', function (Blueprint $table)
+        {
+            $table->dropConstrainedForeignId('event_type_id');
         });
 
         Schema::dropIfExists('tt_event_types');
@@ -90,7 +108,7 @@ return new class extends Migration {
     }
 
     /**
-     * Keeps the foreign key from failing on a value the enum never had.
+     * Gives a value the enum never had a type of its own, so no event is left without one.
      */
     private function addMissingTypes(): void
     {

@@ -11,6 +11,7 @@ use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
@@ -41,6 +42,9 @@ class EventSeeder extends Seeder
     private $handler_ids;
 
     private $organizations;
+
+    /** @var array<string, int>|null */
+    private ?array $event_type_ids = null;
 
     /**
      * Run the database seeds.
@@ -188,6 +192,16 @@ class EventSeeder extends Seeder
         }
     }
 
+    /**
+     * The id of the seeded event type for a legacy label (see eventLabelFromLegacyId).
+     */
+    private function eventTypeId(string $slug): int
+    {
+        $this->event_type_ids ??= EventType::query()->pluck(EventType::ID, EventType::SLUG)->all();
+
+        return $this->event_type_ids[$slug];
+    }
+
     private function overlayShiftCharity($legacy_shift, EventShift $shift): void
     {
         $shift->charity_direct_funds = $legacy_shift->charityDirectFunds ?? 0;
@@ -286,7 +300,7 @@ class EventSeeder extends Seeder
 
         $label = is_string($legacy->label) ? (int) $legacy->label : ($legacy->label ?? 0);
 
-        $event->type = $this->eventLabelFromLegacyId($label);
+        $event->event_type_id = $this->eventTypeId($this->eventLabelFromLegacyId($label));
 
         $event->venue = $legacy->venue;
         $event->venue_address = $legacy->location;

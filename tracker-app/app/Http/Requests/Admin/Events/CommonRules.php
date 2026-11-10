@@ -48,7 +48,7 @@ trait CommonRules
                     ->whereIn('id', Organization::eventHostableBy($this->user())->pluck('id')),
             ],
             Event::NAME => ['required', 'string', 'max:128'],
-            Event::TYPE => ['required', 'string', 'max:32', Rule::in($this->allowedEventTypes())],
+            Event::EVENT_TYPE_ID => ['required', 'integer', Rule::in($this->allowedEventTypes())],
             Event::STATUS => ['required', 'string', 'max:16', EventStatus::toValidator()],
             Event::SHIFTS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
             Event::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
@@ -105,8 +105,8 @@ trait CommonRules
 
         return EventType::query()
             ->where(fn ($q) => $q->where(EventType::IS_ACTIVE, true)
-                ->when($event instanceof Event, fn ($q) => $q->orWhere(EventType::SLUG, $event->type)))
-            ->pluck(EventType::SLUG)
+                ->when($event instanceof Event, fn ($q) => $q->orWhere(EventType::ID, $event->event_type_id)))
+            ->pluck(EventType::ID)
             ->all();
     }
 }

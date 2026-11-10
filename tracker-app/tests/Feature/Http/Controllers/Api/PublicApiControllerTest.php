@@ -24,9 +24,9 @@ class PublicApiControllerTest extends TestCase
         $trooper = Trooper::factory()->create();
         $uncounted = EventType::factory()->uncounted()->create();
 
-        foreach (['regular', $uncounted->slug] as $type)
+        foreach ([EventType::idNamed('Regular'), $uncounted->id] as $type)
         {
-            $event = Event::factory()->asClosed()->create([Event::TYPE => $type]);
+            $event = Event::factory()->asClosed()->create([Event::EVENT_TYPE_ID => $type]);
             $shift = EventShift::factory()->forEvent($event)->create();
             EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
         }

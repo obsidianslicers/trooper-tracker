@@ -49,7 +49,7 @@ class ForumBBCodeHelperTest extends TestCase
         $event_type = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party']);
         $event = Event::factory()
             ->forForumBbcodeTemplate()
-            ->state([Event::TYPE => $event_type->slug])
+            ->state([Event::EVENT_TYPE_ID => $event_type->id])
             ->create();
 
         $result = ForumBBCodeHelper::threadTemplate($event);

@@ -132,7 +132,7 @@ class SharingEndpointsTest extends TestCase
         $uncounted = EventType::factory()->uncounted()->create();
         $counted_troop = $this->attendedTroop($this->trooper, '2026-03-01 10:00', '2026-03-01 12:00');
         $this->attendedTroop($this->trooper, '2026-03-02 10:00', '2026-03-02 12:00', [
-            Event::TYPE => $uncounted->slug,
+            Event::EVENT_TYPE_ID => $uncounted->id,
         ]);
 
         $response = $this->withToken($this->grant())->postJson('/webhooks/holonet/history');
