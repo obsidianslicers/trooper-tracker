@@ -39,7 +39,8 @@ class E2eSeeder extends Seeder
 
     public function run(): void
     {
-        if (app()->environment('production')) {
+        if (app()->environment('production'))
+        {
             throw new RuntimeException('The browser test seeder must not run in production.');
         }
 
@@ -98,7 +99,8 @@ class E2eSeeder extends Seeder
         $refused = $this->persona('club-refused@e2e.test', 'E2E Club Refused', MembershipRole::MEMBER);
         CreateTrooperRequest::call(trooper: $refused, organization: $squad, identifier: '94567');
 
-        foreach (['E2E Promotion Candidate', 'E2E Promotion Refused'] as $name) {
+        foreach (['E2E Promotion Candidate', 'E2E Promotion Refused'] as $name)
+        {
             $candidate = $this->persona(Str::slug($name).'@e2e.test', $name, MembershipRole::MEMBER);
             $this->assign($candidate, $legion, is_moderator: false);
         }

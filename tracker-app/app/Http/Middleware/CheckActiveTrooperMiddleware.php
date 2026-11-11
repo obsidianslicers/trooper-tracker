@@ -35,15 +35,18 @@ class CheckActiveTrooperMiddleware
     {
         $user = Auth::user();
 
-        if ($user?->is_denied) {
+        if ($user?->is_denied)
+        {
             return redirect()->route('account.denied');
         }
 
-        if ($user?->is_pending) {
+        if ($user?->is_pending)
+        {
             return redirect()->route('account.pending');
         }
 
-        if (! $user || ! $user->membership_status?->canLogIn()) {
+        if (!$user || !$user->membership_status?->canLogIn())
+        {
             abort(401, 'Unauthorized.');
         }
 
