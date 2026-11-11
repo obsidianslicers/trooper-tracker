@@ -42,7 +42,8 @@ test.describe('membership applications', () => {
 
         const request = card(page, seeded.clubJoiner.name);
         await expect(request.getByText('E2E Squad')).toBeVisible();
-        await expect(request.getByText('93456')).toBeVisible();
+        // The 501st roster lookup beside it can repeat the TKID, so check the request's own field.
+        await expect(request.getByRole('definition').filter({ hasText: '93456' })).toBeVisible();
 
         await request.getByRole('button', { name: 'Approve' }).click();
         await expect(request.getByText('Successfully Submitted')).toBeVisible();
