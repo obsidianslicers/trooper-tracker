@@ -31,6 +31,30 @@ class EventDisplayControllerTest extends TestCase
         $response->assertViewIs('pages.events.event-display');
     }
 
+    public function test_invoke_shows_every_member_the_event_coordinator(): void
+    {
+        $member = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $coordinator = Trooper::factory()->withDisplayName('TK-421 Coordinator')->create();
+        $event = Event::factory()->withCreatedByTrooper($coordinator)->create();
+
+        $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['Coordinator:', 'TK-421 Coordinator']);
+        $response->assertSee(route('service-records.trooper', ['trooper' => $coordinator->id]), false);
+    }
+
+    public function test_invoke_leaves_out_the_coordinator_when_the_event_has_none(): void
+    {
+        $member = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = Event::factory()->create([Event::CREATED_ID => null]);
+
+        $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertDontSee('Coordinator:');
+    }
+
     public function test_invoke_displays_charity_hours_and_notes_without_funds_or_name(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
