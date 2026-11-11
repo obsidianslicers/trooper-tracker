@@ -37,7 +37,8 @@ class E2eSeeder extends Seeder
 
     public function run(): void
     {
-        if (app()->environment('production')) {
+        if (app()->environment('production'))
+        {
             throw new RuntimeException('The browser test seeder must not run in production.');
         }
 
