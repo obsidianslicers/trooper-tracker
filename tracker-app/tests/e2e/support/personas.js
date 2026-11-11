@@ -16,6 +16,10 @@ export const personas = {
     member: persona('member', 'member@e2e.test', 'E2E Member'),
     trooper: persona('trooper', 'trooper@e2e.test', 'E2E Trooper'),
     account: persona('account', 'account@e2e.test', 'E2E Account Trooper'),
+    staffOfficer: persona('staffOfficer', 'staff-officer@e2e.test', 'E2E Staff Officer'),
+    eventCoordinator: persona('eventCoordinator', 'event-coordinator@e2e.test', 'E2E Event Coordinator'),
+    handler: persona('handler', 'handler@e2e.test', 'E2E Handler'),
+    visitor: persona('visitor', 'visitor@e2e.test', 'E2E Visitor'),
 };
 
 export const seeded = {
