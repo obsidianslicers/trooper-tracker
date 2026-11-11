@@ -50,6 +50,17 @@ class TheLegionMemberLookupServiceTest extends TestCase
         $this->assertSame('https://www.501st.com/thumbs/1234.jpg', $result['thumbnail_url']);
     }
 
+    public function test_lookup_returns_null_when_api_is_unreachable(): void
+    {
+        Http::fake([
+            'api.501st.com/*' => Http::failedConnection(),
+        ]);
+
+        $result = $this->subject->lookup('1234');
+
+        $this->assertNull($result);
+    }
+
     public function test_lookup_returns_null_when_api_returns_non_success_status(): void
     {
         Http::fake([

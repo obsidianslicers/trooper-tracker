@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\MemberLookup;
 
 use App\Contracts\MemberLookupInterface;
+use Illuminate\Http\Client\HttpClientException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -16,7 +17,15 @@ class TheLegionMemberLookupService implements MemberLookupInterface
 
         $result = Cache::remember($cache_key, 3600, function () use ($identifier)
         {
-            $response = Http::timeout(5)->get("https://api.501st.com/legionId/{$identifier}");
+            try
+            {
+                $response = Http::timeout(5)->get("https://api.501st.com/legionId/{$identifier}");
+            }
+            catch (HttpClientException)
+            {
+                // the Legion's API is down or unreachable; the approval card shows no match
+                return false;
+            }
 
             if (!$response->successful())
             {
