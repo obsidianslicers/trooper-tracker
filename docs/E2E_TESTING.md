@@ -152,11 +152,19 @@ The `account` persona (`E2E Account Trooper`) owns these changes.
 | Revoke a trooper's costume, then undo | ✅ |
 | A do-not-trust trooper's "Made It" waits in Troop Verifications; a moderator approves one troop and removes another | ✅ |
 
+### Awards, notices, organizations, FAQ (`content-admin.spec.js`)
+
+| Area | Status |
+|------|--------|
+| A moderator creates an award (name required), renames it, gives it to a trooper, takes it back | ✅ |
+| A moderator posts a notice to a garrison, copies it for next month, edits the copy (Active and Future lists) | ✅ |
+| An administrator adds a unit under a garrison (name required), renames it, uploads a logo | ✅ |
+| An administrator writes a FAQ section and question, a member reads it on the FAQ page, then both are deleted | ✅ |
+
 ### Next PRs
 
 | # | Area | Flows | Roles |
 |---|------|-------|-------|
-| 8 | Awards, notices, organizations, FAQ | Create/update, assign troopers to awards, organization tree and images, FAQ sections and items reorder | moderator, admin |
 | 9 | Service records and reports | Trooper record, leaderboard, awards, achievements, photo gallery, costume pages; every report with filters, missing credits assign | member, moderator |
 | 10 | Plugins and system | Plugins page enable/disable/settings, system check, public shares and OG images, search | admin, guest |
 | 11 | Roles not yet seeded | Handler, visitor, and Staff Officer (once PR #491 merges) across the page smoke test | all |
