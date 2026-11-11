@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Models;
 
 use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
@@ -422,5 +423,57 @@ class EventTest extends TestCase
         $result = $subject->createCalendarLink();
 
         $this->assertInstanceOf(Link::class, $result);
+    }
+
+    public function test_tentative_stays_open_until_the_event_without_a_cutoff(): void
+    {
+        config(['tracker.tentative_cutoff_days' => null]);
+
+        $this->assertTrue($this->tentativeEvent(now()->addDay())->allowsTentativeSignups());
+    }
+
+    public function test_tentative_closes_inside_the_cutoff(): void
+    {
+        config(['tracker.tentative_cutoff_days' => '7']);
+
+        $this->assertFalse($this->tentativeEvent(now()->addDays(3))->allowsTentativeSignups());
+        $this->assertTrue($this->tentativeEvent(now()->addDays(10))->allowsTentativeSignups());
+        $this->assertArrayNotHasKey(
+            EventTrooperStatus::TENTATIVE->value,
+            $this->tentativeEvent(now()->addDays(3))->signUpStatusOptions()
+        );
+    }
+
+    public function test_tentative_stays_closed_when_the_event_does_not_allow_it(): void
+    {
+        config(['tracker.tentative_cutoff_days' => null]);
+
+        $event = $this->tentativeEvent(now()->addDays(30));
+        $event->tentative_signups_allowed = false;
+
+        $this->assertFalse($event->allowsTentativeSignups());
+    }
+
+    public function test_status_options_list_the_current_status_even_when_it_cannot_be_picked(): void
+    {
+        config(['tracker.tentative_cutoff_days' => '7']);
+
+        $options = $this->tentativeEvent(now()->addDays(3))->signUpStatusOptions(EventTrooperStatus::TENTATIVE);
+
+        $this->assertSame(
+            [EventTrooperStatus::TENTATIVE->value, EventTrooperStatus::GOING->value, EventTrooperStatus::CANCELLED->value],
+            array_keys($options)
+        );
+    }
+
+    private function tentativeEvent(Carbon $starts_at): Event
+    {
+        return Event::factory()->create([
+            Event::EVENT_START => $starts_at,
+            Event::EVENT_END => $starts_at->copy()->addHours(4),
+            Event::TENTATIVE_SIGNUPS_ALLOWED => true,
+            Event::TROOPERS_ALLOWED => null,
+            Event::HANDLERS_ALLOWED => null,
+        ]);
     }
 }

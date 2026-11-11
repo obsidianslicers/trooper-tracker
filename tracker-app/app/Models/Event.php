@@ -143,13 +143,44 @@ class Event extends BaseEvent
     }
 
     /**
+     * Whether troopers may still choose "tentative": the event allows it and it starts after
+     * the cutoff (tracker.tentative_cutoff_days). With no cutoff set, tentative stays open.
+     */
+    public function allowsTentativeSignups(): bool
+    {
+        if (!$this->tentative_signups_allowed)
+        {
+            return false;
+        }
+
+        $cutoff_days = config('tracker.tentative_cutoff_days');
+
+        if ($cutoff_days === null || $cutoff_days === '' || $this->event_start === null)
+        {
+            return true;
+        }
+
+        return $this->event_start->isAfter(now()->addDays((int) $cutoff_days));
+    }
+
+    /**
      * Statuses a trooper may pick for their own sign-up.
+     *
+     * Pass the sign-up's current status to list it too, so the dropdown shows it even when
+     * it can no longer be picked (a tentative sign-up inside the cutoff, or stand-by).
      *
      * @return array<string, string>
      */
-    public function signUpStatusOptions(): array
+    public function signUpStatusOptions(?EventTrooperStatus $current = null): array
     {
-        return EventTrooperStatus::toSignUpArray($this->tentative_signups_allowed, $this->hasLimits());
+        $options = EventTrooperStatus::toSignUpArray($this->allowsTentativeSignups(), $this->hasLimits());
+
+        if ($current !== null && !array_key_exists($current->value, $options))
+        {
+            $options = [$current->value => to_title($current->name)] + $options;
+        }
+
+        return $options;
     }
 
     /**

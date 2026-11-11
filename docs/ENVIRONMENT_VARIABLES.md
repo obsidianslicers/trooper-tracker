@@ -95,6 +95,14 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **Default**: `America/New_York`
 - **When to change**: Set to your organization's timezone
 
+### TRACKER_TENTATIVE_CUTOFF_DAYS
+- **Purpose**: Days before an event starts after which troopers can no longer pick "tentative" for their sign-up
+- **Required**: No
+- **Default**: None (tentative stays available until the event starts)
+- **Example**: `7`
+- **When to change**: Set it if coordinators need firm numbers in the final days before an event
+- **Note**: Only applies to events that allow tentative sign-ups. A sign-up that is already tentative keeps that status; the trooper can still switch it to going or cancelled.
+
 ### TRACKER_IMAGE_DRIVER
 - **Purpose**: Image processing driver for photo uploads
 - **Required**: No
