@@ -542,6 +542,22 @@ Sites that sync clubs from Google Sheets must enable the plugin (Admin > Plugins
 
 ---
 
+## The Sentry plugin
+
+`tracker-app/plugins/sentry` sends errors to [Sentry](https://sentry.io), so they can be fixed before anyone reports them. It is optional: core's exception emails (`TRACKER_EXCEPTION_EMAIL_ENABLED`) work without it.
+
+- **Server errors.** Core's exception handler logs every unhandled 5xx with `Log::error(..., ['exception' => $e])` and then stops Laravel's other reporters, so the plugin listens for `MessageLogged` (the `events` capability) and sends each exception logged at error level or above. That covers web requests, queued jobs, console commands, plugin failures and anything passed to `report()`. Messages logged without an exception, and warnings, are not sent.
+- **Browser errors.** With a Browser DSN, every page loads Sentry's browser SDK (pinned version and integrity hash in `SentryServiceProvider`) through the `page.head` slot. It reports uncaught errors and unhandled promise rejections on Blade and Svelte pages.
+- **Tunnel.** Ad blockers often block sentry.io. With **Send browser errors through this site** on (the default), browsers post to `POST /webhooks/sentry` (the `webhooks` capability), which forwards an envelope only when its DSN is the Browser DSN, and only to that DSN's own Sentry host. It refuses bodies over 1 MB and allows 60 a minute per IP address.
+- **What is sent.** A trooper's id, never their name, email, IP address, cookies or form input. The server SDK runs without Sentry's default integrations (Laravel already handles PHP errors), with no request bodies, and drops the function arguments PHP keeps on stack frames, since they can hold member data.
+- A System Check row for the server DSN.
+
+Settings: **Server DSN**, **Browser DSN** (the same project or a separate one), **Environment** (defaults to `APP_ENV`) and the tunnel. Each DSN and the environment fall back to `SENTRY_DSN`, `SENTRY_BROWSER_DSN` and `SENTRY_ENVIRONMENT` in `.env`.
+
+The plugin declares `sentry/sentry` (the plain PHP SDK, not `sentry/sentry-laravel`, which Laravel would load on every site that has the package) in its own `composer.json`. When a site enables it, the next deploy installs the package and turns the plugin on. Without the package, its tests are skipped.
+
+---
+
 ---
 
 ## The HoloNet plugin
