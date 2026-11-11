@@ -17,6 +17,9 @@
 
     const page = usePage<ProfilePageData>();
 
+    // Commands answer with the refreshed page data as `results` (partial reload).
+    let data = $derived<ProfilePageData>(page.props.results ?? page.props);
+
     pageState.title = page.props.display_name;
 
     const tabs = [
@@ -35,11 +38,11 @@
 <Tabs defaultTab={default_tab}>
     <TabHeader>
         <Tab id="profile">Profile</Tab>
-        {#if page.props.authority}
+        {#if data.authority}
             <Tab id="authority">Authority</Tab>
         {/if}
         <Tab id="memberships">Memberships</Tab>
-        {#if page.props.guardian}
+        {#if data.guardian}
             <Tab id="guardian">Guardian</Tab>
         {/if}
         <Tab id="costumes">Costumes</Tab>
@@ -48,29 +51,29 @@
     </TabHeader>
     <TabContent>
         <TabPanel id="profile">
-            <ProfileDetails trooper_id={page.props.trooper_id} details={page.props.details} />
+            <ProfileDetails trooper_id={data.trooper_id} details={data.details} />
         </TabPanel>
-        {#if page.props.authority}
+        {#if data.authority}
             <TabPanel id="authority">
-                <ProfileAuthority trooper_id={page.props.trooper_id} authority={page.props.authority} />
+                <ProfileAuthority trooper_id={data.trooper_id} authority={data.authority} />
             </TabPanel>
         {/if}
         <TabPanel id="memberships">
-            <ProfileMemberships trooper_id={page.props.trooper_id} memberships={page.props.memberships} />
+            <ProfileMemberships trooper_id={data.trooper_id} memberships={data.memberships} />
         </TabPanel>
-        {#if page.props.guardian}
+        {#if data.guardian}
             <TabPanel id="guardian">
-                <ProfileGuardian trooper_id={page.props.trooper_id} guardian={page.props.guardian} />
+                <ProfileGuardian trooper_id={data.trooper_id} guardian={data.guardian} />
             </TabPanel>
         {/if}
         <TabPanel id="costumes">
-            <ProfileCostumes costumes={page.props.costumes} />
+            <ProfileCostumes costumes={data.costumes} />
         </TabPanel>
         <TabPanel id="events">
-            <ProfileEvents events={page.props.events} />
+            <ProfileEvents events={data.events} />
         </TabPanel>
         <TabPanel id="changes">
-            <ProfileChanges changes={page.props.changes} />
+            <ProfileChanges changes={data.changes} />
         </TabPanel>
     </TabContent>
 </Tabs>

@@ -1,5 +1,5 @@
 import { SubmitableViewModel } from "$lib/domains/types.svelte";
-import { getRoute } from "$lib/utils";
+import { createPartialReloadOptions, getRoute } from "$lib/utils";
 import { router, useForm } from "@inertiajs/svelte";
 import type { ProfileCostumesPageData, ProfileGuardianPageData } from "../profile-types";
 
@@ -21,7 +21,7 @@ export class ProfileGuardianViewModel extends SubmitableViewModel<ProfileGuardia
         e.preventDefault();
         this.form.post(
             getRoute("admin.troopers.update-guardian", { trooper: this.trooper_id }),
-            { preserveScroll: true, preserveState: true },
+            createPartialReloadOptions(),
         );
     };
 }

@@ -1,5 +1,5 @@
 import { SubmitableViewModel } from "$lib/domains/types.svelte";
-import { getRoute } from "$lib/utils";
+import { createPartialReloadOptions, getRoute } from "$lib/utils";
 import { router, useForm } from "@inertiajs/svelte";
 import type { ProfileDetailsPageData } from "../profile-types";
 
@@ -16,7 +16,7 @@ export type UntrustedForm = {
     review_costumes: boolean;
 };
 
-const reloadOptions = { preserveScroll: true, preserveState: true };
+const reloadOptions = createPartialReloadOptions();
 
 export class ProfileDetailsViewModel extends SubmitableViewModel<ProfileDetailsViewModel, ProfileDetailsForm> {
     untrusted = useForm<UntrustedForm>({ untrusted_reason: "", review_costumes: false });

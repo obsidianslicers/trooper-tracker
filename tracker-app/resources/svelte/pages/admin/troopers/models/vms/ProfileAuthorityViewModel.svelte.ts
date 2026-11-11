@@ -1,5 +1,5 @@
 import { SubmitableViewModel } from "$lib/domains/types.svelte";
-import { getRoute } from "$lib/utils";
+import { createPartialReloadOptions, getRoute } from "$lib/utils";
 import { useForm } from "@inertiajs/svelte";
 import type { ProfileAuthorityOrganization, ProfileAuthorityPageData } from "../profile-types";
 
@@ -50,7 +50,7 @@ export class ProfileAuthorityViewModel extends SubmitableViewModel<ProfileAuthor
         e.preventDefault();
         this.form.post(
             getRoute("admin.troopers.update-authority", { trooper: this.trooper_id }),
-            { preserveScroll: true, preserveState: true },
+            createPartialReloadOptions(),
         );
     };
 }

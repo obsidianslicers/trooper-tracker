@@ -1,5 +1,5 @@
 import { SubmitableViewModel } from "$lib/domains/types.svelte";
-import { getRoute } from "$lib/utils";
+import { createPartialReloadOptions, getRoute } from "$lib/utils";
 import { router, useForm } from "@inertiajs/svelte";
 import type { ProfileMembershipsPageData } from "../profile-types";
 
@@ -36,7 +36,7 @@ export class ProfileMembershipsViewModel extends SubmitableViewModel<ProfileMemb
         e.preventDefault();
         this.form.post(
             getRoute("admin.troopers.update-memberships", { trooper: this.trooper_id }),
-            { preserveScroll: true, preserveState: true },
+            createPartialReloadOptions(),
         );
     };
 
@@ -51,7 +51,7 @@ export class ProfileMembershipsViewModel extends SubmitableViewModel<ProfileMemb
                 organization: organization_id,
             }),
             {},
-            { preserveScroll: true },
+            createPartialReloadOptions(),
         );
     };
 }

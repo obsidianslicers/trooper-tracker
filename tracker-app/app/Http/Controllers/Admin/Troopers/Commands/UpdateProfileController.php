@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Troopers\UpdateProfileRequest;
 use App\Messages\Troopers\Commands\UpdateTrooper;
 use App\Models\Trooper;
-use Illuminate\Http\RedirectResponse;
+use Inertia\Response as InertiaResponse;
 
 /**
  * class UpdateProfileController
  *
  * Handles the form submission for updating a trooper's profile.
  */
-class UpdateProfileController extends PageController
+class UpdateProfileController extends ProfileCommandController
 {
     /**
      * Handle the incoming request to update a trooper's profile information
@@ -27,14 +26,14 @@ class UpdateProfileController extends PageController
      *
      * @param  UpdateProfileRequest  $request  The validated form request
      * @param  Trooper  $trooper  The trooper to be updated
-     * @return RedirectResponse A redirect response to the trooper list page
+     * @return InertiaResponse The refreshed profile page data as results
      */
-    public function __invoke(UpdateProfileRequest $request, Trooper $trooper): RedirectResponse
+    public function __invoke(UpdateProfileRequest $request, Trooper $trooper): InertiaResponse
     {
         UpdateTrooper::call(trooper: $trooper, valid_data: $request->validated());
 
         FlashType::updated($trooper);
 
-        return redirect()->route('admin.troopers.profile', compact('trooper'));
+        return $this->respondWithResults($request);
     }
 }

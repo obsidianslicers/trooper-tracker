@@ -44,7 +44,7 @@ class VoidTrooperControllerTest extends TestCase
         $response = $this->actingAs($admin)
             ->post(route('admin.troopers.void', $trooper));
 
-        $response->assertRedirect(route('admin.troopers.profile', $trooper));
+        $response->assertOk();
         $trooper->refresh();
         $this->assertEquals(MembershipStatus::INVALID, $trooper->membership_status);
     }

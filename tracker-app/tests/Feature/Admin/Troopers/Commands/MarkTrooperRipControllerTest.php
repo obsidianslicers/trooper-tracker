@@ -44,7 +44,7 @@ class MarkTrooperRipControllerTest extends TestCase
         $response = $this->actingAs($admin)
             ->post(route('admin.troopers.rip', $trooper));
 
-        $response->assertRedirect(route('admin.troopers.profile', $trooper));
+        $response->assertOk();
         $trooper->refresh();
         $this->assertEquals(MembershipStatus::DEPARTED, $trooper->membership_status);
     }

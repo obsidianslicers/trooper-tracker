@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Troopers\UpdateGuardianRequest;
 use App\Messages\Troopers\Commands\UpdateTrooper;
 use App\Models\Trooper;
-use Illuminate\Http\RedirectResponse;
+use Inertia\Response as InertiaResponse;
 
-class UpdateGuardianController extends PageController
+class UpdateGuardianController extends ProfileCommandController
 {
-    public function __invoke(UpdateGuardianRequest $request, Trooper $trooper): RedirectResponse
+    public function __invoke(UpdateGuardianRequest $request, Trooper $trooper): InertiaResponse
     {
         $data = $request->validated();
 
@@ -30,6 +29,6 @@ class UpdateGuardianController extends PageController
 
         FlashType::updated($trooper);
 
-        return redirect()->route('admin.troopers.profile', compact('trooper'));
+        return $this->respondWithResults($request);
     }
 }

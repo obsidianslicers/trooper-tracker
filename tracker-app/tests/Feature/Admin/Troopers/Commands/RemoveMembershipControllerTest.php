@@ -39,7 +39,7 @@ class RemoveMembershipControllerTest extends TestCase
         $response = $this->actingAs($admin)
             ->post(route('admin.troopers.remove-membership', [$trooper, $organization]));
 
-        $response->assertRedirect(route('admin.troopers.profile', $trooper));
+        $response->assertOk();
 
         $this->assertSoftDeleted('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,
@@ -60,7 +60,7 @@ class RemoveMembershipControllerTest extends TestCase
         $response = $this->actingAs($moderator)
             ->post(route('admin.troopers.remove-membership', [$trooper, $organization]));
 
-        $response->assertRedirect(route('admin.troopers.profile', $trooper));
+        $response->assertOk();
 
         $this->assertSoftDeleted('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,

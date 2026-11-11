@@ -97,4 +97,5 @@ export type ProfilePageData = {
     costumes: ProfileCostumesPageData;
     events: ProfileEvent[];
     changes: ProfileChange[];
+    results?: ProfilePageData;
 };

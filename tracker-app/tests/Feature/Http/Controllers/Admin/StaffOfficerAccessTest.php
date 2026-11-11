@@ -111,7 +111,7 @@ class StaffOfficerAccessTest extends TestCase
             'organizations' => [],
         ]);
 
-        $response->assertRedirect(route('admin.troopers.profile', $subject));
+        $response->assertOk();
         $this->assertSame(MembershipRole::STAFF_OFFICER, $subject->fresh()->membership_role);
     }
 

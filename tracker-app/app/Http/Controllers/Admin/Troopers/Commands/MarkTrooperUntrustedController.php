@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Troopers\MarkUntrustedRequest;
 use App\Messages\Troopers\Commands\MarkTrooperUntrusted;
 use App\Models\Trooper;
-use Illuminate\Http\RedirectResponse;
+use Inertia\Response as InertiaResponse;
 
-class MarkTrooperUntrustedController extends Controller
+class MarkTrooperUntrustedController extends ProfileCommandController
 {
-    public function __invoke(MarkUntrustedRequest $request, Trooper $trooper): RedirectResponse
+    public function __invoke(MarkUntrustedRequest $request, Trooper $trooper): InertiaResponse
     {
         MarkTrooperUntrusted::call(
             trooper: $trooper,
@@ -23,6 +22,6 @@ class MarkTrooperUntrustedController extends Controller
 
         FlashType::success("{$trooper->display_name} is marked do not trust.");
 
-        return redirect()->route('admin.troopers.profile', compact('trooper'));
+        return $this->respondWithResults($request);
     }
 }

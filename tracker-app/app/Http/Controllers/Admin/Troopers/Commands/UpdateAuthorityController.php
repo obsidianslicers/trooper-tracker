@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Troopers\UpdateAuthorityRequest;
 use App\Messages\Troopers\Commands\UpdateTrooperAuthority;
 use App\Models\Trooper;
-use Illuminate\Http\RedirectResponse;
+use Inertia\Response as InertiaResponse;
 
 /**
  * class UpdateAuthorityController
@@ -17,7 +16,7 @@ use Illuminate\Http\RedirectResponse;
  * Handles the form submission for a trooper's authority settings, including their
  * membership role and which organizations they are assigned to moderate.
  */
-class UpdateAuthorityController extends PageController
+class UpdateAuthorityController extends ProfileCommandController
 {
     /**
      * Handle the incoming request to update a trooper's authority settings
@@ -28,9 +27,9 @@ class UpdateAuthorityController extends PageController
      *
      * @param  UpdateAuthorityRequest  $request  The validated form request
      * @param  Trooper  $trooper  The trooper whose authorities are being updated
-     * @return RedirectResponse A redirect response to the trooper list page
+     * @return InertiaResponse The refreshed profile page data as results
      */
-    public function __invoke(UpdateAuthorityRequest $request, Trooper $trooper): RedirectResponse
+    public function __invoke(UpdateAuthorityRequest $request, Trooper $trooper): InertiaResponse
     {
         $membership_role = $request->validated('membership_role');
         $organizations = $request->validated('organizations', []);
@@ -43,6 +42,6 @@ class UpdateAuthorityController extends PageController
 
         FlashType::updated($trooper);
 
-        return redirect()->route('admin.troopers.profile', compact('trooper'));
+        return $this->respondWithResults($request);
     }
 }

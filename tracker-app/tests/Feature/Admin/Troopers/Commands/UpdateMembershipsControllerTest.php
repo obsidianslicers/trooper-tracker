@@ -32,7 +32,7 @@ class UpdateMembershipsControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->post(route('admin.troopers.update-memberships', $subject), $payload);
 
-        $response->assertRedirect(route('admin.troopers.profile', $subject));
+        $response->assertOk();
     }
 
     public function test_invoke_updates_organization_membership_status(): void
@@ -57,7 +57,7 @@ class UpdateMembershipsControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->post(route('admin.troopers.update-memberships', $subject), $payload);
 
-        $response->assertRedirect(route('admin.troopers.profile', $subject));
+        $response->assertOk();
         $this->assertDatabaseHas('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $subject->id,
             TrooperOrganization::ORGANIZATION_ID => $organization->id,

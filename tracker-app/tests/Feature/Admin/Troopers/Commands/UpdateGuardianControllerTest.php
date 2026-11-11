@@ -62,7 +62,7 @@ class UpdateGuardianControllerTest extends TestCase
             'guardian_email'       => null,
         ]);
 
-        $response->assertRedirect(route('admin.troopers.profile', $trooper));
+        $response->assertOk();
     }
 
     public function test_invoke_requires_guardian_email_when_dob_makes_trooper_a_minor(): void

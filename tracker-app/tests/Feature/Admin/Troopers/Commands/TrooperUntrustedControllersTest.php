@@ -35,7 +35,7 @@ class TrooperUntrustedControllersTest extends TestCase
                 'untrusted_reason' => 'Claimed 501st credit for Palpatine',
                 'review_costumes' => '1',
             ])
-            ->assertRedirect(route('admin.troopers.profile', compact('trooper')));
+            ->assertOk();
 
         $trooper->refresh();
         $this->assertTrue($trooper->is_untrusted);
@@ -76,7 +76,7 @@ class TrooperUntrustedControllersTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.troopers.trusted', compact('trooper')))
-            ->assertRedirect();
+            ->assertOk();
 
         $trooper->refresh();
         $this->assertFalse($trooper->is_untrusted);

@@ -44,7 +44,7 @@ class UnvoidTrooperControllerTest extends TestCase
         $response = $this->actingAs($admin)
             ->post(route('admin.troopers.unvoid', $trooper));
 
-        $response->assertRedirect(route('admin.troopers.profile', $trooper));
+        $response->assertOk();
         $trooper->refresh();
         $this->assertEquals(MembershipStatus::PENDING, $trooper->membership_status);
     }

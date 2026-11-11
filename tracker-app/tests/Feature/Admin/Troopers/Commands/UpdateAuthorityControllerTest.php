@@ -32,7 +32,7 @@ class UpdateAuthorityControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->post(route('admin.troopers.update-authority', $subject), $payload);
 
-        $response->assertRedirect(route('admin.troopers.profile', $subject));
+        $response->assertOk();
 
         $this->assertDatabaseHas('tt_troopers', [
             Trooper::ID => $subject->id,

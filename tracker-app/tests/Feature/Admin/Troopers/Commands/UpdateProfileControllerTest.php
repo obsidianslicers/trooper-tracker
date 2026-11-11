@@ -30,7 +30,7 @@ class UpdateProfileControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->post(route('admin.troopers.update-profile', $subject), $payload);
 
-        $response->assertRedirect(route('admin.troopers.profile', $subject));
+        $response->assertOk();
 
         $subject->refresh();
 

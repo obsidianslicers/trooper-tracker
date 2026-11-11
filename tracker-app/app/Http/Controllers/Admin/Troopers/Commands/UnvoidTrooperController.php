@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
 use App\Messages\Troopers\Commands\UnvoidTrooper;
 use App\Models\Trooper;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Response as InertiaResponse;
 
-class UnvoidTrooperController extends PageController
+class UnvoidTrooperController extends ProfileCommandController
 {
-    public function __invoke(Request $request, Trooper $trooper): RedirectResponse
+    public function __invoke(Request $request, Trooper $trooper): InertiaResponse
     {
         $this->authorize('unvoid', $trooper);
 
@@ -21,6 +20,6 @@ class UnvoidTrooperController extends PageController
 
         FlashType::success("{$trooper->display_name} has been restored to pending status.");
 
-        return redirect()->route('admin.troopers.profile', compact('trooper'));
+        return $this->respondWithResults($request);
     }
 }
