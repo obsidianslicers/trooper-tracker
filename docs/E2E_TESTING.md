@@ -141,11 +141,21 @@ The `account` persona (`E2E Account Trooper`) owns these changes.
 | Mark a trooper created in error (badge in the list) and another R.I.P. (memorial notice), through Status | ✅ |
 | Flag do not trust with a reason, then clear it | ✅ |
 
+### Costumes and costume credits (`costumes.spec.js`)
+
+| Area | Status |
+|------|--------|
+| Create a costume (name required) and give it to a club | ✅ |
+| Rename a costume; the name must be unused | ✅ |
+| Delete a costume, with the warning that troopers will lose it | ✅ |
+| Costume Approvals: approve one costume a trooper added, deny another | ✅ |
+| Revoke a trooper's costume, then undo | ✅ |
+| A do-not-trust trooper's "Made It" waits in Troop Verifications; a moderator approves one troop and removes another | ✅ |
+
 ### Next PRs
 
 | # | Area | Flows | Roles |
 |---|------|-------|-------|
-| 7 | Costumes and costume credits | Costume CRUD, merge edge cases; costume gate and do-not-trust flag once PRs #492 and #493 merge | member, moderator, admin |
 | 8 | Awards, notices, organizations, FAQ | Create/update, assign troopers to awards, organization tree and images, FAQ sections and items reorder | moderator, admin |
 | 9 | Service records and reports | Trooper record, leaderboard, awards, achievements, photo gallery, costume pages; every report with filters, missing credits assign | member, moderator |
 | 10 | Plugins and system | Plugins page enable/disable/settings, system check, public shares and OG images, search | admin, guest |

@@ -80,6 +80,34 @@ class E2eSeeder extends Seeder
         $this->account($legion);
         $this->approvals($legion);
         $this->trooperAdmin($legion);
+        $this->costumeCredits($legion);
+    }
+
+    /**
+     * Costumes Command Staff create, rename and delete; costumes waiting for review or to be
+     * revoked; and a do-not-trust trooper whose troops wait for a moderator.
+     */
+    private function costumeCredits(Organization $legion): void
+    {
+        $owner = $this->persona('costume-owner@e2e.test', 'E2E Costume Owner', MembershipRole::MEMBER);
+        $this->assign($owner, $legion, is_moderator: false);
+        $this->trooperCostume($owner, $legion, 'E2E Doomed Armor');
+        $this->trooperCostume($owner, $legion, 'E2E Revoked Armor');
+        $this->trooperCostume($owner, $legion, 'E2E Pending Armor', approved: false);
+        $this->trooperCostume($owner, $legion, 'E2E Refused Armor', approved: false);
+        $this->costume($legion, 'E2E Renamed Armor');
+
+        $untrusted = $this->persona('untrusted@e2e.test', 'E2E Untrusted Trooper', MembershipRole::MEMBER, attributes: [
+            Trooper::IS_UNTRUSTED => true,
+            Trooper::UNTRUSTED_REASON => 'E2E: confirmed troops they missed.',
+        ]);
+        $this->assign($untrusted, $legion, is_moderator: false);
+        $armor = $this->trooperCostume($untrusted, $legion, 'E2E Untrusted Armor');
+
+        foreach (['E2E Verified Parade' => 2, 'E2E Disputed Parade' => 3] as $name => $days_ago)
+        {
+            $this->pastEvent($legion, $untrusted, $name, $days_ago, $armor);
+        }
     }
 
     /**
@@ -219,30 +247,39 @@ class E2eSeeder extends Seeder
             Event::COMMENTS => 'E2E brief: report to the loading dock at nine.',
         ]);
 
-        $start = now()->subDay()->setTime(10, 0);
-        $parade = Event::factory()->create([
-            Event::ORGANIZATION_ID => $legion->id,
-            Event::PRIMARY_ORGANIZATION_ID => $legion->id,
-            Event::NAME => 'E2E Past Parade',
+        $this->pastEvent($legion, $trooper, 'E2E Past Parade', 1);
+    }
+
+    /**
+     * A closed troop from a few days ago with the trooper signed up as going, so they can say
+     * whether they made it.
+     */
+    private function pastEvent(Organization $organization, Trooper $trooper, string $name, int $days_ago, ?Costume $costume = null): void
+    {
+        $start = now()->subDays($days_ago)->setTime(10, 0);
+        $event = Event::factory()->create([
+            Event::ORGANIZATION_ID => $organization->id,
+            Event::PRIMARY_ORGANIZATION_ID => $organization->id,
+            Event::NAME => $name,
             Event::STATUS => EventStatus::CLOSED,
             Event::EVENT_START => $start,
             Event::EVENT_END => $start->copy()->addHours(4),
         ]);
         $shift = EventShift::factory()->create([
-            EventShift::EVENT_ID => $parade->id,
+            EventShift::EVENT_ID => $event->id,
             EventShift::SHIFT_STARTS_AT => $start,
             EventShift::SHIFT_ENDS_AT => $start->copy()->addHours(4),
             EventShift::STATUS => EventStatus::CLOSED,
         ]);
-        $this->canAttend($parade, $legion);
+        $this->canAttend($event, $organization);
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asGoing()->create([
-            EventTrooper::ORGANIZATION_ID => $legion->id,
-            EventTrooper::COSTUME_ID => null,
+            EventTrooper::ORGANIZATION_ID => $organization->id,
+            EventTrooper::COSTUME_ID => $costume?->id,
             EventTrooper::BACKUP_COSTUME_ID => null,
         ]);
     }
 
-    private function trooperCostume(Trooper $trooper, Organization $organization, string $name): Costume
+    private function trooperCostume(Trooper $trooper, Organization $organization, string $name, bool $approved = true): Costume
     {
         $costume = Costume::create([Costume::NAME => $name]);
 
@@ -254,7 +291,7 @@ class E2eSeeder extends Seeder
         TrooperCostume::create([
             TrooperCostume::TROOPER_ID => $trooper->id,
             TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
-            TrooperCostume::APPROVED_AT => now(),
+            TrooperCostume::APPROVED_AT => $approved ? now() : null,
         ]);
 
         return $costume;
