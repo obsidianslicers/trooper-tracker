@@ -18,6 +18,10 @@ export const personas = {
 
 export const seeded = {
     recruit: { email: 'recruit@e2e.test', name: 'E2E Pending Recruit' },
+    unverified: { email: 'unverified@e2e.test', name: 'E2E Unverified Trooper' },
+    needsSetup: { email: 'setup@e2e.test', name: 'E2E Setup Trooper' },
+    denied: { email: 'denied@e2e.test', name: 'E2E Denied Recruit' },
+    expiredVisitor: { email: 'expired-visitor@e2e.test', name: 'E2E Expired Visitor' },
     mergeSource: { email: 'merge-source@e2e.test', name: 'E2E Merge Source' },
     mergeTarget: { email: 'merge-target@e2e.test', name: 'E2E Merge Target' },
     duplicateCostume: 'E2E Duplicate Armor',

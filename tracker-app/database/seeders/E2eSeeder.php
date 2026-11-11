@@ -7,6 +7,7 @@ namespace Database\Seeders;
 use App\Enums\EventStatus;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Enums\OrganizationType;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
@@ -65,6 +66,45 @@ class E2eSeeder extends Seeder
         $this->eventTypes($legion, $member);
 
         $this->notification($member, 'E2E Open Troop is open for sign-up', '/events/details/'.$event->id);
+
+        $this->onboarding($legion);
+    }
+
+    /**
+     * Troopers stopped partway through joining: an unconfirmed email, setup not done, a denied
+     * application, and a visitor whose access ran out.
+     */
+    private function onboarding(Organization $legion): void
+    {
+        $garrison = $this->childOrganization($legion, 'E2E Garrison', OrganizationType::REGION);
+        $this->childOrganization($garrison, 'E2E Squad', OrganizationType::UNIT);
+        Organization::resequenceAll();
+
+        $this->persona('unverified@e2e.test', 'E2E Unverified Trooper', MembershipRole::MEMBER, attributes: [
+            Trooper::EMAIL_VERIFIED_AT => null,
+        ]);
+
+        $this->persona('setup@e2e.test', 'E2E Setup Trooper', MembershipRole::MEMBER, attributes: [
+            Trooper::SETUP_COMPLETED_AT => null,
+        ]);
+
+        $this->persona('denied@e2e.test', 'E2E Denied Recruit', MembershipRole::MEMBER, MembershipStatus::DENIED, [
+            Trooper::SETUP_COMPLETED_AT => now(),
+        ]);
+
+        $visitor = $this->persona('expired-visitor@e2e.test', 'E2E Expired Visitor', MembershipRole::VISITOR, attributes: [
+            Trooper::VISITOR_EXPIRES_AT => now()->subDay(),
+        ]);
+        $this->assign($visitor, $legion, is_moderator: false);
+    }
+
+    private function childOrganization(Organization $parent, string $name, OrganizationType $type): Organization
+    {
+        return Organization::create([
+            Organization::PARENT_ID => $parent->id,
+            Organization::NAME => $name,
+            Organization::TYPE => $type,
+        ]);
     }
 
     private function notification(Trooper $trooper, string $title, string $url): void
@@ -80,9 +120,10 @@ class E2eSeeder extends Seeder
         string $email,
         string $name,
         MembershipRole $role,
-        MembershipStatus $status = MembershipStatus::ACTIVE
+        MembershipStatus $status = MembershipStatus::ACTIVE,
+        array $attributes = []
     ): Trooper {
-        return Trooper::factory()->create([
+        return Trooper::factory()->create($attributes + [
             Trooper::EMAIL => $email,
             Trooper::DISPLAY_NAME => $name,
             Trooper::LEGAL_NAME => $name,

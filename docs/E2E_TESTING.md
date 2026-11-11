@@ -33,6 +33,10 @@ report and traces when a test fails.
 - Seed what a spec needs in `E2eSeeder` under an `E2E ...` name and list it in
   `tests/e2e/support/personas.js`. Specs run one at a time on one database, so a spec that
   changes data uses records no other spec relies on.
+- To sign in as someone other than a persona, use `signInAndLeaveLogin()` so the next
+  `page.goto()` does not race the login redirect.
+- What a trooper would get by email (a signed verification link) comes from `support/artisan.js`,
+  which runs `php artisan tinker` against the E2E database.
 - Find things the way a trooper does: labels, roles and visible text, not CSS classes.
 - Every new page gets a line in `pages.spec.js`; every new flow gets a spec.
 
@@ -63,11 +67,23 @@ role is refused what it can't reach, and every key flow is driven end to end. St
 | Event form preselects the first type and shows the chosen type's description and non-troop-credit note | ✅ |
 | Members see the non-troop-credit notice on such an event, and not on a regular one | ✅ |
 
+### Sign up and onboarding (`onboarding.spec.js`)
+
+| Area | Status |
+|------|--------|
+| Sign-up page leads to the email form; the form is refused without starting sign-up | ✅ |
+| Register as a member (club, ID, garrison, squad); a club is required | ✅ |
+| New recruit confirms their email, lands on the pending screen, shows in the moderator's queue | ✅ |
+| Verification notice, resend, signed link, tampered link | ✅ |
+| Account setup for a trooper who has not finished it (required field, then gets in) | ✅ |
+| Denied application: club fields appear when ticked, resubmit goes to pending | ✅ |
+| Expired visitor is sent to renew; the request goes back for review | ✅ |
+| Inactive account page | ✅ |
+
 ### Next PRs
 
 | # | Area | Flows | Roles |
 |---|------|-------|-------|
-| 1 | Sign up and onboarding | Sign up, register, email verification, account setup, pending and denied screens, visitor renewal | guest, new trooper |
 | 2 | Events (trooper side) | List, calendar, map, details, sign up / change status / cancel, guests, mission brief ack, calendar and roster downloads, uploads | member, handler |
 | 3 | Events (Command Staff) | Create, copy, update, shifts and stations, roster management, charity, uploads, mission review, cancel | moderator, admin |
 | 4 | Account | Profile, notification settings, costumes add/remove, club requests, notices, push notifications, deletion request | member |
