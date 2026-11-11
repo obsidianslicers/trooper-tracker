@@ -2,6 +2,7 @@
 // bringing friends and guests, the mission brief, and saying whether they made it.
 import { test, expect } from '@playwright/test';
 import { personas, seeded } from './support/personas.js';
+import { htmxSettled } from './support/htmx.js';
 
 test.use({ storageState: personas.trooper.storageState });
 
@@ -15,9 +16,10 @@ function shift(page) {
     return page.locator('[id^="shift-container-"]').first();
 }
 
-// Selects post with HTMX and swap the shift in place; wait for the new one.
+// Each select posts with HTMX and swaps the shift in place; wait for the new one.
 async function choose(page, name, option) {
-    const response = page.waitForResponse((r) => r.request().method() === 'POST');
+    await htmxSettled(page);
+    const response = page.waitForResponse((r) => r.url().includes('/events/update/') && r.request().method() === 'POST');
     await shift(page).locator(`select[name="${name}"]`).selectOption(option);
     await response;
     await page.waitForLoadState('networkidle');
@@ -73,8 +75,9 @@ test.describe('signing up', () => {
         await expect(shift(page).getByRole('link', { name: seeded.friend.name })).toBeVisible();
 
         // Backing out.
+        await htmxSettled(page);
         const own = shift(page).locator('.row').filter({ has: page.getByRole('link', { name: personas.trooper.name, exact: true }) });
-        const response = page.waitForResponse((r) => r.request().method() === 'POST');
+        const response = page.waitForResponse((r) => r.url().includes('/events/update/') && r.request().method() === 'POST');
         await own.locator('select[name="status"]').selectOption('cancelled');
         await response;
         await expect(shift(page).locator('.trooper-status-cancelled')).toContainText(personas.trooper.name);
