@@ -71,18 +71,6 @@
                                     {{ $event->organization->name }}
                                 </div>
                             </div>
-                            @if($event->created_by)
-                                <div class="row">
-                                    <div class="col-4 col-md-5 col-lg-4 text-nowrap">
-                                        Coordinator:
-                                    </div>
-                                    <div class="col-8 col-md-7 col-lg-8">
-                                        <a href="{{ route('service-records.trooper', ['trooper' => $event->created_by->id]) }}">
-                                            {{ $event->created_by->display_name }}
-                                        </a>
-                                    </div>
-                                </div>
-                            @endif
                             <div class="row">
                                 <div class="col-4 col-md-5 col-lg-4 text-nowrap">
                                     Status:
@@ -116,6 +104,7 @@
                         </div>
                         <div class="col-12 col-md-6 mb-3">
                             @include('pages.events.inc.contact', compact('event'))
+                            @include('pages.events.inc.coordinator', compact('event'))
                         </div>
                     </div>
 

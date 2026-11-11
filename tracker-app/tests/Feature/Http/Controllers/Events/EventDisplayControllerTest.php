@@ -40,7 +40,7 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSeeInOrder(['Coordinator:', 'TK-421 Coordinator']);
+        $response->assertSeeInOrder(['Commanding Officer', 'Event Coordinator', 'TK-421 Coordinator']);
         $response->assertSee(route('service-records.trooper', ['trooper' => $coordinator->id]), false);
     }
 
@@ -52,7 +52,7 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertDontSee('Coordinator:');
+        $response->assertDontSee('Event Coordinator');
     }
 
     public function test_invoke_displays_charity_hours_and_notes_without_funds_or_name(): void
