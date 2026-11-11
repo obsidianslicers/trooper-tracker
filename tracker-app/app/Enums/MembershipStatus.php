@@ -69,4 +69,30 @@ enum MembershipStatus: string
     {
         return $this === self::ACTIVE || $this === self::RESERVE;
     }
+
+    /**
+     * Whether only an administrator may set or clear this status, because it locks the trooper
+     * out and has its own administrator tool (void, R.I.P. or merge).
+     */
+    public function isAdminOnly(): bool
+    {
+        return in_array($this, [self::INVALID, self::DEPARTED, self::MERGED], true);
+    }
+
+    /**
+     * The statuses a trooper may pick from when changing a trooper's status, keeping the
+     * subject's current status so the form can still show it.
+     *
+     * @return array<string, string>
+     */
+    public static function choicesFor(bool $is_administrator, ?self $current = null): array
+    {
+        return array_filter(
+            self::toArray(),
+            fn (string $value) => $is_administrator
+                || !self::from($value)->isAdminOnly()
+                || $value === $current?->value,
+            ARRAY_FILTER_USE_KEY,
+        );
+    }
 }
