@@ -146,13 +146,13 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <x-number-format :value="$shift->charity_direct_funds" />
+                                    <x-number-format :value="$shift->charity_direct_funds" decimals="cents" />
                                 </td>
                                 <td class="text-end">
-                                    <x-number-format :value="$shift->charity_indirect_funds" />
+                                    <x-number-format :value="$shift->charity_indirect_funds" decimals="cents" />
                                 </td>
                                 <td class="text-end">
-                                    <x-number-format :value="$shift_total" />
+                                    <x-number-format :value="$shift_total" decimals="cents" />
                                 </td>
                                 <td class="text-end">
                                     <x-number-format :value="$shift->effective_charity_hours" />
@@ -210,15 +210,15 @@
                 <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3 text-center">
                     <div class="col">
                         <div class="text-muted small">Direct</div>
-                        <div class="fw-semibold"><x-number-format :value="$total_direct" /></div>
+                        <div class="fw-semibold"><x-number-format :value="$total_direct" decimals="cents" /></div>
                     </div>
                     <div class="col">
                         <div class="text-muted small">Indirect</div>
-                        <div class="fw-semibold"><x-number-format :value="$total_indirect" /></div>
+                        <div class="fw-semibold"><x-number-format :value="$total_indirect" decimals="cents" /></div>
                     </div>
                     <div class="col">
                         <div class="text-muted small">Total Funds</div>
-                        <div class="fw-semibold"><x-number-format :value="$total_direct + $total_indirect" /></div>
+                        <div class="fw-semibold"><x-number-format :value="$total_direct + $total_indirect" decimals="cents" /></div>
                     </div>
                     <div class="col">
                         <div class="text-muted small">Hours</div>

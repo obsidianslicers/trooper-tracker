@@ -227,8 +227,8 @@ final class RecalculateTrooperRank extends Message
         }
 
         return [
-            'total_direct' => $total_direct,
-            'total_indirect' => $total_indirect,
+            'total_direct' => round($total_direct, 2),
+            'total_indirect' => round($total_indirect, 2),
             'total_hours' => $total_hours,
         ];
     }

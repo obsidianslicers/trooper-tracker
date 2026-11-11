@@ -63,13 +63,15 @@
                         <div style="width:90px">
                             <label class="form-label small text-muted mb-1">Direct $</label>
                             <x-input-text :property="'shifts.' . $shift->id . '.charity_direct_funds'"
-                                          :value="$shift->charity_direct_funds"
+                                          :value="format_funds($shift->charity_direct_funds, '')"
+                                          inputmode="decimal"
                                           class="form-control-sm" />
                         </div>
                         <div style="width:90px">
                             <label class="form-label small text-muted mb-1">Indirect $</label>
                             <x-input-text :property="'shifts.' . $shift->id . '.charity_indirect_funds'"
-                                          :value="$shift->charity_indirect_funds"
+                                          :value="format_funds($shift->charity_indirect_funds, '')"
+                                          inputmode="decimal"
                                           class="form-control-sm" />
                         </div>
                         <div class="flex-grow-1">

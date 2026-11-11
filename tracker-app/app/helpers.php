@@ -57,4 +57,15 @@ if (!function_exists('qs'))
             ->replace('_', ' ')
             ->title();
     }
+
+    /**
+     * Format a dollar amount, showing cents only when it has them: 1,234 or 1,234.50.
+     */
+    function format_funds(int|float|string|null $value, string $thousands_separator = ','): string
+    {
+        $value = round((float) $value, 2);
+        $decimals = fmod($value, 1.0) == 0.0 ? 0 : 2;
+
+        return number_format($value, $decimals, '.', $thousands_separator);
+    }
 }

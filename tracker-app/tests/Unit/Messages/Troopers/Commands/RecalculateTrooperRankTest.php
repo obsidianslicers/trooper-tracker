@@ -592,6 +592,27 @@ class RecalculateTrooperRankTest extends TestCase
         return $region;
     }
 
+    public function test_handle_keeps_cents_in_fund_totals(): void
+    {
+        $trooper = Trooper::factory()->create();
+
+        foreach ([[0.10, 12.50], [0.20, 0.25]] as [$direct, $indirect])
+        {
+            $shift = $this->createClosedShift();
+            $shift->update([
+                EventShift::CHARITY_DIRECT_FUNDS => $direct,
+                EventShift::CHARITY_INDIRECT_FUNDS => $indirect,
+            ]);
+            EventTrooper::factory()->forTrooper($trooper)->forEventShift($shift)->asAttended()->create();
+        }
+
+        (new RecalculateTrooperRank(trooper_id: $trooper->id))->handle();
+
+        //  0.10 + 0.20 is 0.30000000000000004 in floating point
+        $this->assertSame(0.3, (float) $this->achievementValue($trooper, AchievementType::DIRECT_FUNDS));
+        $this->assertSame(12.75, (float) $this->achievementValue($trooper, AchievementType::INDIRECT_FUNDS));
+    }
+
     private function createClosedShift(): EventShift
     {
         $event = Event::factory()->asClosed()->create();

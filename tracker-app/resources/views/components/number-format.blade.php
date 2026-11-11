@@ -4,5 +4,6 @@
     @if(isset($prefix))
         {{ $prefix }}
     @endif
-    {{ $value == 0 ? $nulldisplay : number_format($value, $decimals) }}
+    {{-- decimals="cents": show cents only when the amount has them --}}
+    {{ $value == 0 ? $nulldisplay : ($decimals === 'cents' ? format_funds($value) : number_format($value, $decimals)) }}
 </span>
