@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
 use App\Enums\MembershipStatus;
+use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -51,5 +53,26 @@ class ProfileSubmitControllerTest extends TestCase
         $response = $this->post(route('admin.troopers.profile', $subject), $payload);
 
         $response->assertRedirect(route('auth.login'));
+    }
+
+    public function test_invoke_refuses_a_moderator_marking_a_trooper_departed(): void
+    {
+        $organization = Organization::factory()->create();
+        $moderator = Trooper::factory()->asModerator()->create();
+        $subject = Trooper::factory()->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($organization)
+            ->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($subject)->forOrganization($organization)
+            ->asMember()->create();
+
+        $response = $this->actingAs($moderator)->post(route('admin.troopers.profile', $subject), [
+            Trooper::LEGAL_NAME => $subject->legal_name,
+            Trooper::DISPLAY_NAME => $subject->display_name,
+            Trooper::EMAIL => 'moderated@example.com',
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::DEPARTED->value,
+        ]);
+
+        $response->assertSessionHasErrors(Trooper::MEMBERSHIP_STATUS);
+        $this->assertNotSame(MembershipStatus::DEPARTED, $subject->refresh()->membership_status);
     }
 }

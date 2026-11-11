@@ -7,6 +7,7 @@ namespace App\Http\Requests\Admin\Troopers;
 use App\Enums\MembershipStatus;
 use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Trooper;
+use App\Rules\Admin\Troopers\AdminOnlyStatusRule;
 use App\Rules\Admin\Troopers\ValidTrooperEmailRule;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
@@ -75,6 +76,7 @@ class ProfileRequest extends FormRequest
                 'string',
                 'max:16',
                 MembershipStatus::toValidator(),
+                new AdminOnlyStatusRule($this->user(), $trooper),
             ],
         ];
 
