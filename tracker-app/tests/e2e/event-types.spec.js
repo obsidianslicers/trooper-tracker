@@ -64,7 +64,8 @@ test.describe('as an administrator', () => {
     test('the event form preselects the first type and explains the chosen one', async ({ page }) => {
         const type = await openCreateEventForm(page);
 
-        await expect(type).toHaveValue('regular');
+        // Options are keyed by id, so check the label of the preselected one.
+        await expect(type.locator('option:checked')).toHaveText('Regular');
 
         await type.selectOption({ label: seeded.uncountedType.name });
         await expect(page.getByText(seeded.uncountedType.description)).toBeVisible();
