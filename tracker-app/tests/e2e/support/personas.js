@@ -14,6 +14,7 @@ export const personas = {
     admin: persona('admin', 'admin@e2e.test', 'E2E Administrator'),
     moderator: persona('moderator', 'moderator@e2e.test', 'E2E Moderator'),
     member: persona('member', 'member@e2e.test', 'E2E Member'),
+    trooper: persona('trooper', 'trooper@e2e.test', 'E2E Trooper'),
 };
 
 export const seeded = {
@@ -22,6 +23,16 @@ export const seeded = {
     needsSetup: { email: 'setup@e2e.test', name: 'E2E Setup Trooper' },
     denied: { email: 'denied@e2e.test', name: 'E2E Denied Recruit' },
     expiredVisitor: { email: 'expired-visitor@e2e.test', name: 'E2E Expired Visitor' },
+    friend: { email: 'friend@e2e.test', name: 'E2E Trooper Friend' },
+    trooperCostume: 'E2E Trooper Armor',
+    signupEvent: 'E2E Signup Troop',
+    briefedEvent: 'E2E Briefed Troop',
+    missionBrief: 'E2E brief: report to the loading dock at nine.',
+    pastParade: 'E2E Past Parade',
+    rostered: { email: 'rostered@e2e.test', name: 'E2E Rostered Trooper' },
+    commandEvent: 'E2E Command Troop',
+    cancelEvent: 'E2E Cancel Troop',
+    copySourceEvent: 'E2E Copy Source',
     mergeSource: { email: 'merge-source@e2e.test', name: 'E2E Merge Source' },
     mergeTarget: { email: 'merge-target@e2e.test', name: 'E2E Merge Target' },
     duplicateCostume: 'E2E Duplicate Armor',
