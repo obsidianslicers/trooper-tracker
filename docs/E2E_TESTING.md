@@ -23,7 +23,20 @@ Playwright starts the app itself (`tests/e2e/support/server.js`): it rebuilds
 `http://127.0.0.1:8077` (set `E2E_PORT` to change it). Its environment overrides your `.env`,
 so your local database is never touched. Set `PHP_BINARY` if `php` on your path is not PHP 8.4.
 
-CI runs the suite in the `e2e-tests` job of `.github/workflows/tests.yml` and uploads the
+### On MySQL
+
+Production runs MySQL, and a few reports (Trooper Event Summary, Donation Event Summary,
+Costume Used Most, the leaderboard's club filter) use MySQL-only SQL. Their tests skip on
+SQLite. To run everything as CI does, point the suite at an empty MySQL database it may wipe:
+
+```bash
+E2E_DB_CONNECTION=mysql npm run test:e2e
+```
+
+It connects to `trooper_e2e` on `127.0.0.1:3306` as `e2e` / `e2e`; override with `E2E_DB_HOST`,
+`E2E_DB_PORT`, `E2E_DB_DATABASE`, `E2E_DB_USERNAME` and `E2E_DB_PASSWORD`.
+
+CI runs the suite on MySQL 8 in the `e2e-tests` job of `.github/workflows/tests.yml` and uploads the
 report and traces when a test fails.
 
 ## Writing a test
@@ -170,7 +183,7 @@ The `account` persona (`E2E Account Trooper`) owns these changes.
 | Awards and achievements from the last 30 days; Command Staff page | ✅ |
 | Missing Credit: assign a club, the troop then counts on the record | ✅ |
 | Reports dashboard (day ranges), Event Summary, Event Types Counts, Troopers Without Activity, Status Change Log | ✅ |
-| Trooper Event Summary, Donation Event Summary, Costume Used Most, and the leaderboard's club filter | ❌ These use MySQL-only SQL (`SUBSTRING_INDEX`, `JSON_OVERLAPS`) and fail on the SQLite test database |
+| Leaderboard narrowed to a club; Trooper Event Summary by club and its CSV; Donation Event Summary with "charity data only"; Costume Used Most (MySQL only, see above) | ✅ |
 
 ### Plugins and system (`plugins-system.spec.js`)
 
@@ -190,10 +203,5 @@ The `account` persona (`E2E Account Trooper`) owns these changes.
 | Event coordinator opens member pages and the Command Staff event pages, and is refused the rest | ✅ |
 | Staff Officer opens moderator and staff pages, and is refused the developer tools (Plugins, System Check, Merge) | ✅ |
 
-### Next PRs
-
-| Area | Flows | Roles |
-|------|-------|-------|
-| MySQL-only reports | Run the browser job on MySQL in CI; Trooper Event Summary, Donation Event Summary, Costume Used Most, leaderboard club filter | moderator, member |
-
-Each PR adds its pages and flows to the table above as it lands.
+Every area in the original plan is covered. New pages and flows add a row to their area's
+table, or a new section, in the PR that adds them.

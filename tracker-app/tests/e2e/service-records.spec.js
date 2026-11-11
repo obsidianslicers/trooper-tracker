@@ -1,8 +1,10 @@
 // Service records and reports: a trooper's record and its tabs, the leaderboard, awards,
 // achievements, Command Staff and costume pages; a moderator assigning missing credit; and
-// the reports that run on the browser tests' SQLite database.
+// every report. CI runs these on MySQL; a few reports use MySQL-only SQL, so their tests
+// only run there (set E2E_DB_CONNECTION=mysql to run them locally).
 import { test, expect } from '@playwright/test';
 import { personas, seeded } from './support/personas.js';
+import { USES_MYSQL } from './support/env.js';
 
 async function openRecord(page, name) {
     await page.goto('/service-records/leaderboard');
@@ -100,5 +102,46 @@ test.describe('as a moderator', () => {
 
         await page.goto('/admin/reports/status-change-log');
         await expect(page.getByText('Troopers who ATTENDED an event', { exact: false })).toBeVisible();
+    });
+});
+
+test.describe('reports that need MySQL', () => {
+    test.skip(!USES_MYSQL, 'These reports use MySQL-only SQL; run with E2E_DB_CONNECTION=mysql.');
+    test.use({ storageState: personas.moderator.storageState });
+
+    test('the leaderboard narrowed to one club', async ({ page }) => {
+        await page.goto('/service-records/leaderboard');
+        await page.locator('#organization_id').selectOption({ label: '501st Legion' });
+        await expect(page).toHaveURL(/organization_id=/);
+        await expect(page.getByRole('link', { name: seeded.veteran })).toBeVisible();
+
+        await page.locator('#organization_id').selectOption({ label: 'Mandalorian Mercs' });
+        await expect(page.getByText('No troopers found for the selected leaderboard filters.')).toBeVisible();
+    });
+
+    test('Trooper Event Summary, filtered to a club, and its CSV', async ({ page }) => {
+        await page.goto('/admin/reports/trooper-event-summary');
+        await page.locator('[name="organization_id"]').selectOption({ label: '501st Legion' });
+        await page.getByRole('button', { name: 'Run Report' }).click();
+        await expect(page.getByRole('row').filter({ hasText: seeded.veteran })).toBeVisible();
+
+        const download = page.waitForEvent('download');
+        await page.getByRole('link', { name: 'Download CSV' }).or(page.getByRole('button', { name: 'Download CSV' })).click();
+        const csv = await download;
+        expect(csv.suggestedFilename()).toMatch(/\.csv$/);
+    });
+
+    test('Donation Event Summary, with and without events that raised nothing', async ({ page }) => {
+        await page.goto('/admin/reports/donation-event-summary');
+        await expect(page.getByText(seeded.charityWalk).first()).toBeVisible();
+
+        await page.locator('[name="charity_only"]').check();
+        await page.getByRole('button', { name: 'Run Report' }).click();
+        await expect(page.getByText(seeded.charityWalk)).toHaveCount(0);
+    });
+
+    test('Costume Used Most at Events', async ({ page }) => {
+        await page.goto('/admin/reports/costume-event-summary');
+        await expect(page.getByRole('row').filter({ hasText: seeded.veteranCostume })).toBeVisible();
     });
 });
