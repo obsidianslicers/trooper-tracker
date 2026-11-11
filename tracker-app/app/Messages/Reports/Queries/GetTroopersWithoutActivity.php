@@ -52,7 +52,7 @@ final class GetTroopersWithoutActivity extends Message
         $filter = function ($qx) use ($lookback)
         {
             $qx->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-                ->where(EventTrooper::SIGNED_UP_AT, '<', $lookback);
+                ->where(EventTrooper::SIGNED_UP_AT, '>=', $lookback);
         };
 
         return Trooper::moderatedBy($this->moderator)

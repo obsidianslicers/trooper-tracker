@@ -70,10 +70,7 @@
                 </td>
                 <td>
                     <x-action-menu>
-                        @if(Auth::user()->is_administrator && $notice->organization === null)
-                            <x-action-link-update :url="route('admin.notices.update', ['notice' => $notice])" />
-                            <x-action-link-copy :url="route('admin.notices.create', ['copy_id' => $notice->id])" />
-                        @elseif(Auth::user()->is_administrator || $notice->organization->trooper_assignments->count() > 0)
+                        @if($notice->organization === null ? Auth::user()->is_administrator : Auth::user()->can('update', $notice))
                             <x-action-link-update :url="route('admin.notices.update', ['notice' => $notice])" />
                             <x-action-link-copy :url="route('admin.notices.create', ['copy_id' => $notice->id])" />
                         @endif

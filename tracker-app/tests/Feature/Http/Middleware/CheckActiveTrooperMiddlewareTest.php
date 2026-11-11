@@ -38,12 +38,41 @@ class CheckActiveTrooperMiddlewareTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_rejects_non_active_trooper(): void
+    public function test_sends_pending_trooper_to_pending_page(): void
     {
         $trooper = Trooper::factory()
             ->create([
                 Trooper::MEMBERSHIP_STATUS => MembershipStatus::PENDING,
                 Trooper::EMAIL_VERIFIED_AT => now(),
+                Trooper::SETUP_COMPLETED_AT => now(),
+            ]);
+
+        $response = $this->actingAs($trooper)->get(route('events.list'));
+
+        $response->assertRedirect(route('account.pending'));
+    }
+
+    public function test_sends_denied_trooper_to_denied_page(): void
+    {
+        $trooper = Trooper::factory()
+            ->create([
+                Trooper::MEMBERSHIP_STATUS => MembershipStatus::DENIED,
+                Trooper::EMAIL_VERIFIED_AT => now(),
+                Trooper::SETUP_COMPLETED_AT => now(),
+            ]);
+
+        $response = $this->actingAs($trooper)->get(route('events.list'));
+
+        $response->assertRedirect(route('account.denied'));
+    }
+
+    public function test_rejects_non_active_trooper(): void
+    {
+        $trooper = Trooper::factory()
+            ->create([
+                Trooper::MEMBERSHIP_STATUS => MembershipStatus::RETIRED,
+                Trooper::EMAIL_VERIFIED_AT => now(),
+                Trooper::SETUP_COMPLETED_AT => now(),
             ]);
 
         $response = $this->actingAs($trooper)->get(route('events.list'));

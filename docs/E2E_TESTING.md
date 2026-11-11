@@ -23,12 +23,25 @@ Playwright starts the app itself (`tests/e2e/support/server.js`): it rebuilds
 `http://127.0.0.1:8077` (set `E2E_PORT` to change it). Its environment overrides your `.env`,
 so your local database is never touched. Set `PHP_BINARY` if `php` on your path is not PHP 8.4.
 
-CI runs the suite in the `e2e-tests` job of `.github/workflows/tests.yml` and uploads the
+### On MySQL
+
+Production runs MySQL, and a few reports (Trooper Event Summary, Donation Event Summary,
+Costume Used Most, the leaderboard's club filter) use MySQL-only SQL. Their tests skip on
+SQLite. To run everything as CI does, point the suite at an empty MySQL database it may wipe:
+
+```bash
+E2E_DB_CONNECTION=mysql npm run test:e2e
+```
+
+It connects to `trooper_e2e` on `127.0.0.1:3306` as `e2e` / `e2e`; override with `E2E_DB_HOST`,
+`E2E_DB_PORT`, `E2E_DB_DATABASE`, `E2E_DB_USERNAME` and `E2E_DB_PASSWORD`.
+
+CI runs the suite on MySQL 8 in the `e2e-tests` job of `.github/workflows/tests.yml` and uploads the
 report and traces when a test fails.
 
 ## Writing a test
 
-- Personas (`admin`, `moderator`, `member`, `trooper`) sign in once in `auth.setup.js`; pick one with
+- Personas (`admin`, `staffOfficer`, `moderator`, `eventCoordinator`, `member`, `handler`, `visitor`, `trooper`, `account`) sign in once in `auth.setup.js`; pick one with
   `test.use({ storageState: personas.member.storageState })`.
 - Seed what a spec needs in `E2eSeeder` under an `E2E ...` name and list it in
   `tests/e2e/support/personas.js`. Specs run one at a time on one database, so a spec that
@@ -105,17 +118,90 @@ out of the `member` persona's bell.
 | Administrative upload, send to the mission review, delete | ✅ |
 | Broadcast a message (a going trooper gets it); share a read-only roster link a guest can open | ✅ |
 
-### Next PRs
+### Account (`account.spec.js`)
 
-| # | Area | Flows | Roles |
-|---|------|-------|-------|
-| 4 | Account | Profile, notification settings, costumes add/remove, club requests, notices, push notifications, deletion request | member |
-| 5 | Approval queues | Deny recruit, approve/deny club requests, membership lookup, request and approve/deny permissions | moderator, admin |
-| 6 | Trooper admin | List and search, profile edit, authority, membership, guardian, events, costumes, change log, void/unvoid, RIP, recruit | moderator, admin |
-| 7 | Costumes and costume credits | Costume CRUD, merge edge cases; costume gate and do-not-trust flag once PRs #492 and #493 merge | member, moderator, admin |
-| 8 | Awards, notices, organizations, FAQ | Create/update, assign troopers to awards, organization tree and images, FAQ sections and items reorder | moderator, admin |
-| 9 | Service records and reports | Trooper record, leaderboard, awards, achievements, photo gallery, costume pages; every report with filters, missing credits assign | member, moderator |
-| 10 | Plugins and system | Plugins page enable/disable/settings, system check, public shares and OG images, search | admin, guest |
-| 11 | Roles not yet seeded | Handler, visitor, and Staff Officer (once PR #491 merges) across the page smoke test | all |
+| Area | Status |
+|------|--------|
+| Profile: display name, phone and theme saved; display name required | ✅ |
+| Notification frequency and per-club event notifications saved | ✅ |
+| Costumes: find one, add it to the armory for a club, remove another | ✅ |
+| Ask to join another club (shows as pending) | ✅ |
+| Notices page; a notice on the event list until dismissed | ✅ |
+| Request deletion (must type DELETE; signs out), sign back in and cancel | ✅ |
 
-Each PR adds its pages and flows to the table above as it lands.
+The `account` persona (`E2E Account Trooper`) owns these changes.
+
+### Approval queues (`approvals-queues.spec.js`)
+
+| Area | Status |
+|------|--------|
+| Deny an application with a reason; the recruit signs in and sees it | ✅ |
+| Approve a request to join a squad (shows on the trooper's memberships); deny another | ✅ |
+| A moderator asks for two troopers to become event coordinators; an administrator approves one and denies the other | ✅ |
+
+### Trooper admin (`trooper-admin.spec.js`)
+
+| Area | Status |
+|------|--------|
+| Search by email; filter by role | ✅ |
+| Edit a profile (legal name, phone, status); the status change shows in the change log; legal name and a unique email are required | ✅ |
+| A moderator can't open the profile of a trooper outside their clubs, and has no Authority tab | ✅ |
+| Memberships: change the member ID, status and unit, then remove the membership | ✅ |
+| Costumes and most recent troop tabs | ✅ |
+| Recruit a trooper into a unit with a member ID | ✅ |
+| Authority: make a trooper a moderator of a garrison (its squad follows) | ✅ |
+| Guardian: a cadet under 18 needs the email of an adult already in the tracker | ✅ |
+| Mark a trooper created in error (badge in the list) and another R.I.P. (memorial notice), through Status | ✅ |
+| Flag do not trust with a reason, then clear it | ✅ |
+
+### Costumes and costume credits (`costumes.spec.js`)
+
+| Area | Status |
+|------|--------|
+| Create a costume (name required) and give it to a club | ✅ |
+| Rename a costume; the name must be unused | ✅ |
+| Delete a costume, with the warning that troopers will lose it | ✅ |
+| Costume Approvals: approve one costume a trooper added, deny another | ✅ |
+| Revoke a trooper's costume, then undo | ✅ |
+| A do-not-trust trooper's "Made It" waits in Troop Verifications; a moderator approves one troop and removes another | ✅ |
+
+### Awards, notices, organizations, FAQ (`content-admin.spec.js`)
+
+| Area | Status |
+|------|--------|
+| A moderator creates an award (name required), renames it, gives it to a trooper, takes it back | ✅ |
+| A moderator posts a notice to a garrison, copies it for next month, edits the copy (Active and Future lists) | ✅ |
+| An administrator adds a unit under a garrison (name required), renames it, uploads a logo | ✅ |
+| An administrator writes a FAQ section and question, a member reads it on the FAQ page, then both are deleted | ✅ |
+
+### Service records and reports (`service-records.spec.js`)
+
+| Area | Status |
+|------|--------|
+| A trooper's record: troops per club, History, Awards and Costumes tabs; Edit link only for Command Staff | ✅ |
+| Leaderboard; a top costume's rankings | ✅ |
+| Awards and achievements from the last 30 days; Command Staff page | ✅ |
+| Missing Credit: assign a club, the troop then counts on the record | ✅ |
+| Reports dashboard (day ranges), Event Summary, Event Types Counts, Troopers Without Activity, Status Change Log | ✅ |
+| Leaderboard narrowed to a club; Trooper Event Summary by club and its CSV; Donation Event Summary with "charity data only"; Costume Used Most (MySQL only, see above) | ✅ |
+
+### Plugins and system (`plugins-system.spec.js`)
+
+| Area | Status |
+|------|--------|
+| A system owner saves a plugin's settings, enables it, then disables it | ✅ |
+| System Check reports on PHP, the database and storage | ✅ |
+| Plugins and System Check refused to moderators | ✅ |
+| A shared event link: preview card tags and image for anyone, details only after signing in | ✅ |
+| Search from the header for a trooper; search for an event | ✅ |
+
+### Roles (`pages.spec.js`)
+
+| Area | Status |
+|------|--------|
+| Handler and visitor open every member page and are refused Command Staff | ✅ |
+| Event coordinator opens member pages and the Command Staff event pages, and is refused the rest | ✅ |
+| Staff Officer opens moderator and staff pages, and is refused the developer tools (Plugins, System Check, Merge) | ✅ |
+
+Every area in the original plan is covered. New pages and flows add a row to their area's
+table, or a new section, in the PR that adds them.

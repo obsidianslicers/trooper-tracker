@@ -4,24 +4,33 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\AwardFrequency;
 use App\Enums\EventStatus;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Enums\NoticeType;
 use App\Enums\OrganizationType;
+use App\Messages\Troopers\Commands\Membership\CreateTrooperRequest;
+use App\Models\Award;
+use App\Models\AwardTrooper;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\EventType;
+use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperNotification;
+use App\Models\TrooperOrganization;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -50,6 +59,21 @@ class E2eSeeder extends Seeder
 
         $this->assign($moderator, $legion, is_moderator: true);
 
+        $this->persona('staff-officer@e2e.test', 'E2E Staff Officer', MembershipRole::STAFF_OFFICER);
+
+        foreach ([
+            ['event-coordinator@e2e.test', 'E2E Event Coordinator', MembershipRole::EVENT_COORDINATOR],
+            ['handler@e2e.test', 'E2E Handler', MembershipRole::HANDLER],
+        ] as [$email, $name, $role])
+        {
+            $this->assign($this->persona($email, $name, $role), $legion, is_moderator: false);
+        }
+
+        $visitor = $this->persona('visitor@e2e.test', 'E2E Visitor', MembershipRole::VISITOR, attributes: [
+            Trooper::VISITOR_EXPIRES_AT => now()->addMonths(3),
+        ]);
+        $this->assign($visitor, $legion, is_moderator: false);
+
         $recruit = $this->persona(
             'recruit@e2e.test',
             'E2E Pending Recruit',
@@ -72,6 +96,152 @@ class E2eSeeder extends Seeder
         $this->onboarding($legion);
         $this->trooperEvents($legion);
         $this->commandStaffEvents($legion);
+        $this->account($legion);
+        $this->approvals($legion);
+        $this->trooperAdmin($legion);
+        $this->costumeCredits($legion);
+        $this->serviceRecords($legion);
+    }
+
+    /**
+     * A veteran with a credited troop in a costume, an award and an achievement for the
+     * service record pages, and a trooper whose troop counts for no club yet.
+     */
+    private function serviceRecords(Organization $legion): void
+    {
+        $veteran = $this->persona('veteran@e2e.test', 'E2E Veteran', MembershipRole::MEMBER);
+        $this->assign($veteran, $legion, is_moderator: false);
+        $armor = $this->trooperCostume($veteran, $legion, 'E2E Veteran Armor');
+        $this->attendedEvent($legion, $veteran, 'E2E Charity Walk', EventType::defaultId(), days_ago: 5, costume: $armor);
+
+        $award = Award::create([
+            Award::ORGANIZATION_ID => $legion->id,
+            Award::NAME => 'E2E Trooper of the Month',
+            Award::FREQUENCY => AwardFrequency::MONTHLY,
+        ]);
+        AwardTrooper::create([
+            AwardTrooper::AWARD_ID => $award->id,
+            AwardTrooper::TROOPER_ID => $veteran->id,
+            AwardTrooper::AWARD_DATE => now()->subDays(3),
+        ]);
+
+        TrooperAchievement::factory()->forTrooper($veteran)->create([
+            TrooperAchievement::ACHIEVEMENT_DATE => now()->subDays(5),
+        ]);
+
+        $uncredited = $this->persona('uncredited@e2e.test', 'E2E Uncredited Trooper', MembershipRole::MEMBER);
+        $this->assign($uncredited, $legion, is_moderator: false);
+        $this->attendedEvent($legion, $uncredited, 'E2E Uncredited Troop', EventType::defaultId(), days_ago: 6, credited: false);
+    }
+
+    /**
+     * Costumes Command Staff create, rename and delete; costumes waiting for review or to be
+     * revoked; and a do-not-trust trooper whose troops wait for a moderator.
+     */
+    private function costumeCredits(Organization $legion): void
+    {
+        $owner = $this->persona('costume-owner@e2e.test', 'E2E Costume Owner', MembershipRole::MEMBER);
+        $this->assign($owner, $legion, is_moderator: false);
+        $this->trooperCostume($owner, $legion, 'E2E Doomed Armor');
+        $this->trooperCostume($owner, $legion, 'E2E Revoked Armor');
+        $this->trooperCostume($owner, $legion, 'E2E Pending Armor', approved: false);
+        $this->trooperCostume($owner, $legion, 'E2E Refused Armor', approved: false);
+        $this->costume($legion, 'E2E Renamed Armor');
+
+        $untrusted = $this->persona('untrusted@e2e.test', 'E2E Untrusted Trooper', MembershipRole::MEMBER, attributes: [
+            Trooper::IS_UNTRUSTED => true,
+            Trooper::UNTRUSTED_REASON => 'E2E: confirmed troops they missed.',
+        ]);
+        $this->assign($untrusted, $legion, is_moderator: false);
+        $armor = $this->trooperCostume($untrusted, $legion, 'E2E Untrusted Armor');
+
+        foreach (['E2E Verified Parade' => 2, 'E2E Disputed Parade' => 3] as $name => $days_ago)
+        {
+            $this->pastEvent($legion, $untrusted, $name, $days_ago, $armor);
+        }
+    }
+
+    /**
+     * Troopers Command Staff edit from the trooper admin pages, each owned by one test.
+     */
+    private function trooperAdmin(Organization $legion): void
+    {
+        foreach (['E2E Profile Subject', 'E2E Authority Subject', 'E2E Voided Trooper', 'E2E Departed Trooper', 'E2E Untrusted Subject'] as $name)
+        {
+            $this->assign($this->persona(Str::slug($name).'@e2e.test', $name, MembershipRole::MEMBER), $legion, is_moderator: false);
+        }
+
+        $member = $this->persona('membership-subject@e2e.test', 'E2E Membership Subject', MembershipRole::MEMBER);
+        $this->assign($member, $legion, is_moderator: false);
+        $this->membership($member, $legion, '91111');
+
+        $academy = Organization::where(Organization::NAME, 'Galactic Academy')->firstOrFail();
+        $cadet = $this->persona('cadet@e2e.test', 'E2E Cadet', MembershipRole::MEMBER);
+        $this->assign($cadet, $academy, is_moderator: false);
+        $this->membership($cadet, $academy, 'GA-1');
+
+        $this->persona('guardian@e2e.test', 'E2E Guardian', MembershipRole::MEMBER, attributes: [
+            Trooper::DATE_OF_BIRTH => now()->subYears(40),
+        ]);
+
+        $this->persona('recruit-target@e2e.test', 'E2E Recruit Target', MembershipRole::MEMBER);
+    }
+
+    private function membership(Trooper $trooper, Organization $organization, string $identifier): void
+    {
+        TrooperOrganization::create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => $identifier,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+    }
+
+    /**
+     * Applications, club join requests and troopers for permission requests, each owned by
+     * one approvals test.
+     */
+    private function approvals(Organization $legion): void
+    {
+        $recruit = $this->persona('deny-recruit@e2e.test', 'E2E Recruit To Deny', MembershipRole::MEMBER, MembershipStatus::PENDING, [
+            Trooper::SETUP_COMPLETED_AT => now(),
+        ]);
+        $this->assign($recruit, $legion, is_moderator: false);
+
+        $squad = Organization::where(Organization::NAME, 'E2E Squad')->firstOrFail();
+
+        $joining = $this->persona('club-join@e2e.test', 'E2E Club Joiner', MembershipRole::MEMBER);
+        CreateTrooperRequest::call(trooper: $joining, organization: $squad, identifier: '93456');
+
+        $refused = $this->persona('club-refused@e2e.test', 'E2E Club Refused', MembershipRole::MEMBER);
+        CreateTrooperRequest::call(trooper: $refused, organization: $squad, identifier: '94567');
+
+        foreach (['E2E Promotion Candidate', 'E2E Promotion Refused'] as $name)
+        {
+            $candidate = $this->persona(Str::slug($name).'@e2e.test', $name, MembershipRole::MEMBER);
+            $this->assign($candidate, $legion, is_moderator: false);
+        }
+    }
+
+    /**
+     * A trooper of their own for the account spec, which changes their profile, settings,
+     * costumes and club requests, and asks for their account to be deleted.
+     */
+    private function account(Organization $legion): void
+    {
+        $trooper = $this->persona('account@e2e.test', 'E2E Account Trooper', MembershipRole::MEMBER);
+        $this->assign($trooper, $legion, is_moderator: false);
+        $this->trooperCostume($trooper, $legion, 'E2E Account Armor');
+        $this->costume($legion, 'E2E Spare Armor');
+
+        Notice::create([
+            Notice::ORGANIZATION_ID => $legion->id,
+            Notice::TITLE => 'E2E Armor Inspection Notice',
+            Notice::MESSAGE => 'Bring your armor to the next meeting for inspection.',
+            Notice::TYPE => NoticeType::INFO,
+            Notice::STARTS_AT => now()->subDay(),
+            Notice::ENDS_AT => now()->addMonth(),
+        ]);
     }
 
     /**
@@ -128,30 +298,40 @@ class E2eSeeder extends Seeder
             Event::COMMENTS => 'E2E brief: report to the loading dock at nine.',
         ]);
 
-        $start = now()->subDay()->setTime(10, 0);
-        $parade = Event::factory()->create([
-            Event::ORGANIZATION_ID => $legion->id,
-            Event::PRIMARY_ORGANIZATION_ID => $legion->id,
-            Event::NAME => 'E2E Past Parade',
+        $this->pastEvent($legion, $trooper, 'E2E Past Parade', 1);
+    }
+
+    /**
+     * A closed troop from a few days ago with the trooper signed up as going, so they can say
+     * whether they made it.
+     */
+    private function pastEvent(Organization $organization, Trooper $trooper, string $name, int $days_ago, ?Costume $costume = null): void
+    {
+        $start = now()->subDays($days_ago)->setTime(10, 0);
+        $event = Event::factory()->create([
+            Event::ORGANIZATION_ID => $organization->id,
+            Event::PRIMARY_ORGANIZATION_ID => $organization->id,
+            Event::NAME => $name,
             Event::STATUS => EventStatus::CLOSED,
             Event::EVENT_START => $start,
             Event::EVENT_END => $start->copy()->addHours(4),
         ]);
         $shift = EventShift::factory()->create([
-            EventShift::EVENT_ID => $parade->id,
+            EventShift::EVENT_ID => $event->id,
             EventShift::SHIFT_STARTS_AT => $start,
             EventShift::SHIFT_ENDS_AT => $start->copy()->addHours(4),
             EventShift::STATUS => EventStatus::CLOSED,
         ]);
-        $this->canAttend($parade, $legion);
+        $this->canAttend($event, $organization);
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asGoing()->create([
-            EventTrooper::ORGANIZATION_ID => $legion->id,
-            EventTrooper::COSTUME_ID => null,
+            EventTrooper::ORGANIZATION_ID => $organization->id,
+            EventTrooper::COSTUME_ID => $costume?->id,
             EventTrooper::BACKUP_COSTUME_ID => null,
+            EventTrooper::SIGNED_UP_AT => $start->copy()->subWeek(),
         ]);
     }
 
-    private function trooperCostume(Trooper $trooper, Organization $organization, string $name): Costume
+    private function trooperCostume(Trooper $trooper, Organization $organization, string $name, bool $approved = true): Costume
     {
         $costume = Costume::create([Costume::NAME => $name]);
 
@@ -163,7 +343,7 @@ class E2eSeeder extends Seeder
         TrooperCostume::create([
             TrooperCostume::TROOPER_ID => $trooper->id,
             TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
-            TrooperCostume::APPROVED_AT => now(),
+            TrooperCostume::APPROVED_AT => $approved ? now() : null,
         ]);
 
         return $costume;
@@ -282,8 +462,15 @@ class E2eSeeder extends Seeder
         ]);
     }
 
-    private function attendedEvent(Organization $organization, Trooper $trooper, string $name, int $event_type_id, int $days_ago): void
-    {
+    private function attendedEvent(
+        Organization $organization,
+        Trooper $trooper,
+        string $name,
+        int $event_type_id,
+        int $days_ago,
+        ?Costume $costume = null,
+        bool $credited = true
+    ): void {
         $start = now()->subDays($days_ago)->setTime(10, 0);
 
         $event = Event::factory()->create([
@@ -304,9 +491,11 @@ class E2eSeeder extends Seeder
         ]);
 
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create([
-            EventTrooper::ORGANIZATION_ID => $organization->id,
-            EventTrooper::COSTUME_ID => null,
+            EventTrooper::ORGANIZATION_ID => $credited ? $organization->id : null,
+            EventTrooper::COSTUME_ID => $costume?->id,
             EventTrooper::BACKUP_COSTUME_ID => null,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => $credited && $costume ? [$organization->id] : null,
+            EventTrooper::SIGNED_UP_AT => $start->copy()->subWeek(),
         ]);
     }
 

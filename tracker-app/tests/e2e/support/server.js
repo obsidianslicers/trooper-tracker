@@ -1,9 +1,10 @@
-// Starts the app for the Playwright browser tests: rebuilds a throwaway SQLite database
-// from the migrations and the E2E seeder, then serves the app with PHP's built-in server.
+// Starts the app for the Playwright browser tests: rebuilds a throwaway database (SQLite, or
+// MySQL when E2E_DB_CONNECTION=mysql) from the migrations and the E2E seeder, then serves
+// the app with PHP's built-in server.
 // Playwright runs this as its webServer (see playwright.config.js).
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, rmSync, writeFileSync } from 'node:fs';
-import { e2eEnv, APP_ROOT, DATABASE } from './env.js';
+import { e2eEnv, APP_ROOT, DATABASE, USES_MYSQL } from './env.js';
 
 const env = { ...process.env, ...e2eEnv };
 const php = process.env.PHP_BINARY || 'php';
@@ -13,8 +14,10 @@ if (!existsSync(`${APP_ROOT}/public/build/manifest.json`) && !existsSync(`${APP_
     process.exit(1);
 }
 
-rmSync(DATABASE, { force: true });
-writeFileSync(DATABASE, '');
+if (!USES_MYSQL) {
+    rmSync(DATABASE, { force: true });
+    writeFileSync(DATABASE, '');
+}
 
 const seed = spawnSync(
     php,

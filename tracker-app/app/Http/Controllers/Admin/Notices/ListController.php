@@ -9,7 +9,6 @@ use App\Models\Filters\NoticeFilter;
 use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperAssignment;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -90,17 +89,9 @@ class ListController extends PageController
      */
     private function getNotices(Request $request, NoticeFilter $filter): LengthAwarePaginator
     {
-        $trooper = $request->user();
-
-        $q = Notice::with([
-            'organization.trooper_assignments' => function ($q) use ($trooper)
-            {
-                $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
-                    ->where(TrooperAssignment::IS_MODERATOR, true);
-            },
-        ]);
-
-        $q = $q->filterWith($filter)->moderatedBy($trooper);
+        $q = Notice::with('organization')
+            ->filterWith($filter)
+            ->moderatedBy($request->user());
 
         return $q->paginate(15)->withQueryString();
     }
