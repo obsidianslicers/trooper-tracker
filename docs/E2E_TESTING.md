@@ -172,11 +172,20 @@ The `account` persona (`E2E Account Trooper`) owns these changes.
 | Reports dashboard (day ranges), Event Summary, Event Types Counts, Troopers Without Activity, Status Change Log | ✅ |
 | Trooper Event Summary, Donation Event Summary, Costume Used Most, and the leaderboard's club filter | ❌ These use MySQL-only SQL (`SUBSTRING_INDEX`, `JSON_OVERLAPS`) and fail on the SQLite test database |
 
+### Plugins and system (`plugins-system.spec.js`)
+
+| Area | Status |
+|------|--------|
+| A system owner saves a plugin's settings, enables it, then disables it | ✅ |
+| System Check reports on PHP, the database and storage | ✅ |
+| Plugins and System Check refused to moderators | ✅ |
+| A shared event link: preview card tags and image for anyone, details only after signing in | ✅ |
+| Search from the header for a trooper; search for an event | ✅ |
+
 ### Next PRs
 
 | # | Area | Flows | Roles |
 |---|------|-------|-------|
-| 10 | Plugins and system | Plugins page enable/disable/settings, system check, public shares and OG images, search | admin, guest |
 | 11 | Roles not yet seeded | Handler, visitor, and Staff Officer (once PR #491 merges) across the page smoke test | all |
 
 Each PR adds its pages and flows to the table above as it lands.
