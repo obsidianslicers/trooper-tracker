@@ -53,6 +53,16 @@ role is refused what it can't reach, and every key flow is driven end to end. St
 | Approve a pending recruit (moderator) | ✅ |
 | Merge Costumes, Merge Troopers (admin) | ✅ |
 
+### Event types (`event-types.spec.js`)
+
+| Area | Status |
+|------|--------|
+| Event Types page opens for system owners, refused to moderators | ✅ |
+| Create a non-troop-credit type; drag to reorder; hide from the event form; delete an unused type (not one in use) | ✅ |
+| Warning on the edit page that changing "counts" also changes past events | ✅ |
+| Event form preselects the first type and shows the chosen type's description and non-troop-credit note | ✅ |
+| Members see the non-troop-credit notice on such an event, and not on a regular one | ✅ |
+
 ### Next PRs
 
 | # | Area | Flows | Roles |

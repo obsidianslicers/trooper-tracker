@@ -10,6 +10,7 @@ use App\Events\EventWatchChanging;
 use App\Http\Middleware\TrooperSetupRequiredMiddleware;
 use App\Models\Event;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Plugins\PluginForms;
 use App\Plugins\PluginServiceProvider;
@@ -36,6 +37,7 @@ use TroopTracker\Plugins\Xenforo\Listeners\CreateEventThread;
 use TroopTracker\Plugins\Xenforo\Listeners\SyncThreadWatch;
 use TroopTracker\Plugins\Xenforo\Messages\ImportXenforoEnv;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Models\EventTypeForum;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 use TroopTracker\Plugins\Xenforo\Notifications\EventForumPostNotification;
 use TroopTracker\Plugins\Xenforo\Notifications\ForumPostCommandStaffNotification;
@@ -86,6 +88,7 @@ class XenforoServiceProvider extends PluginServiceProvider
         $this->registerServiceRecord();
         $this->registerEventThreads();
         $this->registerOrganizationFields();
+        $this->registerEventTypeForums();
         $this->addPermissionRequestExtension(ForumGroupRequests::class);
 
         $this->schedule(function (Schedule $schedule): void
@@ -238,6 +241,26 @@ class XenforoServiceProvider extends PluginServiceProvider
             rules: $fields,
             saved: fn (Organization $organization, array $validated) => $this
                 ->saveOrganizationForum($organization, $validated),
+        );
+    }
+
+    /**
+     * The Update Event Type page gets a Forum section, saved by the plugin's own route.
+     */
+    private function registerEventTypeForums(): void
+    {
+        $event_type = fn (array $context): mixed => $context['request']->route('event_type');
+
+        $this->addToSlot(
+            'admin.event-types.update.sections',
+            'xenforo::admin.event-type-forum',
+            data: fn (array $context): array => [
+                'event_type' => $event_type($context),
+                'xenforo_forum' => EventTypeForum::forEventType($event_type($context)->id),
+            ],
+            //  like the organization forum fields: settable before the API key is,
+            //  and on a staging copy that has no key on purpose
+            when: fn (array $context): bool => $event_type($context) instanceof EventType,
         );
     }
 

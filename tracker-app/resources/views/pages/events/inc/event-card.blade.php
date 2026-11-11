@@ -14,6 +14,10 @@
                 <span class="flex-shrink-0 p-2">
                     @if($event->at_risk)
                         <i class="fa fa-fw fa-warning fa-2x pe-2 text-white"></i>
+                    @elseif(!$event->isCounted())
+                        <x-not-counted :event="$event"
+                                       variant="logo"
+                                       class="pe-2" />
                     @else
                         <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
                                 :default_path="'img/icons/organization-32x32.png'"
@@ -33,6 +37,8 @@
                     ** risk of cancellation **
                 </p>
             @endif
+            <x-not-counted :event="$event"
+                           class="small mb-3" />
             <p class="card-text position-relative"
                style="z-index: 2;">
                 <a href="https://www.google.com/maps/search/?api=1&query={{ $event->venue_address }}"

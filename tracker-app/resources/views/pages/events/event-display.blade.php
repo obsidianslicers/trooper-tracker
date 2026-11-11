@@ -9,10 +9,15 @@
             <div class="card">
                 <div class="card-header {{ $bg }} d-flex align-items-center">
                     <span class="p-2">
-                        <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
-                                :default_path="'img/icons/organization-32x32.png'"
-                                :width="32"
-                                :height="32" />
+                        @if(!$event->isCounted())
+                            <x-not-counted :event="$event"
+                                           variant="logo" />
+                        @else
+                            <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
+                                    :default_path="'img/icons/organization-32x32.png'"
+                                    :width="32"
+                                    :height="32" />
+                        @endif
                     </span>
                     <span class="p-2">
                         <h4 class=" text-white">
@@ -61,6 +66,8 @@
                             </div>
                         </div>
                     @endcanany
+                    <x-not-counted :event="$event"
+                                   class="mb-3" />
                     <div class="row mb-2 border-bottom">
                         <div class="col-12 col-md-6 small text-muted pb-3">
                             <div class="row">

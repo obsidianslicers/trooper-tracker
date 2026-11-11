@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Models\Event;
+use App\Models\EventShift;
+use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -14,6 +18,24 @@ use Tests\TestCase;
 class PublicApiControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_trooper_history_leaves_out_events_whose_type_does_not_count(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $uncounted = EventType::factory()->uncounted()->create();
+
+        foreach ([EventType::idNamed('Regular'), $uncounted->id] as $type)
+        {
+            $event = Event::factory()->asClosed()->create([Event::EVENT_TYPE_ID => $type]);
+            $shift = EventShift::factory()->forEvent($event)->create();
+            EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
+        }
+
+        $response = $this->get(route('api.public', ['trooperid' => $trooper->id]));
+
+        $response->assertOk();
+        $response->assertJsonPath('0.troopCount', 1);
+    }
 
     public function test_roster_returns_empty_roster_when_org_not_found(): void
     {

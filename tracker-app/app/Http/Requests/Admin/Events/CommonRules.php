@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\EventOrganization;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Plugins\PluginForms;
 use Illuminate\Validation\Rule;
@@ -48,7 +48,7 @@ trait CommonRules
                     ->whereIn('id', Organization::eventHostableBy($this->user())->pluck('id')),
             ],
             Event::NAME => ['required', 'string', 'max:128'],
-            Event::TYPE => ['required', 'string', 'max:32', EventType::toValidator()],
+            Event::EVENT_TYPE_ID => ['required', 'integer', Rule::in($this->allowedEventTypes())],
             Event::STATUS => ['required', 'string', 'max:16', EventStatus::toValidator()],
             Event::SHIFTS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
             Event::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
@@ -91,5 +91,22 @@ trait CommonRules
 
             ...app(PluginForms::class)->rules(PluginForms::EVENT_UPDATE),
         ];
+    }
+
+    /**
+     * The types offered on the form, plus the event's own type if it has since been
+     * hidden, so an older event still saves without changing its type.
+     *
+     * @return array<int, string>
+     */
+    private function allowedEventTypes(): array
+    {
+        $event = $this->route('event');
+
+        return EventType::query()
+            ->where(fn ($q) => $q->where(EventType::IS_ACTIVE, true)
+                ->when($event instanceof Event, fn ($q) => $q->orWhere(EventType::ID, $event->event_type_id)))
+            ->pluck(EventType::ID)
+            ->all();
     }
 }

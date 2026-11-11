@@ -2,24 +2,40 @@
 
 ## Event Types
 
-Events are categorized by type for reporting and filtering. **Type does not affect business logic** — all 12 types share identical signup, capacity, and status-transition behavior.
+Event types are rows in `tt_event_types` that system owners and staff officers manage under **Command Staff → Event Types** (`/admin/event-types`). Each type has:
 
-| Enum | DB Value | Description |
+| Setting | Column | Effect |
 |---|---|---|
-| `REGULAR` | `regular` | Standard costuming appearance |
-| `ARMOR_PARTY` | `armorparty` | Social armor build/maintenance gathering |
-| `CHARITY` | `charity` | Charitable fundraising event |
-| `PUBLIC_RELATIONS` | `publicrelations` | PR or promotional appearance |
-| `DISNEY` | `disney` | Disney-related appearance |
-| `LUCAS_FILM_LIMITED` | `lucasfilm` | Official Lucasfilm/Star Wars event |
-| `CONVENTION` | `convention` | Convention or expo |
-| `HOSPITAL` | `hospital` | Hospital visit or patient interaction |
-| `WEDDING` | `wedding` | Private wedding appearance |
-| `BIRTHDAY_PARTY` | `birthdayparty` | Private birthday party |
-| `VIRTUAL_TROOP` | `virtualtroop` | Online/remote virtual event |
-| `OTHER` | `other` | Anything else |
+| Name | `name` | Shown in the event form's Event Type list and on reports |
+| Description | `description` | Shown under the Event Type list once the type is picked |
+| Order | `sort_order` | Drag-sorted; the event form lists types in this order and preselects the first for new events |
+| Counts toward troop totals | `is_counted` | When off, attending doesn't add to troop totals, and every place members see the event says so (see below) |
+| Offered on the event form | `is_active` | When off, new events can't pick it; events that already use it keep it |
 
-**Source:** `app/Enums/EventType.php`
+Each event points at its type with `tt_events.event_type_id` (foreign key to `tt_event_types.id`), so renaming a type is safe. A type can only be deleted while no event uses it; otherwise hide it. An event created without a type gets the first offered one (`EventType::defaultId()`, set in `EventObserver`), as the form preselects it.
+
+The `2026_11_08_000001_create_event_types_table` migration seeds the twelve former enum values, all counted and offered: Regular first (it was the preselected type before), then the rest alphabetically as the form listed them. It then replaces each event's old `type` string with the matching `event_type_id`. Nothing else changes until a system owner or staff officer edits them.
+
+### Types that don't count
+
+A type with `is_counted = false` is left out of everything that counts a trooper's troops: the shift count, rank and troop milestones (`RecalculateTrooperRank`, overall and per club), the service record's per-club troop counts, the leaderboard's top troopers and costume leaderboards, the trooper event summary report, the public API's trooper history (`troopCount`), and the troop history the HoloNet plugin shares. Volunteer hours and charity totals still include these events, and they still appear in a trooper's history.
+
+Members are told the same way everywhere, so nobody finds out after the fact. `Event::notCountedNotice()` is the one sentence ("Non-troop-credit event: Does not count toward troop totals.") and `<x-not-counted>` draws it:
+
+| Where | What shows |
+|---|---|
+| Event list card | Info icon in the header in place of the unit logo (an at-risk event keeps its warning icon), the sentence above the address |
+| Calendar | Info icon after the name, the sentence as its tooltip |
+| Event page | Info icon in the title bar in place of the unit logo, the sentence at the top of the details and again above the roster |
+| Service record history | "Non-troop-credit" pill next to the event (card and table views), so the history matches the totals |
+| Forum thread post (XenForo plugin) | The sentence in bold under the title and venue |
+| Discord announcement | The sentence on its own line under "… has been posted." |
+
+The header keeps its status color (open, at risk, locked): its icon is white like the at-risk warning, the service record's pill is white on dark so it reads on every theme, and the notice borrows only its left edge from the theme's info color, since some themes' info color is close to the locked header's.
+
+Queries use `Event::counted()` / `EventTrooper::counted()`, or `whereNotIn('tt_events.event_type_id', EventType::query()->uncountedIds())` in raw joins. Because counts are worked out when queried, changing a type's setting applies to its past events too: leaderboards change right away, the stored shift count at the nightly `tracker:calculate-trooper-achievements` run. Milestones already awarded are not taken back.
+
+**Source:** `app/Models/EventType.php`, `app/Messages/EventTypes/`
 
 ---
 

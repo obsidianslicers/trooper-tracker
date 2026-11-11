@@ -226,7 +226,6 @@ All enums are backed by strings and located in `app/Enums/`:
 - **AwardFrequency:** How often awards are given
 - **EventStatus:** Event lifecycle states
 - **EventTrooperStatus:** Signup states
-- **EventType:** Event categories
 - **MembershipRole:** Trooper roles (member, moderator, administrator)
 - **MembershipStatus:** Account states (pending, active, retired)
 - **NoticeType:** Notice severity levels

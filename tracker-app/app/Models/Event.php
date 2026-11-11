@@ -6,7 +6,6 @@ namespace App\Models;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Enums\EventType;
 use App\Models\Base\Event as BaseEvent;
 use App\Models\Casts\SanitizeHtmlCast;
 use App\Models\Casts\EnforceZeroCast;
@@ -46,7 +45,6 @@ class Event extends BaseEvent
     protected function casts()
     {
         return array_merge($this->casts, [
-            self::TYPE => EventType::class,
             self::STATUS => EventStatus::class,
             self::NAME => SanitizeHtmlCast::class,
             self::CONTACT_NAME => SanitizeHtmlCast::class,
@@ -67,6 +65,28 @@ class Event extends BaseEvent
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, self::ORGANIZATION_ID);
+    }
+
+    /**
+     * Whether attending this event adds to troopers' troop totals, as its type decides.
+     */
+    public function isCounted(): bool
+    {
+        return $this->event_type?->is_counted ?? true;
+    }
+
+    /**
+     * The one sentence every page, forum post and announcement uses for an event that
+     * doesn't count toward troop totals; null when it counts.
+     */
+    public function notCountedNotice(): ?string
+    {
+        if ($this->isCounted())
+        {
+            return null;
+        }
+
+        return EventType::NOT_COUNTED_NOTICE;
     }
 
     /**

@@ -22,6 +22,13 @@ class ForumBBCodeHelper
             $bb .= "\n[size=4][i]".MarkdownToBBCode::escape($event->venue).'[/i][/size]';
         }
 
+        //  not through e(): XenForo shows the entity, so "don't" would read "don&#039;t"
+        //  (the type name comes from an administrator, not the request)
+        if ($notice = $event->notCountedNotice())
+        {
+            $bb .= "\n\n[b]ℹ️ ".$notice.'[/b]';
+        }
+
         $bb .= "\n\n[hr][/hr]\n";
 
         if ($event->venue_address)

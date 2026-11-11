@@ -12,6 +12,7 @@ use App\Models\AwardTrooper;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\EventUpload;
 use App\Models\EventUploadTrooper;
 use App\Models\Organization;
@@ -187,6 +188,28 @@ class GetTrooperServiceRecordTest extends TestCase
 
         $result = (new GetTrooperServiceRecord($trooper->id))->handle();
 
+        $this->assertSame(1, $result['club_troop_counts']->firstWhere('id', $org->id)->troop_count);
+    }
+
+    public function test_handle_troop_count_leaves_out_events_whose_type_does_not_count(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $org = Organization::factory()->asOrganization()->withNodePath('100')->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
+        $uncounted = EventType::factory()->uncounted()->create();
+
+        foreach ([EventType::idNamed('Regular'), $uncounted->id] as $index => $type)
+        {
+            $event = Event::factory()->asClosed()->create([Event::EVENT_TYPE_ID => $type]);
+            $shift = EventShift::factory()->forEvent($event)->asClosed()
+                ->withShiftStartsAt(now()->subDays(5 + $index))->create();
+            EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()
+                ->state(fn () => [EventTrooper::ORGANIZATION_ID => $org->id])->create();
+        }
+
+        $result = (new GetTrooperServiceRecord($trooper->id))->handle();
+
+        $this->assertCount(2, $result['recent_shifts']);
         $this->assertSame(1, $result['club_troop_counts']->firstWhere('id', $org->id)->troop_count);
     }
 

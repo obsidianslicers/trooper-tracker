@@ -306,6 +306,7 @@ Svelte pages have slots too. Their names are listed in `App\Plugins\PluginSlots:
 | `account.profile.sections` | Account page, Profile tab, below the details. |
 | `account.pending.sections` | Pending Membership page, below the notice. |
 | `admin.troopers.approvals.sections` | Trooper Approvals page, below the requests. |
+| `admin.event-types.update.sections` | Update Event Type page, below the form. The type is `$request->route('event_type')`. |
 
 To add a slot to another Svelte page, add its name to `SVELTE_SLOTS` and drop `<PluginSlot name="..." />` where it should appear.
 
@@ -494,6 +495,7 @@ php artisan db:seed --class="TroopTracker\Plugins\Discord\Database\Seeders\Flori
 - the event page's Forum Comments section, reply box (`events.forum-reply-htmx`), forum attachments (`events.forum-attachment`), the View Forum Post button, and forum smilies in the event comments editor
 - watching an event also watches its forum thread
 - the forum webhook (`/webhooks/xenforo`) and the "new forum reply" and "notify command staff" notifications, with their two notification preference categories (`event_forum_post`, `forum_post_command_staff`; stored preferences keep working)
+- optional forums per event type (event forum and archive forum), in a Forum section on the Update Event Type page, saved by `plugins.xenforo.admin.event-types.forum` into `tt_event_type_xenforo_forums`; each one set wins over the hosting organization's forum of the same kind
 - each organization's forum settings (event forum, archive forum, and the active, reserve and retired user groups), on the organization edit form; stored in `tt_xenforo_organization_forums`, copied from the old `tt_organizations` columns on enable (core has since dropped them). `FloridaGarrisonForumSeeder` seeds the Florida Garrison values
 - forum groups on the Request Permissions page (a permission request extension, key `xenforo`); requested groups are stored in `tt_xenforo_permission_request_groups`, copied from the old `tt_permission_requests.forum_groups_to_add` and `forum_groups_to_remove` columns on enable (core has since dropped them)
 - forum upgrades as a donation source (donation months, total donated, donor milestones, the active donor badge and the support goal widget's monthly total), plus the service record's forum group banners, Forum Profile button and upgrade history table

@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Events;
 
+use App\Enums\EventStatus;
+use App\Models\Event;
+use App\Models\EventShift;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ListControllerTest extends TestCase
@@ -21,6 +26,59 @@ class ListControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('pages.events.list');
+    }
+
+    public function test_invoke_marks_only_the_events_that_do_not_count(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $uncounted = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party Plus']);
+        $this->upcomingEvent('Armor build night', $uncounted->id);
+        $this->upcomingEvent('Hospital visit', EventType::idNamed('Regular'));
+
+        $response = $this->actingAs($trooper)->get(route('events.list'));
+
+        $response->assertOk();
+        //  the info icon in place of the unit logo, then the sentence in the body; no pill
+        $response->assertSeeInOrder(['not-counted-logo', 'Armor build night', 'not-counted-notice'], false);
+        $response->assertSee('Non-troop-credit event: Does not count toward troop totals.');
+        $this->assertSame(1, substr_count($response->getContent(), 'not-counted-logo'));
+        $this->assertSame(1, substr_count($response->getContent(), 'not-counted-notice'));
+        $response->assertDontSee('not-counted-pill', false);
+    }
+
+    public function test_invoke_loads_event_types_with_the_events(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $uncounted = EventType::factory()->uncounted()->create();
+        foreach (range(1, 3) as $i)
+        {
+            $this->upcomingEvent("Event {$i}", $uncounted->id);
+        }
+
+        DB::enableQueryLog();
+        $this->actingAs($trooper)->get(route('events.list'))->assertOk();
+        $type_queries = collect(DB::getQueryLog())
+            ->filter(fn (array $q) => str_contains($q['query'], 'from "tt_event_types"'));
+
+        $this->assertCount(1, $type_queries);
+    }
+
+    private function upcomingEvent(string $name, int $type): Event
+    {
+        $start = now()->addWeek();
+        $event = Event::factory()->create([
+            Event::NAME => $name,
+            Event::EVENT_TYPE_ID => $type,
+            Event::STATUS => EventStatus::OPEN,
+            Event::EVENT_START => $start,
+            Event::EVENT_END => $start->copy()->addHours(4),
+        ]);
+        EventShift::factory()->forEvent($event)->create([
+            EventShift::SHIFT_STARTS_AT => $start,
+            EventShift::SHIFT_ENDS_AT => $start->copy()->addHours(4),
+        ]);
+
+        return $event;
     }
 
     public function test_invoke_renders_hosting_organization_parents_for_upward_filtering(): void

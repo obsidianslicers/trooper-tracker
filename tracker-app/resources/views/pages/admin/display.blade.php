@@ -172,6 +172,13 @@
                       :url="route('admin.events.list')">
         Create, Update, and Manage Events
     </x-dashboard-card>
+    @can('viewAny', \App\Models\EventType::class)
+        <x-dashboard-card :label="'Event Types'"
+                          :icon="'fa-tags'"
+                          :url="route('admin.event-types.index')">
+            Order event types, describe them, and choose which are non-troop-credit
+        </x-dashboard-card>
+    @endcan
     <x-dashboard-card :label="'Awards'"
                       :icon="'fa-award'"
                       :url="route('admin.awards.list')">

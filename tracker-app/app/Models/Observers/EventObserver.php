@@ -7,6 +7,7 @@ namespace App\Models\Observers;
 use App\Events\EventDetailsChanged;
 use App\Jobs\SendEventUpdatedNotificationsJob;
 use App\Models\Event;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Services\GeocodingService;
 use App\Services\GoogleService;
@@ -23,13 +24,16 @@ class EventObserver
     /**
      * Handle the Event "creating" event.
      *
-     * Sets the primary_organization_id based on the event's organization's primary club.
+     * Sets the primary_organization_id based on the event's organization's primary club,
+     * and the default event type when none was picked.
      *
      * @param  Event  $event  The event instance being created.
      */
     public function creating(Event $event): void
     {
         $this->syncPrimaryOrganization($event);
+
+        $event->event_type_id ??= EventType::defaultId();
     }
 
     /**

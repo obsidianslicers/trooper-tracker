@@ -9,6 +9,7 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -51,6 +52,22 @@ class GetLeaderboardMetricsTest extends TestCase
         $result = (new GetLeaderboardMetrics(30))->handle();
 
         $this->assertInstanceOf(Collection::class, $result['operatives']);
+    }
+
+    public function test_handle_operatives_leave_out_events_whose_type_does_not_count(): void
+    {
+        $counted_trooper = Trooper::factory()->asMember()->create();
+        $uncounted_trooper = Trooper::factory()->asMember()->create();
+        $uncounted = EventType::factory()->uncounted()->create();
+
+        $this->createAttendance($counted_trooper, now()->subDays(5));
+        $this->createAttendance($uncounted_trooper, now()->subDays(5))
+            ->event_shift->event->update([Event::EVENT_TYPE_ID => $uncounted->id]);
+
+        $operatives = (new GetLeaderboardMetrics)->handle()['operatives']->pluck('trooper_id');
+
+        $this->assertTrue($operatives->contains($counted_trooper->id));
+        $this->assertFalse($operatives->contains($uncounted_trooper->id));
     }
 
     public function test_handle_all_time_includes_attendance_outside_30_day_window(): void

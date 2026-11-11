@@ -46,7 +46,10 @@ class TrooperAchievementSeeder extends Seeder
         $with_count = [
             'event_troopers as event_count' => function ($q) use ($end_date)
             {
+                //  same rule as RecalculateTrooperRank: events of a type that doesn't
+                //  count are left out of troop counts and milestones
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
+                    ->counted()
                     ->whereHas('event_shift.event', function ($q) use ($end_date)
                     {
                         $q->where(Event::STATUS, EventStatus::CLOSED)

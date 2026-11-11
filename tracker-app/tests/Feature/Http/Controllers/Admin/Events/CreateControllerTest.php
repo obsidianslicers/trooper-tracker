@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Events;
 
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -79,6 +80,37 @@ class CreateControllerTest extends TestCase
         $organizations = $response->viewData('organizations');
         $this->assertTrue($organizations->firstWhere('id', $checked->id)->pivot->can_attend);
         $this->assertFalse($organizations->firstWhere('id', $unchecked->id)->pivot->can_attend);
+    }
+
+    public function test_invoke_lists_offered_types_in_order_with_their_help(): void
+    {
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+        EventType::query()->update([EventType::SORT_ORDER => 50]);
+        EventType::where(EventType::NAME, 'Wedding')->update([EventType::SORT_ORDER => 1]);
+        EventType::where(EventType::NAME, 'Disney')->update([EventType::IS_ACTIVE => false]);
+
+        $response = $this->actingAs($trooper)->get(route('admin.events.create'));
+
+        $response->assertOk();
+        $wedding = EventType::idNamed('Wedding');
+        $response->assertSeeInOrder(['value="'.$wedding.'"', 'value="'.EventType::idNamed('Armor Party').'"'], false);
+        $response->assertDontSee('value="'.EventType::idNamed('Disney').'"', false);
+        $response->assertSee("x-data=\"{ event_type: '{$wedding}'", false);
+        $response->assertDontSee('@js(', false);
+        //  shown when a non-counting type is picked, in the words members see on the event
+        $response->assertSee(EventType::NOT_COUNTED_NOTICE);
+    }
+
+    public function test_invoke_preselects_regular_with_the_seeded_types(): void
+    {
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+
+        $response = $this->actingAs($trooper)->get(route('admin.events.create'));
+
+        $response->assertOk();
+        $regular = EventType::idNamed('Regular');
+        $response->assertSee("x-data=\"{ event_type: '{$regular}'", false);
+        $response->assertSeeInOrder(['value="'.$regular.'"', 'value="'.EventType::idNamed('Armor Party').'"'], false);
     }
 
     public function test_invoke_requires_authentication(): void

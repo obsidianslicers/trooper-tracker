@@ -636,6 +636,35 @@ input.searching {
     box-shadow: inset 3px 0 0 var(--bs-primary);
 }
 
+//  events that don't count toward troop totals (<x-not-counted>); white on dark so the
+//  pill reads on every theme and header colour, and never looks like a status color
+.not-counted-pill {
+    background-color: rgba(0, 0, 0, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    color: #fff;
+    white-space: nowrap;
+    //  the same pill inside headings and card titles, whatever font the theme gives them
+    font-family: var(--bs-body-font-family);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: normal;
+    text-transform: none;
+    vertical-align: middle;
+}
+
+.not-counted-icon {
+    color: var(--bs-info);
+}
+
+//  not Bootstrap's .alert-info: the themes paint that solid, which hides the icon
+.not-counted-notice {
+    border: 1px solid var(--bs-border-color);
+    border-left: 4px solid var(--bs-info);
+    border-radius: var(--bs-border-radius);
+    color: var(--bs-body-color);
+    padding: 0.5rem 0.75rem;
+}
+
 //  the bell's dropdown in the navbar; scrolls once it outgrows the screen
 .notifications-menu {
     width: 24rem;

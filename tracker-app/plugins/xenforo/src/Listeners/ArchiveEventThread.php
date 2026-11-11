@@ -7,11 +7,13 @@ namespace TroopTracker\Plugins\Xenforo\Listeners;
 use App\Events\EventClosed;
 use Illuminate\Support\Facades\Log;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
+use TroopTracker\Plugins\Xenforo\Models\EventTypeForum;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
 use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 /**
- * Moves a closed event's forum thread to its organization's archive forum.
+ * Moves a closed event's forum thread to its event type's archive forum, or else its
+ * organization's.
  */
 class ArchiveEventThread
 {
@@ -28,7 +30,8 @@ class ArchiveEventThread
         }
 
         $organization = $event->organization ?? $event->primary_organization;
-        $target_node_id = OrganizationForum::forOrganization($organization?->id)?->archive_forum_id;
+        $target_node_id = EventTypeForum::forEvent($event)?->archive_forum_id
+            ?: OrganizationForum::forOrganization($organization?->id)?->archive_forum_id;
 
         if (empty($target_node_id))
         {
@@ -42,7 +45,7 @@ class ArchiveEventThread
         {
             Log::warning('Failed to move XenForo thread to archive for event', [
                 'event' => $event->id,
-                'org' => $organization->id,
+                'org' => $organization?->id,
                 'thread_id' => $thread->thread_id,
                 'target_node_id' => $target_node_id,
                 'status' => $result['status'] ?? null,

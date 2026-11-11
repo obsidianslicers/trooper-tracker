@@ -9,6 +9,7 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Plugins\PluginManager;
@@ -124,6 +125,21 @@ class SharingEndpointsTest extends TestCase
             ->assertJsonMissingPath('troops.0.trooper_id');
         $this->assertNotNull(HolonetGrant::sole()->last_used_at);
         $this->assertNotNull(TroopRecord::toAttributes($response->json('troops.0')));
+    }
+
+    public function test_history_leaves_out_troops_whose_event_type_does_not_count(): void
+    {
+        $uncounted = EventType::factory()->uncounted()->create();
+        $counted_troop = $this->attendedTroop($this->trooper, '2026-03-01 10:00', '2026-03-01 12:00');
+        $this->attendedTroop($this->trooper, '2026-03-02 10:00', '2026-03-02 12:00', [
+            Event::EVENT_TYPE_ID => $uncounted->id,
+        ]);
+
+        $response = $this->withToken($this->grant())->postJson('/webhooks/holonet/history');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'troops')
+            ->assertJsonPath('troops.0.id', (string) $counted_troop->id);
     }
 
     public function test_history_needs_a_valid_key(): void
