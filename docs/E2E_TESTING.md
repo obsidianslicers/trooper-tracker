@@ -103,7 +103,7 @@ out of the `member` persona's bell.
 | Add a shift; add and remove a station; record charity | ✅ |
 | Roster: add a trooper with the picker, remove them, change a status; roster CSV download | ✅ |
 | Administrative upload, send to the mission review, delete | ✅ |
-| Broadcast message and share roster | ⬜ |
+| Broadcast a message (a going trooper gets it); share a read-only roster link a guest can open | ✅ |
 
 ### Next PRs
 

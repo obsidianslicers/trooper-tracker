@@ -2,6 +2,8 @@
 // charity numbers, the roster, uploads and the mission review, and cancelling it.
 import { test, expect } from '@playwright/test';
 import { personas, seeded } from './support/personas.js';
+import { signInAndLeaveLogin } from './support/auth.js';
+import { tinker } from './support/artisan.js';
 
 test.use({ storageState: personas.moderator.storageState });
 
@@ -106,11 +108,13 @@ test.describe('event details', () => {
     test('Command Staff see Edit and Copy on the event page; members do not', async ({ page, browser }) => {
         await page.goto('/events');
         await page.getByRole('link', { name: seeded.commandEvent }).first().click();
+        await expect(page.getByRole('heading', { name: seeded.commandEvent })).toBeVisible();
         await expect(page.getByRole('link', { name: 'Edit' }).first()).toBeVisible();
 
         const member = await browser.newContext({ storageState: personas.member.storageState });
         const memberPage = await member.newPage();
         await memberPage.goto(page.url());
+        await expect(memberPage.getByRole('heading', { name: seeded.commandEvent })).toBeVisible();
         await expect(memberPage.getByRole('link', { name: 'Edit' })).toHaveCount(0);
         await member.close();
     });
@@ -164,6 +168,47 @@ test.describe('shifts and charity', () => {
         await expect(page).toHaveURL(/\/charity$/);
         await expect(page.locator('input[name$="[charity_name]"]').first()).toHaveValue('E2E Children\'s Hospital');
         await expect(page.locator('input[name$="[charity_direct_funds]"]').first()).toHaveValue(/^250/);
+    });
+});
+
+test.describe('reaching the troopers', () => {
+    test('a moderator broadcasts a message, and a trooper going gets it', async ({ page, browser }) => {
+        await page.goto('/events');
+        await page.getByRole('link', { name: seeded.commandEvent }).first().click();
+
+        const broadcast = page.locator('#broadcast-message');
+        await broadcast.locator('textarea[name="message"]').fill('E2E broadcast: staging moved to dock B.');
+        await broadcast.getByRole('button', { name: 'Send Message' }).click();
+        await expect(broadcast.locator('textarea[name="message"]')).toHaveValue('');
+
+        const trooper = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+        const inbox = await trooper.newPage();
+        await signInAndLeaveLogin(inbox, seeded.rostered.email);
+        await inbox.goto('/account/push-notifications');
+        await expect(inbox.locator('main, .main-content').getByText('E2E broadcast: staging moved to dock B.').first()).toBeVisible();
+        await trooper.close();
+    });
+
+    test('a moderator shares a read-only roster link with an event coordinator', async ({ page, browser }) => {
+        await page.goto('/events');
+        await page.getByRole('link', { name: seeded.commandEvent }).first().click();
+
+        const share = page.locator('#share-roster');
+        await share.locator('input[name="recipient_email"]').fill('coordinator@e2e.test');
+        await share.getByRole('button', { name: 'Send Roster Link' }).click();
+        await expect(share.getByText('Roster successfully sent.')).toBeVisible();
+
+        // The link goes out by email; read it back the way the email builds it.
+        const url = tinker(`
+            $share = App\\Models\\EventShare::where('recipient_email', 'coordinator@e2e.test')->latest('id')->firstOrFail();
+            echo route('shares.roster', $share);
+        `);
+
+        const guest = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+        const roster = await guest.newPage();
+        await roster.goto(url);
+        await expect(roster.getByText(seeded.rostered.name).first()).toBeVisible();
+        await guest.close();
     });
 });
 
