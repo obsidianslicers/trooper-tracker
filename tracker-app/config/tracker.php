@@ -21,6 +21,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Tentative Sign-up Cutoff
+    |--------------------------------------------------------------------------
+    |
+    | Number of days before an event starts after which troopers can no longer
+    | choose "tentative". Leave unset to allow tentative up to the event start.
+    |
+    */
+
+    'tentative_cutoff_days' => env('TRACKER_TENTATIVE_CUTOFF_DAYS'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Support Information
     |--------------------------------------------------------------------------
     |
