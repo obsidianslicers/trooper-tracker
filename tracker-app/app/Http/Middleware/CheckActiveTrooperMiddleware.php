@@ -14,8 +14,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * Middleware to verify that the authenticated trooper has an active membership.
  *
  * This middleware ensures the authenticated user has an active or reserve membership
- * status. Returns a 401 Unauthorized response if the user is not authenticated or
- * has any other membership status.
+ * status. A trooper whose application is pending or denied is sent to the page for
+ * that; any other status gets a 401 Unauthorized response.
  */
 class CheckActiveTrooperMiddleware
 {
@@ -35,8 +35,15 @@ class CheckActiveTrooperMiddleware
     {
         $user = Auth::user();
 
-        if (!$user || !$user->membership_status?->canLogIn())
-        {
+        if ($user?->is_denied) {
+            return redirect()->route('account.denied');
+        }
+
+        if ($user?->is_pending) {
+            return redirect()->route('account.pending');
+        }
+
+        if (! $user || ! $user->membership_status?->canLogIn()) {
             abort(401, 'Unauthorized.');
         }
 

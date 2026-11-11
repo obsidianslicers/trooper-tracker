@@ -118,11 +118,18 @@ out of the `member` persona's bell.
 
 The `account` persona (`E2E Account Trooper`) owns these changes.
 
+### Approval queues (`approvals-queues.spec.js`)
+
+| Area | Status |
+|------|--------|
+| Deny an application with a reason; the recruit signs in and sees it | ✅ |
+| Approve a request to join a squad (shows on the trooper's memberships); deny another | ✅ |
+| A moderator asks for two troopers to become event coordinators; an administrator approves one and denies the other | ✅ |
+
 ### Next PRs
 
 | # | Area | Flows | Roles |
 |---|------|-------|-------|
-| 5 | Approval queues | Deny recruit, approve/deny club requests, membership lookup, request and approve/deny permissions | moderator, admin |
 | 6 | Trooper admin | List and search, profile edit, authority, membership, guardian, events, costumes, change log, void/unvoid, RIP, recruit | moderator, admin |
 | 7 | Costumes and costume credits | Costume CRUD, merge edge cases; costume gate and do-not-trust flag once PRs #492 and #493 merge | member, moderator, admin |
 | 8 | Awards, notices, organizations, FAQ | Create/update, assign troopers to awards, organization tree and images, FAQ sections and items reorder | moderator, admin |

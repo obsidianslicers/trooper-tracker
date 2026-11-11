@@ -9,6 +9,7 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\NoticeType;
 use App\Enums\OrganizationType;
+use App\Messages\Troopers\Commands\Membership\CreateTrooperRequest;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
@@ -24,6 +25,7 @@ use App\Models\TrooperCostume;
 use App\Models\TrooperNotification;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -74,6 +76,32 @@ class E2eSeeder extends Seeder
         $this->trooperEvents($legion);
         $this->commandStaffEvents($legion);
         $this->account($legion);
+        $this->approvals($legion);
+    }
+
+    /**
+     * Applications, club join requests and troopers for permission requests, each owned by
+     * one approvals test.
+     */
+    private function approvals(Organization $legion): void
+    {
+        $recruit = $this->persona('deny-recruit@e2e.test', 'E2E Recruit To Deny', MembershipRole::MEMBER, MembershipStatus::PENDING, [
+            Trooper::SETUP_COMPLETED_AT => now(),
+        ]);
+        $this->assign($recruit, $legion, is_moderator: false);
+
+        $squad = Organization::where(Organization::NAME, 'E2E Squad')->firstOrFail();
+
+        $joining = $this->persona('club-join@e2e.test', 'E2E Club Joiner', MembershipRole::MEMBER);
+        CreateTrooperRequest::call(trooper: $joining, organization: $squad, identifier: '93456');
+
+        $refused = $this->persona('club-refused@e2e.test', 'E2E Club Refused', MembershipRole::MEMBER);
+        CreateTrooperRequest::call(trooper: $refused, organization: $squad, identifier: '94567');
+
+        foreach (['E2E Promotion Candidate', 'E2E Promotion Refused'] as $name) {
+            $candidate = $this->persona(Str::slug($name).'@e2e.test', $name, MembershipRole::MEMBER);
+            $this->assign($candidate, $legion, is_moderator: false);
+        }
     }
 
     /**
