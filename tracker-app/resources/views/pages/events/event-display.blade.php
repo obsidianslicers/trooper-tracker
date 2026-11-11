@@ -111,6 +111,7 @@
                         </div>
                         <div class="col-12 col-md-6 mb-3">
                             @include('pages.events.inc.contact', compact('event'))
+                            @include('pages.events.inc.coordinator', compact('event'))
                         </div>
                     </div>
 
