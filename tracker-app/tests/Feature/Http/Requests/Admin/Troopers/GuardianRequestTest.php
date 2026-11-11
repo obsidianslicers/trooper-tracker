@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Requests\Admin\Troopers;
 
-use App\Http\Requests\Admin\Troopers\GuardianRequest;
+use App\Http\Requests\Admin\Troopers\UpdateGuardianRequest;
 use App\Models\Trooper;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
+use Mockery;
 use Tests\TestCase;
 
 class GuardianRequestTest extends TestCase
@@ -31,18 +32,18 @@ class GuardianRequestTest extends TestCase
     /**
      * Helper method to set up a mocked route parameter
      */
-    private function setupMockedRoute(GuardianRequest $request, ?Trooper $trooper): void
+    private function setupMockedRoute(UpdateGuardianRequest $request, ?Trooper $trooper): void
     {
-        $mock_route = \Mockery::mock();
+        $mock_route = Mockery::mock();
         $mock_route->shouldReceive('parameter')->with('trooper')->andReturn($trooper);
-        $mock_route->shouldReceive('parameter')->with('trooper', \Mockery::any())->andReturn($trooper);
-        $request->setRouteResolver(fn() => $mock_route);
+        $mock_route->shouldReceive('parameter')->with('trooper', Mockery::any())->andReturn($trooper);
+        $request->setRouteResolver(fn () => $mock_route);
     }
 
     public function test_authorize_returns_true_for_administrator(): void
     {
-        $subject = new GuardianRequest;
-        $subject->setUserResolver(fn() => $this->admin);
+        $subject = new UpdateGuardianRequest;
+        $subject->setUserResolver(fn () => $this->admin);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $this->assertTrue($subject->authorize());
@@ -51,8 +52,8 @@ class GuardianRequestTest extends TestCase
     public function test_authorize_returns_false_for_member(): void
     {
         $member = Trooper::factory()->asMember()->create();
-        $subject = new GuardianRequest;
-        $subject->setUserResolver(fn() => $member);
+        $subject = new UpdateGuardianRequest;
+        $subject->setUserResolver(fn () => $member);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $this->assertFalse($subject->authorize());
@@ -63,8 +64,8 @@ class GuardianRequestTest extends TestCase
         $this->expectException(AuthorizationException::class);
         $this->expectExceptionMessage('Trooper not found or unauthorized.');
 
-        $subject = new GuardianRequest;
-        $subject->setUserResolver(fn() => $this->admin);
+        $subject = new UpdateGuardianRequest;
+        $subject->setUserResolver(fn () => $this->admin);
         $this->setupMockedRoute($subject, null);
 
         $subject->authorize();
@@ -72,7 +73,7 @@ class GuardianRequestTest extends TestCase
 
     public function test_rules_require_guardian_email_for_minor_date_of_birth(): void
     {
-        $subject = new GuardianRequest;
+        $subject = new UpdateGuardianRequest;
         $data = [
             Trooper::DATE_OF_BIRTH => now()->subYears(17)->toDateString(),
         ];
@@ -86,7 +87,7 @@ class GuardianRequestTest extends TestCase
 
     public function test_rules_do_not_require_guardian_email_for_exactly_eighteen(): void
     {
-        $subject = new GuardianRequest;
+        $subject = new UpdateGuardianRequest;
         $data = [
             Trooper::DATE_OF_BIRTH => now()->subYears(18)->toDateString(),
         ];
@@ -99,7 +100,7 @@ class GuardianRequestTest extends TestCase
 
     public function test_rules_do_not_require_guardian_email_when_date_of_birth_is_null(): void
     {
-        $subject = new GuardianRequest;
+        $subject = new UpdateGuardianRequest;
         $data = [
             Trooper::DATE_OF_BIRTH => null,
         ];
@@ -115,7 +116,7 @@ class GuardianRequestTest extends TestCase
         $guardian = Trooper::factory()->asMember()->create([
             Trooper::DATE_OF_BIRTH => null,
         ]);
-        $subject = new GuardianRequest;
+        $subject = new UpdateGuardianRequest;
         $data = [
             Trooper::DATE_OF_BIRTH => now()->subYears(15)->toDateString(),
             'guardian_email' => $guardian->{Trooper::EMAIL},
@@ -132,7 +133,7 @@ class GuardianRequestTest extends TestCase
         $guardian = Trooper::factory()->asMember()->create([
             Trooper::DATE_OF_BIRTH => now()->subYears(25)->toDateString(),
         ]);
-        $subject = new GuardianRequest;
+        $subject = new UpdateGuardianRequest;
         $data = [
             Trooper::DATE_OF_BIRTH => now()->subYears(14)->toDateString(),
             'guardian_email' => $guardian->{Trooper::EMAIL},
@@ -149,7 +150,7 @@ class GuardianRequestTest extends TestCase
         $guardian = Trooper::factory()->asMember()->create([
             Trooper::DATE_OF_BIRTH => now()->subYears(16)->toDateString(),
         ]);
-        $subject = new GuardianRequest;
+        $subject = new UpdateGuardianRequest;
         $data = [
             Trooper::DATE_OF_BIRTH => now()->subYears(15)->toDateString(),
             'guardian_email' => $guardian->{Trooper::EMAIL},

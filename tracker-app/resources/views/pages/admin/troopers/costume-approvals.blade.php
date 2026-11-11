@@ -26,7 +26,7 @@
                 @forelse ($trooper_costumes as $trooper_costume)
                     <tr>
                         <td>
-                            <a href="{{ route('admin.troopers.costumes', ['trooper' => $trooper_costume->trooper]) }}">
+                            <a href="{{ route('admin.troopers.profile', ['trooper' => $trooper_costume->trooper, 'tab' => 'costumes']) }}">
                                 {{ $trooper_costume->trooper->display_name }}
                             </a>
                         </td>

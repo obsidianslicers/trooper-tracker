@@ -34,7 +34,7 @@
                         {{ $change->auditable->event_shift->time_display }}
                     </td>
                     <td>
-                        <a href="{{ route('admin.troopers.changes', $change->auditable->trooper) }}">
+                        <a href="{{ route('admin.troopers.profile', ['trooper' => $change->auditable->trooper, 'tab' => 'changes']) }}">
                             {{ $change->auditable->trooper->display_name }}
                         </a>
                     </td>
