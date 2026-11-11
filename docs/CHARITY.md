@@ -11,9 +11,23 @@ hours contributed, and funds raised. All five fields live on `tt_event_shifts`.
 |---|---|---|---|
 | `charity_name` | varchar(128) | null | Name of the charitable organization |
 | `charity_hours` | integer | null | Override for volunteer hours (see below) |
-| `charity_direct_funds` | integer | 0 | Direct funds raised (dollars) |
-| `charity_indirect_funds` | integer | 0 | Indirect funds raised (dollars) |
+| `charity_direct_funds` | decimal(13,2) | 0 | Direct funds raised (dollars and cents) |
+| `charity_indirect_funds` | decimal(13,2) | 0 | Indirect funds raised (dollars and cents) |
 | `charity_notes` | text | null | Free-form notes about the charity appearance |
+
+---
+
+## Funds: dollars and cents
+
+`App\Models\Casts\MoneyCast` reads both fund columns as a float rounded to cents, and stores
+null as `0`. The admin Charity tab accepts `12.50`, and also `$1,234.50` as it's displayed;
+more than two decimal places is refused. Amounts show cents only when they have them
+(`$500`, `$12.50`): `format_funds()` in `app/helpers.php`, or `<x-number-format
+decimals="cents" />`. Per-trooper totals (`DIRECT_FUNDS`, `INDIRECT_FUNDS` achievements) are
+rounded to cents, so sums like 0.10 + 0.20 store as `0.3`.
+
+TT 1.0 garrisons that stored `decimal(13,2)` (Midwest) keep their cents on import; integer
+values (Florida) import as before.
 
 ---
 

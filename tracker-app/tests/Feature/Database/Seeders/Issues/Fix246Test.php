@@ -116,12 +116,42 @@ class Fix246Test extends TestCase
         ]);
     }
 
-    private function createLegacyEventsTable(): void
+    public function test_run_keeps_cents_from_a_legacy_decimal_column(): void
     {
-        Schema::create('events', function (Blueprint $table): void {
+        $this->createLegacyEventsTable(funds_column: 'decimal');
+
+        $event = Event::factory()->create();
+        EventShift::factory()->forEvent($event)->create([EventShift::ID => 300]);
+        DB::table('events')->insert([
+            'id' => 300,
+            'charityDirectFunds' => '12.50',
+            'charityIndirectFunds' => '0.75',
+        ]);
+
+        $this->artisan('db:seed', ['--class' => Fix246::class])->assertSuccessful();
+
+        $shift = EventShift::find(300);
+        $this->assertSame(12.5, $shift->charity_direct_funds);
+        $this->assertSame(0.75, $shift->charity_indirect_funds);
+    }
+
+    /**
+     * @param  string  $funds_column  integer in Florida's TT 1.0, decimal(13,2) in Midwest's
+     */
+    private function createLegacyEventsTable(string $funds_column = 'integer'): void
+    {
+        Schema::create('events', function (Blueprint $table) use ($funds_column): void {
             $table->unsignedBigInteger('id')->primary();
-            $table->integer('charityDirectFunds')->nullable();
-            $table->integer('charityIndirectFunds')->nullable();
+            if ($funds_column === 'decimal')
+            {
+                $table->decimal('charityDirectFunds', 13, 2)->nullable();
+                $table->decimal('charityIndirectFunds', 13, 2)->nullable();
+            }
+            else
+            {
+                $table->integer('charityDirectFunds')->nullable();
+                $table->integer('charityIndirectFunds')->nullable();
+            }
             $table->string('charityName')->nullable();
             $table->integer('charityAddHours')->nullable();
             $table->text('charityNote')->nullable();

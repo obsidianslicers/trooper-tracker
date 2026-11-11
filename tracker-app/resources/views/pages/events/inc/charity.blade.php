@@ -13,8 +13,8 @@
                 @if($shift->charity_name)
                     <p class="mb-1"><strong>{{ $shift->charity_name }}</strong></p>
                 @endif
-                <p class="mb-1">Direct Funds: ${{ number_format($shift->charity_direct_funds) }}</p>
-                <p class="mb-1">Indirect Funds: ${{ number_format($shift->charity_indirect_funds) }}</p>
+                <p class="mb-1">Direct Funds: ${{ format_funds($shift->charity_direct_funds) }}</p>
+                <p class="mb-1">Indirect Funds: ${{ format_funds($shift->charity_indirect_funds) }}</p>
                 @if($shift->charity_hours)
                     <p class="mb-1">Hours: {{ $shift->charity_hours }}</p>
                 @endif

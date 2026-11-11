@@ -59,14 +59,16 @@
                     <td class="text-muted border-0">Direct Funds</td>
                     <td class="text-end fw-bold border-0">
                         <x-number-format :value="$service_summary['direct_funds']"
-                                         :prefix="'$'" />
+                                         :prefix="'$'"
+                                         decimals="cents" />
                     </td>
                 </tr>
                 <tr class="small">
                     <td class="text-muted border-0">Indirect Funds</td>
                     <td class="text-end fw-bold border-0">
                         <x-number-format :value="$service_summary['indirect_funds']"
-                                         :prefix="'$'" />
+                                         :prefix="'$'"
+                                         decimals="cents" />
                     </td>
                 </tr>
                 @if(($service_summary['total_donated'] ?? 0) > 0)

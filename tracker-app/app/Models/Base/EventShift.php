@@ -26,8 +26,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon $shift_starts_at
  * @property Carbon $shift_ends_at
  * @property Carbon|null $last_notified_at
- * @property int $charity_direct_funds
- * @property int $charity_indirect_funds
+ * @property float $charity_direct_funds
+ * @property float $charity_indirect_funds
  * @property string|null $charity_name
  * @property int|null $charity_hours
  * @property string|null $charity_notes
@@ -73,8 +73,8 @@ class EventShift extends Model
         self::SHIFT_STARTS_AT => 'datetime',
         self::SHIFT_ENDS_AT => 'datetime',
         self::LAST_NOTIFIED_AT => 'datetime',
-        self::CHARITY_DIRECT_FUNDS => 'int',
-        self::CHARITY_INDIRECT_FUNDS => 'int',
+        self::CHARITY_DIRECT_FUNDS => 'float',
+        self::CHARITY_INDIRECT_FUNDS => 'float',
         self::CHARITY_HOURS => 'int',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',

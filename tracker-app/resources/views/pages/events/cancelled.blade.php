@@ -74,10 +74,10 @@
                             {{ $event->event_shifts_count }}
                         </td>
                         <td class="text-end">
-                            <x-number-format :value="$event->charity_direct_funds" />
+                            <x-number-format :value="$event->charity_direct_funds" decimals="cents" />
                         </td>
                         <td class="text-end">
-                            <x-number-format :value="$event->charity_indirect_funds" />
+                            <x-number-format :value="$event->charity_indirect_funds" decimals="cents" />
                         </td>
                     </tr>
                 @empty
@@ -103,10 +103,10 @@
                             <x-number-format :value="$events->sum('event_shifts_count')" />
                         </th>
                         <th class="text-end">
-                            <x-number-format :value="$events->sum('charity_direct_funds')" />
+                            <x-number-format :value="$events->sum('charity_direct_funds')" decimals="cents" />
                         </th>
                         <th class="text-end">
-                            <x-number-format :value="$events->sum('charity_indirect_funds')" />
+                            <x-number-format :value="$events->sum('charity_indirect_funds')" decimals="cents" />
                         </th>
                     </tr>
                 </tfoot>
