@@ -529,6 +529,12 @@ See [PLUGINS.md](PLUGINS.md).
 - **Required**: No
 - **Default**: `10240`, `51200`, `2000`
 
+### SENTRY_DSN / SENTRY_BROWSER_DSN / SENTRY_ENVIRONMENT
+- **Purpose**: Sentry plugin: the project server errors go to, the project browser errors go to, and the environment name shown on each error
+- **Required**: No; only read while the Sentry plugin is enabled, and only when nothing is saved under Command Staff > Plugins > Sentry > Settings
+- **Default**: none (no browser reporting without a browser DSN); the environment defaults to `APP_ENV`
+- **Note**: The browser DSN appears in every page, as Sentry intends for browser DSNs. See [PLUGINS.md](PLUGINS.md#the-sentry-plugin).
+
 ---
 
 ## Example Production .env

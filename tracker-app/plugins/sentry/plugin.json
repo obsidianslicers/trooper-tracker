@@ -1,0 +1,40 @@
+{
+    "slug": "sentry",
+    "name": "Sentry",
+    "version": "1.0.0",
+    "description": "Sends errors from the server and from members' browsers to Sentry (sentry.io), so they can be fixed before anyone reports them.",
+    "author": "Obsidian Slicers",
+    "namespace": "TroopTracker\\Plugins\\Sentry",
+    "provider": "TroopTracker\\Plugins\\Sentry\\SentryServiceProvider",
+    "capabilities": ["events", "webhooks"],
+    "requires": {
+        "trooptracker": "^1.0"
+    },
+    "settings": [
+        {
+            "key": "dsn",
+            "label": "Server DSN",
+            "type": "url",
+            "help": "Errors on the server go to this Sentry project. Leave empty to use SENTRY_DSN from the .env file."
+        },
+        {
+            "key": "browser_dsn",
+            "label": "Browser DSN",
+            "type": "url",
+            "help": "Errors in members' browsers go to this Sentry project (it can be the same one). It is visible in each page. Leave empty to use SENTRY_BROWSER_DSN from the .env file; with neither, browser errors aren't sent."
+        },
+        {
+            "key": "environment",
+            "label": "Environment",
+            "type": "text",
+            "help": "Shown on each error in Sentry, such as production or staging. Leave empty to use APP_ENV."
+        },
+        {
+            "key": "tunnel",
+            "label": "Send browser errors through this site",
+            "type": "boolean",
+            "default": true,
+            "help": "Ad blockers often block sentry.io. With this on, browsers send errors to /webhooks/sentry, which passes them on to the Browser DSN's project and nowhere else."
+        }
+    ]
+}

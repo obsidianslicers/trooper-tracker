@@ -1,0 +1,8 @@
+{
+    "name": "trooptracker/sentry",
+    "description": "Composer packages the Sentry plugin needs. The deploy installs them.",
+    "require": {
+        "php": "^8.2",
+        "sentry/sentry": "^4.30"
+    }
+}
