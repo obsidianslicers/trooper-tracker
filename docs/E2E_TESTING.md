@@ -126,11 +126,25 @@ The `account` persona (`E2E Account Trooper`) owns these changes.
 | Approve a request to join a squad (shows on the trooper's memberships); deny another | ✅ |
 | A moderator asks for two troopers to become event coordinators; an administrator approves one and denies the other | ✅ |
 
+### Trooper admin (`trooper-admin.spec.js`)
+
+| Area | Status |
+|------|--------|
+| Search by email; filter by role | ✅ |
+| Edit a profile (legal name, phone, status); the status change shows in the change log; legal name and a unique email are required | ✅ |
+| A moderator can't open the profile of a trooper outside their clubs, and has no Authority tab | ✅ |
+| Memberships: change the member ID, status and unit, then remove the membership | ✅ |
+| Costumes and most recent troop tabs | ✅ |
+| Recruit a trooper into a unit with a member ID | ✅ |
+| Authority: make a trooper a moderator of a garrison (its squad follows) | ✅ |
+| Guardian: a cadet under 18 needs the email of an adult already in the tracker | ✅ |
+| Mark a trooper created in error (badge in the list) and another R.I.P. (memorial notice), through Status | ✅ |
+| Flag do not trust with a reason, then clear it | ✅ |
+
 ### Next PRs
 
 | # | Area | Flows | Roles |
 |---|------|-------|-------|
-| 6 | Trooper admin | List and search, profile edit, authority, membership, guardian, events, costumes, change log, void/unvoid, RIP, recruit | moderator, admin |
 | 7 | Costumes and costume credits | Costume CRUD, merge edge cases; costume gate and do-not-trust flag once PRs #492 and #493 merge | member, moderator, admin |
 | 8 | Awards, notices, organizations, FAQ | Create/update, assign troopers to awards, organization tree and images, FAQ sections and items reorder | moderator, admin |
 | 9 | Service records and reports | Trooper record, leaderboard, awards, achievements, photo gallery, costume pages; every report with filters, missing credits assign | member, moderator |

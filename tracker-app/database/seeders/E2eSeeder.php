@@ -23,6 +23,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperNotification;
+use App\Models\TrooperOrganization;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -78,6 +79,43 @@ class E2eSeeder extends Seeder
         $this->commandStaffEvents($legion);
         $this->account($legion);
         $this->approvals($legion);
+        $this->trooperAdmin($legion);
+    }
+
+    /**
+     * Troopers Command Staff edit from the trooper admin pages, each owned by one test.
+     */
+    private function trooperAdmin(Organization $legion): void
+    {
+        foreach (['E2E Profile Subject', 'E2E Authority Subject', 'E2E Voided Trooper', 'E2E Departed Trooper', 'E2E Untrusted Subject'] as $name)
+        {
+            $this->assign($this->persona(Str::slug($name).'@e2e.test', $name, MembershipRole::MEMBER), $legion, is_moderator: false);
+        }
+
+        $member = $this->persona('membership-subject@e2e.test', 'E2E Membership Subject', MembershipRole::MEMBER);
+        $this->assign($member, $legion, is_moderator: false);
+        $this->membership($member, $legion, '91111');
+
+        $academy = Organization::where(Organization::NAME, 'Galactic Academy')->firstOrFail();
+        $cadet = $this->persona('cadet@e2e.test', 'E2E Cadet', MembershipRole::MEMBER);
+        $this->assign($cadet, $academy, is_moderator: false);
+        $this->membership($cadet, $academy, 'GA-1');
+
+        $this->persona('guardian@e2e.test', 'E2E Guardian', MembershipRole::MEMBER, attributes: [
+            Trooper::DATE_OF_BIRTH => now()->subYears(40),
+        ]);
+
+        $this->persona('recruit-target@e2e.test', 'E2E Recruit Target', MembershipRole::MEMBER);
+    }
+
+    private function membership(Trooper $trooper, Organization $organization, string $identifier): void
+    {
+        TrooperOrganization::create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => $identifier,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
     }
 
     /**
