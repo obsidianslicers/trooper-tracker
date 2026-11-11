@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Requests\Admin\Events;
 
 use App\Http\Requests\Admin\Events\CreateRequest;
 use App\Models\Event;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -155,7 +156,7 @@ class CreateRequestTest extends TestCase
             [
                 Event::ORGANIZATION_ID => $this->organization->id,
                 Event::NAME => 'Test Event',
-                Event::TYPE => 'other',
+                Event::EVENT_TYPE_ID => EventType::idNamed('Other'),
                 Event::STATUS => 'open',
                 Event::EVENT_START => '2024-01-15 14:00:00',
                 Event::EVENT_END => '2024-01-15 13:00:00',
@@ -183,7 +184,7 @@ class CreateRequestTest extends TestCase
             [
                 Event::ORGANIZATION_ID => $this->organization->id,
                 Event::NAME => 'Test Event',
-                Event::TYPE => 'other',
+                Event::EVENT_TYPE_ID => EventType::idNamed('Other'),
                 Event::STATUS => 'open',
                 Event::EVENT_START => '2024-01-15 13:00:00',
                 Event::EVENT_END => '2024-01-15 14:00:00',

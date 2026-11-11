@@ -7,6 +7,7 @@ namespace TroopTracker\Plugins\Xenforo\Tests;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -33,14 +34,38 @@ class ForumBBCodeHelperTest extends TestCase
 
         $result = ForumBBCodeHelper::threadTemplate($event);
 
-        $this->assertStringContainsString('[size=6][b]'.e($event->name).'[/b][/size]', $result);
-        $this->assertStringContainsString('[size=4][i]'.e($event->venue).'[/i][/size]', $result);
-        $this->assertStringContainsString('[b]📍 Location:[/b] '.e($event->venue_address), $result);
+        $this->assertStringContainsString('[size=6][b]'.$event->name.'[/b][/size]', $result);
+        $this->assertStringContainsString('[size=4][i]'.$event->venue.'[/i][/size]', $result);
+        $this->assertStringContainsString('[b]📍 Location:[/b] '.$event->venue_address, $result);
         $this->assertStringContainsString('[b]🗓️ Schedule:[/b] Tue 03/10/26 02:30 PM – 06:00 PM', $result);
         $this->assertStringContainsString(
             '[center][size=6][url="'.url('/events/details/'.$event->id).'"]👉 CLICK HERE TO SIGN UP 👈[/url][/size][/center]',
             $result
         );
+    }
+
+    public function test_thread_template_says_when_the_event_does_not_count(): void
+    {
+        $event_type = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party']);
+        $event = Event::factory()
+            ->forForumBbcodeTemplate()
+            ->state([Event::EVENT_TYPE_ID => $event_type->id])
+            ->create();
+
+        $result = ForumBBCodeHelper::threadTemplate($event);
+
+        //  under the title and venue, above the details
+        $this->assertStringContainsString(
+            "[/i][/size]\n\n[b]ℹ️ Non-troop-credit event: Does not count toward troop totals.[/b]\n\n[hr][/hr]",
+            $result
+        );
+    }
+
+    public function test_thread_template_says_nothing_about_counting_for_a_counted_event(): void
+    {
+        $event = Event::factory()->forForumBbcodeTemplate()->create();
+
+        $this->assertStringNotContainsString('troop totals', ForumBBCodeHelper::threadTemplate($event));
     }
 
     public function test_thread_template_shows_the_end_date_when_an_event_runs_past_one_day(): void
@@ -55,7 +80,7 @@ class ForumBBCodeHelperTest extends TestCase
         $this->assertStringContainsString('[b]🗓️ Schedule:[/b] Tue 03/10/26 02:30 PM – Wed 03/11/26 01:00 AM', $result);
     }
 
-    public function test_thread_template_escapes_bbcode_text_fields(): void
+    public function test_thread_template_shows_text_fields_as_written(): void
     {
         $event = Event::factory()
             ->forForumBbcodeTemplate()
@@ -64,15 +89,62 @@ class ForumBBCodeHelperTest extends TestCase
 
         $result = ForumBBCodeHelper::threadTemplate($event);
 
-        $this->assertStringContainsString('[size=6][b]'.e($event->name).'[/b][/size]', $result);
-        $this->assertStringContainsString('[size=4][i]'.e($event->venue).'[/i][/size]', $result);
-        $this->assertStringContainsString('[b]📍 Location:[/b] '.e($event->venue_address), $result);
+        //  XenForo escapes HTML itself, so only a "[" that could start a tag is escaped
         $this->assertStringContainsString(
-            '[b]Character Types:[/b] '.e($event->requested_character_types),
+            '[size=6][b][plain][[/plain]b]Imperial[plain][[/plain]/b] Muster & "Parade"[/b][/size]',
             $result
         );
-        $this->assertStringContainsString('[quote]'.e($event->amenities).'[/quote]', $result);
-        $this->assertStringContainsString('[indent][size=4]'.e($event->comments).'[/size][/indent]', $result);
+        $this->assertStringContainsString('[size=4][i]Hall & Hangar[/i][/size]', $result);
+        $this->assertStringContainsString('[b]📍 Location:[/b] 1 "Docking Bay" Lane', $result);
+        $this->assertStringContainsString(
+            '[b]Character Types:[/b] Jedi < Sith & [plain][[/plain]Bounty Hunters]',
+            $result
+        );
+        $this->assertStringContainsString("[quote]Children's Hall & [plain][[/plain]Hangar][/quote]", $result);
+        $this->assertStringContainsString(
+            '[indent][size=4]Bring armor & "props" [plain][[/plain]if you have them].[/size][/indent]',
+            $result
+        );
+        $this->assertStringContainsString("Referred by: O'Brien & [plain][[/plain]Sons]", $result);
+        $this->assertStringNotContainsString('&amp;', $result);
+        $this->assertStringNotContainsString('&quot;', $result);
+        $this->assertStringNotContainsString('&#039;', $result);
+    }
+
+    public function test_thread_template_turns_markdown_comments_and_amenities_into_bbcode(): void
+    {
+        $event = Event::factory()
+            ->forForumBbcodeTemplate()
+            ->state([
+                Event::AMENITIES => 'Water **provided**',
+                Event::COMMENTS => "Arrive **early**.\n\n| Time | What |\n|---|---|\n| 9:30 | Check in |",
+            ])
+            ->create();
+
+        $result = ForumBBCodeHelper::threadTemplate($event);
+
+        $this->assertStringContainsString('[quote]Water [b]provided[/b][/quote]', $result);
+        $this->assertStringContainsString(
+            "[indent][size=4]Arrive [b]early[/b].\n\n[table]\n"
+            ."[tr][th]Time[/th][th]What[/th][/tr]\n"
+            ."[tr][td]9:30[/td][td]Check in[/td][/tr]\n"
+            .'[/table][/size][/indent]',
+            $result
+        );
+        $this->assertStringNotContainsString('|', $result);
+    }
+
+    public function test_thread_template_says_no_comments_when_the_comments_are_only_markup(): void
+    {
+        $event = Event::factory()
+            ->forForumBbcodeTemplate()
+            ->state([Event::COMMENTS => '<!-- nothing here -->', Event::AMENITIES => '   '])
+            ->create();
+
+        $result = ForumBBCodeHelper::threadTemplate($event);
+
+        $this->assertStringContainsString('[indent][size=4]No additional comments provided.[/size][/indent]', $result);
+        $this->assertStringNotContainsString('Amenities:', $result);
     }
 
     public function test_thread_template_links_a_website_url_without_escaping_it(): void
@@ -99,7 +171,7 @@ class ForumBBCodeHelperTest extends TestCase
 
         $result = ForumBBCodeHelper::threadTemplate($event);
 
-        $this->assertStringContainsString('[b]🔗 Website:[/b] '.e($event->event_website), $result);
+        $this->assertStringContainsString('[b]🔗 Website:[/b] see the "flyer" [plain][[/plain]attached]', $result);
         $this->assertStringNotContainsString('Click here to view', $result);
     }
 

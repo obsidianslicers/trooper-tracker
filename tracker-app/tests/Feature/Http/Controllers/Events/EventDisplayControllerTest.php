@@ -10,6 +10,7 @@ use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -29,6 +30,50 @@ class EventDisplayControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('pages.events.event-display');
+        $response->assertDontSee('Does not count toward troop totals', false);
+        $response->assertDontSee('not-counted-logo', false);
+    }
+
+    public function test_invoke_marks_an_event_whose_type_does_not_count(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event_type = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party Plus']);
+        $event = Event::factory()->create([Event::EVENT_TYPE_ID => $event_type->id]);
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        //  the info icon takes the unit logo's place in the title bar; the sentence says why
+        $response->assertSee('not-counted-logo', false);
+        $response->assertDontSee('organization-32x32.png', false);
+        $response->assertDontSee('not-counted-pill', false);
+        $response->assertSee('Non-troop-credit event: Does not count toward troop totals.');
+        //  at the top of the details and again above the roster, where troopers sign up
+        $this->assertSame(2, substr_count($response->getContent(), 'not-counted-notice'));
+    }
+
+    public function test_invoke_shows_every_member_the_event_coordinator(): void
+    {
+        $member = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $coordinator = Trooper::factory()->withDisplayName('TK-421 Coordinator')->create();
+        $event = Event::factory()->withCreatedByTrooper($coordinator)->create();
+
+        $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['Commanding Officer', 'Event Coordinator', 'TK-421 Coordinator']);
+        $response->assertSee(route('service-records.trooper', ['trooper' => $coordinator->id]), false);
+    }
+
+    public function test_invoke_leaves_out_the_coordinator_when_the_event_has_none(): void
+    {
+        $member = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = Event::factory()->create([Event::CREATED_ID => null]);
+
+        $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertDontSee('Event Coordinator');
     }
 
     public function test_invoke_keeps_a_tentative_sign_up_selected_inside_the_tentative_cutoff(): void

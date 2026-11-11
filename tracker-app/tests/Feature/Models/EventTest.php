@@ -6,11 +6,11 @@ namespace Tests\Feature\Models;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
@@ -383,14 +383,25 @@ class EventTest extends TestCase
         $this->assertFalse($subject->minorAllowedToAttend());
     }
 
-    public function test_type_cast_works(): void
+    public function test_event_type_relation_resolves_by_id(): void
     {
         $subject = Event::factory()
-            ->state([Event::TYPE => EventType::REGULAR])
+            ->state([Event::EVENT_TYPE_ID => EventType::idNamed('Charity')])
             ->create();
 
-        $this->assertInstanceOf(EventType::class, $subject->{Event::TYPE});
-        $this->assertSame(EventType::REGULAR, $subject->{Event::TYPE});
+        $this->assertInstanceOf(EventType::class, $subject->event_type);
+        $this->assertSame('Charity', $subject->event_type->name);
+    }
+
+    public function test_is_counted_follows_the_event_type(): void
+    {
+        $uncounted = EventType::factory()->uncounted()->create();
+
+        $counted_event = Event::factory()->create();
+        $uncounted_event = Event::factory()->state([Event::EVENT_TYPE_ID => $uncounted->id])->create();
+
+        $this->assertTrue($counted_event->isCounted());
+        $this->assertFalse($uncounted_event->isCounted());
     }
 
     public function test_status_cast_works(): void

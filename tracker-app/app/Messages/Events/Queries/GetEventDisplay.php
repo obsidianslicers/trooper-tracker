@@ -88,6 +88,7 @@ final class GetEventDisplay extends Message
 
         return [
             'organization:'.implode(',', $organization_columns),
+            'created_by:'.implode(',', $trooper_columns),
             'organizations.organization',
             'organizations' => function ($query)
             {

@@ -63,6 +63,7 @@ final class GetCostumeTrooperLeaderboard extends Message
             ->whereHas('event_shift.event', function ($q) use ($date)
             {
                 $q->where(Event::STATUS, EventStatus::CLOSED)
+                    ->counted()
                     ->when($date, fn ($q) => $q->where(Event::EVENT_START, '>=', $date));
             })
             ->whereHas('trooper', function ($q)

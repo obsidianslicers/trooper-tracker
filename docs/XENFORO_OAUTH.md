@@ -180,7 +180,7 @@ When an event is created and the organization has a related XenForo forum config
 What gets posted:
 
 - event title
-- event details rendered as BBCode
+- event details rendered as BBCode; the comments and amenities are Markdown, so their tables, lists, links and formatting are converted to BBCode (`MarkdownToBBCode`)
 - roster summary
 
 Benefit:

@@ -47,6 +47,7 @@ final class GetEventsForDisplay extends Message
 
         $relations = [
             'organization',
+            'event_type',
             'organizations' => function ($query)
             {
                 $query->orderBy(Organization::NAME);

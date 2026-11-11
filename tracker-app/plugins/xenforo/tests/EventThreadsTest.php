@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace TroopTracker\Plugins\Xenforo\Tests;
 
 use App\Enums\EventStatus;
-use App\Enums\EventType;
 use App\Events\EventClosed;
 use App\Events\EventPosted;
 use App\Models\Event;
+use App\Models\EventType;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -116,7 +116,7 @@ class EventThreadsTest extends TestCase
 
         $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/update', [
             'name' => 'Imperial Muster',
-            'type' => EventType::REGULAR->value,
+            Event::EVENT_TYPE_ID => EventType::idNamed('Regular'),
             'status' => EventStatus::DRAFT->value,
             'organization_id' => $event->organization_id,
             'event_start' => now()->addDays(7)->format('Y-m-d H:i:s'),

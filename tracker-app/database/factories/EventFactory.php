@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\EventStatus;
-use App\Enums\EventType;
 use App\Models\Event;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Database\Factories\Base\EventFactory as BaseEventFactory;
@@ -30,7 +30,8 @@ class EventFactory extends BaseEventFactory
             Event::EVENT_END => $ends_at,
             Event::TROOPERS_ALLOWED => $this->faker->numberBetween(10, 50),
             Event::HANDLERS_ALLOWED => $this->faker->numberBetween(2, 5),
-            Event::TYPE => EventType::REGULAR->value,
+            //  null: EventObserver gives it the default type on create, as a new event gets
+            Event::EVENT_TYPE_ID => null,
             Event::STATUS => EventStatus::OPEN,
 
             Event::LATITUDE => $this->faker->latitude(),
@@ -140,13 +141,14 @@ class EventFactory extends BaseEventFactory
     public function withForumBbcodeEscapableText(): static
     {
         return $this->state(fn (array $attributes): array => [
-            Event::NAME => '<b>Imperial Muster</b>',
+            Event::NAME => '[b]Imperial[/b] Muster & "Parade"',
             Event::VENUE => 'Hall & Hangar',
             Event::VENUE_ADDRESS => '1 "Docking Bay" Lane',
             Event::EVENT_WEBSITE => 'https://example.org/?q=<tag>',
-            Event::REQUESTED_CHARACTER_TYPES => 'Jedi < Sith & Bounty Hunters',
-            Event::AMENITIES => '<i>Cooling</i> station',
-            Event::COMMENTS => 'Bring <armor> & "props".',
+            Event::REQUESTED_CHARACTER_TYPES => 'Jedi < Sith & [Bounty Hunters]',
+            Event::AMENITIES => "Children's Hall & [Hangar]",
+            Event::COMMENTS => 'Bring armor & "props" [if you have them].',
+            Event::REFERRED_BY => "O'Brien & [Sons]",
         ]);
     }
 

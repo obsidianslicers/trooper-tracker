@@ -12,6 +12,7 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Trooper;
 use App\Models\TrooperDonation;
 use App\Plugins\PluginDonations;
@@ -200,6 +201,38 @@ class TrooperControllerTest extends TestCase
 
         $response->assertSee(Costume::COMMAND_STAFF);
         $response->assertDontSee('>Handler<', false);
+    }
+
+    public function test_recent_shift_partial_marks_troops_that_do_not_count(): void
+    {
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $uncounted = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party Plus']);
+        $shifts = collect([
+            $this->attendedShift($trooper, Event::factory()->create([Event::NAME => 'Armor build night', Event::EVENT_TYPE_ID => $uncounted->id])),
+            $this->attendedShift($trooper, Event::factory()->create([Event::NAME => 'Hospital visit'])),
+        ]);
+
+        $response = $this->actingAs($trooper)->view('pages.service-records.inc.trooper-recent-shifts', [
+            'trooper' => $trooper,
+            'recent_shifts' => $shifts,
+            'pending_confirmation_shifts' => collect(),
+        ]);
+
+        //  once in the card view and once in the table view, only for the uncounted troop
+        $response->assertSeeInOrder(['Armor build night', 'Non-troop-credit', 'Hospital visit']);
+        $this->assertSame(2, substr_count((string) $response, 'not-counted-pill'));
+        $response->assertSee('Non-troop-credit event: Does not count toward troop totals.');
+    }
+
+    private function attendedShift(Trooper $trooper, Event $event): EventShift
+    {
+        $shift = EventShift::factory()->forEvent($event)->asClosed()->create();
+        $event_trooper = EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
+
+        $shift->setRelation('event', $event->load('event_type'));
+        $shift->event_trooper = $event_trooper;
+
+        return $shift;
     }
 
     /**

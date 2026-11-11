@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Enums\EventType;
 use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Event;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -238,7 +238,7 @@ class EventCoordinatorAccessTest extends TestCase
         return [
             'organization_id' => $organization->id,
             'name' => 'Coordinator Troop',
-            'type' => EventType::REGULAR->value,
+            Event::EVENT_TYPE_ID => EventType::idNamed('Regular'),
             'status' => EventStatus::OPEN->value,
             'event_start' => now()->addDays(7)->format('Y-m-d H:i:s'),
             'event_end' => now()->addDays(7)->addHours(4)->format('Y-m-d H:i:s'),

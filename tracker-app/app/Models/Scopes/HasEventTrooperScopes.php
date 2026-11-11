@@ -38,4 +38,15 @@ trait HasEventTrooperScopes
         return $query->where(self::STATUS, EventTrooperStatus::GOING)
             ->where(self::IS_HANDLER, true);
     }
+
+    /**
+     * Scope a query to sign-ups whose event type counts toward troop totals.
+     *
+     * @param Builder<self> $query The Eloquent query builder.
+     * @return Builder<self>
+     */
+    public function scopeCounted(Builder $query): Builder
+    {
+        return $query->whereHas('event_shift.event', fn (Builder $q) => $q->counted());
+    }
 }

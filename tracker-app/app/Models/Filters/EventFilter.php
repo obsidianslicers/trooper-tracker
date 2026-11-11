@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Filters;
 
 use App\Enums\EventStatus;
-use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,7 +21,7 @@ class EventFilter extends QueryFilter
     {
         return [
             'status' => 'status',
-            'type' => 'type',
+            'event_type_id' => 'eventType',
             'organization_id' => 'organization',
             'costume_organization_id' => 'costume',
             'search_term' => 'searchTerm',
@@ -47,14 +46,12 @@ class EventFilter extends QueryFilter
      * Filters the query by event type.
      *
      * @param  Builder  $query  The Eloquent query builder.
-     * @param  string  $type  The type value from the request.
+     * @param  string  $type  The event type id from the request.
      * @return Builder The modified query builder.
      */
-    protected function type(Builder $query, $type): Builder
+    protected function eventType(Builder $query, $type): Builder
     {
-        $type = EventType::from($type);
-
-        return $query->where(Event::TYPE, $type);
+        return $query->where(Event::EVENT_TYPE_ID, (int) $type);
     }
 
     /**
