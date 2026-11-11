@@ -28,7 +28,7 @@ report and traces when a test fails.
 
 ## Writing a test
 
-- Personas (`admin`, `moderator`, `member`) sign in once in `auth.setup.js`; pick one with
+- Personas (`admin`, `moderator`, `member`, `trooper`) sign in once in `auth.setup.js`; pick one with
   `test.use({ storageState: personas.member.storageState })`.
 - Seed what a spec needs in `E2eSeeder` under an `E2E ...` name and list it in
   `tests/e2e/support/personas.js`. Specs run one at a time on one database, so a spec that
@@ -80,11 +80,24 @@ role is refused what it can't reach, and every key flow is driven end to end. St
 | Expired visitor is sent to renew; the request goes back for review | ✅ |
 | Inactive account page | ✅ |
 
+### Events, trooper side (`events.spec.js`)
+
+| Area | Status |
+|------|--------|
+| List, calendar and map; completed troops listed apart | ✅ |
+| Sign up, pick a costume and backup, add a guest and a friend, cancel | ✅ |
+| Mission brief must be acknowledged before sign-up opens | ✅ |
+| Watch and unwatch an event; calendar (.ics) download; roster download refused | ✅ |
+| Upload a photo to the mission review | ✅ |
+| Report attendance ("Made It") after a troop | ✅ |
+
+The `trooper` persona (`E2E Trooper`) owns these sign-ups, so the notifications they send stay
+out of the `member` persona's bell.
+
 ### Next PRs
 
 | # | Area | Flows | Roles |
 |---|------|-------|-------|
-| 2 | Events (trooper side) | List, calendar, map, details, sign up / change status / cancel, guests, mission brief ack, calendar and roster downloads, uploads | member, handler |
 | 3 | Events (Command Staff) | Create, copy, update, shifts and stations, roster management, charity, uploads, mission review, cancel | moderator, admin |
 | 4 | Account | Profile, notification settings, costumes add/remove, club requests, notices, push notifications, deletion request | member |
 | 5 | Approval queues | Deny recruit, approve/deny club requests, membership lookup, request and approve/deny permissions | moderator, admin |
