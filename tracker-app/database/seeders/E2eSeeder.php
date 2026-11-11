@@ -59,6 +59,21 @@ class E2eSeeder extends Seeder
 
         $this->assign($moderator, $legion, is_moderator: true);
 
+        $this->persona('staff-officer@e2e.test', 'E2E Staff Officer', MembershipRole::STAFF_OFFICER);
+
+        foreach ([
+            ['event-coordinator@e2e.test', 'E2E Event Coordinator', MembershipRole::EVENT_COORDINATOR],
+            ['handler@e2e.test', 'E2E Handler', MembershipRole::HANDLER],
+        ] as [$email, $name, $role])
+        {
+            $this->assign($this->persona($email, $name, $role), $legion, is_moderator: false);
+        }
+
+        $visitor = $this->persona('visitor@e2e.test', 'E2E Visitor', MembershipRole::VISITOR, attributes: [
+            Trooper::VISITOR_EXPIRES_AT => now()->addMonths(3),
+        ]);
+        $this->assign($visitor, $legion, is_moderator: false);
+
         $recruit = $this->persona(
             'recruit@e2e.test',
             'E2E Pending Recruit',
