@@ -89,7 +89,10 @@
                         Status:
                     </x-label>
                     <x-input-select :property="'membership_status'"
-                                    :options="\App\Enums\MembershipStatus::toArray()"
+                                    :options="\App\Enums\MembershipStatus::choicesFor(
+                                        Auth::user()->is_administrator,
+                                        $trooper->membership_status
+                                    )"
                                     :value="$trooper->membership_status->value" />
                 </x-input-container>
 
