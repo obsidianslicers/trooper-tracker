@@ -94,11 +94,21 @@ role is refused what it can't reach, and every key flow is driven end to end. St
 The `trooper` persona (`E2E Trooper`) owns these sign-ups, so the notifications they send stay
 out of the `member` persona's bell.
 
+### Events, Command Staff side (`event-admin.spec.js`)
+
+| Area | Status |
+|------|--------|
+| Create an event and view it; rename; copy; cancel (shows under cancelled, off the list) | ✅ |
+| Edit and Copy shown to Command Staff on the event page, not to members | ✅ |
+| Add a shift; add and remove a station; record charity | ✅ |
+| Roster: add a trooper with the picker, remove them, change a status; roster CSV download | ✅ |
+| Administrative upload, send to the mission review, delete | ✅ |
+| Broadcast message and share roster | ⬜ |
+
 ### Next PRs
 
 | # | Area | Flows | Roles |
 |---|------|-------|-------|
-| 3 | Events (Command Staff) | Create, copy, update, shifts and stations, roster management, charity, uploads, mission review, cancel | moderator, admin |
 | 4 | Account | Profile, notification settings, costumes add/remove, club requests, notices, push notifications, deletion request | member |
 | 5 | Approval queues | Deny recruit, approve/deny club requests, membership lookup, request and approve/deny permissions | moderator, admin |
 | 6 | Trooper admin | List and search, profile edit, authority, membership, guardian, events, costumes, change log, void/unvoid, RIP, recruit | moderator, admin |

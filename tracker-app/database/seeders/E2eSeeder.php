@@ -71,6 +71,35 @@ class E2eSeeder extends Seeder
 
         $this->onboarding($legion);
         $this->trooperEvents($legion);
+        $this->commandStaffEvents($legion);
+    }
+
+    /**
+     * Events Command Staff edit, staff, cancel and review, with a trooper already signed up.
+     */
+    private function commandStaffEvents(Organization $legion): void
+    {
+        $rostered = $this->persona('rostered@e2e.test', 'E2E Rostered Trooper', MembershipRole::MEMBER);
+        $this->assign($rostered, $legion, is_moderator: false);
+        $armor = $this->trooperCostume($rostered, $legion, 'E2E Rostered Armor');
+
+        $event = $this->openEvent($legion, 'E2E Command Troop', attributes: [
+            Event::TROOPERS_ALLOWED => 10,
+            Event::FRIENDS_ALLOWED => 0,
+            Event::GUESTS_ALLOWED => 0,
+        ]);
+        EventTrooper::factory()
+            ->forEventShift($event->event_shifts()->first())
+            ->forTrooper($rostered)
+            ->withCostume($armor)
+            ->asGoing()
+            ->create([
+                EventTrooper::ORGANIZATION_ID => $legion->id,
+                EventTrooper::BACKUP_COSTUME_ID => null,
+            ]);
+
+        $this->openEvent($legion, 'E2E Cancel Troop');
+        $this->openEvent($legion, 'E2E Copy Source');
     }
 
     /**
@@ -115,10 +144,14 @@ class E2eSeeder extends Seeder
             EventShift::STATUS => EventStatus::CLOSED,
         ]);
         $this->canAttend($parade, $legion);
-        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asGoing()->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asGoing()->create([
+            EventTrooper::ORGANIZATION_ID => $legion->id,
+            EventTrooper::COSTUME_ID => null,
+            EventTrooper::BACKUP_COSTUME_ID => null,
+        ]);
     }
 
-    private function trooperCostume(Trooper $trooper, Organization $organization, string $name): void
+    private function trooperCostume(Trooper $trooper, Organization $organization, string $name): Costume
     {
         $costume = Costume::create([Costume::NAME => $name]);
 
@@ -132,6 +165,8 @@ class E2eSeeder extends Seeder
             TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
             TrooperCostume::APPROVED_AT => now(),
         ]);
+
+        return $costume;
     }
 
     /**
@@ -268,7 +303,11 @@ class E2eSeeder extends Seeder
             EventShift::STATUS => EventStatus::CLOSED,
         ]);
 
-        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create([
+            EventTrooper::ORGANIZATION_ID => $organization->id,
+            EventTrooper::COSTUME_ID => null,
+            EventTrooper::BACKUP_COSTUME_ID => null,
+        ]);
     }
 
     private function openEvent(
