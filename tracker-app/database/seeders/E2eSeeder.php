@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\AwardFrequency;
 use App\Enums\EventStatus;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\NoticeType;
 use App\Enums\OrganizationType;
 use App\Messages\Troopers\Commands\Membership\CreateTrooperRequest;
+use App\Models\Award;
+use App\Models\AwardTrooper;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
@@ -20,6 +23,7 @@ use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperNotification;
@@ -81,6 +85,38 @@ class E2eSeeder extends Seeder
         $this->approvals($legion);
         $this->trooperAdmin($legion);
         $this->costumeCredits($legion);
+        $this->serviceRecords($legion);
+    }
+
+    /**
+     * A veteran with a credited troop in a costume, an award and an achievement for the
+     * service record pages, and a trooper whose troop counts for no club yet.
+     */
+    private function serviceRecords(Organization $legion): void
+    {
+        $veteran = $this->persona('veteran@e2e.test', 'E2E Veteran', MembershipRole::MEMBER);
+        $this->assign($veteran, $legion, is_moderator: false);
+        $armor = $this->trooperCostume($veteran, $legion, 'E2E Veteran Armor');
+        $this->attendedEvent($legion, $veteran, 'E2E Charity Walk', EventType::defaultId(), days_ago: 5, costume: $armor);
+
+        $award = Award::create([
+            Award::ORGANIZATION_ID => $legion->id,
+            Award::NAME => 'E2E Trooper of the Month',
+            Award::FREQUENCY => AwardFrequency::MONTHLY,
+        ]);
+        AwardTrooper::create([
+            AwardTrooper::AWARD_ID => $award->id,
+            AwardTrooper::TROOPER_ID => $veteran->id,
+            AwardTrooper::AWARD_DATE => now()->subDays(3),
+        ]);
+
+        TrooperAchievement::factory()->forTrooper($veteran)->create([
+            TrooperAchievement::ACHIEVEMENT_DATE => now()->subDays(5),
+        ]);
+
+        $uncredited = $this->persona('uncredited@e2e.test', 'E2E Uncredited Trooper', MembershipRole::MEMBER);
+        $this->assign($uncredited, $legion, is_moderator: false);
+        $this->attendedEvent($legion, $uncredited, 'E2E Uncredited Troop', EventType::defaultId(), days_ago: 6, credited: false);
     }
 
     /**
@@ -276,6 +312,7 @@ class E2eSeeder extends Seeder
             EventTrooper::ORGANIZATION_ID => $organization->id,
             EventTrooper::COSTUME_ID => $costume?->id,
             EventTrooper::BACKUP_COSTUME_ID => null,
+            EventTrooper::SIGNED_UP_AT => $start->copy()->subWeek(),
         ]);
     }
 
@@ -410,8 +447,15 @@ class E2eSeeder extends Seeder
         ]);
     }
 
-    private function attendedEvent(Organization $organization, Trooper $trooper, string $name, int $event_type_id, int $days_ago): void
-    {
+    private function attendedEvent(
+        Organization $organization,
+        Trooper $trooper,
+        string $name,
+        int $event_type_id,
+        int $days_ago,
+        ?Costume $costume = null,
+        bool $credited = true
+    ): void {
         $start = now()->subDays($days_ago)->setTime(10, 0);
 
         $event = Event::factory()->create([
@@ -432,9 +476,11 @@ class E2eSeeder extends Seeder
         ]);
 
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create([
-            EventTrooper::ORGANIZATION_ID => $organization->id,
-            EventTrooper::COSTUME_ID => null,
+            EventTrooper::ORGANIZATION_ID => $credited ? $organization->id : null,
+            EventTrooper::COSTUME_ID => $costume?->id,
             EventTrooper::BACKUP_COSTUME_ID => null,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => $credited && $costume ? [$organization->id] : null,
+            EventTrooper::SIGNED_UP_AT => $start->copy()->subWeek(),
         ]);
     }
 

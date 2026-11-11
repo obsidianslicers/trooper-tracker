@@ -161,11 +161,21 @@ The `account` persona (`E2E Account Trooper`) owns these changes.
 | An administrator adds a unit under a garrison (name required), renames it, uploads a logo | ✅ |
 | An administrator writes a FAQ section and question, a member reads it on the FAQ page, then both are deleted | ✅ |
 
+### Service records and reports (`service-records.spec.js`)
+
+| Area | Status |
+|------|--------|
+| A trooper's record: troops per club, History, Awards and Costumes tabs; Edit link only for Command Staff | ✅ |
+| Leaderboard; a top costume's rankings | ✅ |
+| Awards and achievements from the last 30 days; Command Staff page | ✅ |
+| Missing Credit: assign a club, the troop then counts on the record | ✅ |
+| Reports dashboard (day ranges), Event Summary, Event Types Counts, Troopers Without Activity, Status Change Log | ✅ |
+| Trooper Event Summary, Donation Event Summary, Costume Used Most, and the leaderboard's club filter | ❌ These use MySQL-only SQL (`SUBSTRING_INDEX`, `JSON_OVERLAPS`) and fail on the SQLite test database |
+
 ### Next PRs
 
 | # | Area | Flows | Roles |
 |---|------|-------|-------|
-| 9 | Service records and reports | Trooper record, leaderboard, awards, achievements, photo gallery, costume pages; every report with filters, missing credits assign | member, moderator |
 | 10 | Plugins and system | Plugins page enable/disable/settings, system check, public shares and OG images, search | admin, guest |
 | 11 | Roles not yet seeded | Handler, visitor, and Staff Officer (once PR #491 merges) across the page smoke test | all |
 

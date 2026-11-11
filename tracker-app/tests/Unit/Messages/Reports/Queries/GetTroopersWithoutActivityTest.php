@@ -45,9 +45,10 @@ class GetTroopersWithoutActivityTest extends TestCase
 
         $result_ids = $result->pluck('id')->all();
         $this->assertContains($inactive_trooper->id, $result_ids);
+        $this->assertNotContains($active_trooper->id, $result_ids);
     }
 
-    public function test_handle_excludes_troopers_with_attendance_before_lookback(): void
+    public function test_handle_includes_troopers_whose_last_attendance_is_before_lookback(): void
     {
         $moderator = Trooper::factory()->asModerator()->create();
         $org = Organization::factory()->create();
@@ -68,7 +69,7 @@ class GetTroopersWithoutActivityTest extends TestCase
 
         $result = (new GetTroopersWithoutActivity($moderator, 30))->handle();
 
-        $this->assertNotContains($trooper->id, $result->pluck('id')->all());
+        $this->assertContains($trooper->id, $result->pluck('id')->all());
     }
 
     public function test_handle_only_returns_active_membership_status(): void
@@ -105,7 +106,9 @@ class GetTroopersWithoutActivityTest extends TestCase
             ->create();
 
         $result = (new GetTroopersWithoutActivity($moderator, Carbon::parse('2026-02-01')))->handle();
+        $this->assertContains($trooper->id, $result->pluck('id')->all());
 
+        $result = (new GetTroopersWithoutActivity($moderator, Carbon::parse('2026-01-01')))->handle();
         $this->assertNotContains($trooper->id, $result->pluck('id')->all());
     }
 
