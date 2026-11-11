@@ -15,18 +15,18 @@ class ForumBBCodeHelper
      */
     public static function threadTemplate(Event $event, string $roster = ''): string
     {
-        $bb = '[size=6][b]'.e($event->name).'[/b][/size]';
+        $bb = '[size=6][b]'.MarkdownToBBCode::escape($event->name).'[/b][/size]';
 
         if ($event->venue)
         {
-            $bb .= "\n[size=4][i]".e($event->venue).'[/i][/size]';
+            $bb .= "\n[size=4][i]".MarkdownToBBCode::escape($event->venue).'[/i][/size]';
         }
 
         $bb .= "\n\n[hr][/hr]\n";
 
         if ($event->venue_address)
         {
-            $bb .= "\n[b]📍 Location:[/b] ".e($event->venue_address);
+            $bb .= "\n[b]📍 Location:[/b] ".MarkdownToBBCode::escape($event->venue_address);
         }
         $bb .= "\n[b]🗓️ Schedule:[/b] ".self::schedule($event);
 
@@ -39,20 +39,23 @@ class ForumBBCodeHelper
 
         if ($event->requested_character_types)
         {
-            $bb .= "\n[b]Character Types:[/b] ".e($event->requested_character_types);
+            $bb .= "\n[b]Character Types:[/b] ".MarkdownToBBCode::escape($event->requested_character_types);
         }
         $bb .= "\n[b]Secure Changing Area:[/b] ".($event->secure_staging_area ? 'Yes' : 'No');
 
-        if ($event->amenities)
+        //  amenities and comments are Markdown, as the event page renders them
+        $amenities = MarkdownToBBCode::convert($event->amenities);
+
+        if ($amenities !== '')
         {
             $bb .= "\n[b]Changing Area & Amenities:[/b]";
-            $bb .= "\n[quote]".e($event->amenities).'[/quote]';
+            $bb .= "\n[quote]".$amenities.'[/quote]';
         }
 
         $bb .= "\n[hr][/hr]";
         $bb .= "\n[size=5][b]📢 Organizer Comments[/b][/size]";
-        $comments = $event->comments ? e($event->comments) : 'No additional comments provided.';
-        $referred_by = $event->referred_by ? e($event->referred_by) : 'N/A';
+        $comments = MarkdownToBBCode::convert($event->comments) ?: 'No additional comments provided.';
+        $referred_by = $event->referred_by ? MarkdownToBBCode::escape($event->referred_by) : 'N/A';
         $bb .= "\n\n[indent][size=4]".$comments.'[/size][/indent]';
         $bb .= "\n\n[color=#777777][i]Referred by: ".$referred_by.'[/i][/color]';
 
@@ -133,7 +136,7 @@ class ForumBBCodeHelper
             return '[url="'.$website.'"]Click here to view[/url]';
         }
 
-        return e($website);
+        return MarkdownToBBCode::escape($website);
     }
 
     /**
@@ -203,7 +206,7 @@ class ForumBBCodeHelper
                 $costume_label = 'No Costume Selected';
             }
 
-            $bb .= "\n[tr][td]".$name.'[/td][td]'.$costume_label.'[/td]'
+            $bb .= "\n[tr][td]".MarkdownToBBCode::escape($name).'[/td][td]'.MarkdownToBBCode::escape($costume_label).'[/td]'
                 .'[td][i]'.$status_label.'[/i][/td][/tr]';
         }
 

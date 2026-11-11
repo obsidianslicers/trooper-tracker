@@ -140,13 +140,14 @@ class EventFactory extends BaseEventFactory
     public function withForumBbcodeEscapableText(): static
     {
         return $this->state(fn (array $attributes): array => [
-            Event::NAME => '<b>Imperial Muster</b>',
+            Event::NAME => '[b]Imperial[/b] Muster & "Parade"',
             Event::VENUE => 'Hall & Hangar',
             Event::VENUE_ADDRESS => '1 "Docking Bay" Lane',
             Event::EVENT_WEBSITE => 'https://example.org/?q=<tag>',
-            Event::REQUESTED_CHARACTER_TYPES => 'Jedi < Sith & Bounty Hunters',
-            Event::AMENITIES => '<i>Cooling</i> station',
-            Event::COMMENTS => 'Bring <armor> & "props".',
+            Event::REQUESTED_CHARACTER_TYPES => 'Jedi < Sith & [Bounty Hunters]',
+            Event::AMENITIES => "Children's Hall & [Hangar]",
+            Event::COMMENTS => 'Bring armor & "props" [if you have them].',
+            Event::REFERRED_BY => "O'Brien & [Sons]",
         ]);
     }
 
