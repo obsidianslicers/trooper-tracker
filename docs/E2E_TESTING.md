@@ -28,7 +28,7 @@ report and traces when a test fails.
 
 ## Writing a test
 
-- Personas (`admin`, `moderator`, `member`, `trooper`) sign in once in `auth.setup.js`; pick one with
+- Personas (`admin`, `moderator`, `member`, `trooper`, `account`) sign in once in `auth.setup.js`; pick one with
   `test.use({ storageState: personas.member.storageState })`.
 - Seed what a spec needs in `E2eSeeder` under an `E2E ...` name and list it in
   `tests/e2e/support/personas.js`. Specs run one at a time on one database, so a spec that
@@ -105,11 +105,23 @@ out of the `member` persona's bell.
 | Administrative upload, send to the mission review, delete | ✅ |
 | Broadcast a message (a going trooper gets it); share a read-only roster link a guest can open | ✅ |
 
+### Account (`account.spec.js`)
+
+| Area | Status |
+|------|--------|
+| Profile: display name, phone and theme saved; display name required | ✅ |
+| Notification frequency and per-club event notifications saved | ✅ |
+| Costumes: find one, add it to the armory for a club, remove another | ✅ |
+| Ask to join another club (shows as pending) | ✅ |
+| Notices page; a notice on the event list until dismissed | ✅ |
+| Request deletion (must type DELETE; signs out), sign back in and cancel | ✅ |
+
+The `account` persona (`E2E Account Trooper`) owns these changes.
+
 ### Next PRs
 
 | # | Area | Flows | Roles |
 |---|------|-------|-------|
-| 4 | Account | Profile, notification settings, costumes add/remove, club requests, notices, push notifications, deletion request | member |
 | 5 | Approval queues | Deny recruit, approve/deny club requests, membership lookup, request and approve/deny permissions | moderator, admin |
 | 6 | Trooper admin | List and search, profile edit, authority, membership, guardian, events, costumes, change log, void/unvoid, RIP, recruit | moderator, admin |
 | 7 | Costumes and costume credits | Costume CRUD, merge edge cases; costume gate and do-not-trust flag once PRs #492 and #493 merge | member, moderator, admin |

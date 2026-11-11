@@ -7,6 +7,7 @@ namespace Database\Seeders;
 use App\Enums\EventStatus;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Enums\NoticeType;
 use App\Enums\OrganizationType;
 use App\Models\Costume;
 use App\Models\Event;
@@ -14,6 +15,7 @@ use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\EventType;
+use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -35,8 +37,7 @@ class E2eSeeder extends Seeder
 
     public function run(): void
     {
-        if (app()->environment('production'))
-        {
+        if (app()->environment('production')) {
             throw new RuntimeException('The browser test seeder must not run in production.');
         }
 
@@ -72,6 +73,28 @@ class E2eSeeder extends Seeder
         $this->onboarding($legion);
         $this->trooperEvents($legion);
         $this->commandStaffEvents($legion);
+        $this->account($legion);
+    }
+
+    /**
+     * A trooper of their own for the account spec, which changes their profile, settings,
+     * costumes and club requests, and asks for their account to be deleted.
+     */
+    private function account(Organization $legion): void
+    {
+        $trooper = $this->persona('account@e2e.test', 'E2E Account Trooper', MembershipRole::MEMBER);
+        $this->assign($trooper, $legion, is_moderator: false);
+        $this->trooperCostume($trooper, $legion, 'E2E Account Armor');
+        $this->costume($legion, 'E2E Spare Armor');
+
+        Notice::create([
+            Notice::ORGANIZATION_ID => $legion->id,
+            Notice::TITLE => 'E2E Armor Inspection Notice',
+            Notice::MESSAGE => 'Bring your armor to the next meeting for inspection.',
+            Notice::TYPE => NoticeType::INFO,
+            Notice::STARTS_AT => now()->subDay(),
+            Notice::ENDS_AT => now()->addMonth(),
+        ]);
     }
 
     /**

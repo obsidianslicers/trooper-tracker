@@ -15,6 +15,7 @@ export const personas = {
     moderator: persona('moderator', 'moderator@e2e.test', 'E2E Moderator'),
     member: persona('member', 'member@e2e.test', 'E2E Member'),
     trooper: persona('trooper', 'trooper@e2e.test', 'E2E Trooper'),
+    account: persona('account', 'account@e2e.test', 'E2E Account Trooper'),
 };
 
 export const seeded = {
@@ -33,6 +34,8 @@ export const seeded = {
     commandEvent: 'E2E Command Troop',
     cancelEvent: 'E2E Cancel Troop',
     copySourceEvent: 'E2E Copy Source',
+    spareCostume: 'E2E Spare Armor',
+    notice: 'E2E Armor Inspection Notice',
     mergeSource: { email: 'merge-source@e2e.test', name: 'E2E Merge Source' },
     mergeTarget: { email: 'merge-target@e2e.test', name: 'E2E Merge Target' },
     duplicateCostume: 'E2E Duplicate Armor',
