@@ -76,6 +76,33 @@ class EventDisplayControllerTest extends TestCase
         $response->assertDontSee('Event Coordinator');
     }
 
+    public function test_invoke_keeps_a_tentative_sign_up_selected_inside_the_tentative_cutoff(): void
+    {
+        config(['tracker.tentative_cutoff_days' => '7']);
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+        $starts_at = now()->addDays(3);
+        $event = Event::factory()->withOrganization($organization)->create([
+            Event::EVENT_START => $starts_at,
+            Event::EVENT_END => $starts_at->copy()->addHours(4),
+            Event::TENTATIVE_SIGNUPS_ALLOWED => true,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create([
+            EventShift::SHIFT_STARTS_AT => $starts_at,
+            EventShift::SHIFT_ENDS_AT => $starts_at->copy()->addHours(4),
+        ]);
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->create([
+            EventTrooper::STATUS => EventTrooperStatus::TENTATIVE,
+        ]);
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        //  the browser would otherwise show the first option, "Going"
+        $this->assertMatchesRegularExpression('/<option value="tentative"\s+selected>/', $response->getContent());
+    }
+
     public function test_invoke_displays_charity_hours_and_notes_without_funds_or_name(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();

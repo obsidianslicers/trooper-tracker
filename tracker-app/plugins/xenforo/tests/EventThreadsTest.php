@@ -38,14 +38,18 @@ class EventThreadsTest extends TestCase
         ]);
     }
 
-    public function test_posting_an_event_creates_its_thread(): void
+    public function test_posting_an_event_creates_its_thread_with_the_date_in_front_of_the_title(): void
     {
         $organization = $this->createForumOrganization([OrganizationForum::EVENT_FORUM_ID => 42]);
         $creator = Trooper::factory()->create();
         $event = Event::factory()
             ->withOrganization($organization)
             ->withCreatedByTrooper($creator)
-            ->create();
+            ->create([
+                Event::NAME => 'Hospital Visit',
+                Event::EVENT_START => '2026-03-14 10:00:00',
+                Event::EVENT_END => '2026-03-14 12:00:00',
+            ]);
 
         $messages = Mockery::mock(ForumThreadMessageService::class);
         $messages->shouldReceive('buildThreadMessage')->once()->andReturn('[b]Thread[/b]');
@@ -57,7 +61,7 @@ class EventThreadsTest extends TestCase
             ->andReturn(9876);
         $xenforo->shouldReceive('create_thread')
             ->once()
-            ->with(42, $event->name, '[b]Thread[/b]', 9876)
+            ->with(42, '2026/03/14 Sat - Hospital Visit', '[b]Thread[/b]', 9876)
             ->andReturn([
                 'status' => 201,
                 'body' => ['thread' => ['thread_id' => 321, 'first_post_id' => 654]],
