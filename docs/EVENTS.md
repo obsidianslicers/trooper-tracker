@@ -39,6 +39,16 @@ Queries use `Event::counted()` / `EventTrooper::counted()`, or `whereNotIn('tt_e
 
 ---
 
+## Holidays on the Calendar
+
+Events → Calendar shows holidays in their day cells, under the date and above that day's events, so coordinators and troopers can see at a glance when a request falls on a holiday weekend. They're labels only: not events, not filtered, not in the ICS feed.
+
+`GetHolidays::call(from:, to:)` returns the names by date. `TRACKER_CALENDAR_HOLIDAYS` (`tracker.calendar.holidays`) picks the set: `us`, the default, is the US federal holidays plus Valentine's Day, St. Patrick's Day, Easter, Mother's Day, Father's Day, Halloween, Christmas Eve and New Year's Eve; `none` turns them off. Dates are worked out each year (Easter by the Gregorian computus), with no package or table, and each holiday is shown on its own date rather than the weekday a federal holiday is observed on.
+
+**Source:** `app/Messages/Events/Queries/GetHolidays.php`
+
+---
+
 ## Event Status Lifecycle
 
 An event moves through statuses as it progresses from creation to completion.

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Events;
 
 use App\Http\Controllers\PageController;
 use App\Messages\Events\Queries\GetEventsForDisplay;
+use App\Messages\Events\Queries\GetHolidays;
 use App\Messages\Organizations\Queries\GetOrganizations;
 use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use Carbon\Carbon;
@@ -26,7 +27,7 @@ class CalendarController extends PageController
      *
      * Retrieves all upcoming events grouped by date and generates a 12-month
      * calendar grid (weeks starting Sunday, ending Saturday) for displaying
-     * events in a calendar layout.
+     * events in a calendar layout, with the holidays from GetHolidays.
      *
      * @param  Request  $request  The incoming HTTP request
      * @return View The rendered events calendar page with upcoming events
@@ -68,7 +69,12 @@ class CalendarController extends PageController
             $months[] = ['date' => $month, 'weeks' => $weeks];
         }
 
-        $data = compact('events', 'months', 'costume_organizations', 'hosting_organizations');
+        $holidays = GetHolidays::call(
+            from: $start_of_calendar->copy()->startOfWeek(Carbon::SUNDAY),
+            to: $start_of_calendar->copy()->addMonths(11)->endOfMonth()->endOfWeek(Carbon::SATURDAY),
+        );
+
+        $data = compact('events', 'holidays', 'months', 'costume_organizations', 'hosting_organizations');
 
         return view('pages.events.calendar', $data);
     }

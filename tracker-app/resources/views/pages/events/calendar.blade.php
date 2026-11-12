@@ -58,6 +58,13 @@
 
                                         @php $key = $date->toDateString(); @endphp
 
+                                        @foreach ($holidays[$key] ?? [] as $holiday)
+                                            <div class="calendar-holiday small mt-1">
+                                                <i class="fa fa-fw fa-star"></i>
+                                                {{ $holiday }}
+                                            </div>
+                                        @endforeach
+
                                         @if (isset($events[$key]))
                                             @foreach ($events[$key] as $event)
                                                 <div class="event-card small mt-1 p-1 pointer"

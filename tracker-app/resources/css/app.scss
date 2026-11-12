@@ -97,6 +97,14 @@ a:hover {
             div.calendar-content {
                 min-height: 125px;
             }
+
+            div.calendar-holiday {
+                color: var(--bs-secondary-color);
+                font-style: italic;
+                //  phone-width cells are narrower than "Thanksgiving"
+                hyphens: auto;
+                overflow-wrap: break-word;
+            }
         }
     }
 }
