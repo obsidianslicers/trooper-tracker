@@ -9,12 +9,16 @@ use App\Enums\MembershipStatus;
 use App\Messages\Changes\Queries\GetModelChangesForTrooper;
 use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForReview;
 use App\Messages\Troopers\Queries\GetMostRecentEventsForTrooper;
+use App\Messages\Troopers\Queries\Membership\GetModeratedOrganizationIds;
+use App\Messages\Troopers\Queries\Membership\GetTrooperAuthorityOrganizations;
 use App\Messages\Troopers\Queries\Membership\GetTrooperOrganizationMemberships;
-use App\Messages\Troopers\Resources\TrooperStampsResource;
-use App\Models\ModelChange;
-use App\Models\Organization;
+use App\Messages\Troopers\Resources\AdminTrooperDetails;
+use App\Messages\Troopers\Resources\TrooperAuthorityOrganizationCollection;
+use App\Messages\Troopers\Resources\TrooperChangeCollection;
+use App\Messages\Troopers\Resources\TrooperCostumeReviewCollection;
+use App\Messages\Troopers\Resources\TrooperOrganizationMembershipCollection;
+use App\Messages\Troopers\Resources\TrooperRecentEventCollection;
 use App\Models\Trooper;
-use App\Models\TrooperCostume;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 
@@ -46,7 +50,7 @@ final class AdminProfilePageData extends Message
             'display_name' => $this->trooper->display_name,
             'membership_role' => $this->trooper->membership_role->value,
             'membership_role_label' => to_title($this->trooper->membership_role->name)->toString(),
-            'details' => $this->getDetails(),
+            'details' => new AdminTrooperDetails($this->trooper, $this->actor),
             'authority' => $this->getAuthority(),
             'memberships' => $this->getMemberships(),
             'guardian' => $this->getGuardian(),
@@ -54,43 +58,6 @@ final class AdminProfilePageData extends Message
             'events' => $this->getEvents(),
             'changes' => $this->getChanges(),
         ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function getDetails(): array
-    {
-        $trooper = $this->trooper;
-
-        return [
-            'legal_name' => $trooper->legal_name,
-            'display_name' => $trooper->display_name,
-            'email' => $trooper->email,
-            'phone' => $trooper->phone,
-            'membership_status' => $trooper->membership_status->value,
-            'membership_status_options' => $this->getStatusOptions(),
-            'last_active_at' => $trooper->last_active_at?->format('D - M d, Y') ?? 'Never',
-            'is_invalid' => $trooper->membership_status === MembershipStatus::INVALID,
-            'is_departed' => $trooper->membership_status === MembershipStatus::DEPARTED,
-            'is_untrusted' => (bool) $trooper->is_untrusted,
-            'untrusted_reason' => $trooper->untrusted_reason,
-            'can_mark_untrusted' => $this->actor->can('markUntrusted', $trooper),
-            'trooper_stamps' => new TrooperStampsResource($trooper),
-        ];
-    }
-
-    /**
-     * @return array<int, array{value:string,label:string}>
-     */
-    private function getStatusOptions(): array
-    {
-        $choices = MembershipStatus::choicesFor(
-            $this->actor->is_administrator,
-            $this->trooper->membership_status
-        );
-
-        return $this->toOptions($choices);
     }
 
     /**
@@ -103,20 +70,12 @@ final class AdminProfilePageData extends Message
             return null;
         }
 
-        $organizations = Organization::withAllAssignments($this->trooper)->get();
+        $organizations = GetTrooperAuthorityOrganizations::call(trooper: $this->trooper);
 
         return [
             'membership_role' => $this->trooper->membership_role->value,
             'role_options' => $this->toOptions($this->getRoleChoices()),
-            'organizations' => $organizations->map(fn (Organization $organization): array => [
-                'id' => $organization->id,
-                'parent_id' => $organization->parent_id,
-                'depth' => (int) $organization->depth,
-                'name' => $organization->name,
-                'is_moderator' => (bool) $organization->trooper_assignments->first()?->is_moderator,
-                'should_notify' => (bool) $organization->trooper_assignments->first()?->should_notify,
-                'is_member' => (bool) $organization->trooper_assignments->first()?->is_member,
-            ])->values()->all(),
+            'organizations' => new TrooperAuthorityOrganizationCollection($organizations),
         ];
     }
 
@@ -140,59 +99,16 @@ final class AdminProfilePageData extends Message
     private function getMemberships(): array
     {
         $organizations = GetTrooperOrganizationMemberships::call(trooper: $this->trooper);
-
-        $allowed_ids = Organization::ofTypeOrganizations()
-            ->moderatedBy($this->actor)
-            ->pluck(Organization::ID)
-            ->all();
+        $allowed_ids = GetModeratedOrganizationIds::call(moderator: $this->actor);
 
         return [
             'status_options' => $this->toOptions(MembershipStatus::toArray()),
-            'organizations' => $organizations->map(
-                fn (Organization $organization): array => $this->toMembership($organization, $allowed_ids)
-            )->values()->all(),
+            'organizations' => new TrooperOrganizationMembershipCollection(
+                $organizations,
+                $allowed_ids,
+                (bool) $this->trooper->is_visitor,
+            ),
         ];
-    }
-
-    /**
-     * @param  array<int, int>  $allowed_ids
-     * @return array<string, mixed>
-     */
-    private function toMembership(Organization $organization, array $allowed_ids): array
-    {
-        $assignment = $organization->assignment ?? null;
-
-        return [
-            'id' => $organization->id,
-            'name' => $organization->name,
-            'identifier' => $organization->identifier ?? null,
-            'membership_status' => $organization->membership_status?->value
-                ?? MembershipStatus::ACTIVE->value,
-            'assignment_id' => $assignment?->id,
-            'is_member' => (bool) $organization->is_member,
-            'can_edit' => in_array($organization->id, $allowed_ids, true),
-            'assignment_options' => $this->getAssignmentOptions($organization),
-        ];
-    }
-
-    /**
-     * @return array<int, array{value:int,label:string}>
-     */
-    private function getAssignmentOptions(Organization $organization): array
-    {
-        $max_depth = $this->trooper->is_visitor ? (int) $organization->depth : null;
-
-        return Organization::query()
-            ->where(Organization::NODE_PATH, 'like', $organization->node_path.'%')
-            ->when($max_depth !== null, fn ($query) => $query->where(Organization::DEPTH, '<=', $max_depth))
-            ->orderBy(Organization::NODE_PATH)
-            ->get()
-            ->map(fn (Organization $option): array => [
-                'value' => $option->id,
-                'label' => str_repeat('— ', max(0, (int) $option->depth - (int) $organization->depth))
-                    .$option->name,
-            ])
-            ->all();
     }
 
     /**
@@ -211,84 +127,31 @@ final class AdminProfilePageData extends Message
         ];
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function getCostumes(): array
+    private function getCostumes(): TrooperCostumeReviewCollection
     {
-        $costumes = GetTrooperCostumesForReview::call(
+        $collection = GetTrooperCostumesForReview::call(
             trooper: $this->trooper,
             moderator: $this->actor,
         );
 
-        return $costumes->map(function (TrooperCostume $tc): array
-        {
-            $status = $this->getCostumeStatus($tc);
-
-            return [
-                'id' => $tc->id,
-                'costume' => $tc->organization_costume?->costume?->name,
-                'organization' => $tc->organization_costume?->organization?->name,
-                'status' => $status,
-                'is_approved' => in_array($status, ['approved', 'club_records'], true),
-                'by' => $tc->trashed() && $tc->isRevoked()
-                    ? $tc->revoked_by?->display_name
-                    : $tc->approved_by?->display_name,
-                'can_review' => (bool) $tc->can_review,
-            ];
-        })->values()->all();
+        return new TrooperCostumeReviewCollection($collection);
     }
 
-    private function getCostumeStatus(TrooperCostume $trooper_costume): string
+    private function getEvents(): TrooperRecentEventCollection
     {
-        return match (true)
-        {
-            $trooper_costume->trashed() && $trooper_costume->isRevoked() => 'revoked',
-            $trooper_costume->isPending() => 'pending',
-            $trooper_costume->synchronized_at !== null => 'club_records',
-            default => 'approved',
-        };
+        $collection = GetMostRecentEventsForTrooper::call(trooper: $this->trooper);
+
+        return new TrooperRecentEventCollection($collection);
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function getEvents(): array
+    private function getChanges(): TrooperChangeCollection
     {
-        return GetMostRecentEventsForTrooper::call(trooper: $this->trooper)
-            ->map(function (Organization $organization): array
-            {
-                $shift = $organization->event_shift;
-
-                return [
-                    'organization' => $organization->name,
-                    'event_id' => $shift?->event->id,
-                    'event_name' => $shift?->event->name,
-                    'shift_date' => $shift?->shift_starts_at->format('M d, Y'),
-                    'is_old' => $shift !== null && $shift->shift_starts_at->lt(now()->subYear()),
-                ];
-            })->values()->all();
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function getChanges(): array
-    {
-        $changes = GetModelChangesForTrooper::call(
+        $collection = GetModelChangesForTrooper::call(
             trooper: $this->trooper,
             lookback: now()->subDays(self::CHANGES_LOOKBACK_DAYS),
         );
 
-        return $changes->map(fn (ModelChange $change): array => [
-            'what' => $change->auditable_type,
-            'label' => $change->auditable_label,
-            'field' => $change->field_name,
-            'old_value' => $change->old_value,
-            'new_value' => $change->new_value,
-            'when' => $change->created_at->diffForHumans(),
-            'who' => $change->trooper->display_name ?? 'System',
-        ])->values()->all();
+        return new TrooperChangeCollection($collection);
     }
 
     /**
