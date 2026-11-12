@@ -32,12 +32,12 @@ class CalendarControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.calendar'));
 
         $response->assertOk();
-        $response->assertViewHas('holidays', fn (array $holidays) => $holidays['2026-11-26'] === ['Thanksgiving']
+        $response->assertViewHas('holidays', fn (array $holidays) => $holidays['2026-11-26'] === ['Thanksgiving Day']
             && $holidays['2027-07-04'] === ['Independence Day']
             //  the calendar runs November 2026 through October 2027
-            && !isset($holidays['2026-10-31'])
+            && !isset($holidays['2026-10-12'])
             && !isset($holidays['2027-11-11']));
-        $response->assertSeeInOrder(['data-event-date="2026-11-26"', 'Thanksgiving', 'data-event-date="2026-11-27"'], false);
+        $response->assertSeeInOrder(['data-event-date="2026-11-26"', 'Thanksgiving Day', 'data-event-date="2026-11-27"'], false);
     }
 
     public function test_invoke_shows_no_holidays_when_turned_off(): void

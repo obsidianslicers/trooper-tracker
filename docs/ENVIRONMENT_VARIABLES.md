@@ -98,10 +98,10 @@ Configuration reference for all `.env` variables in Troop Tracker.
 ### TRACKER_CALENDAR_HOLIDAYS
 - **Purpose**: Holidays shown on the events calendar (Events → Calendar)
 - **Required**: No
-- **Default**: `us`
-- **Values**: `us` (US federal holidays, plus Valentine's Day, St. Patrick's Day, Easter, Mother's Day, Father's Day, Halloween, Christmas Eve and New Year's Eve), `none`
-- **When to change**: Set to `none` outside the US, or to hide them
-- **Note**: Each holiday shows on its own date, not the weekday a federal holiday is observed on
+- **Default**: `USA` (the US federal holidays)
+- **Values**: a [Yasumi](https://www.yasumi.dev) provider, such as `USA`, `Canada`, `UnitedKingdom`, `UnitedKingdom/Scotland` or `Germany/Bavaria`; or `none`
+- **When to change**: Set to your country or region outside the US, or to `none` to hide them
+- **Note**: Each holiday shows on its own date, not the weekday it's observed on. An unknown provider shows no holidays and logs an error
 
 ### TRACKER_TENTATIVE_CUTOFF_DAYS
 - **Purpose**: Days before an event starts after which troopers can no longer pick "tentative" for their sign-up

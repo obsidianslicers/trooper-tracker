@@ -13,14 +13,14 @@ return [
     | The timezone setting determines which timezone is used when generating
     | calendar links and displaying event times in calendar exports.
     |
-    | "holidays" picks the holidays shown on the events calendar: "us" (US
-    | federal holidays and widely observed days) or "none".
+    | "holidays" is the Yasumi provider whose holidays the events calendar
+    | shows ("USA", "Canada", "UnitedKingdom/England", ...), or "none".
     |
     */
 
     'calendar' => [
         'timezone' => env('TRACKER_CALENDAR_TIMEZONE', env('APP_TIMEZONE', 'UTC')),
-        'holidays' => env('TRACKER_CALENDAR_HOLIDAYS', 'us'),
+        'holidays' => env('TRACKER_CALENDAR_HOLIDAYS', 'USA'),
     ],
 
     /*
