@@ -13,6 +13,10 @@ export type ProfileDetailsPageData = {
     is_untrusted: boolean;
     untrusted_reason: string | null;
     can_mark_untrusted: boolean;
+    can_void: boolean;
+    can_unvoid: boolean;
+    can_mark_rip: boolean;
+    can_unmark_rip: boolean;
     trooper_stamps: ITrooperStamps;
 };
 

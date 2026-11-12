@@ -109,6 +109,16 @@ class UpdateMembershipRequestTest extends TestCase
         $this->assertTrue($validator->errors()->has('assignment'));
     }
 
+    public function test_rules_rejects_identifier_longer_than_column(): void
+    {
+        $organization = Organization::factory()->create();
+        $subject = $this->makeSubject($this->admin, $this->target_trooper, $organization);
+
+        $validator = Validator::make(['identifier' => str_repeat('1', 65)], $subject->rules());
+
+        $this->assertTrue($validator->errors()->has('identifier'));
+    }
+
     public function test_attributes_names_fields_after_organization(): void
     {
         $organization = Organization::factory()->create();

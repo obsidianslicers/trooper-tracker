@@ -46,7 +46,7 @@ class UpdateMembershipRequest extends FormRequest
         $organization = $this->route('organization');
 
         $rules = [
-            'identifier' => ['nullable'],
+            'identifier' => ['nullable', 'string', 'max:64'],
             'assignment' => [
                 Rule::requiredIf(fn () => !empty($this->input('identifier'))),
                 'nullable',
@@ -59,7 +59,7 @@ class UpdateMembershipRequest extends FormRequest
         if ($organization instanceof Organization && !empty($organization->identifier_validation))
         {
             $rules['identifier'] = array_merge(
-                ['nullable'],
+                ['nullable', 'string', 'max:64'],
                 explode('|', $organization->identifier_validation),
                 [new UniqueOrganizationIdentifierRule($organization, $trooper)]
             );
