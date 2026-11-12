@@ -69,4 +69,40 @@ class TrooperCostumeTest extends TestCase
         $this->assertNotNull($resolved);
         $this->assertSame($pending->id, $resolved->id);
     }
+
+    public function test_status_returns_pending_for_unapproved_costume(): void
+    {
+        $trooper = $this->memberOf($this->garrison);
+        $pending = $this->costumeFor($trooper, $this->club, pending: true);
+
+        $this->assertSame('pending', $pending->status);
+    }
+
+    public function test_status_returns_approved_for_approved_costume(): void
+    {
+        $trooper = $this->memberOf($this->garrison);
+        $approved = $this->costumeFor($trooper, $this->club, pending: false);
+
+        $this->assertSame('approved', $approved->status);
+    }
+
+    public function test_status_returns_club_records_for_synchronized_costume(): void
+    {
+        $trooper = $this->memberOf($this->garrison);
+        $synchronized = $this->costumeFor($trooper, $this->club, pending: false);
+        $synchronized->{TrooperCostume::SYNCHRONIZED_AT} = now();
+        $synchronized->save();
+
+        $this->assertSame('club_records', $synchronized->refresh()->status);
+    }
+
+    public function test_status_returns_revoked_for_revoked_costume(): void
+    {
+        $trooper = $this->memberOf($this->garrison);
+        $revoked = $this->costumeFor($trooper, $this->club, pending: false);
+        $revoked->markRevoked($trooper);
+        $revoked->save();
+
+        $this->assertSame('pending', $revoked->refresh()->status);
+    }
 }

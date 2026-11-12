@@ -101,4 +101,15 @@ class TrooperCostume extends BaseTrooperCostume
         $this->{self::APPROVED_AT} = null;
         $this->{self::APPROVED_ID} = null;
     }
+
+    public function getStatusAttribute(): string
+    {
+        return match (true)
+        {
+            $this->trashed() && $this->isRevoked() => 'revoked',
+            $this->isPending() => 'pending',
+            $this->synchronized_at !== null => 'club_records',
+            default => 'approved',
+        };
+    }
 }
