@@ -6,7 +6,7 @@ export * from './PendingPermissionRequestViewModel.svelte';
 export * from './ProfileAuthorityViewModel.svelte';
 export * from './ProfileDetailsViewModel.svelte';
 export * from './ProfileGuardianViewModel.svelte';
-export * from './ProfileMembershipsViewModel.svelte';
+export * from './ProfileMembershipViewModel.svelte';
 export * from './PendingTrooperApprovalViewModel.svelte';
 export * from './PendingTrooperRequestViewModel.svelte';
 export * from './PermissionApprovalsViewModel.svelte';
