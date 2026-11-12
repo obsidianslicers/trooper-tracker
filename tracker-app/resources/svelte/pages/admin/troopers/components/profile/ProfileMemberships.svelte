@@ -1,4 +1,5 @@
 <script lang="ts">
+    import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputSelect from "$lib/components/form/InputSelect.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
@@ -97,3 +98,13 @@
         </form>
     {/each}
 </SlimView>
+
+<ConfirmationModal
+    show={vm.is_confirming}
+    title="Remove membership"
+    message={vm.confirm_message}
+    confirmLabel="Remove"
+    danger={true}
+    onConfirm={vm.confirm}
+    onCancel={vm.cancel}
+/>

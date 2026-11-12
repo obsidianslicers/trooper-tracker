@@ -44,8 +44,27 @@ export class ProfileMembershipsViewModel extends SubmitableViewModel<ProfileMemb
                 createPartialReloadOptions(),
             );
     };
+
+    pending_organization_id = $state<number | null>(null);
+    confirm_message = $state("");
+    is_confirming = $state(false);
+
     remove = (organization_id: number, name: string) => {
-        if (!confirm(`Remove this trooper from ${name}?`)) {
+        this.pending_organization_id = organization_id;
+        this.confirm_message = `Remove this trooper from ${name}?`;
+        this.is_confirming = true;
+    };
+
+    cancel = () => {
+        this.is_confirming = false;
+        this.pending_organization_id = null;
+    };
+
+    confirm = () => {
+        const organization_id = this.pending_organization_id;
+        this.cancel();
+
+        if (organization_id === null) {
             return;
         }
 

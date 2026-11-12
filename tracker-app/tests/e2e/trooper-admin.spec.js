@@ -102,8 +102,8 @@ test.describe('as a moderator', () => {
         await expect(legion_card.getByLabel('Status')).toHaveValue('reserve');
         await expect(legion_card.getByLabel('Member Of').locator('option:checked')).toContainText('E2E Squad');
 
-        page.once('dialog', (dialog) => dialog.accept());
-        await saved(page, () => legion_card.getByRole('button', { name: 'Remove Membership' }).click());
+        await legion_card.getByRole('button', { name: 'Remove Membership' }).click();
+        await saved(page, () => page.getByRole('dialog').getByRole('button', { name: 'Remove', exact: true }).click());
         await page.goto(`${membership}?tab=memberships`);
         await expect(legion_card.getByLabel('Identifier')).toHaveValue('');
     });
