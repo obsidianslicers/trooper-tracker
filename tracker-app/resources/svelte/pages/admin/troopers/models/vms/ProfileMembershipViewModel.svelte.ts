@@ -56,7 +56,12 @@ export class ProfileMembershipViewModel extends SubmitableViewModel<ProfileMembe
                 organization: this.organization.id,
             }),
             {},
-            createPartialReloadOptions(),
+            createPartialReloadOptions({
+                onSuccess: () => {
+                    this.form.identifier = "";
+                    this.form.assignment = null;
+                },
+            }),
         );
     };
 }
