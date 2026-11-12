@@ -39,6 +39,10 @@ class AdminTrooperDetails extends JsonResource
             'is_untrusted' => (bool) $trooper->is_untrusted,
             'untrusted_reason' => $trooper->untrusted_reason,
             'can_mark_untrusted' => $this->actor->can('markUntrusted', $trooper),
+            'can_void' => $this->actor->can('void', $trooper),
+            'can_unvoid' => $this->actor->can('unvoid', $trooper),
+            'can_mark_rip' => $this->actor->can('markRip', $trooper),
+            'can_unmark_rip' => $this->actor->can('unmarkRip', $trooper),
             'trooper_stamps' => new TrooperStampsResource($trooper),
         ];
     }

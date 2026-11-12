@@ -31,15 +31,4 @@ class TrooperCostumeReviewCollection extends ResourceCollection
                 ];
             })->values()->all();
     }
-
-    private function getStatus(TrooperCostume $trooper_costume): string
-    {
-        return match (true)
-        {
-            $trooper_costume->trashed() && $trooper_costume->isRevoked() => 'revoked',
-            $trooper_costume->isPending() => 'pending',
-            $trooper_costume->synchronized_at !== null => 'club_records',
-            default => 'approved',
-        };
-    }
 }

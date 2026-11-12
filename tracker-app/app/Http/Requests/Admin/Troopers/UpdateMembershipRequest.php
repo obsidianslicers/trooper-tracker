@@ -46,7 +46,7 @@ class UpdateMembershipRequest extends FormRequest
         $organization = $this->route('organization');
 
         $rules = [
-            'identifier' => ['nullable'],
+            'identifier' => ['nullable', 'string', 'max:64'],
             'assignment' => [
                 Rule::requiredIf(fn () => !empty($this->input('identifier'))),
                 'nullable',

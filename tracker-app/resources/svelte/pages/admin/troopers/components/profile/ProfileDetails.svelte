@@ -1,4 +1,5 @@
 <script lang="ts">
+    import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
     import InputCheckbox from "$lib/components/form/InputCheckbox.svelte";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputSelect from "$lib/components/form/InputSelect.svelte";
@@ -32,6 +33,8 @@
     {#if details.is_invalid}
         <Alert type="danger">This trooper was created in error (invalid).</Alert
         >
+    {/if}
+    {#if details.can_unvoid}
         <Button
             label="Restore"
             click={() => vm.action("unvoid")}
@@ -40,6 +43,8 @@
     {/if}
     {#if details.is_departed}
         <Alert type="secondary">This trooper is departed (R.I.P.).</Alert>
+    {/if}
+    {#if details.can_unmark_rip}
         <Button
             label="Unmark R.I.P."
             click={() => vm.action("unrip")}
@@ -140,7 +145,7 @@
         <hr />
     {/if}
 
-    {#if !details.is_departed && !details.is_invalid}
+    {#if details.can_mark_rip && !details.is_invalid}
         <div class="row mb-3">
             <div class="col text-end">
                 <Button
@@ -150,6 +155,8 @@
                 />
             </div>
         </div>
+    {/if}
+    {#if details.can_void && !details.is_departed}
         <div class="row mb-3">
             <div class="col text-end">
                 <Button
@@ -163,3 +170,13 @@
 
     <TrooperStamps trooper_stamps={details.trooper_stamps} />
 </SlimView>
+
+<ConfirmationModal
+    show={vm.is_confirming}
+    title={vm.confirm_prompt.title}
+    message={vm.confirm_prompt.message}
+    confirmLabel={vm.confirm_prompt.label}
+    danger={true}
+    onConfirm={vm.confirm}
+    onCancel={vm.cancel}
+/>
