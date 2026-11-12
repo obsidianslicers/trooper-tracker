@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Pages;
 
 use App\Http\Controllers\PageController;
-use App\Messages\Troopers\PageData\ProfilePageData;
+use App\Messages\Troopers\PageData\AdminProfilePageData;
 use App\Models\Trooper;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -34,7 +34,7 @@ class ProfileController extends PageController
     {
         $this->authorize('update', $trooper);
 
-        $data = ProfilePageData::call($request);
+        $data = AdminProfilePageData::call($request);
 
         return Inertia::render('admin/troopers/Profile', $data);
     }

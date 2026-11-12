@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Http\Controllers\Controller;
-use App\Messages\Troopers\PageData\ProfilePageData;
+use App\Messages\Troopers\PageData\AdminProfilePageData;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -21,7 +21,7 @@ abstract class ProfileCommandController extends Controller
     protected function respondWithResults(Request $request): InertiaResponse
     {
         return Inertia::render('admin/troopers/Profile', [
-            'results' => ProfilePageData::call($request),
+            'results' => AdminProfilePageData::call($request),
         ]);
     }
 }

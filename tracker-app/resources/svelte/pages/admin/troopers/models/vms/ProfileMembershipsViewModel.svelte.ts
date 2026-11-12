@@ -32,14 +32,18 @@ export class ProfileMembershipsViewModel extends SubmitableViewModel<ProfileMemb
         });
     }
 
-    submit = (e: Event) => {
+    submitOrganization = (e: Event, organization_id: number) => {
         e.preventDefault();
-        this.form.post(
-            getRoute("admin.troopers.update-memberships", { trooper: this.trooper_id }),
-            createPartialReloadOptions(),
-        );
+        this.form
+            .transform((data) => data.organizations[organization_id])
+            .post(
+                getRoute("admin.troopers.update-membership", {
+                    trooper: this.trooper_id,
+                    organization: organization_id,
+                }),
+                createPartialReloadOptions(),
+            );
     };
-
     remove = (organization_id: number, name: string) => {
         if (!confirm(`Remove this trooper from ${name}?`)) {
             return;

@@ -20,7 +20,7 @@
     // Commands answer with the refreshed page data as `results` (partial reload).
     let data = $derived<ProfilePageData>(page.props.results ?? page.props);
 
-    pageState.title = page.props.display_name;
+    pageState.title = "Trooper Profile";
 
     const tabs = [
         "profile",
@@ -31,8 +31,12 @@
         "events",
         "changes",
     ];
-    const requested_tab = new URLSearchParams(page.url.split("?")[1] ?? "").get("tab");
-    const default_tab = tabs.includes(requested_tab ?? "") ? requested_tab : "profile";
+    const requested_tab = new URLSearchParams(page.url.split("?")[1] ?? "").get(
+        "tab",
+    );
+    const default_tab = tabs.includes(requested_tab ?? "")
+        ? requested_tab
+        : "profile";
 </script>
 
 <Tabs defaultTab={default_tab}>
@@ -51,19 +55,31 @@
     </TabHeader>
     <TabContent>
         <TabPanel id="profile">
-            <ProfileDetails trooper_id={data.trooper_id} details={data.details} />
+            <ProfileDetails
+                trooper_id={data.trooper_id}
+                details={data.details}
+            />
         </TabPanel>
         {#if data.authority}
             <TabPanel id="authority">
-                <ProfileAuthority trooper_id={data.trooper_id} authority={data.authority} />
+                <ProfileAuthority
+                    trooper_id={data.trooper_id}
+                    authority={data.authority}
+                />
             </TabPanel>
         {/if}
         <TabPanel id="memberships">
-            <ProfileMemberships trooper_id={data.trooper_id} memberships={data.memberships} />
+            <ProfileMemberships
+                trooper_id={data.trooper_id}
+                memberships={data.memberships}
+            />
         </TabPanel>
         {#if data.guardian}
             <TabPanel id="guardian">
-                <ProfileGuardian trooper_id={data.trooper_id} guardian={data.guardian} />
+                <ProfileGuardian
+                    trooper_id={data.trooper_id}
+                    guardian={data.guardian}
+                />
             </TabPanel>
         {/if}
         <TabPanel id="costumes">

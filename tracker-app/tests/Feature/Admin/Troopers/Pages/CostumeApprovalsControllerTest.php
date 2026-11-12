@@ -110,8 +110,8 @@ class CostumeApprovalsControllerTest extends TestCase
             ->get(route('admin.troopers.profile', $trooper))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->where('costumes.reviews.0.status', 'revoked')
-                ->where('costumes.reviews.0.can_review', true));
+                ->where('costumes.0.status', 'revoked')
+                ->where('costumes.0.can_review', true));
 
         $this->actingAs($moderator)
             ->post(route('admin.troopers.costumes.undo-revoke', ['trooper_costume' => $approved->id]))
@@ -143,8 +143,8 @@ class CostumeApprovalsControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertInertia(fn ($page) => $page
-            ->where('costumes.reviews.0.status', 'pending')
-            ->where('costumes.reviews.0.can_review', true));
+            ->where('costumes.0.status', 'pending')
+            ->where('costumes.0.can_review', true));
     }
 
     public function test_dashboard_counts_pending_costumes(): void

@@ -34,7 +34,7 @@
         {#if vm.is_moderator_role}
             <table class="table table-sm">
                 <thead>
-                    <tr><th>Organization</th><th>Moderator</th><th>Notify</th></tr>
+                    <tr><th>Organization</th><th>Moderator</th><th>Notify</th><th>Member</th></tr>
                 </thead>
                 <tbody>
                     {#each vm.organizations as organization (organization.id)}
@@ -53,7 +53,14 @@
                                 />
                             </td>
                             <td>
-                                <InputCheckbox bind:checked={vm.form.organizations[organization.id].should_notify} />
+                                {#if organization.should_notify}
+                                    <i class="fa fa-fw fa-check text-success"></i>
+                                {/if}
+                            </td>
+                            <td>
+                                {#if organization.is_member}
+                                    <i class="fa fa-fw fa-check text-success"></i>
+                                {/if}
                             </td>
                         </tr>
                     {/each}

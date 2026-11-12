@@ -11,26 +11,22 @@ use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class UpdateMembershipsControllerTest extends TestCase
+class UpdateMembershipControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_updates_memberships_and_redirects_back_to_membership(): void
+    public function test_invoke_updates_membership_and_returns_results(): void
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $subject = Trooper::factory()->create();
         $organization = Organization::factory()->create();
 
-        $payload = [
-            'organizations' => [
-                (string) $organization->id => [
-                    'identifier' => null,
-                    'assignment' => null,
-                ],
-            ],
-        ];
+        $payload = ['identifier' => null, 'assignment' => null];
 
-        $response = $this->actingAs($trooper)->post(route('admin.troopers.update-memberships', $subject), $payload);
+        $response = $this->actingAs($trooper)->post(
+            route('admin.troopers.update-membership', [$subject, $organization]),
+            $payload
+        );
 
         $response->assertOk();
     }
@@ -46,16 +42,15 @@ class UpdateMembershipsControllerTest extends TestCase
             ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE]);
 
         $payload = [
-            'organizations' => [
-                (string) $organization->id => [
-                    'identifier' => null,
-                    'assignment' => null,
-                    'membership_status' => MembershipStatus::RETIRED->value,
-                ],
-            ],
+            'identifier' => null,
+            'assignment' => null,
+            'membership_status' => MembershipStatus::RETIRED->value,
         ];
 
-        $response = $this->actingAs($trooper)->post(route('admin.troopers.update-memberships', $subject), $payload);
+        $response = $this->actingAs($trooper)->post(
+            route('admin.troopers.update-membership', [$subject, $organization]),
+            $payload
+        );
 
         $response->assertOk();
         $this->assertDatabaseHas('tt_trooper_organizations', [
@@ -65,11 +60,29 @@ class UpdateMembershipsControllerTest extends TestCase
         ]);
     }
 
+    public function test_invoke_rejects_invalid_membership_status(): void
+    {
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+        $subject = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('admin.troopers.update-membership', [$subject, $organization]),
+            ['membership_status' => 'invalid-status']
+        );
+
+        $response->assertSessionHasErrors('membership_status');
+    }
+
     public function test_invoke_requires_authentication(): void
     {
         $subject = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
 
-        $response = $this->post(route('admin.troopers.update-memberships', $subject), ['organizations' => []]);
+        $response = $this->post(
+            route('admin.troopers.update-membership', [$subject, $organization]),
+            []
+        );
 
         $response->assertRedirect(route('auth.login'));
     }

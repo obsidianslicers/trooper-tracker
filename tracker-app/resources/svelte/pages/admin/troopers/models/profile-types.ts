@@ -58,14 +58,12 @@ export type ProfileCostumeReview = {
     costume: string | null;
     organization: string | null;
     status: "revoked" | "pending" | "club_records" | "approved";
+    is_approved: boolean;
     by: string | null;
     can_review: boolean;
 };
 
-export type ProfileCostumesPageData = {
-    attached: { name: string; organizations: string }[];
-    reviews: ProfileCostumeReview[];
-};
+export type ProfileCostumesPageData = ProfileCostumeReview[];
 
 export type ProfileEvent = {
     organization: string;

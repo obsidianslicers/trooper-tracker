@@ -7,7 +7,6 @@ namespace App\Messages\Troopers\PageData;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Messages\Changes\Queries\GetModelChangesForTrooper;
-use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForDisplay;
 use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForReview;
 use App\Messages\Troopers\Queries\GetMostRecentEventsForTrooper;
 use App\Messages\Troopers\Queries\Membership\GetTrooperOrganizationMemberships;
@@ -24,7 +23,7 @@ use Hyperdrive\Message;
  *
  * @method static array<string, mixed> call()
  */
-final class ProfilePageData extends Message
+final class AdminProfilePageData extends Message
 {
     private const int CHANGES_LOOKBACK_DAYS = 30;
 
@@ -213,33 +212,31 @@ final class ProfilePageData extends Message
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<int, array<string, mixed>>
      */
     private function getCostumes(): array
     {
-        $attached = GetTrooperCostumesForDisplay::call(trooper: $this->trooper);
-
-        $reviews = GetTrooperCostumesForReview::call(
+        $costumes = GetTrooperCostumesForReview::call(
             trooper: $this->trooper,
             moderator: $this->actor,
         );
 
-        return [
-            'attached' => $attached->map(fn ($costume): array => [
-                'name' => $costume->name,
-                'organizations' => $costume->costume_organizations,
-            ])->values()->all(),
-            'reviews' => $reviews->map(fn (TrooperCostume $tc): array => [
+        return $costumes->map(function (TrooperCostume $tc): array
+        {
+            $status = $this->getCostumeStatus($tc);
+
+            return [
                 'id' => $tc->id,
                 'costume' => $tc->organization_costume?->costume?->name,
                 'organization' => $tc->organization_costume?->organization?->name,
-                'status' => $this->getCostumeStatus($tc),
+                'status' => $status,
+                'is_approved' => in_array($status, ['approved', 'club_records'], true),
                 'by' => $tc->trashed() && $tc->isRevoked()
                     ? $tc->revoked_by?->display_name
                     : $tc->approved_by?->display_name,
                 'can_review' => (bool) $tc->can_review,
-            ])->values()->all(),
-        ];
+            ];
+        })->values()->all();
     }
 
     private function getCostumeStatus(TrooperCostume $trooper_costume): string

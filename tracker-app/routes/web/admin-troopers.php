@@ -25,7 +25,7 @@ use App\Http\Controllers\Admin\Troopers\Commands\UnmarkTrooperRipController;
 use App\Http\Controllers\Admin\Troopers\Commands\UnvoidTrooperController;
 use App\Http\Controllers\Admin\Troopers\Commands\UpdateAuthorityController;
 use App\Http\Controllers\Admin\Troopers\Commands\UpdateGuardianController;
-use App\Http\Controllers\Admin\Troopers\Commands\UpdateMembershipsController;
+use App\Http\Controllers\Admin\Troopers\Commands\UpdateMembershipController;
 use App\Http\Controllers\Admin\Troopers\Commands\UpdateProfileController;
 use App\Http\Controllers\Admin\Troopers\Commands\VoidTrooperController;
 use App\Http\Controllers\Admin\Troopers\Pages\ApproveMembershipsController;
@@ -120,7 +120,7 @@ Route::prefix('admin/troopers')
         Route::get('/{trooper}', ProfileController::class)->name('profile');
         Route::post('/{trooper}/profile', UpdateProfileController::class)->name('update-profile');
         Route::post('/{trooper}/authority', UpdateAuthorityController::class)->name('update-authority');
-        Route::post('/{trooper}/memberships', UpdateMembershipsController::class)->name('update-memberships');
+        Route::post('/{trooper}/memberships/{organization}', UpdateMembershipController::class)->name('update-membership');
         Route::post('/{trooper}/memberships/{organization}/remove', RemoveMembershipController::class)->name('remove-membership');
         Route::post('/{trooper}/guardian', UpdateGuardianController::class)->name('update-guardian');
         Route::post('/{trooper}/void', VoidTrooperController::class)->name('void');
