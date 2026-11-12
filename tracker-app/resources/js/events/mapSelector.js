@@ -2,6 +2,7 @@ export default function mapSelector(events) {
     return {
         map: null,
         markers: [],
+        popup: null,
 
         init() {
             this.map = new google.maps.Map(this.$el, {
@@ -26,27 +27,40 @@ export default function mapSelector(events) {
             });
         },
 
+        //  one popup for the whole map: clicking another pin moves it there, so only one
+        //  event is open at a time
         showBootstrapPopup(event, marker) {
-            const content = `
-                <div class="card shadow-sm" style="width: 16rem;">
-                    <div class="card-body p-2">
-                        <h6 class="card-title mb-1">
-                            <a href="${event.url}" class="text-decoration-none fw-bold">
-                                ${event.name}
-                            </a>
-                        </h6>
-                        <div class="small text-muted">
-                            ${event.date_range}
-                        </div>
-                    </div>
+            if (!this.popup) {
+                this.popup = new google.maps.InfoWindow();
+
+                //  a click on the map itself closes it
+                this.map.addListener('click', () => this.popup.close());
+            }
+
+            this.popup.setContent(this.popupContent(event));
+            this.popup.open({ map: this.map, anchor: marker });
+        },
+
+        //  built from elements so the event's name is shown as text, never read as HTML
+        popupContent(event) {
+            const card = document.createElement('div');
+            card.className = 'card shadow-sm';
+            card.style.width = '16rem';
+            card.innerHTML = `
+                <div class="card-body p-2">
+                    <h6 class="card-title mb-1">
+                        <a class="text-decoration-none fw-bold"></a>
+                    </h6>
+                    <div class="small text-muted"></div>
                 </div>
             `;
 
-            const info = new google.maps.InfoWindow({
-                content: content
-            });
+            const link = card.querySelector('a');
+            link.href = event.url;
+            link.textContent = event.name;
+            card.querySelector('.text-muted').textContent = event.date_range;
 
-            info.open(this.map, marker);
+            return card;
         },
 
         centerOnUser() {
