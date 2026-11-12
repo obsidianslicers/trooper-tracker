@@ -60,6 +60,7 @@ export class ProfileMembershipViewModel extends SubmitableViewModel<ProfileMembe
                 onSuccess: () => {
                     this.form.identifier = "";
                     this.form.assignment = null;
+                    this.form.membership_status = "active";
                 },
             }),
         );
