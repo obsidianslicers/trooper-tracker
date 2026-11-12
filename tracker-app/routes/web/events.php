@@ -38,6 +38,7 @@ Route::prefix('events')
         Route::get('/closed', ClosedController::class)->name('closed');
         Route::get('/cancelled', CancelledController::class)->name('cancelled');
         Route::get('/details/{event}', EventDisplayController::class)->name('display');
+        Route::redirect('/{event}', '/events/details/{event}')->whereNumber('event');
         Route::post('/details/{event}/watch', ToggleEventWatchHtmxController::class)->name('toggle-watch-htmx');
         Route::post('/details/{event}/ack-mission-brief', MissionBriefAcknowledgeController::class)->name('ack-mission-brief');
         Route::get('/details/{event}/calendar.ics', DownloadEventIcsController::class)->name('download-ics');

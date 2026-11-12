@@ -24,7 +24,7 @@ class MembershipApprovedNotification extends BaseNotification
         return [
             'title' => 'Membership Approved',
             'body' => 'Welcome, Trooper!',
-            'url' => '/account/profile',
+            'url' => route('account.index', absolute: false),
         ];
     }
 

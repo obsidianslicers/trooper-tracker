@@ -59,6 +59,7 @@ Route::prefix('admin/troopers')
             ->name('approvals.')
             ->group(function ()
             {
+                Route::redirect('/', '/admin/troopers/approvals/index');
                 Route::get('/index', ApproveMembershipsController::class)->name('index');
                 Route::post('/approve/{trooper}', ApproveTrooperMembershipController::class)->name('approve-membership');
                 Route::post('/deny/{trooper}', DenyTrooperMembershipController::class)->name('deny-membership');

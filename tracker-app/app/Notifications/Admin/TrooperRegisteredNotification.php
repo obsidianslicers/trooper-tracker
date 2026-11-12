@@ -24,7 +24,7 @@ class TrooperRegisteredNotification extends BaseNotification
         return [
             'title' => 'New Trooper Registration',
             'body' => 'A new trooper is awaiting approval.',
-            'url' => '/admin/troopers/approvals',
+            'url' => route('admin.troopers.approvals.index', absolute: false),
         ];
     }
 
