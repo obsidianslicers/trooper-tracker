@@ -119,6 +119,21 @@ class UpdateMembershipRequestTest extends TestCase
         $this->assertTrue($validator->errors()->has('identifier'));
     }
 
+    public function test_rules_keeps_numeric_identifier_rules_for_organization(): void
+    {
+        $organization = Organization::factory()->create([
+            'identifier_validation' => 'integer|between:100,99999',
+        ]);
+        $subject = $this->makeSubject($this->admin, $this->target_trooper, $organization);
+
+        $validator = Validator::make(
+            ['identifier' => '92222', 'assignment' => $organization->id],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->errors()->has('identifier'));
+    }
+
     public function test_attributes_names_fields_after_organization(): void
     {
         $organization = Organization::factory()->create();

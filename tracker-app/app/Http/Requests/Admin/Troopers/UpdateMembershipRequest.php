@@ -59,7 +59,7 @@ class UpdateMembershipRequest extends FormRequest
         if ($organization instanceof Organization && !empty($organization->identifier_validation))
         {
             $rules['identifier'] = array_merge(
-                ['nullable', 'string', 'max:64'],
+                ['nullable'],
                 explode('|', $organization->identifier_validation),
                 [new UniqueOrganizationIdentifierRule($organization, $trooper)]
             );
