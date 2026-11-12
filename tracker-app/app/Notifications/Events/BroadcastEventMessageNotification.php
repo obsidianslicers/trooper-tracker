@@ -27,7 +27,7 @@ class BroadcastEventMessageNotification extends BaseNotification
         return [
             'title' => 'Event Message: '.$this->event->name,
             'body' => $this->message,
-            'url' => '/events/'.$this->event->id,
+            'url' => route('events.display', $this->event, absolute: false),
         ];
     }
 

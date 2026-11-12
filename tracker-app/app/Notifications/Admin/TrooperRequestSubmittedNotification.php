@@ -30,7 +30,7 @@ class TrooperRequestSubmittedNotification extends BaseNotification
         return [
             'title' => 'Club Join Request',
             'body' => "{$trooper->display_name} has requested to join {$org->name}.",
-            'url' => '/admin/troopers/approvals',
+            'url' => route('admin.troopers.approvals.index', absolute: false),
         ];
     }
 

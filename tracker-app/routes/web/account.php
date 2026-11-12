@@ -46,6 +46,7 @@ Route::prefix('account')
     ->group(function ()
     {
         Route::get('/', IndexController::class)->name('index');
+        Route::redirect('/profile', '/account');
         Route::post('/update/profile', UpdateProfileController::class)->name('update-profile');
         Route::post('/update/notifications/frequency', UpdateNotificationFrequencyController::class)->name('update-notification-frequency');
         Route::post('/update/notifications/push', UpdatePushNotificationsController::class)->name('update-push-notifications');

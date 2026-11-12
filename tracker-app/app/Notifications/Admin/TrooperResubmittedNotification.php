@@ -26,7 +26,7 @@ class TrooperResubmittedNotification extends BaseNotification
         return [
             'title' => 'Trooper Resubmitted Application',
             'body' => "{$this->trooper->display_name} has resubmitted their application after a denial.",
-            'url' => '/admin/troopers/approvals',
+            'url' => route('admin.troopers.approvals.index', absolute: false),
         ];
     }
 
