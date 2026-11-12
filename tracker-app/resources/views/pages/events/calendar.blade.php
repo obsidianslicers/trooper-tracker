@@ -47,11 +47,13 @@
                         <tr>
 
                             @foreach ($week['days'] as $date)
-                                <td data-event-date="{{ $date->toDateString() }}">
+                                <td data-event-date="{{ $date->toDateString() }}"
+                                    @class(['calendar-other-month' => $date->month !== $month['date']->month])>
 
                                     <div class="calendar-content">
 
-                                        <div class="float-end fw-bold small {{ $date->month !== $month['date']->month ? 'text-muted' : '' }}">
+                                        <div class="calendar-date float-end fw-bold small {{ $date->month !== $month['date']->month ? 'text-muted' : '' }}">
+                                            <span class="d-md-none">{{ $date->format('D') }}</span>
                                             {{ $date->format('j') }}
                                         </div>
                                         <br />

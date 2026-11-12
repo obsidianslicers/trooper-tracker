@@ -45,7 +45,9 @@ Events → Calendar shows holidays in their day cells, under the date and above 
 
 `GetHolidays::call(from:, to:)` returns the names by date. `TRACKER_CALENDAR_HOLIDAYS` (`tracker.calendar.holidays`) picks the set: `us`, the default, is the US federal holidays plus Valentine's Day, St. Patrick's Day, Easter, Mother's Day, Father's Day, Halloween, Christmas Eve and New Year's Eve; `none` turns them off. Dates are worked out each year (Easter by the Gregorian computus), with no package or table, and each holiday is shown on its own date rather than the weekday a federal holiday is observed on.
 
-**Source:** `app/Messages/Events/Queries/GetHolidays.php`
+**On phones** (below 768px) the calendar isn't a grid: seven columns leave about 45px a day, too narrow to read an event name, so each month lists only the days that have an event or holiday showing, as "Thu 26" followed by its holidays and events. Days from the neighbouring months are left out (that month lists them), and so are days whose events the search or filters hide. It's CSS only (`.event-calendar` in `resources/css/app.scss`); the page and its filters are the same at every width.
+
+**Source:** `app/Messages/Events/Queries/GetHolidays.php`, `resources/views/pages/events/calendar.blade.php`
 
 ---
 
