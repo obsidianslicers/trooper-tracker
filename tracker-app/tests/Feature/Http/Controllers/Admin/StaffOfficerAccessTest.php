@@ -106,12 +106,12 @@ class StaffOfficerAccessTest extends TestCase
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $subject = Trooper::factory()->create();
 
-        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.authority', $subject), [
+        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.update-authority', $subject), [
             Trooper::MEMBERSHIP_ROLE => MembershipRole::STAFF_OFFICER->value,
             'organizations' => [],
         ]);
 
-        $response->assertRedirect(route('admin.troopers.list'));
+        $response->assertOk();
         $this->assertSame(MembershipRole::STAFF_OFFICER, $subject->fresh()->membership_role);
     }
 
@@ -120,7 +120,7 @@ class StaffOfficerAccessTest extends TestCase
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $subject = Trooper::factory()->create();
 
-        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.authority', $subject), [
+        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.update-authority', $subject), [
             Trooper::MEMBERSHIP_ROLE => MembershipRole::SYSTEM_OWNER->value,
             'organizations' => [],
         ]);
@@ -135,11 +135,11 @@ class StaffOfficerAccessTest extends TestCase
         $administrator = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($staff_officer)
-            ->get(route('admin.troopers.authority', $administrator))
-            ->assertForbidden();
+            ->get(route('admin.troopers.profile', $administrator))
+            ->assertInertia(fn ($page) => $page->where('authority', null));
 
         $this->actingAs($staff_officer)
-            ->post(route('admin.troopers.authority', $administrator), [
+            ->post(route('admin.troopers.update-authority', $administrator), [
                 Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER->value,
                 'organizations' => [],
             ])
@@ -153,11 +153,19 @@ class StaffOfficerAccessTest extends TestCase
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $subject = Trooper::factory()->create();
 
-        $response = $this->actingAs($staff_officer)->get(route('admin.troopers.authority', $subject));
+        $response = $this->actingAs($staff_officer)
+            ->get(route('admin.troopers.profile', $subject));
 
         $response->assertOk();
-        $response->assertSee('value="staff_officer"', false);
-        $response->assertDontSee('value="system_owner"', false);
+        $response->assertInertia(fn ($page) => $page
+            ->component('admin/troopers/Profile')
+            ->where('authority.role_options', function ($options): bool
+            {
+                $values = collect($options)->pluck('value')->all();
+
+                return in_array('staff_officer', $values, true)
+                    && !in_array('system_owner', $values, true);
+            }));
     }
 
     public function test_staff_officer_cannot_make_themselves_an_administrator(): void
@@ -165,7 +173,7 @@ class StaffOfficerAccessTest extends TestCase
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
 
         $response = $this->actingAs($staff_officer)
-            ->post(route('admin.troopers.authority', $staff_officer), [
+            ->post(route('admin.troopers.update-authority', $staff_officer), [
                 Trooper::MEMBERSHIP_ROLE => MembershipRole::SYSTEM_OWNER->value,
                 'organizations' => [],
             ]);
@@ -183,7 +191,7 @@ class StaffOfficerAccessTest extends TestCase
         $administrator = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($staff_officer)
-            ->post(route('admin.troopers.profile', $administrator), [
+            ->post(route('admin.troopers.update-profile', $administrator), [
                 Trooper::LEGAL_NAME => 'Taken Over',
                 Trooper::DISPLAY_NAME => 'Taken Over',
                 Trooper::EMAIL => 'staff@example.com',
@@ -212,16 +220,11 @@ class StaffOfficerAccessTest extends TestCase
         $subject = Trooper::factory()->create();
 
         $response = $this->actingAs($administrator)
-            ->get(route('admin.troopers.authority', $subject));
+            ->get(route('admin.troopers.profile', $subject));
 
-        $response->assertSeeInOrder([
-            'value="member"',
-            'value="handler"',
-            'value="visitor"',
-            'value="event_coordinator"',
-            'value="moderator"',
-            'value="staff_officer"',
-            'value="system_owner"',
-        ], false);
+        $response->assertInertia(fn ($page) => $page
+            ->where('authority.role_options.0.value', 'member')
+            ->where('authority.role_options.4.value', 'moderator')
+            ->where('authority.role_options.6.value', 'system_owner'));
     }
 }

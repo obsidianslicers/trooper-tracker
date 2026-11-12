@@ -10,21 +10,28 @@ async function openTrooper(page, name, tab = null) {
     await page.goto(`/admin/troopers?search_term=${encodeURIComponent(name)}`);
     const row = page.getByRole('row').filter({ has: page.getByText(name, { exact: true }) });
     const href = await row.locator('a[href*="/admin/troopers/"]').last().getAttribute('href');
-    await page.goto(tab ? `${href}/${tab}` : href);
+    await page.goto(tab ? `${href}?tab=${tab}` : href);
 
     return href;
 }
 
 function tab(page, name) {
-    return page.locator('a.nav-link[href*="/admin/troopers/"]').filter({ hasText: name });
+    return page.locator('#app button.nav-link').filter({ hasText: name });
 }
 
-function form(page) {
-    return page.locator('main form, .main-content form').last();
+async function saved(page, action) {
+    const response = page.waitForResponse((r) => r.url().includes('/admin/troopers/') && r.request().method() !== 'GET');
+    await action();
+    await response;
+    await page.waitForLoadState('networkidle');
 }
 
-function field(page, name) {
-    return page.locator(`[name="${name}"]`);
+async function selectLike(select, text) {
+    await select.selectOption(await select.locator('option', { hasText: text }).first().getAttribute('value'));
+}
+
+function card(page, name) {
+    return page.locator('form').filter({ has: page.locator('.card-header', { hasText: name }) });
 }
 
 test.describe('as a moderator', () => {
@@ -45,16 +52,15 @@ test.describe('as a moderator', () => {
         const profile = await openTrooper(page, seeded.profileSubject);
         await expect(tab(page, 'Authority')).toHaveCount(0);
 
-        await field(page, 'legal_name').fill('E2E Profile Subject Legal');
-        await field(page, 'phone').fill('5550123456');
-        await field(page, 'membership_status').selectOption({ label: 'Reserve' });
-        await page.getByRole('button', { name: 'Update' }).click();
-        await expect(page).toHaveURL(/\/admin\/troopers$/);
+        await page.getByLabel('Legal Name').fill('E2E Profile Subject Legal');
+        await page.getByLabel('Phone').fill('5550123456');
+        await page.getByLabel('Status').selectOption({ label: 'Reserve' });
+        await saved(page, () => page.getByRole('button', { name: 'Update', exact: true }).click());
 
         await page.goto(profile);
-        await expect(field(page, 'legal_name')).toHaveValue('E2E Profile Subject Legal');
-        await expect(field(page, 'phone')).toHaveValue('(555) 012-3456');
-        await expect(field(page, 'membership_status')).toHaveValue('reserve');
+        await expect(page.getByLabel('Legal Name')).toHaveValue('E2E Profile Subject Legal');
+        await expect(page.getByLabel('Phone')).toHaveValue(/555.*012.*3456/);
+        await expect(page.getByLabel('Status')).toHaveValue('reserve');
 
         await tab(page, 'Changes').click();
         const change = page.getByRole('row').filter({ hasText: 'membership_status' });
@@ -65,12 +71,12 @@ test.describe('as a moderator', () => {
     test('a profile needs a legal name and an email no one else uses', async ({ page }) => {
         await openTrooper(page, seeded.authoritySubject);
 
-        await field(page, 'legal_name').fill('');
-        await field(page, 'email').fill(personas.member.email);
-        await page.getByRole('button', { name: 'Update' }).click();
+        await page.getByLabel('Legal Name').fill('');
+        await page.getByLabel('Email').fill(personas.member.email);
+        await page.getByRole('button', { name: 'Update', exact: true }).click();
 
-        await expect(form(page).getByText('The legal name field is required.')).toBeVisible();
-        await expect(form(page).getByText('The email has already been taken.')).toBeVisible();
+        await expect(page.locator('.text-danger').getByText('The legal name field is required.')).toBeVisible();
+        await expect(page.locator('.text-danger').getByText('The email has already been taken.')).toBeVisible();
     });
 
     test('cannot open the profile of a trooper outside their clubs', async ({ page }) => {
@@ -82,25 +88,24 @@ test.describe('as a moderator', () => {
     });
 
     test('changes a trooper\'s club membership, unit and member ID, then removes it', async ({ page }) => {
-        const legion = seeded.legionId;
-        const membership = await openTrooper(page, seeded.membershipSubject.name, 'membership');
-        await expect(field(page, `organizations[${legion}][identifier]`)).toHaveValue('91111');
+        const membership = await openTrooper(page, seeded.membershipSubject.name, 'memberships');
+        const legion_card = card(page, '501st Legion');
+        await expect(legion_card.getByLabel('Identifier')).toHaveValue('91111');
 
-        await field(page, `organizations[${legion}][identifier]`).fill('92222');
-        await field(page, `organizations[${legion}][membership_status]`).selectOption({ label: 'Reserve' });
-        await field(page, `picker-organizations[${legion}][assignment]`).click();
-        await page.getByRole('dialog').getByRole('listitem').filter({ hasText: 'E2E Squad' }).click();
-        await page.getByRole('button', { name: 'Update' }).click();
+        await legion_card.getByLabel('Identifier').fill('92222');
+        await legion_card.getByLabel('Status').selectOption({ label: 'Reserve' });
+        await selectLike(legion_card.getByLabel('Member Of'), 'E2E Squad');
+        await saved(page, () => legion_card.getByRole('button', { name: 'Update' }).click());
 
-        await page.goto(`${membership}/membership`);
-        await expect(field(page, `organizations[${legion}][identifier]`)).toHaveValue('92222');
-        await expect(field(page, `organizations[${legion}][membership_status]`)).toHaveValue('reserve');
-        await expect(field(page, `picker-organizations[${legion}][assignment]`)).toHaveValue(/E2E Squad/);
+        await page.goto(`${membership}?tab=memberships`);
+        await expect(legion_card.getByLabel('Identifier')).toHaveValue('92222');
+        await expect(legion_card.getByLabel('Status')).toHaveValue('reserve');
+        await expect(legion_card.getByLabel('Member Of').locator('option:checked')).toContainText('E2E Squad');
 
-        await page.getByRole('button', { name: 'Remove 501st Legion membership' }).click();
-        await page.goto(`${membership}/membership`);
-        await expect(page.getByRole('button', { name: 'Remove 501st Legion membership' })).toHaveCount(0);
-        await expect(field(page, `organizations[${legion}][identifier]`)).toHaveValue('');
+        await legion_card.getByRole('button', { name: 'Remove Membership' }).click();
+        await saved(page, () => page.getByRole('dialog').getByRole('button', { name: 'Remove', exact: true }).click());
+        await page.goto(`${membership}?tab=memberships`);
+        await expect(legion_card.getByLabel('Identifier')).toHaveValue('');
     });
 
     test('sees a trooper\'s costumes', async ({ page }) => {
@@ -113,7 +118,7 @@ test.describe('as a moderator', () => {
         await page.goto('/admin/troopers');
         await page.getByRole('link', { name: 'Recruit Trooper' }).click();
 
-        await field(page, 'picker-trooper_id').click();
+        await page.locator('[name="picker-trooper_id"]').click();
         const picker = page.getByRole('dialog');
         await picker.getByRole('textbox').fill(seeded.recruitTarget);
         await picker.getByRole('listitem').filter({ hasText: seeded.recruitTarget }).click();
@@ -122,9 +127,10 @@ test.describe('as a moderator', () => {
         await page.locator('#identifier').fill('95555');
         await page.getByRole('button', { name: 'Add to Roster' }).click();
 
-        await openTrooper(page, seeded.recruitTarget, 'membership');
-        await expect(field(page, `organizations[${seeded.legionId}][identifier]`)).toHaveValue('95555');
-        await expect(field(page, `picker-organizations[${seeded.legionId}][assignment]`)).toHaveValue(/E2E Squad/);
+        await openTrooper(page, seeded.recruitTarget, 'memberships');
+        const legion_card = card(page, '501st Legion');
+        await expect(legion_card.getByLabel('Identifier')).toHaveValue('95555');
+        await expect(legion_card.getByLabel('Member Of').locator('option:checked')).toContainText('E2E Squad');
     });
 });
 
@@ -134,14 +140,14 @@ test.describe('as an administrator', () => {
     test('makes a trooper a moderator of a garrison', async ({ page }) => {
         await openTrooper(page, seeded.authoritySubject, 'authority');
 
-        await field(page, 'membership_role').selectOption({ label: 'Moderator' });
-        await page.getByLabel('E2E Garrison').check();
-        await expect(page.getByLabel('E2E Squad')).toBeChecked();
-        await page.getByRole('button', { name: 'Update' }).first().click();
+        await page.getByLabel('Role').selectOption({ label: 'Moderator' });
+        await page.getByRole('row').filter({ hasText: 'E2E Garrison' }).getByRole('checkbox').check();
+        await expect(page.getByRole('row').filter({ hasText: 'E2E Squad' }).getByRole('checkbox')).toBeChecked();
+        await saved(page, () => page.getByRole('button', { name: 'Update Authority' }).click());
 
         await openTrooper(page, seeded.authoritySubject, 'authority');
-        await expect(field(page, 'membership_role')).toHaveValue('moderator');
-        await expect(page.getByLabel('E2E Garrison')).toBeChecked();
+        await expect(page.getByLabel('Role')).toHaveValue('moderator');
+        await expect(page.getByRole('row').filter({ hasText: 'E2E Garrison' }).getByRole('checkbox')).toBeChecked();
 
         await page.goto(`/admin/troopers?search_term=${encodeURIComponent(seeded.authoritySubject)}`);
         await expect(page.getByRole('row').filter({ hasText: seeded.authoritySubject })).toContainText('Moderator');
@@ -158,48 +164,47 @@ test.describe('as an administrator', () => {
         const twelve_years_ago = new Date();
         twelve_years_ago.setFullYear(twelve_years_ago.getFullYear() - 12);
         // The date field is a read-only date picker.
-        await field(page, 'date_of_birth').evaluate((input, date) => input._flatpickr.setDate(date, true),
+        await page.getByLabel('Date of Birth').evaluate((input, date) => input._flatpickr.setDate(date, true),
             twelve_years_ago.toISOString().slice(0, 10));
-        await page.getByRole('button', { name: 'Update' }).click();
-        await expect(form(page).getByText(/guardian email field is required/i)).toBeVisible();
+        await page.getByRole('button', { name: 'Update Guardian' }).click();
+        await expect(page.locator('.text-danger').getByText(/guardian email field is required/i)).toBeVisible();
 
-        await field(page, 'guardian_email').fill('nobody@e2e.test');
-        await page.getByRole('button', { name: 'Update' }).click();
-        await expect(form(page).getByText(/guardian email is invalid/i)).toBeVisible();
+        await page.getByLabel('Guardian Email').fill('nobody@e2e.test');
+        await page.getByRole('button', { name: 'Update Guardian' }).click();
+        await expect(page.locator('.text-danger').getByText(/guardian email is invalid/i)).toBeVisible();
 
-        await field(page, 'guardian_email').fill(seeded.guardian.email);
-        await page.getByRole('button', { name: 'Update' }).click();
+        await page.getByLabel('Guardian Email').fill(seeded.guardian.email);
+        await saved(page, () => page.getByRole('button', { name: 'Update Guardian' }).click());
 
         await openTrooper(page, seeded.cadet, 'guardian');
-        await expect(field(page, 'guardian_email')).toHaveValue(seeded.guardian.email);
+        await expect(page.getByLabel('Guardian Email')).toHaveValue(seeded.guardian.email);
     });
 
     test('marks one trooper created in error and another R.I.P.', async ({ page }) => {
         await openTrooper(page, seeded.voided);
-        await field(page, 'membership_status').selectOption({ label: 'Invalid' });
-        await page.getByRole('button', { name: 'Update' }).click();
+        await page.getByLabel('Status').selectOption({ label: 'Invalid' });
+        await saved(page, () => page.getByRole('button', { name: 'Update', exact: true }).click());
         await page.goto(`/admin/troopers?search_term=${encodeURIComponent(seeded.voided)}`);
         await expect(page.getByRole('row').filter({ hasText: seeded.voided })).toContainText('Created in Error');
 
         await openTrooper(page, seeded.departed);
-        await field(page, 'membership_status').selectOption({ label: 'Departed' });
-        await page.getByRole('button', { name: 'Update' }).click();
+        await page.getByLabel('Status').selectOption({ label: 'Departed' });
+        await saved(page, () => page.getByRole('button', { name: 'Update', exact: true }).click());
 
         await openTrooper(page, seeded.departed);
-        await expect(page.getByText('This account is marked R.I.P. — In Memoriam.')).toBeVisible();
+        await expect(page.getByText('This trooper is departed (R.I.P.).')).toBeVisible();
     });
 
     test('flags a trooper do not trust with a reason, then clears it', async ({ page }) => {
         await openTrooper(page, seeded.untrusted);
 
-        await field(page, 'untrusted_reason').fill('E2E: confirmed troops they missed.');
-        await page.getByRole('button', { name: 'Mark do not trust' }).click();
+        await page.getByLabel('Reason').fill('E2E: confirmed troops they missed.');
+        await saved(page, () => page.getByRole('button', { name: 'Mark Untrusted' }).click());
 
-        const alert = page.getByRole('alert').filter({ hasText: 'Do not trust.' });
-        await expect(alert).toContainText('E2E: confirmed troops they missed.');
+        await expect(page.getByText('Untrusted: E2E: confirmed troops they missed.')).toBeVisible();
 
-        await page.getByRole('button', { name: 'Clear do not trust' }).click();
-        await expect(page.getByRole('alert').filter({ hasText: 'Do not trust.' })).toHaveCount(0);
-        await expect(page.getByRole('button', { name: 'Mark do not trust' })).toBeVisible();
+        await saved(page, () => page.getByRole('button', { name: 'Clear Untrusted' }).click());
+        await expect(page.getByText(/^Untrusted:/)).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Mark Untrusted' })).toBeVisible();
     });
 });

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Requests\Admin\Troopers;
 
 use App\Enums\MembershipStatus;
-use App\Http\Requests\Admin\Troopers\ProfileRequest;
+use App\Http\Requests\Admin\Troopers\UpdateProfileRequest;
 use App\Models\Trooper;
 use App\Rules\Admin\Troopers\ValidTrooperEmailRule;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
+use Mockery;
 use Tests\TestCase;
 
 class ProfileRequestTest extends TestCase
@@ -33,22 +34,22 @@ class ProfileRequestTest extends TestCase
     /**
      * Helper method to set up a mocked route parameter
      */
-    private function setupMockedRoute(ProfileRequest $request, Trooper $trooper): void
+    private function setupMockedRoute(UpdateProfileRequest $request, Trooper $trooper): void
     {
-        $mock_route = \Mockery::mock();
+        $mock_route = Mockery::mock();
         $mock_route->shouldReceive('parameter')
             ->with('trooper')
             ->andReturn($trooper);
         $mock_route->shouldReceive('parameter')
-            ->with('trooper', \Mockery::any())
+            ->with('trooper', Mockery::any())
             ->andReturn($trooper);
-        $request->setRouteResolver(fn() => $mock_route);
+        $request->setRouteResolver(fn () => $mock_route);
     }
 
     public function test_authorize_returns_true_for_admin(): void
     {
-        $subject = new ProfileRequest;
-        $subject->setUserResolver(fn() => $this->admin);
+        $subject = new UpdateProfileRequest;
+        $subject->setUserResolver(fn () => $this->admin);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $this->assertTrue($subject->authorize());
@@ -59,19 +60,19 @@ class ProfileRequestTest extends TestCase
         $this->expectException(AuthorizationException::class);
         $this->expectExceptionMessage('Trooper not found or unauthorized.');
 
-        $subject = new ProfileRequest;
-        $subject->setUserResolver(fn() => $this->admin);
-        $mock_route = \Mockery::mock();
+        $subject = new UpdateProfileRequest;
+        $subject->setUserResolver(fn () => $this->admin);
+        $mock_route = Mockery::mock();
         $mock_route->shouldReceive('parameter')->with('trooper')->andReturn(null);
-        $mock_route->shouldReceive('parameter')->with('trooper', \Mockery::any())->andReturn(null);
-        $subject->setRouteResolver(fn() => $mock_route);
+        $mock_route->shouldReceive('parameter')->with('trooper', Mockery::any())->andReturn(null);
+        $subject->setRouteResolver(fn () => $mock_route);
 
         $subject->authorize();
     }
 
     public function test_rules_requires_legal_name(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
         $rules = $subject->rules();
 
         $this->assertArrayHasKey(Trooper::LEGAL_NAME, $rules);
@@ -80,7 +81,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_requires_display_name(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
         $rules = $subject->rules();
 
         $this->assertArrayHasKey(Trooper::DISPLAY_NAME, $rules);
@@ -89,7 +90,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_requires_email(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
         $rules = $subject->rules();
 
         $this->assertArrayHasKey(Trooper::EMAIL, $rules);
@@ -98,12 +99,12 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_validates_email_with_valid_trooper_email_rule(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
         $rules = $subject->rules();
 
         $email_rules = array_filter(
             $rules[Trooper::EMAIL],
-            fn($rule) => $rule instanceof ValidTrooperEmailRule
+            fn ($rule) => $rule instanceof ValidTrooperEmailRule
         );
 
         $this->assertNotEmpty($email_rules);
@@ -111,7 +112,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_phone_is_nullable(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
         $rules = $subject->rules();
 
         $this->assertArrayHasKey(Trooper::PHONE, $rules);
@@ -120,7 +121,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_membership_status_is_nullable(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
         $rules = $subject->rules();
 
         $this->assertArrayHasKey(Trooper::MEMBERSHIP_STATUS, $rules);
@@ -129,7 +130,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_validates_membership_status_is_valid_enum(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
 
         $validator = Validator::make(
             [
@@ -147,7 +148,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_accepts_active_membership_status(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
 
         $validator = Validator::make(
             [
@@ -164,7 +165,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_accepts_pending_membership_status(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
 
         $validator = Validator::make(
             [
@@ -181,7 +182,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_accepts_retired_membership_status(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
 
         $validator = Validator::make(
             [
@@ -198,7 +199,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_validates_legal_name_max_length(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
 
         $validator = Validator::make(
             [
@@ -215,7 +216,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_validates_email_format(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
 
         $validator = Validator::make(
             [
@@ -232,7 +233,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_rejects_email_already_used_by_another_trooper(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $validator = Validator::make(
@@ -250,7 +251,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_accepts_troopers_own_unchanged_email(): void
     {
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $validator = Validator::make(
@@ -267,9 +268,9 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_allows_unchanged_legacy_placeholder_email(): void
     {
-        $trooper = Trooper::factory()->asMember()->withEmail('^' . uniqid())->create();
+        $trooper = Trooper::factory()->asMember()->withEmail('^'.uniqid())->create();
 
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
         $this->setupMockedRoute($subject, $trooper);
         $subject->merge([Trooper::EMAIL => $trooper->email]);
 
@@ -288,9 +289,9 @@ class ProfileRequestTest extends TestCase
 
     public function test_rules_still_validates_format_when_placeholder_email_is_changed(): void
     {
-        $trooper = Trooper::factory()->asMember()->withEmail('^' . uniqid())->create();
+        $trooper = Trooper::factory()->asMember()->withEmail('^'.uniqid())->create();
 
-        $subject = new ProfileRequest;
+        $subject = new UpdateProfileRequest;
         $this->setupMockedRoute($subject, $trooper);
         $subject->merge([Trooper::EMAIL => 'still-not-an-email']);
 

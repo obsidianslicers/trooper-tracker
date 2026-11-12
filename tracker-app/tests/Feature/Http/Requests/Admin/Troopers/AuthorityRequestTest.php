@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Requests\Admin\Troopers;
 
 use App\Enums\MembershipRole;
-use App\Http\Requests\Admin\Troopers\AuthorityRequest;
+use App\Http\Requests\Admin\Troopers\UpdateAuthorityRequest;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -34,7 +34,7 @@ class AuthorityRequestTest extends TestCase
     /**
      * Helper method to set up a mocked route parameter
      */
-    private function setupMockedRoute(AuthorityRequest $request, Trooper $trooper): void
+    private function setupMockedRoute(UpdateAuthorityRequest $request, Trooper $trooper): void
     {
         $mock_route = Mockery::mock();
         $mock_route->shouldReceive('parameter')
@@ -48,7 +48,7 @@ class AuthorityRequestTest extends TestCase
 
     public function test_authorize_returns_true_for_administrator(): void
     {
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
         $subject->setUserResolver(fn () => $this->admin);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
@@ -58,7 +58,7 @@ class AuthorityRequestTest extends TestCase
     public function test_authorize_returns_false_for_non_administrator(): void
     {
         $moderator = Trooper::factory()->asModerator()->create();
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
         $subject->setUserResolver(fn () => $moderator);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
@@ -70,7 +70,7 @@ class AuthorityRequestTest extends TestCase
         $this->expectException(AuthorizationException::class);
         $this->expectExceptionMessage('Trooper not found or unauthorized.');
 
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
         $subject->setUserResolver(fn () => $this->admin);
         $mock_route = Mockery::mock();
         $mock_route->shouldReceive('parameter')->with('trooper')->andReturn(null);
@@ -82,7 +82,7 @@ class AuthorityRequestTest extends TestCase
 
     public function test_rules_membership_role_is_nullable(): void
     {
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
         $rules = $subject->rules();
 
         $this->assertArrayHasKey(Trooper::MEMBERSHIP_ROLE, $rules);
@@ -91,7 +91,7 @@ class AuthorityRequestTest extends TestCase
 
     public function test_rules_validates_membership_role_is_valid_enum(): void
     {
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
 
         $validator = Validator::make(
             [
@@ -106,7 +106,7 @@ class AuthorityRequestTest extends TestCase
 
     public function test_rules_accepts_member_role(): void
     {
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
 
         $validator = Validator::make(
             [
@@ -120,7 +120,7 @@ class AuthorityRequestTest extends TestCase
 
     public function test_rules_accepts_moderator_role(): void
     {
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
 
         $validator = Validator::make(
             [
@@ -135,7 +135,7 @@ class AuthorityRequestTest extends TestCase
     public function test_authorize_returns_true_for_staff_officer(): void
     {
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
         $subject->setUserResolver(fn () => $staff_officer);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
@@ -145,7 +145,7 @@ class AuthorityRequestTest extends TestCase
     public function test_authorize_returns_false_for_staff_officer_editing_administrator(): void
     {
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
         $subject->setUserResolver(fn () => $staff_officer);
         $this->setupMockedRoute($subject, $this->admin);
 
@@ -155,7 +155,7 @@ class AuthorityRequestTest extends TestCase
     public function test_rules_rejects_administrator_role_from_staff_officer(): void
     {
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
         $subject->setUserResolver(fn () => $staff_officer);
 
         $validator = Validator::make(
@@ -168,7 +168,7 @@ class AuthorityRequestTest extends TestCase
 
     public function test_rules_accepts_administrator_role(): void
     {
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
         $subject->setUserResolver(fn () => $this->admin);
 
         $validator = Validator::make(
@@ -183,7 +183,7 @@ class AuthorityRequestTest extends TestCase
 
     public function test_rules_validates_organizations_is_array(): void
     {
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
         $rules = $subject->rules();
 
         $this->assertArrayHasKey('organizations', $rules);
@@ -192,7 +192,7 @@ class AuthorityRequestTest extends TestCase
 
     public function test_rules_validates_is_moderator_is_boolean(): void
     {
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
         $rules = $subject->rules();
 
         $validator_path = 'organizations.*.'.TrooperAssignment::IS_MODERATOR;
@@ -202,7 +202,7 @@ class AuthorityRequestTest extends TestCase
 
     public function test_rules_allows_valid_authority_request(): void
     {
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
 
         $validator = Validator::make(
             [
@@ -220,7 +220,7 @@ class AuthorityRequestTest extends TestCase
 
     public function test_rules_allows_null_membership_role(): void
     {
-        $subject = new AuthorityRequest;
+        $subject = new UpdateAuthorityRequest;
 
         $validator = Validator::make(
             [
