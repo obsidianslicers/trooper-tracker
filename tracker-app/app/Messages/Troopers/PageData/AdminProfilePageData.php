@@ -34,7 +34,8 @@ final class AdminProfilePageData extends Message
     public function __construct(
         private readonly Actor $actor,
         private readonly Trooper $trooper,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array<string, mixed>
@@ -108,7 +109,7 @@ final class AdminProfilePageData extends Message
         return [
             'membership_role' => $this->trooper->membership_role->value,
             'role_options' => $this->toOptions($this->getRoleChoices()),
-            'organizations' => $organizations->map(fn (Organization $organization): array => [
+            'organizations' => $organizations->map(fn(Organization $organization): array => [
                 'id' => $organization->id,
                 'parent_id' => $organization->parent_id,
                 'depth' => (int) $organization->depth,
@@ -126,9 +127,9 @@ final class AdminProfilePageData extends Message
     private function getRoleChoices(): array
     {
         return collect(MembershipRole::cases())
-            ->reject(fn (MembershipRole $role): bool => $role === MembershipRole::SYSTEM_OWNER
+            ->reject(fn(MembershipRole $role): bool => $role === MembershipRole::SYSTEM_OWNER
                 && !$this->actor->has_system_owner)
-            ->mapWithKeys(fn (MembershipRole $role): array => [
+            ->mapWithKeys(fn(MembershipRole $role): array => [
                 $role->value => to_title($role->name)->toString(),
             ])
             ->all();
@@ -149,7 +150,7 @@ final class AdminProfilePageData extends Message
         return [
             'status_options' => $this->toOptions(MembershipStatus::toArray()),
             'organizations' => $organizations->map(
-                fn (Organization $organization): array => $this->toMembership($organization, $allowed_ids)
+                fn(Organization $organization): array => $this->toMembership($organization, $allowed_ids)
             )->values()->all(),
         ];
     }
@@ -183,14 +184,14 @@ final class AdminProfilePageData extends Message
         $max_depth = $this->trooper->is_visitor ? (int) $organization->depth : null;
 
         return Organization::query()
-            ->where(Organization::NODE_PATH, 'like', $organization->node_path.'%')
-            ->when($max_depth !== null, fn ($query) => $query->where(Organization::DEPTH, '<=', $max_depth))
+            ->where(Organization::NODE_PATH, 'like', $organization->node_path . '%')
+            ->when($max_depth !== null, fn($query) => $query->where(Organization::DEPTH, '<=', $max_depth))
             ->orderBy(Organization::NODE_PATH)
             ->get()
-            ->map(fn (Organization $option): array => [
+            ->map(fn(Organization $option): array => [
                 'value' => $option->id,
                 'label' => str_repeat('— ', max(0, (int) $option->depth - (int) $organization->depth))
-                    .$option->name,
+                    . $option->name,
             ])
             ->all();
     }
@@ -280,7 +281,7 @@ final class AdminProfilePageData extends Message
             lookback: now()->subDays(self::CHANGES_LOOKBACK_DAYS),
         );
 
-        return $changes->map(fn (ModelChange $change): array => [
+        return $changes->map(fn(ModelChange $change): array => [
             'what' => $change->auditable_type,
             'label' => $change->auditable_label,
             'field' => $change->field_name,

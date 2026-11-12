@@ -27,7 +27,7 @@ async function ownerCostumes(page) {
     await page.goto(`/admin/troopers?search_term=${encodeURIComponent(seeded.costumeOwner)}`);
     const href = await page.getByRole('row').filter({ hasText: seeded.costumeOwner })
         .locator('a[href*="/admin/troopers/"]').last().getAttribute('href');
-    await page.goto(`${href}/costumes`);
+    await page.goto(`${href}?tab=costumes`);
 }
 
 test.describe('costume list', () => {
@@ -103,15 +103,15 @@ test.describe('costume review', () => {
     test('a moderator revokes a costume, then undoes it', async ({ page }) => {
         await ownerCostumes(page);
 
-        page.once('dialog', (dialog) => dialog.accept());
         await page.getByRole('row').filter({ hasText: seeded.revokedCostume })
             .getByRole('button', { name: 'Revoke' }).click();
+        await page.getByRole('dialog').getByRole('button', { name: 'Confirm' }).click();
         await expect(page.getByRole('row').filter({ hasText: seeded.revokedCostume })
             .getByRole('button', { name: 'Undo' })).toBeVisible();
 
-        page.once('dialog', (dialog) => dialog.accept());
         await page.getByRole('row').filter({ hasText: seeded.revokedCostume })
             .getByRole('button', { name: 'Undo' }).click();
+        await page.getByRole('dialog').getByRole('button', { name: 'Confirm' }).click();
         await expect(page.getByRole('row').filter({ hasText: seeded.revokedCostume })
             .getByRole('button', { name: 'Revoke' })).toBeVisible();
     });
