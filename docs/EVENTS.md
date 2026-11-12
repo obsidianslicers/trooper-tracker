@@ -39,6 +39,18 @@ Queries use `Event::counted()` / `EventTrooper::counted()`, or `whereNotIn('tt_e
 
 ---
 
+## Holidays on the Calendar
+
+Events → Calendar shows holidays in their day cells, under the date and above that day's events, so coordinators and troopers can see at a glance when a request falls on a holiday weekend. They're labels only: not events, not filtered, not in the ICS feed.
+
+`GetHolidays::call(from:, to:)` returns the names by date, from the [Yasumi](https://www.yasumi.dev) library. `TRACKER_CALENDAR_HOLIDAYS` (`tracker.calendar.holidays`) names the Yasumi provider: `USA`, the default, is the US federal holidays; any other country or region Yasumi knows works too (`Canada`, `UnitedKingdom/Scotland`, ...), and `none` turns them off. Yasumi's "observed" weekday copies of weekend holidays are left out, so each holiday shows once, on its own date. An unknown provider shows no holidays and is reported to the log rather than breaking the page.
+
+**On phones** (below 768px) the calendar isn't a grid: seven columns leave about 45px a day, too narrow to read an event name, so each month lists only the days that have an event or holiday showing, as "Thu 26" followed by its holidays and events. Days from the neighbouring months are left out (that month lists them), and so are days whose events the search or filters hide. It's CSS only (`.event-calendar` in `resources/css/app.scss`); the page and its filters are the same at every width.
+
+**Source:** `app/Messages/Events/Queries/GetHolidays.php`, `resources/views/pages/events/calendar.blade.php`
+
+---
+
 ## Event Status Lifecycle
 
 An event moves through statuses as it progresses from creation to completion.

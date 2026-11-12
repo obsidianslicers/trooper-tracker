@@ -47,16 +47,25 @@
                         <tr>
 
                             @foreach ($week['days'] as $date)
-                                <td data-event-date="{{ $date->toDateString() }}">
+                                <td data-event-date="{{ $date->toDateString() }}"
+                                    @class(['calendar-other-month' => $date->month !== $month['date']->month])>
 
                                     <div class="calendar-content">
 
-                                        <div class="float-end fw-bold small {{ $date->month !== $month['date']->month ? 'text-muted' : '' }}">
+                                        <div class="calendar-date float-end fw-bold small {{ $date->month !== $month['date']->month ? 'text-muted' : '' }}">
+                                            <span class="d-md-none">{{ $date->format('D') }}</span>
                                             {{ $date->format('j') }}
                                         </div>
                                         <br />
 
                                         @php $key = $date->toDateString(); @endphp
+
+                                        @foreach ($holidays[$key] ?? [] as $holiday)
+                                            <div class="calendar-holiday small mt-1">
+                                                <i class="fa fa-fw fa-star"></i>
+                                                {{ $holiday }}
+                                            </div>
+                                        @endforeach
 
                                         @if (isset($events[$key]))
                                             @foreach ($events[$key] as $event)

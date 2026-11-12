@@ -96,6 +96,54 @@ a:hover {
 
             div.calendar-content {
                 min-height: 125px;
+                //  narrow cells can be narrower than a word ("Thanksgiving"); keep event
+                //  names and holidays inside their own day
+                hyphens: auto;
+                overflow-wrap: break-word;
+            }
+
+            div.calendar-holiday {
+                color: var(--bs-secondary-color);
+                font-style: italic;
+            }
+        }
+    }
+
+    //  Phones: seven columns leave about 45px a day, too narrow to read a name, so each
+    //  month becomes a list of the days that have events or holidays ("Thu 26")
+    @media (max-width: 767.98px) {
+        thead {
+            display: none;
+        }
+
+        tbody,
+        tbody tr,
+        tbody tr td {
+            display: block;
+        }
+
+        tbody tr td {
+            &:nth-child(odd) {
+                background-color: transparent;
+            }
+
+            //  the next month lists these itself; a day with nothing showing is left out
+            //  (x-show hides filtered events with an inline style)
+            &.calendar-other-month,
+            &:not(:has(.calendar-holiday, .event-card:not([style*="display: none"]))) {
+                display: none;
+            }
+
+            div.calendar-content {
+                min-height: 0;
+
+                > br {
+                    display: none;
+                }
+            }
+
+            div.calendar-date {
+                float: none !important;
             }
         }
     }
