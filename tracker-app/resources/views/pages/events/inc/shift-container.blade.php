@@ -16,6 +16,7 @@
                 @endforeach
             @endif
         @endif
+        @include('pages.events.inc.same-day-shift-note', compact('event_shift', 'event'))
         <div class="row my-3">
             <div class="col-12 shift-signup-actions">
                 @include('pages.events.inc.shift-add-trooper', compact('event_shift', 'event'))

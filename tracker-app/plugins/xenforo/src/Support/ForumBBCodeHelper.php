@@ -24,7 +24,7 @@ class ForumBBCodeHelper
 
         //  not through e(): XenForo shows the entity, so "don't" would read "don&#039;t"
         //  (the type name comes from an administrator, not the request)
-        if ($notice = $event->notCountedNotice())
+        if ($notice = $event->troopCreditNotice())
         {
             $bb .= "\n\n[b]ℹ️ ".$notice.'[/b]';
         }

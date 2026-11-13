@@ -126,10 +126,10 @@ final class GetLeaderboardMetrics extends Message
         // 3. Shadow Operatives (Individual Superlatives)
         // We look for the "Iron Suits" - Troopers with the most attended records
         $query = EventTrooper::where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
+            ->counted()
             ->whereHas('event_shift.event', function ($q) use ($date)
             {
                 $q->where(Event::STATUS, EventStatus::CLOSED)
-                    ->counted()
                     ->when($date, fn ($q) => $q->where(Event::EVENT_START, '>=', $date));
             })
             ->whereHas('trooper', function ($q)

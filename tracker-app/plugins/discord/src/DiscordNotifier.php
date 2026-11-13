@@ -109,7 +109,7 @@ final class DiscordNotifier
      * @param  string|null  $description  Optional event description displayed in the embed.
      * @param  Organization|int|string|null  $squad  The organization (preferred), its ID,
      *                                               or a name.
-     * @param  string|null  $not_counted_notice  Event::notCountedNotice(), shown on its own
+     * @param  string|null  $not_counted_notice  Event::troopCreditNotice(), shown on its own
      *                                           line under the announcement.
      * @return bool True when the webhook was posted, false when no webhook is configured.
      */

@@ -7,6 +7,7 @@ namespace TroopTracker\Plugins\Discord\Tests;
 use App\Enums\SystemCheckStatus;
 use App\Events\EventPosted;
 use App\Models\Event;
+use App\Models\EventShift;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Plugins\PluginManager;
@@ -46,6 +47,28 @@ class DiscordPluginTest extends TestCase
         Http::assertSent(fn ($request): bool => $request->url() === 'https://discord.test/saved'
             && str_contains((string) $request->data()['content'], '<@&777>')
             && $request->data()['embeds'][0]['title'] === $event->name);
+    }
+
+    public function test_the_announcement_says_when_same_day_shifts_count_as_one_troop(): void
+    {
+        Http::fake();
+        config(['tracker.one_troop_per_day_from' => '2020-01-01']);
+        $this->enableDiscord();
+        $this->plugins->updateSettings('discord', ['webhook_url' => 'https://discord.test/saved']);
+        $event = Event::factory()->create();
+        $day = now()->addDays(10)->setTime(9, 0);
+
+        foreach ([$day, $day->copy()->setTime(13, 0)] as $start)
+        {
+            EventShift::factory()->forEvent($event)->withShiftStartsAt($start)->withShiftEndsAt($start->copy()->addHours(3))->create();
+        }
+
+        EventPosted::dispatch($event);
+
+        Http::assertSent(fn ($request): bool => str_contains(
+            (string) $request->data()['content'],
+            "\nℹ️ **One troop per day: more than one shift on the same day counts as one troop.**"
+        ));
     }
 
     public function test_webhook_falls_back_to_the_env_setting(): void

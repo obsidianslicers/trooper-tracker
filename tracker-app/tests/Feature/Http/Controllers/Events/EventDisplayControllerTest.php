@@ -103,6 +103,88 @@ class EventDisplayControllerTest extends TestCase
         $this->assertMatchesRegularExpression('/<option value="tentative"\s+selected>/', $response->getContent());
     }
 
+    public function test_invoke_says_two_shifts_on_one_day_count_as_one_troop_before_and_after_signing_up(): void
+    {
+        config(['tracker.one_troop_per_day_from' => now()->subMonth()->toDateString()]);
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+        $day = now()->addDays(10)->setTime(9, 0);
+        $event = Event::factory()->withOrganization($organization)->create([
+            Event::EVENT_START => $day,
+            Event::EVENT_END => $day->copy()->setTime(20, 0),
+        ]);
+        $morning = $this->shiftAt($event, $day);
+        $afternoon = $this->shiftAt($event, $day->copy()->setTime(13, 0));
+        $evening = $this->shiftAt($event, $day->copy()->setTime(17, 0));
+        EventTrooper::factory()->forEventShift($morning)->forTrooper($trooper)->create([
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        //  for everyone, at the top of the details and again above the roster
+        $this->assertSame(2, substr_count($response->getContent(), 'One troop per day: more than one shift on the same day counts as one troop.'));
+        //  at the afternoon and evening shifts, before signing up
+        $this->assertSame(2, substr_count($response->getContent(), 'same-day-notice--warning'));
+        $response->assertSeeInOrder([
+            'id="shift-container-'.$afternoon->id.'"',
+            'You&#039;re already signed up for '.$morning->compact_time_display.' on '.$day->format('l, M j').'.',
+            'This shift won&#039;t add another troop:',
+        ], false);
+
+        EventTrooper::factory()->forEventShift($afternoon)->forTrooper($trooper)->create([
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        //  once signed up for both, each of them says they share the troop
+        $response->assertSeeInOrder([
+            'id="shift-container-'.$morning->id.'"',
+            'You&#039;re also signed up for '.$afternoon->compact_time_display,
+            'Together these shifts count as one troop.',
+            'id="shift-container-'.$afternoon->id.'"',
+            'You&#039;re also signed up for '.$morning->compact_time_display,
+            'id="shift-container-'.$evening->id.'"',
+            'You&#039;re already signed up for '.$morning->compact_time_display.' and '.$afternoon->compact_time_display,
+        ], false);
+    }
+
+    public function test_invoke_says_nothing_about_one_troop_per_day_without_two_shifts_on_a_day(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $day = now()->addDays(10)->setTime(9, 0);
+        $two_shift_event = Event::factory()->create();
+        $this->shiftAt($two_shift_event, $day);
+        $this->shiftAt($two_shift_event, $day->copy()->setTime(13, 0));
+
+        //  off
+        $this->actingAs($trooper)->get(route('events.display', ['event' => $two_shift_event->id]))
+            ->assertOk()
+            ->assertDontSee('One troop per day');
+
+        //  on, but the shifts are on different days
+        config(['tracker.one_troop_per_day_from' => now()->subMonth()->toDateString()]);
+        $multi_day_event = Event::factory()->create();
+        $this->shiftAt($multi_day_event, $day);
+        $this->shiftAt($multi_day_event, $day->copy()->addDay());
+
+        $this->actingAs($trooper)->get(route('events.display', ['event' => $multi_day_event->id]))
+            ->assertOk()
+            ->assertDontSee('One troop per day')
+            ->assertDontSee('same-day-notice', false);
+    }
+
+    private function shiftAt(Event $event, \Carbon\Carbon $start): EventShift
+    {
+        return EventShift::factory()->forEvent($event)->create([
+            EventShift::SHIFT_STARTS_AT => $start,
+            EventShift::SHIFT_ENDS_AT => $start->copy()->addHours(3),
+        ]);
+    }
+
     public function test_invoke_displays_charity_hours_and_notes_without_funds_or_name(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();

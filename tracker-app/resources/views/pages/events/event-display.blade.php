@@ -68,6 +68,8 @@
                     @endcanany
                     <x-not-counted :event="$event"
                                    class="mb-3" />
+                    <x-one-troop-per-day :event="$event"
+                                         class="mb-3" />
                     <div class="row mb-2 border-bottom">
                         <div class="col-12 col-md-6 small text-muted pb-3">
                             <div class="row">

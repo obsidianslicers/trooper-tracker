@@ -524,6 +524,34 @@ class RecalculateTrooperRankTest extends TestCase
         ]);
     }
 
+    public function test_handle_counts_two_shifts_on_one_day_as_one_troop_but_adds_both_shifts_hours(): void
+    {
+        config(['tracker.one_troop_per_day_from' => '2026-12-01']);
+        $trooper = Trooper::factory()->create();
+        $club = $this->createClub('501st Legion');
+        $event = Event::factory()->asClosed()->create();
+
+        foreach (['2026-12-05 09:00', '2026-12-05 13:00'] as $start)
+        {
+            $shift = EventShift::factory()
+                ->forEvent($event)
+                ->withShiftStartsAt(Carbon::parse($start))
+                ->withShiftEndsAt(Carbon::parse($start)->addHours(3))
+                ->create();
+            EventTrooper::factory()
+                ->forTrooper($trooper)
+                ->forEventShift($shift)
+                ->asAttended()
+                ->create([EventTrooper::ORGANIZATION_ID => $club->id]);
+        }
+
+        (new RecalculateTrooperRank(trooper_id: $trooper->id, send_milestone_notifications: false))->handle();
+
+        $this->assertAchievementValue($trooper, AchievementType::TROOPER_SHIFTS, 1);
+        $this->assertSame(6, (int) $this->achievementValue($trooper, AchievementType::VOLUNTEER_HOURS));
+        $this->assertHasAchievement($trooper, AchievementType::FIRST_TROOP);
+    }
+
     public function test_handle_still_adds_hours_from_events_that_do_not_count(): void
     {
         $trooper = Trooper::factory()->create();

@@ -112,6 +112,23 @@ class SignUpHtmxController extends PageController
 
         $response = response()->view('pages.events.inc.shift-container', $data);
 
+        $same_day_shifts = $signed_up && $trooper->id === $auth_trooper->id
+            ? $event->sameDayShiftsFor($event_shift, $trooper)
+            : collect();
+
+        if ($same_day_shifts->isNotEmpty())
+        {
+            //  "one troop per day": said again the moment they sign up for a second shift that day
+            $times = $same_day_shifts->map(fn (EventShift $shift): string => $shift->compact_time_display)->join(', ', ' and ');
+
+            $response = $response->header('X-Flash-Message', json_encode([
+                'message' => "You're signed up. With your {$times} shift, this counts as one troop for the day.",
+                'type' => 'info',
+                'focus' => true,
+                'fadeOut' => 8000,
+            ]));
+        }
+
         if (!$signed_up)
         {
             $count = $event_shift->event->getShiftCountFor($trooper);

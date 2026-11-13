@@ -7,6 +7,7 @@ namespace App\Messages\Concerns;
 use App\Enums\EventTrooperStatus;
 use App\Models\EventTrooper;
 use App\Models\Organization;
+use App\Support\OneTroopPerDay;
 use Illuminate\Support\Collection;
 
 /**
@@ -51,6 +52,7 @@ trait HasOrgCreditAnnotation
     ): array {
         $troop_counts = [];
         $credited_ids_by_shift = [];
+        $repeat_ids = $this->markSameDayRepeats($recent_shifts);
 
         foreach ($recent_shifts as $shift)
         {
@@ -64,7 +66,8 @@ trait HasOrgCreditAnnotation
                 $candidate_orgs
             );
 
-            $is_counted = !isset($shift->event) || $shift->event->isCounted();
+            $is_counted = (!isset($shift->event) || $shift->event->isCounted())
+                && !isset($repeat_ids[$shift->event_trooper->id]);
 
             foreach ($is_counted ? $credited_ids : [] as $org_id)
             {
@@ -74,6 +77,28 @@ trait HasOrgCreditAnnotation
         }
 
         return ['troop_counts' => $troop_counts, 'credited_ids_by_shift' => $credited_ids_by_shift];
+    }
+
+    /**
+     * Flags each sign-up that didn't add a troop under "one troop per day"
+     * (`is_same_day_repeat`, for the view) and returns their ids.
+     *
+     * @return array<int, true> Keyed by event trooper id.
+     */
+    private function markSameDayRepeats(Collection $recent_shifts): array
+    {
+        $event_troopers = $recent_shifts
+            ->filter(fn ($shift) => $shift->event_trooper !== null)
+            ->map(fn ($shift) => $shift->event_trooper->setRelation('event_shift', $shift));
+
+        $repeat_ids = OneTroopPerDay::repeatIds($event_troopers);
+
+        foreach ($event_troopers as $et)
+        {
+            $et->is_same_day_repeat = isset($repeat_ids[$et->id]);
+        }
+
+        return $repeat_ids;
     }
 
     /**

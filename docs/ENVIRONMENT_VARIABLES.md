@@ -111,6 +111,14 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **When to change**: Set it if coordinators need firm numbers in the final days before an event
 - **Note**: Only applies to events that allow tentative sign-ups. A sign-up that is already tentative keeps that status; the trooper can still switch it to going or cancelled.
 
+### TRACKER_ONE_TROOP_PER_DAY_FROM
+- **Purpose**: First date (`Y-m-d`) on which several shifts of one event on the same day count as one troop
+- **Required**: No
+- **Default**: None (every shift counts as a troop)
+- **Example**: `2026-12-01`
+- **When to change**: Set it if your garrison counts a day at an event as one troop. Use the date the rule starts, so troops already earned stay as they are.
+- **Note**: Hours and charity still count for every shift. Event pages, forum posts and Discord announcements tell members about it on events with more than one shift on a day. See [Events](EVENTS.md#one-troop-per-day-optional).
+
 ### TRACKER_IMAGE_DRIVER
 - **Purpose**: Image processing driver for photo uploads
 - **Required**: No

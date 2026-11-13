@@ -13,11 +13,13 @@ use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\EventType;
+use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperDonation;
 use App\Plugins\PluginDonations;
 use App\Services\BreadCrumbService;
 use App\Support\DonationSummary;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Mockery;
@@ -222,6 +224,45 @@ class TrooperControllerTest extends TestCase
         $response->assertSeeInOrder(['Armor build night', 'Non-troop-credit', 'Hospital visit']);
         $this->assertSame(2, substr_count((string) $response, 'not-counted-pill'));
         $response->assertSee('Non-troop-credit event: Does not count toward troop totals.');
+    }
+
+    public function test_service_record_marks_a_second_shift_on_the_same_day_and_counts_the_day_once(): void
+    {
+        config(['tracker.one_troop_per_day_from' => '2020-01-01']);
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $club = Organization::factory()->create([Organization::NAME => 'Day Count Legion']);
+        $event = Event::factory()->asClosed()->create([Event::NAME => 'Two shift convention']);
+        $day = Carbon::now()->subDays(3)->setTime(9, 0);
+
+        foreach ([$day, $day->copy()->setTime(13, 0)] as $start)
+        {
+            $shift = EventShift::factory()
+                ->forEvent($event)
+                ->asClosed()
+                ->withShiftStartsAt($start)
+                ->withShiftEndsAt($start->copy()->addHours(3))
+                ->create();
+            EventTrooper::factory()
+                ->forEventShift($shift)
+                ->forTrooper($trooper)
+                ->asAttended()
+                ->create([EventTrooper::COSTUME_ORGANIZATION_IDS => [$club->id]]);
+        }
+
+        $record = GetTrooperServiceRecord::call(trooper_id: $trooper->id);
+
+        $this->assertSame(1, $record['club_troop_counts']->firstWhere('id', $club->id)?->troop_count);
+
+        $response = $this->actingAs($trooper)->view('pages.service-records.inc.trooper-recent-shifts', [
+            'trooper' => $trooper,
+            'recent_shifts' => $record['recent_shifts'],
+            'pending_confirmation_shifts' => collect(),
+        ]);
+
+        //  the later shift only, once in the card view and once in the table view
+        $this->assertSame(2, substr_count((string) $response, 'Same day, counted once'));
+        $response->assertSee('already counted as the troop for the day');
+        $this->assertTrue($record['recent_shifts']->last()->event_trooper->is_same_day_repeat === false);
     }
 
     private function attendedShift(Trooper $trooper, Event $event): EventShift

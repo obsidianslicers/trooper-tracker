@@ -35,6 +35,35 @@ class SignUpHtmxControllerTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_invoke_says_a_second_shift_on_the_same_day_shares_the_troop(): void
+    {
+        config(['tracker.one_troop_per_day_from' => now()->subMonth()->toDateString()]);
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+        $event = Event::factory()->withOrganization($organization)->create();
+        $day = now()->addDays(10)->setTime(9, 0);
+        [$morning, $afternoon] = collect([$day, $day->copy()->setTime(13, 0)])
+            ->map(fn ($start) => EventShift::factory()->forEvent($event)->create([
+                EventShift::SHIFT_STARTS_AT => $start,
+                EventShift::SHIFT_ENDS_AT => $start->copy()->addHours(3),
+            ]))
+            ->all();
+        //  still choosing a costume counts as being on the shift
+        EventTrooper::factory()->forEventShift($morning)->forTrooper($trooper)->create([
+            EventTrooper::STATUS => \App\Enums\EventTrooperStatus::PENDING,
+        ]);
+
+        $response = $this->actingAs($trooper)->post(route('events.signup-htmx', ['event_shift' => $afternoon->id]));
+
+        $response->assertOk();
+        $this->assertStringContainsString(
+            'With your '.$morning->compact_time_display.' shift, this counts as one troop for the day.',
+            (string) json_decode((string) $response->headers->get('X-Flash-Message'), true)['message']
+        );
+        $response->assertSee('Together these shifts count as one troop.');
+    }
+
     public function test_invoke_signs_up_trooper_previously_removed_from_shift(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
