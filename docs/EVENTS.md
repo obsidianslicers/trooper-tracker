@@ -45,6 +45,8 @@ Some garrisons count a day at an event as one troop, however many shifts a troop
 
 It applies wherever troops are counted: `EventTrooper::counted()` leaves the extra shifts out (`OneTroopPerDay::excludeRepeats()`), so the shift count, rank and troop milestones, the leaderboards, the public API's `troopCount` and the HoloNet troop history follow it, and the service record's per-club counts use the same rule on the loaded shifts (`OneTroopPerDay::repeatIds()`). The trooper event summary report's "Total Shifts" still counts every shift.
 
+**Importing from TT1.0.** TT1.0 counted every linked event as its own troop. So when the rule covers a linked event's day, and its main event's group already has a shift that day at a different time, the import (`LegacyEventGroups`) brings it in as an event of its own instead of a shift. Imported troops then come out the same whatever the start date, and a garrison moving off TT1.0 can date the rule before all its history.
+
 Members hear about it before they sign up, not after:
 
 | Where | What shows |

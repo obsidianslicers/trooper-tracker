@@ -8,6 +8,7 @@ use App\Enums\EventTrooperStatus;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 
@@ -57,9 +58,17 @@ final class OneTroopPerDay
      */
     public static function covers(EventShift $shift): bool
     {
+        return $shift->shift_starts_at !== null && self::coversStart($shift->shift_starts_at);
+    }
+
+    /**
+     * Whether the rule covers a shift starting at this time.
+     */
+    public static function coversStart(CarbonInterface $start): bool
+    {
         $from = self::from();
 
-        return $from !== null && $shift->shift_starts_at !== null && $shift->shift_starts_at->gte($from);
+        return $from !== null && $start->gte($from);
     }
 
     /**
