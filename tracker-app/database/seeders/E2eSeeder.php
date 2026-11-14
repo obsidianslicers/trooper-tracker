@@ -298,6 +298,15 @@ class E2eSeeder extends Seeder
             Event::COMMENTS => 'E2E brief: report to the loading dock at nine.',
         ]);
 
+        //  too long to show in full, so it starts collapsed behind "Decrypt Mission Brief"
+        $this->openEvent($legion, 'E2E Long Brief Troop', attributes: [
+            Event::REQUIRE_MISSION_BRIEF_ACK => true,
+            Event::COMMENTS => implode("\n\n", array_map(
+                fn (int $step): string => "E2E long brief, step {$step}: check in with the handler at the loading dock.",
+                range(1, 10),
+            )),
+        ]);
+
         $this->pastEvent($legion, $trooper, 'E2E Past Parade', 1);
     }
 
