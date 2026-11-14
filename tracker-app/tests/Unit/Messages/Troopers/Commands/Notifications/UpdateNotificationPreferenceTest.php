@@ -38,12 +38,21 @@ class UpdateNotificationPreferenceTest extends TestCase
                     ],
                 ],
             ],
+            'plugin notification category' => [
+                'plugin_forum_post',
+                ['plugin_forum_post' => [NotificationChannels::MAIL->value => false]],
+                [
+                    'plugin_forum_post' => [
+                        NotificationChannels::MAIL->value => true,
+                    ],
+                ],
+            ],
         ];
     }
 
     #[DataProvider('notification_preference_cases')]
-    public function test_handle_updates_notification_preferences_for_both_enums_and_initial_states(
-        AdministrativeNotifications|TrooperNotifications $notification,
+    public function test_handle_updates_notification_preferences_for_each_category_type(
+        AdministrativeNotifications|TrooperNotifications|string $notification,
         ?array $initial_preferences,
         array $expected_preferences,
     ): void {
