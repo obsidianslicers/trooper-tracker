@@ -12,9 +12,9 @@ use Carbon\Carbon;
  * (`link` > 0) becomes a shift of its main event.
  *
  * The exception is the "one troop per day" rule. TT1.0 counted every linked event as its
- * own troop, so a linked event on the same day as another shift of its group, at a
- * different time, is imported as an event of its own when the rule covers that day. That
- * way the rule never takes a troop away from a TT1.0 sign-up. A linked event starting the
+ * own troop, so while the rule is on, a linked event on the same day as another shift of
+ * its group, at a different time, is imported as an event of its own. That way the rule
+ * never takes a troop away from a TT1.0 sign-up. A linked event starting the
  * same minute as one already in the group still joins the group, and the import merges the
  * two into one shift.
  */
@@ -59,12 +59,12 @@ final class LegacyEventGroups
     /** @param  list<object>  $group */
     private static function startsOnAnotherShiftsDay(object $event, array $group): bool
     {
-        $start = Carbon::parse($event->dateStart);
-
-        if (!OneTroopPerDay::coversStart($start))
+        if (!OneTroopPerDay::isOn())
         {
             return false;
         }
+
+        $start = Carbon::parse($event->dateStart);
 
         foreach ($group as $shift)
         {

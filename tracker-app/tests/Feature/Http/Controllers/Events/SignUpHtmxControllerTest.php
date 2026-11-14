@@ -37,7 +37,7 @@ class SignUpHtmxControllerTest extends TestCase
 
     public function test_invoke_says_a_second_shift_on_the_same_day_shares_the_troop(): void
     {
-        config(['tracker.one_troop_per_day_from' => now()->subMonth()->toDateString()]);
+        config(['tracker.one_troop_per_day' => true]);
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $organization = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();

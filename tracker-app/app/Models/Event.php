@@ -93,7 +93,7 @@ class Event extends BaseEvent
 
     /**
      * Whether "one troop per day" applies here: the event counts and has more than one shift on
-     * a day the rule covers.
+     * a day.
      */
     public function hasSameDayShifts(): bool
     {
@@ -103,7 +103,6 @@ class Event extends BaseEvent
         }
 
         return $this->event_shifts
-            ->filter(fn (EventShift $shift): bool => OneTroopPerDay::covers($shift))
             ->countBy(fn (EventShift $shift): string => OneTroopPerDay::dayOf($shift))
             ->contains(fn (int $count): bool => $count > 1);
     }
@@ -111,14 +110,14 @@ class Event extends BaseEvent
     /**
      * A trooper's other shifts of this event on the same day as $shift, under "one troop per
      * day": shifts they're on (see isOnShift()), which $shift would share a troop with.
-     * Empty when the rule doesn't cover $shift or the event doesn't count. Uses the loaded
-     * shifts and their sign-ups, as the event page has them.
+     * Empty when the rule is off or the event doesn't count. Uses the loaded shifts and their
+     * sign-ups, as the event page has them.
      *
      * @return Collection<int, EventShift>
      */
     public function sameDayShiftsFor(EventShift $shift, Trooper $trooper): Collection
     {
-        if (!OneTroopPerDay::covers($shift) || !$this->isCounted())
+        if (!OneTroopPerDay::isOn() || !$this->isCounted())
         {
             return collect();
         }

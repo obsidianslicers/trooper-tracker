@@ -40,14 +40,13 @@ return [
     | One Troop Per Day
     |--------------------------------------------------------------------------
     |
-    | A date (Y-m-d). For shifts on or after it, a trooper who attends more
-    | than one shift of an event on the same day gets one troop for that day,
-    | not one per shift. Hours and charity still count for every shift. Leave
-    | unset to count every shift; shifts before the date always count.
+    | When on, a trooper who attends more than one shift of an event on the
+    | same day gets one troop for that day, not one per shift. Hours and
+    | charity still count for every shift. Off counts every shift.
     |
     */
 
-    'one_troop_per_day_from' => env('TRACKER_ONE_TROOP_PER_DAY_FROM'),
+    'one_troop_per_day' => (bool) env('TRACKER_ONE_TROOP_PER_DAY', false),
 
     /*
     |--------------------------------------------------------------------------

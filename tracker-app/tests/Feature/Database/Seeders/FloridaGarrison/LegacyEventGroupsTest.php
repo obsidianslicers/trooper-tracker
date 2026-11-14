@@ -11,7 +11,7 @@ class LegacyEventGroupsTest extends TestCase
 {
     public function test_linked_events_become_shifts_of_their_main_event(): void
     {
-        config(['tracker.one_troop_per_day_from' => null]);
+        config(['tracker.one_troop_per_day' => false]);
 
         $groups = LegacyEventGroups::group([
             $this->row(1, 0, '2026-12-05 10:00:00'),
@@ -23,9 +23,9 @@ class LegacyEventGroupsTest extends TestCase
         $this->assertSame([1 => [1, 2, 3], 4 => [4]], $this->ids($groups));
     }
 
-    public function test_a_linked_event_on_a_day_its_group_already_has_stays_its_own_event_under_the_rule(): void
+    public function test_a_linked_event_on_a_day_its_group_already_has_stays_its_own_event_while_the_rule_is_on(): void
     {
-        config(['tracker.one_troop_per_day_from' => '2000-01-01']);
+        config(['tracker.one_troop_per_day' => true]);
 
         $groups = LegacyEventGroups::group([
             $this->row(1, 0, '2026-12-05 10:00:00'),
@@ -39,7 +39,7 @@ class LegacyEventGroupsTest extends TestCase
 
     public function test_a_linked_event_starting_the_same_minute_still_joins_its_group(): void
     {
-        config(['tracker.one_troop_per_day_from' => '2000-01-01']);
+        config(['tracker.one_troop_per_day' => true]);
 
         $groups = LegacyEventGroups::group([
             $this->row(1, 0, '2026-12-05 10:00:00'),
@@ -47,20 +47,6 @@ class LegacyEventGroupsTest extends TestCase
         ]);
 
         $this->assertSame([1 => [1, 2]], $this->ids($groups));
-    }
-
-    public function test_same_day_linked_events_before_the_rule_date_stay_shifts(): void
-    {
-        config(['tracker.one_troop_per_day_from' => '2026-12-01']);
-
-        $groups = LegacyEventGroups::group([
-            $this->row(1, 0, '2026-11-20 10:00:00'),
-            $this->row(2, 1, '2026-11-20 14:00:00'),
-            $this->row(3, 0, '2026-12-05 10:00:00'),
-            $this->row(4, 3, '2026-12-05 14:00:00'),
-        ]);
-
-        $this->assertSame([1 => [1, 2], 3 => [3], 4 => [4]], $this->ids($groups));
     }
 
     private function row(int $id, int $link, string $date_start): object

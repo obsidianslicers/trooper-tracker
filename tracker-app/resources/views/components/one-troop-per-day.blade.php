@@ -1,5 +1,5 @@
 {{--
-    "One troop per day" (tracker.one_troop_per_day_from), said up front on an event with more
+    "One troop per day" (tracker.one_troop_per_day), said up front on an event with more
     than one shift on the same day, so nobody signs up for two shifts expecting two troops.
     Renders nothing when the rule doesn't apply to the event.
 --}}

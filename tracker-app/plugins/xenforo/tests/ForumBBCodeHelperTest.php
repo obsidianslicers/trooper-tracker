@@ -63,7 +63,7 @@ class ForumBBCodeHelperTest extends TestCase
 
     public function test_thread_template_says_when_same_day_shifts_count_as_one_troop(): void
     {
-        config(['tracker.one_troop_per_day_from' => '2020-01-01']);
+        config(['tracker.one_troop_per_day' => true]);
         $event = Event::factory()->forForumBbcodeTemplate()->create();
         $day = now()->addDays(10)->setTime(9, 0);
 

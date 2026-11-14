@@ -24,7 +24,7 @@ class OneTroopPerDayTest extends TestCase
     {
         parent::setUp();
 
-        config(['tracker.one_troop_per_day_from' => '2026-12-01']);
+        config(['tracker.one_troop_per_day' => true]);
         $this->trooper = Trooper::factory()->create();
     }
 
@@ -39,22 +39,13 @@ class OneTroopPerDayTest extends TestCase
 
     public function test_every_shift_counts_while_the_rule_is_off(): void
     {
-        config(['tracker.one_troop_per_day_from' => null]);
+        config(['tracker.one_troop_per_day' => false]);
         $event = Event::factory()->asClosed()->create();
         $this->attend($event, '2026-12-05 09:00');
         $this->attend($event, '2026-12-05 13:00');
 
         $this->assertCount(2, $this->countedIds());
         $this->assertFalse(OneTroopPerDay::isOn());
-    }
-
-    public function test_shifts_before_the_start_date_keep_counting_one_each(): void
-    {
-        $event = Event::factory()->asClosed()->create();
-        $this->attend($event, '2026-11-30 09:00');
-        $this->attend($event, '2026-11-30 13:00');
-
-        $this->assertCount(2, $this->countedIds());
     }
 
     public function test_shifts_on_different_days_or_at_different_events_each_count(): void
@@ -106,7 +97,7 @@ class OneTroopPerDayTest extends TestCase
         $this->assertCount(2, $this->countedIds());
     }
 
-    public function test_an_event_says_so_only_when_it_has_two_shifts_on_a_covered_day(): void
+    public function test_an_event_says_so_only_when_it_has_two_shifts_on_a_day(): void
     {
         $one_a_day = Event::factory()->create();
         EventShift::factory()->forEvent($one_a_day)->withShiftStartsAt(Carbon::parse('2026-12-05 09:00'))->create();
@@ -118,7 +109,7 @@ class OneTroopPerDayTest extends TestCase
         $this->assertNull($one_a_day->troopCreditNotice());
         $this->assertSame(OneTroopPerDay::NOTICE, $two_a_day->troopCreditNotice());
 
-        config(['tracker.one_troop_per_day_from' => null]);
+        config(['tracker.one_troop_per_day' => false]);
         $this->assertNull($two_a_day->fresh()->troopCreditNotice());
     }
 

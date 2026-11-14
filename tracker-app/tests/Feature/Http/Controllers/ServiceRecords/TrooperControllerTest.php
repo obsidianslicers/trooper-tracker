@@ -228,7 +228,7 @@ class TrooperControllerTest extends TestCase
 
     public function test_service_record_marks_a_second_shift_on_the_same_day_and_counts_the_day_once(): void
     {
-        config(['tracker.one_troop_per_day_from' => '2020-01-01']);
+        config(['tracker.one_troop_per_day' => true]);
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $club = Organization::factory()->create([Organization::NAME => 'Day Count Legion']);
         $event = Event::factory()->asClosed()->create([Event::NAME => 'Two shift convention']);

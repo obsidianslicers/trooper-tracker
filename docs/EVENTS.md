@@ -39,19 +39,19 @@ Queries use `Event::counted()` / `EventTrooper::counted()`, or `whereNotIn('tt_e
 
 ### One troop per day (optional)
 
-Some garrisons count a day at an event as one troop, however many shifts a trooper works that day. Set `TRACKER_ONE_TROOP_PER_DAY_FROM` to the first date it applies (`2026-12-01`). From then on, when a trooper attends more than one shift of the same event on the same day, the earliest of those shifts counts and the others don't. Volunteer hours and charity still count for every shift, and every shift stays in the trooper's history. Shifts on other days, shifts at other events and shifts before the date are unaffected, so turning it on never changes past totals. Unset, every shift counts, as before.
+Some garrisons count a day at an event as one troop, however many shifts a trooper works that day. Set `TRACKER_ONE_TROOP_PER_DAY=true` to turn it on. Then, when a trooper attends more than one shift of the same event on the same day, the earliest of those shifts counts and the others don't. Volunteer hours and charity still count for every shift, and every shift stays in the trooper's history. Shifts on other days and shifts at other events are unaffected. It applies to every shift, past ones included, so an existing event with two shifts on a day loses a troop for each trooper who attended both. Off (the default), every shift counts, as before.
 
 "Same day" is the date the shift starts as the tracker shows it (`APP_TIMEZONE`). The troop goes to the clubs credited on the earliest shift. For the sign-up messages, "on a shift" means going, tentative, stand-by, pending a costume or attended (`Event::isOnShift()`).
 
 It applies wherever troops are counted: `EventTrooper::counted()` leaves the extra shifts out (`OneTroopPerDay::excludeRepeats()`), so the shift count, rank and troop milestones, the leaderboards, the public API's `troopCount` and the HoloNet troop history follow it, and the service record's per-club counts use the same rule on the loaded shifts (`OneTroopPerDay::repeatIds()`). The trooper event summary report's "Total Shifts" still counts every shift.
 
-**Importing from TT1.0.** TT1.0 counted every linked event as its own troop. So when the rule covers a linked event's day, and its main event's group already has a shift that day at a different time, the import (`LegacyEventGroups`) brings it in as an event of its own instead of a shift. Imported troops then come out the same whatever the start date, and a garrison moving off TT1.0 can date the rule before all its history.
+**Importing from TT1.0.** TT1.0 counted every linked event as its own troop. So while the rule is on, a linked event whose main event's group already has a shift that day at a different time is imported (`LegacyEventGroups`) as an event of its own instead of a shift. Imported troops then come out the same as in TT1.0. Turn the rule on before the import.
 
 Members hear about it before they sign up, not after:
 
 | Where | What shows |
 |---|---|
-| Event page | On an event with more than one shift on a day the rule covers: "One troop per day: more than one shift on the same day counts as one troop.", with a line saying two shifts add one troop and hours and charity still count, at the top of the details and again above the roster |
+| Event page | On an event with more than one shift on a day: "One troop per day: more than one shift on the same day counts as one troop.", with a line saying two shifts add one troop and hours and charity still count, at the top of the details and again above the roster |
 | A shift on the same day as one you're on | A warning beside its Sign Up button: you're already signed up for (time) on (day); this shift won't add another troop |
 | Signing up for it anyway | A message as the sign-up saves: with your (time) shift, this counts as one troop for the day |
 | Shifts you're on, on the same day | On each: you're also signed up for (time); together these shifts count as one troop |

@@ -105,7 +105,7 @@ class EventDisplayControllerTest extends TestCase
 
     public function test_invoke_says_two_shifts_on_one_day_count_as_one_troop_before_and_after_signing_up(): void
     {
-        config(['tracker.one_troop_per_day_from' => now()->subMonth()->toDateString()]);
+        config(['tracker.one_troop_per_day' => true]);
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $organization = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
@@ -166,7 +166,7 @@ class EventDisplayControllerTest extends TestCase
             ->assertDontSee('One troop per day');
 
         //  on, but the shifts are on different days
-        config(['tracker.one_troop_per_day_from' => now()->subMonth()->toDateString()]);
+        config(['tracker.one_troop_per_day' => true]);
         $multi_day_event = Event::factory()->create();
         $this->shiftAt($multi_day_event, $day);
         $this->shiftAt($multi_day_event, $day->copy()->addDay());
