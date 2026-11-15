@@ -61,7 +61,7 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSeeInOrder(['Commanding Officer', 'Event Coordinator', 'TK-421 Coordinator']);
+        $response->assertSeeInOrder(['Point of Contact', 'Event Coordinator', 'TK-421 Coordinator']);
         $response->assertSee(route('service-records.trooper', ['trooper' => $coordinator->id]), false);
     }
 
