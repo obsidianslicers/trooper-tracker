@@ -119,10 +119,10 @@ class SignUpHtmxController extends PageController
         if ($same_day_shifts->isNotEmpty())
         {
             //  "one troop per day": said again the moment they sign up for a second shift that day
-            $times = $same_day_shifts->map(fn (EventShift $shift): string => $shift->compact_time_display)->join(', ', ' and ');
+            $count = $same_day_shifts->count() + 1;
 
             $response = $response->header('X-Flash-Message', json_encode([
-                'message' => "You're signed up. With your {$times} shift, this counts as one troop for the day.",
+                'message' => "You're signed up. This troop counts as one troop for the day. You're currently signed up for {$count} shifts that day.",
                 'type' => 'info',
                 'focus' => true,
                 'fadeOut' => 8000,

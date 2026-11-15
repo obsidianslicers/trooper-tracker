@@ -46,7 +46,7 @@ return [
     |
     */
 
-    'one_troop_per_day' => (bool) env('TRACKER_ONE_TROOP_PER_DAY', false),
+    'count_as_one_troop_per_day' => (bool) env('TRACKER_COUNT_AS_ONE_TROOP_PER_DAY', false),
 
     /*
     |--------------------------------------------------------------------------

@@ -39,7 +39,7 @@ Queries use `Event::counted()` / `EventTrooper::counted()`, or `whereNotIn('tt_e
 
 ### One troop per day (optional)
 
-Some garrisons count a day at an event as one troop, however many shifts a trooper works that day. Set `TRACKER_ONE_TROOP_PER_DAY=true` to turn it on. Then, when a trooper attends more than one shift of the same event on the same day, the earliest of those shifts counts and the others don't. Volunteer hours and charity still count for every shift, and every shift stays in the trooper's history. Shifts on other days and shifts at other events are unaffected. It applies to every shift, past ones included, so an existing event with two shifts on a day loses a troop for each trooper who attended both. Off (the default), every shift counts, as before.
+Some garrisons count a day at an event as one troop, however many shifts a trooper works that day. Set `TRACKER_COUNT_AS_ONE_TROOP_PER_DAY=true` to turn it on. Then, when a trooper attends more than one shift of the same event on the same day, the earliest of those shifts counts and the others don't. Volunteer hours and charity still count for every shift, and every shift stays in the trooper's history. Shifts on other days and shifts at other events are unaffected. It applies to every shift, past ones included, so an existing event with two shifts on a day loses a troop for each trooper who attended both. Off (the default), every shift counts, as before.
 
 "Same day" is the date the shift starts as the tracker shows it (`APP_TIMEZONE`). The troop goes to the clubs credited on the earliest shift. For the sign-up messages, "on a shift" means going, tentative, stand-by, pending a costume or attended (`Event::isOnShift()`).
 
@@ -53,7 +53,7 @@ Members hear about it before they sign up, not after:
 |---|---|
 | Event page | On an event with more than one shift on a day: "One troop per day: more than one shift on the same day counts as one troop.", with a line saying two shifts add one troop and hours and charity still count, at the top of the details and again above the roster |
 | A shift on the same day as one you're on | A warning beside its Sign Up button: you're already signed up for (time) on (day); this shift won't add another troop |
-| Signing up for it anyway | A message as the sign-up saves: with your (time) shift, this counts as one troop for the day |
+| Signing up for it anyway | A message as the sign-up saves: this counts as one troop for the day, and how many shifts that day they're signed up for |
 | Shifts you're on, on the same day | On each: you're also signed up for (time); together these shifts count as one troop |
 | Forum thread post (XenForo plugin) and Discord announcement | The same sentence, where an event that doesn't count shows its notice (`Event::troopCreditNotice()`) |
 | Service record history | "Same day, counted once" pill on each shift that didn't add a troop |

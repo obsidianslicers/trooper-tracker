@@ -11,7 +11,7 @@ class LegacyEventGroupsTest extends TestCase
 {
     public function test_linked_events_become_shifts_of_their_main_event(): void
     {
-        config(['tracker.one_troop_per_day' => false]);
+        config(['tracker.count_as_one_troop_per_day' => false]);
 
         $groups = LegacyEventGroups::group([
             $this->row(1, 0, '2026-12-05 10:00:00'),
@@ -25,7 +25,7 @@ class LegacyEventGroupsTest extends TestCase
 
     public function test_a_linked_event_on_a_day_its_group_already_has_stays_its_own_event_while_the_rule_is_on(): void
     {
-        config(['tracker.one_troop_per_day' => true]);
+        config(['tracker.count_as_one_troop_per_day' => true]);
 
         $groups = LegacyEventGroups::group([
             $this->row(1, 0, '2026-12-05 10:00:00'),
@@ -39,7 +39,7 @@ class LegacyEventGroupsTest extends TestCase
 
     public function test_a_linked_event_starting_the_same_minute_still_joins_its_group(): void
     {
-        config(['tracker.one_troop_per_day' => true]);
+        config(['tracker.count_as_one_troop_per_day' => true]);
 
         $groups = LegacyEventGroups::group([
             $this->row(1, 0, '2026-12-05 10:00:00'),

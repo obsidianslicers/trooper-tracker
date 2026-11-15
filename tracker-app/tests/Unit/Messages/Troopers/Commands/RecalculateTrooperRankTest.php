@@ -526,7 +526,7 @@ class RecalculateTrooperRankTest extends TestCase
 
     public function test_handle_counts_two_shifts_on_one_day_as_one_troop_but_adds_both_shifts_hours(): void
     {
-        config(['tracker.one_troop_per_day' => true]);
+        config(['tracker.count_as_one_troop_per_day' => true]);
         $trooper = Trooper::factory()->create();
         $club = $this->createClub('501st Legion');
         $event = Event::factory()->asClosed()->create();

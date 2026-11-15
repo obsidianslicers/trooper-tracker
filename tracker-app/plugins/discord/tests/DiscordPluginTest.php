@@ -52,7 +52,7 @@ class DiscordPluginTest extends TestCase
     public function test_the_announcement_says_when_same_day_shifts_count_as_one_troop(): void
     {
         Http::fake();
-        config(['tracker.one_troop_per_day' => true]);
+        config(['tracker.count_as_one_troop_per_day' => true]);
         $this->enableDiscord();
         $this->plugins->updateSettings('discord', ['webhook_url' => 'https://discord.test/saved']);
         $event = Event::factory()->create();

@@ -24,7 +24,7 @@ class OneTroopPerDayTest extends TestCase
     {
         parent::setUp();
 
-        config(['tracker.one_troop_per_day' => true]);
+        config(['tracker.count_as_one_troop_per_day' => true]);
         $this->trooper = Trooper::factory()->create();
     }
 
@@ -39,7 +39,7 @@ class OneTroopPerDayTest extends TestCase
 
     public function test_every_shift_counts_while_the_rule_is_off(): void
     {
-        config(['tracker.one_troop_per_day' => false]);
+        config(['tracker.count_as_one_troop_per_day' => false]);
         $event = Event::factory()->asClosed()->create();
         $this->attend($event, '2026-12-05 09:00');
         $this->attend($event, '2026-12-05 13:00');
@@ -109,7 +109,7 @@ class OneTroopPerDayTest extends TestCase
         $this->assertNull($one_a_day->troopCreditNotice());
         $this->assertSame(OneTroopPerDay::NOTICE, $two_a_day->troopCreditNotice());
 
-        config(['tracker.one_troop_per_day' => false]);
+        config(['tracker.count_as_one_troop_per_day' => false]);
         $this->assertNull($two_a_day->fresh()->troopCreditNotice());
     }
 

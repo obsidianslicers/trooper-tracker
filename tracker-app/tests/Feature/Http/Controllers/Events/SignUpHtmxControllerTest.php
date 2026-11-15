@@ -37,7 +37,7 @@ class SignUpHtmxControllerTest extends TestCase
 
     public function test_invoke_says_a_second_shift_on_the_same_day_shares_the_troop(): void
     {
-        config(['tracker.one_troop_per_day' => true]);
+        config(['tracker.count_as_one_troop_per_day' => true]);
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $organization = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
@@ -57,9 +57,9 @@ class SignUpHtmxControllerTest extends TestCase
         $response = $this->actingAs($trooper)->post(route('events.signup-htmx', ['event_shift' => $afternoon->id]));
 
         $response->assertOk();
-        $this->assertStringContainsString(
-            'With your '.$morning->compact_time_display.' shift, this counts as one troop for the day.',
-            (string) json_decode((string) $response->headers->get('X-Flash-Message'), true)['message']
+        $this->assertSame(
+            "You're signed up. This troop counts as one troop for the day. You're currently signed up for 2 shifts that day.",
+            json_decode((string) $response->headers->get('X-Flash-Message'), true)['message']
         );
         $response->assertSee('Together these shifts count as one troop.');
     }

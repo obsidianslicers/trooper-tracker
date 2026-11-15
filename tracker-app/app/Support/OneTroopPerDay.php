@@ -11,7 +11,7 @@ use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 
 /**
- * The optional "one troop per day" rule (tracker.one_troop_per_day).
+ * The optional "one troop per day" rule (tracker.count_as_one_troop_per_day).
  *
  * While it's on, a trooper who attends more than one shift of the same event on the same day
  * gets one troop for that day: the earliest of those shifts counts, the others don't. Hours
@@ -33,7 +33,7 @@ final class OneTroopPerDay
 
     public static function isOn(): bool
     {
-        return (bool) config('tracker.one_troop_per_day');
+        return (bool) config('tracker.count_as_one_troop_per_day');
     }
 
     /**

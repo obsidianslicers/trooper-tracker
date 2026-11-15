@@ -111,7 +111,7 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **When to change**: Set it if coordinators need firm numbers in the final days before an event
 - **Note**: Only applies to events that allow tentative sign-ups. A sign-up that is already tentative keeps that status; the trooper can still switch it to going or cancelled.
 
-### TRACKER_ONE_TROOP_PER_DAY
+### TRACKER_COUNT_AS_ONE_TROOP_PER_DAY
 - **Purpose**: Several shifts of one event on the same day count as one troop
 - **Required**: No
 - **Default**: `false` (every shift counts as a troop)
