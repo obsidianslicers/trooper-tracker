@@ -667,6 +667,8 @@ input.searching {
 .mission-brief-container {
     transition: max-height 0.5s ease-in-out, background-color 0.3s ease;
     padding: 15px;
+    // a long link or other unbroken text wraps instead of running off the clipped edge on a phone
+    overflow-wrap: anywhere;
 }
 
 // List groups
