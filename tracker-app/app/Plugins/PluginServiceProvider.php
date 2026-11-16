@@ -329,6 +329,11 @@ abstract class PluginServiceProvider extends ServiceProvider
             $this->loadViewsFrom($path.'/resources/views', $slug);
         }
 
+        if (is_dir($path.'/lang'))
+        {
+            $this->loadTranslationsFrom($path.'/lang', $slug);
+        }
+
         if (is_dir($path.'/database/migrations'))
         {
             $this->loadMigrationsFrom($path.'/database/migrations');

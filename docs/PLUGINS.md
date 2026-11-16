@@ -238,6 +238,10 @@ class HelloServiceProvider extends PluginServiceProvider
 
 Inside a plugin, follow the same conventions as core: Hyperdrive messages for business logic, invokable controllers, `declare(strict_types=1)`, and tests.
 
+### Translations
+
+Put the plugin's text in `lang/<locale>/<group>.php` inside the plugin folder, keyed by the English text, with every key in `lang/en`. The loader registers the folder under the plugin's slug, so `__('hello::greetings.Hello there')` works in PHP and Blade, and a Svelte slot can ask for `TranslationService::groups('hello::greetings')`. See [LOCALIZATION.md](LOCALIZATION.md#plugins).
+
 ---
 
 ## Hooks

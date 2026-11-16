@@ -38,7 +38,7 @@ class UpdateProfileControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('layouts.inertia');
-        $response->assertInertia(fn(Assert $page) => $page
+        $response->assertInertia(fn (Assert $page) => $page
             ->component('account/Index')
             ->has('flash.success')
         );
@@ -67,7 +67,7 @@ class UpdateProfileControllerTest extends TestCase
         $trooper->refresh();
 
         $response->assertOk();
-        $response->assertInertia(fn(Assert $page) => $page
+        $response->assertInertia(fn (Assert $page) => $page
             ->component('account/Index')
             ->has('flash.success')
             ->has('flash.warning')
@@ -87,5 +87,22 @@ class UpdateProfileControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('auth.login'));
+    }
+
+    public function test_invoke_saves_language_and_answers_in_it(): void
+    {
+        config(['tracker.locales' => ['en' => 'English', 'de' => 'Deutsch']]);
+        $trooper = Trooper::factory()->asActive()->create([Trooper::THEME => TrooperTheme::STORMTROOPER]);
+
+        $response = $this->actingAs($trooper)->post(route('account.update-profile'), [
+            Trooper::LEGAL_NAME => $trooper->legal_name,
+            Trooper::DISPLAY_NAME => $trooper->display_name,
+            Trooper::THEME => TrooperTheme::STORMTROOPER->value,
+            Trooper::LOCALE => 'de',
+        ]);
+
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page->where('i18n.locale', 'de'));
+        $this->assertSame('de', $trooper->refresh()->locale);
     }
 }

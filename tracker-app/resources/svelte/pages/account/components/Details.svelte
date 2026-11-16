@@ -7,6 +7,7 @@
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
+    import { t } from "$lib/i18n";
     import type { DetailsPageData } from "../models";
     import { DetailsViewModel } from "../models";
 
@@ -122,6 +123,19 @@
                 </InputHelp>
             {/if}
         </InputContainer>
+        {#if vm.locale_options.length > 0}
+            <InputContainer>
+                <InputSelect
+                    label={t("Language")}
+                    bind:value={vm.form.locale}
+                    options={vm.locale_options}
+                    errors={vm.errors.locale}
+                />
+                <InputHelp>
+                    {t("The language the Tracker and your emails use.")}
+                </InputHelp>
+            </InputContainer>
+        {/if}
         <SubmitButtonContainer>
             <SubmitButton
                 label="Save"

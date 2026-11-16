@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Enums;
 
 use BackedEnum;
+use Illuminate\Support\Facades\Lang;
 
 /**
  * Provides common helper methods for backed enums.
@@ -32,7 +33,7 @@ trait HasEnumHelpers
 
         foreach ($cases as $case)
         {
-            $pairs[$case->value] = to_title($case->name);
+            $pairs[$case->value] = self::caseLabel($case);
         }
 
         return $pairs;
@@ -68,10 +69,20 @@ trait HasEnumHelpers
                 continue;
             }
 
-            $pairs[] = ['value' => $case->value, 'label' => to_title($case->name)->toString()];
+            $pairs[] = ['value' => $case->value, 'label' => self::caseLabel($case)];
         }
 
         return $pairs;
+    }
+
+    /**
+     * The case's English label (from its name), translated through lang/<locale>/enums.php.
+     */
+    public static function caseLabel(BackedEnum $case): string
+    {
+        $label = to_title($case->name)->toString();
+
+        return Lang::has("enums.{$label}") ? __("enums.{$label}") : $label;
     }
 
     /**

@@ -129,6 +129,21 @@ php artisan fabricator:generate-factories
 
 ---
 
+### `tracker:report-translations`
+
+Reports, per language, how many lines are translated, which keys are missing (they fall back to English) and which are orphaned (English no longer has them), plus keys code uses that the English files don't define. CI writes the Markdown form to the test job's summary. See [LOCALIZATION.md](LOCALIZATION.md).
+
+```bash
+php artisan tracker:report-translations [--markdown] [--strict]
+```
+
+| Option | Description |
+|---|---|
+| `--markdown` | Write a Markdown summary instead of a console table |
+| `--strict` | Exit with an error when keys are undefined or orphaned (missing translations alone never fail) |
+
+---
+
 ### `tracker:merge-costumes`
 
 Folds a duplicate costume into the costume you want to keep, then permanently deletes the duplicate. Everything that pointed at the duplicate moves to the kept costume, including soft-deleted records:

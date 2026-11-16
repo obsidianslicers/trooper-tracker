@@ -9,6 +9,8 @@ use App\Enums\TrooperTheme;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\UpdateProfileRequest;
 use App\Messages\Troopers\Commands\UpdateTrooperProfile;
+use App\Services\TranslationService;
+use Illuminate\Support\Facades\App;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -27,8 +29,10 @@ class UpdateProfileController extends Controller
      * @param  UpdateProfileRequest  $request  The validated profile update request
      * @return InertiaResponse|SymfonyResponse Redirect to the update profile page with success message
      */
-    public function __invoke(UpdateProfileRequest $request): InertiaResponse|SymfonyResponse
-    {
+    public function __invoke(
+        UpdateProfileRequest $request,
+        TranslationService $translations
+    ): InertiaResponse|SymfonyResponse {
         $trooper = $request->user();
 
         $orginal_theme = $trooper->theme->value;
@@ -38,9 +42,12 @@ class UpdateProfileController extends Controller
             legal_name: $request->validated('legal_name'),
             display_name: $request->validated('display_name'),
             theme: $request->validated('theme'),
+            locale: $request->validated('locale'),
             phone: $request->validated('phone'),
             display_costume_id: $request->validated('display_costume_id')
         );
+
+        App::setLocale($trooper->preferredLocale() ?? $translations->siteLocale());
 
         FlashType::updated($trooper);
 

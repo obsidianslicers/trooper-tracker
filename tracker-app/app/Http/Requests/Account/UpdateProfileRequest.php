@@ -7,6 +7,7 @@ namespace App\Http\Requests\Account;
 use App\Enums\TrooperTheme;
 use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Trooper;
+use App\Services\TranslationService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -43,6 +44,11 @@ class UpdateProfileRequest extends FormRequest
             Trooper::DISPLAY_NAME => ['required', 'string', 'max:256'],
             Trooper::PHONE => ['nullable', 'string', 'max:16'],
             Trooper::THEME => ['required', 'string', 'max:16', TrooperTheme::toValidator()],
+            Trooper::LOCALE => [
+                'nullable',
+                'string',
+                Rule::in(array_keys(app(TranslationService::class)->locales())),
+            ],
             Trooper::DISPLAY_COSTUME_ID => [
                 'nullable',
                 'integer',

@@ -29,6 +29,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
@@ -79,6 +81,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         JsonResource::withoutWrapping();
+
+        $this->logMissingTranslations();
 
         Gate::policy(TrooperRequest::class, TrooperRequestPolicy::class);
 
@@ -208,6 +212,24 @@ class AppServiceProvider extends ServiceProvider
             });
 
             return $normalized->contains($user->membership_role);
+        });
+    }
+
+    /**
+     * Locally, a key that no language defines (the page shows the raw key) is logged.
+     */
+    private function logMissingTranslations(): void
+    {
+        if (!$this->app->isLocal())
+        {
+            return;
+        }
+
+        Lang::handleMissingKeysUsing(function (string $key, array $replace, ?string $locale): null
+        {
+            Log::warning("Missing translation [{$locale}]: {$key}");
+
+            return null;
         });
     }
 }

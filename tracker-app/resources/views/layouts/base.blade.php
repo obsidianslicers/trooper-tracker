@@ -36,6 +36,10 @@
     </div>
 
     @include('partials.footer')
+    <script type="application/json" id="tt-i18n">{!! json_encode([
+        'locale' => app()->getLocale(),
+        'messages' => app(\App\Services\TranslationService::class)->groups('common'),
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
     @vite(['resources/js/app.js'])
     @yield('page-script')
     @stack('scripts')
