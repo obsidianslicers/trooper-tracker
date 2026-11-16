@@ -43,8 +43,8 @@ test.describe('event details', () => {
         await page.locator('#name').fill('E2E Created Troop');
 
         await openSection(page, 'Schedule');
-        await page.locator('#event_start').evaluate((el) => el._flatpickr.setDate(new Date(2030, 5, 1, 10, 0), true));
-        await page.locator('#event_end').evaluate((el) => el._flatpickr.setDate(new Date(2030, 5, 1, 14, 0), true));
+        await page.locator('#event_start').fill('2030-06-01 10:00AM');
+        await page.locator('#event_end').fill('2030-06-01 2:00PM');
 
         await openSection(page, /^Location/);
         await page.locator('#venue').fill('E2E Created Venue');

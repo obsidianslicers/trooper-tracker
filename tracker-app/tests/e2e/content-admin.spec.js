@@ -29,8 +29,13 @@ async function typeMarkdown(page, text) {
     await page.keyboard.type(text);
 }
 
+// Date-time fields take typed text ("2030-06-01 1:00PM") as well as the calendar popup.
 async function setDate(page, selector, date) {
-    await page.locator(selector).evaluate((input, value) => input._flatpickr.setDate(value, true), date);
+    const pad = (n) => String(n).padStart(2, '0');
+    const hour = date.getHours() % 12 || 12;
+    const text = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
+        + `${hour}:${pad(date.getMinutes())}${date.getHours() >= 12 ? 'PM' : 'AM'}`;
+    await page.locator(selector).fill(text);
 }
 
 function rowFor(page, text) {

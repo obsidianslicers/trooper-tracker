@@ -1,9 +1,10 @@
+import { attachDatePicker } from './date-picker.js';
+
 /** DATE PICKER **/
 document.addEventListener('DOMContentLoaded', () => {
     function bindDatePickers() {
         document.querySelectorAll(".date-picker").forEach(function (el) {
-            var options = { dateFormat: "Y-m-d" };
-            flatpickr(el, options);
+            attachDatePicker(el);
         });
     }
     bindDatePickers();
@@ -15,8 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
     function bindDateTimePickers() {
         document.querySelectorAll(".datetime-picker").forEach(function (el) {
-            var options = { enableTime: true, dateFormat: "Y-m-d h:iK" };
-            flatpickr(el, options);
+            attachDatePicker(el, { withTime: true });
         });
     }
     bindDateTimePickers();

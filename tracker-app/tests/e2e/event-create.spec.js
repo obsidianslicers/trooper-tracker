@@ -23,8 +23,8 @@ test('a create that fails validation keeps what was entered', async ({ page }) =
 
     // Leave the name blank so the submit fails, and fill in the rest.
     await openSection(page, 'Schedule');
-    await page.locator('#event_start').evaluate((el) => el._flatpickr.setDate(new Date(2030, 5, 1, 10, 0), true));
-    await page.locator('#event_end').evaluate((el) => el._flatpickr.setDate(new Date(2030, 5, 1, 14, 0), true));
+    await page.locator('#event_start').fill('2030-06-01 10:00AM');
+    await page.locator('#event_end').fill('2030-06-01 2:00PM');
 
     await openSection(page, /^Location/);
     await page.locator('#venue').fill('E2E Venue');

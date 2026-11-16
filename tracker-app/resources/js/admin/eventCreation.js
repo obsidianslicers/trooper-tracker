@@ -1,3 +1,4 @@
+import { formatForPicker } from '../custom/date-picker.js';
 import { mandalorianMercsParser } from './parsers/mandalorianMercsParser.js';
 import { theLegionParser } from './parsers/theLegionParser.js';
 
@@ -51,6 +52,13 @@ export default function ({ mode, organizationId, organizationName, clubName }) {
                 default:
                     // Unknown org — do nothing or clear form
                     parsed = {};
+            }
+
+            // in the format this device's picker field takes; a phone's native field drops others
+            for (const field of ['event_start', 'event_end']) {
+                if (parsed[field]) {
+                    parsed[field] = formatForPicker(parsed[field], { withTime: true });
+                }
             }
 
             this.form = { ...this.form, ...parsed };

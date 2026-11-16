@@ -163,9 +163,7 @@ test.describe('as an administrator', () => {
 
         const twelve_years_ago = new Date();
         twelve_years_ago.setFullYear(twelve_years_ago.getFullYear() - 12);
-        // The date field is a read-only date picker.
-        await page.getByLabel('Date of Birth').evaluate((input, date) => input._flatpickr.setDate(date, true),
-            twelve_years_ago.toISOString().slice(0, 10));
+        await page.getByLabel('Date of Birth').fill(twelve_years_ago.toISOString().slice(0, 10));
         await page.getByRole('button', { name: 'Update Guardian' }).click();
         await expect(page.locator('.text-danger').getByText(/guardian email field is required/i)).toBeVisible();
 

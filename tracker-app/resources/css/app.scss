@@ -1,7 +1,13 @@
 @use 'theme.scss';
 
-@import "flatpickr/dist/flatpickr.min.css";
 @import "easymde/dist/easymde.min.css";
+
+// Native date and time fields (date-picker.js on touch devices, and the shift times): the
+// phone's own picker and the field's calendar or clock icon follow the tracker's dark theme.
+input[data-picker="native"],
+input[type="time"] {
+    color-scheme: dark;
+}
 
 :global(.sortable-ghost) {
     opacity: 0.6;

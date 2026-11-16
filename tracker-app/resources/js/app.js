@@ -62,10 +62,6 @@ Alpine.start();
 // Typeahead (not used directly, may get removed later)
 import 'typeahead.js';
 
-// Flatpickr
-import flatpickr from 'flatpickr';
-window.flatpickr = flatpickr;
-
 // SimpleMDE
 import EasyMDE from "easymde";
 window.EasyMDE = EasyMDE;
