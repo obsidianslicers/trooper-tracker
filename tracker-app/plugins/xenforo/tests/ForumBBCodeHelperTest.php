@@ -61,6 +61,23 @@ class ForumBBCodeHelperTest extends TestCase
         );
     }
 
+    public function test_thread_template_says_when_same_day_shifts_count_as_one_troop(): void
+    {
+        config(['tracker.count_as_one_troop_per_day' => true]);
+        $event = Event::factory()->forForumBbcodeTemplate()->create();
+        $day = now()->addDays(10)->setTime(9, 0);
+
+        foreach ([$day, $day->copy()->setTime(13, 0)] as $start)
+        {
+            EventShift::factory()->forEvent($event)->withShiftStartsAt($start)->withShiftEndsAt($start->copy()->addHours(3))->create();
+        }
+
+        $this->assertStringContainsString(
+            "[/i][/size]\n\n[b]ℹ️ One troop per day: more than one shift on the same day counts as one troop.[/b]\n\n[hr][/hr]",
+            ForumBBCodeHelper::threadTemplate($event->fresh())
+        );
+    }
+
     public function test_thread_template_says_nothing_about_counting_for_a_counted_event(): void
     {
         $event = Event::factory()->forForumBbcodeTemplate()->create();

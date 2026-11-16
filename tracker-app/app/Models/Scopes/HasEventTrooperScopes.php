@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Scopes;
 
 use App\Enums\EventTrooperStatus;
+use App\Support\OneTroopPerDay;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -40,13 +41,18 @@ trait HasEventTrooperScopes
     }
 
     /**
-     * Scope a query to sign-ups whose event type counts toward troop totals.
+     * Scope a query to sign-ups that add a troop: the event's type counts, and the sign-up isn't
+     * a later shift of the same event on the same day while "one troop per day" is on.
      *
      * @param Builder<self> $query The Eloquent query builder.
      * @return Builder<self>
      */
     public function scopeCounted(Builder $query): Builder
     {
-        return $query->whereHas('event_shift.event', fn (Builder $q) => $q->counted());
+        $query->whereHas('event_shift.event', fn (Builder $q) => $q->counted());
+
+        OneTroopPerDay::excludeRepeats($query, $query->getModel()->getTable());
+
+        return $query;
     }
 }

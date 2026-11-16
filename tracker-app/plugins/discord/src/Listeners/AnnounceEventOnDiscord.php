@@ -31,7 +31,7 @@ class AnnounceEventOnDiscord
                 $event->name,
                 $event->comments ?? null,
                 $event->organization,
-                $event->notCountedNotice(),
+                $event->troopCreditNotice(),
             );
         }
         catch (Throwable $e)

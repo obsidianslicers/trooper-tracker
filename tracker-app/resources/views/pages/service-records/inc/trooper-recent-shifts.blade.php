@@ -67,6 +67,8 @@
                                     <x-not-counted :event="$shift->event"
                                                    variant="pill"
                                                    class="d-inline-block mt-1" />
+                                    <x-same-day-repeat :event_trooper="$shift->event_trooper"
+                                                       class="d-inline-block mt-1" />
                                 </h6>
                             </div>
                         </div>
@@ -136,6 +138,8 @@
                             <x-not-counted :event="$shift->event"
                                            variant="pill"
                                            class="ms-1" />
+                            <x-same-day-repeat :event_trooper="$shift->event_trooper"
+                                               class="ms-1" />
                         </td>
                         <td class="text-start text-nowrap">
                             {{ $shift->full_date_display }}

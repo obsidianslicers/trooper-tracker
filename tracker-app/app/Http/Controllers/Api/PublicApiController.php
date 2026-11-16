@@ -75,7 +75,8 @@ class PublicApiController
 
         $event_troopers = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
-            ->whereHas('event_shift.event', fn ($q) => $q->where(Event::STATUS, EventStatus::CLOSED->value)->counted())
+            ->counted()
+            ->whereHas('event_shift.event', fn ($q) => $q->where(Event::STATUS, EventStatus::CLOSED->value))
             ->with(['event_shift.event'])
             ->get();
 

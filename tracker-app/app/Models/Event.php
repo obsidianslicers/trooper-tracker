@@ -13,11 +13,13 @@ use App\Models\Concerns\HasFilter;
 use App\Models\Concerns\HasObserver;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventScopes;
+use App\Support\OneTroopPerDay;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Spatie\CalendarLinks\Link;
 
@@ -87,6 +89,76 @@ class Event extends BaseEvent
         }
 
         return EventType::NOT_COUNTED_NOTICE;
+    }
+
+    /**
+     * Whether "one troop per day" applies here: the event counts and has more than one shift on
+     * a day.
+     */
+    public function hasSameDayShifts(): bool
+    {
+        if (!OneTroopPerDay::isOn() || !$this->isCounted())
+        {
+            return false;
+        }
+
+        return $this->event_shifts
+            ->countBy(fn (EventShift $shift): string => OneTroopPerDay::dayOf($shift))
+            ->contains(fn (int $count): bool => $count > 1);
+    }
+
+    /**
+     * A trooper's other shifts of this event on the same day as $shift, under "one troop per
+     * day": shifts they're on (see isOnShift()), which $shift would share a troop with.
+     * Empty when the rule is off or the event doesn't count. Uses the loaded shifts and their
+     * sign-ups, as the event page has them.
+     *
+     * @return Collection<int, EventShift>
+     */
+    public function sameDayShiftsFor(EventShift $shift, Trooper $trooper): Collection
+    {
+        if (!OneTroopPerDay::isOn() || !$this->isCounted())
+        {
+            return collect();
+        }
+
+        $day = OneTroopPerDay::dayOf($shift);
+
+        return $this->event_shifts
+            ->filter(fn (EventShift $other): bool => $other->id !== $shift->id
+                && OneTroopPerDay::dayOf($other) === $day
+                && $this->isOnShift($other, $trooper))
+            ->sortBy(EventShift::SHIFT_STARTS_AT)
+            ->values()
+            ->toBase();
+    }
+
+    /**
+     * Whether the trooper holds a place on the shift, or worked it: going, tentative, stand-by,
+     * pending a costume, or attended. Not cancelled, missed or not picked.
+     */
+    public function isOnShift(EventShift $shift, Trooper $trooper): bool
+    {
+        $statuses = [
+            EventTrooperStatus::GOING,
+            EventTrooperStatus::TENTATIVE,
+            EventTrooperStatus::STAND_BY,
+            EventTrooperStatus::PENDING,
+            EventTrooperStatus::ATTENDED,
+            EventTrooperStatus::AWAITING_VERIFICATION,
+        ];
+
+        return $shift->event_troopers->contains(fn (EventTrooper $et): bool => $et->trooper_id === $trooper->id
+            && in_array($et->status, $statuses, true));
+    }
+
+    /**
+     * The one sentence forum posts and announcements carry about how the event counts toward
+     * troop totals: that it doesn't count at all, or that same-day shifts count as one troop.
+     */
+    public function troopCreditNotice(): ?string
+    {
+        return $this->notCountedNotice() ?? ($this->hasSameDayShifts() ? OneTroopPerDay::NOTICE : null);
     }
 
     /**

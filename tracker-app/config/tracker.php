@@ -37,6 +37,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | One Troop Per Day
+    |--------------------------------------------------------------------------
+    |
+    | When on, a trooper who attends more than one shift of an event on the
+    | same day gets one troop for that day, not one per shift. Hours and
+    | charity still count for every shift. Off counts every shift.
+    |
+    */
+
+    'count_as_one_troop_per_day' => (bool) env('TRACKER_COUNT_AS_ONE_TROOP_PER_DAY', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Support Information
     |--------------------------------------------------------------------------
     |

@@ -15,6 +15,7 @@ use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
+use Database\Seeders\FloridaGarrison\Support\LegacyEventGroups;
 use Database\Seeders\FloridaGarrison\Support\LegacySignupCreditResolver;
 use Database\Seeders\FloridaGarrison\Traits\HasCostumeMaps;
 use Database\Seeders\FloridaGarrison\Traits\HasEnumMaps;
@@ -378,18 +379,12 @@ class EventSeeder extends Seeder
 
         $events = [];
 
-        foreach ($all->filter(fn ($x) => $x->link === 0) as $event)
+        foreach (LegacyEventGroups::group($all) as $id => $shifts)
         {
-            $event->shifts = collect([$event]);
+            $event = $shifts[0];
+            $event->shifts = collect($shifts);
 
-            $events[$event->id] = $event;
-        }
-
-        foreach ($all->filter(fn ($x) => $x->link > 0) as $event)
-        {
-            $main_event = $events[$event->link];
-
-            $main_event->shifts->add($event);
+            $events[$id] = $event;
         }
 
         return collect($events);

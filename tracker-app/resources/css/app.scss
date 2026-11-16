@@ -713,12 +713,23 @@ input.searching {
 }
 
 //  not Bootstrap's .alert-info: the themes paint that solid, which hides the icon
-.not-counted-notice {
+//  (.same-day-notice: "one troop per day" on the event page and its shifts)
+.not-counted-notice,
+.same-day-notice {
     border: 1px solid var(--bs-border-color);
     border-left: 4px solid var(--bs-info);
     border-radius: var(--bs-border-radius);
     color: var(--bs-body-color);
     padding: 0.5rem 0.75rem;
+}
+
+//  beside the Sign Up button of a second shift on the same day
+.same-day-notice--warning {
+    border-left-color: var(--bs-warning);
+
+    .fa {
+        color: var(--bs-warning);
+    }
 }
 
 //  the bell's dropdown in the navbar; scrolls once it outgrows the screen

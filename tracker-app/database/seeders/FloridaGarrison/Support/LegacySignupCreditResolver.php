@@ -214,7 +214,8 @@ class LegacySignupCreditResolver
 
     /**
      * Mirrors EventSeeder::overlayShifts(): linked legacy events become shifts of their main
-     * event, and shifts of one event that start the same minute are merged into the first one.
+     * event (see LegacyEventGroups), and shifts of one event that start the same minute are
+     * merged into the first one.
      * Legacy signups on a merged shift therefore live on a different tt shift id.
      *
      * @return array<int, int> legacy shift id => tt shift id
@@ -245,19 +246,8 @@ class LegacySignupCreditResolver
             ->orderBy('id')
             ->orderBy('link')
             ->get(['id', 'link', 'dateStart']);
-        $groups = [];
 
-        foreach ($events->filter(fn ($event) => (int) $event->link === 0) as $event)
-        {
-            $groups[(int) $event->id] = [$event];
-        }
-
-        foreach ($events->filter(fn ($event) => (int) $event->link > 0) as $event)
-        {
-            $groups[(int) $event->link][] = $event;
-        }
-
-        return $groups;
+        return LegacyEventGroups::group($events);
     }
 
     /** @param  array<int, int>  $shift_map */
