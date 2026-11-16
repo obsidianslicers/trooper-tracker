@@ -33,6 +33,7 @@ export const seeded = {
     signupEvent: 'E2E Signup Troop',
     briefedEvent: 'E2E Briefed Troop',
     missionBrief: 'E2E brief: report to the loading dock at nine.',
+    longBriefEvent: 'E2E Long Brief Troop',
     pastParade: 'E2E Past Parade',
     rostered: { email: 'rostered@e2e.test', name: 'E2E Rostered Trooper' },
     commandEvent: 'E2E Command Troop',

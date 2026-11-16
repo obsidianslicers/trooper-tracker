@@ -116,14 +116,32 @@
                     </div>
 
                     @if($event->comments)
+                        {{-- A brief of up to five lines (and a paragraph break) shows in full, with nothing to
+                             press; a longer one shows three lines until it's decrypted. Measured in the browser,
+                             since the line count depends on the screen width. --}}
                         <div class="mb-3"
-                             x-data="{ expanded: false, get fullHeight() { return (this.$refs.content.scrollHeight+40) + 'px' } }">
+                             x-data="{
+                                 opened: false,
+                                 fits: false,
+                                 init() { this.measure() },
+                                 measure() {
+                                     const content = this.$el.querySelector('[x-ref=content]');
+                                     const style = getComputedStyle(content);
+                                     const font = parseFloat(style.fontSize);
+                                     const line = parseFloat(style.lineHeight) || font * 1.5;
+                                     this.fits = content.scrollHeight <= line * 5 + font;
+                                 },
+                                 get expanded() { return this.fits || this.opened },
+                                 toggle() { if (!this.fits) this.opened = !this.opened },
+                                 get fullHeight() { return (this.$refs.content.scrollHeight+40) + 'px' }
+                             }"
+                             x-on:resize.window.debounce.200ms="measure()">
 
                             <x-section-title>Mission Brief</x-section-title>
 
-                            <div class="mission-brief-container position-relative overflow-hidden rounded pointer"
-                                 x-on:click="expanded = !expanded"
-                                 x-bind:class="expanded ? '' : 'scanlines-overlay border border-success border-opacity-25'"
+                            <div class="mission-brief-container position-relative overflow-hidden rounded"
+                                 x-on:click="toggle()"
+                                 x-bind:class="(expanded ? '' : 'scanlines-overlay border border-success border-opacity-25') + (fits ? '' : ' pointer')"
                                  x-bind:style="expanded ? 'max-height: ' + fullHeight : 'max-height: 120px'">
                                 <div x-ref="content"
                                      x-bind:class="expanded ? '' : 'terminal-green'">
@@ -135,9 +153,10 @@
                                      style="height: 40px; background: linear-gradient(transparent, #1a1a1a); z-index: 3; pointer-events: none;">
                                 </div>
                             </div>
-                            <br />
+                            <br x-show="!fits" />
 
-                            <button x-on:click="expanded = !expanded"
+                            <button x-on:click="toggle()"
+                                    x-show="!fits"
                                     class="btn btn-link btn-sm p-0 mt-1 text-decoration-none shadow-none fw-bold text-success">
                                 <i class="fas ms-1 me-1"
                                    x-bind:class="expanded ? 'fa-terminal' : 'fa-unlock-alt'"></i>
@@ -153,6 +172,8 @@
                                     @else
                                         <x-message type="warning">
                                             You must review and acknowledge the mission brief before you can sign up for this deployment.
+                                            <span x-show="!fits"
+                                                  x-cloak>(Click 'Decrypt mission brief')</span>
                                         </x-message>
 
                                         <div class="mt-2"

@@ -89,13 +89,27 @@ test.describe('signing up', () => {
         await expect(page.getByText('Review and acknowledge the mission brief above to enable sign-ups.')).toBeVisible();
         await expect(shift(page).getByRole('button', { name: 'Sign Up' })).toHaveCount(0);
 
-        await page.getByRole('button', { name: 'Decrypt Mission Brief' }).click();
+        // A short brief shows in full, with nothing to decrypt.
         await expect(page.getByText(seeded.missionBrief)).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Decrypt Mission Brief' })).toBeHidden();
+        await expect(page.getByText("(Click 'Decrypt mission brief')")).toBeHidden();
 
         await page.getByRole('button', { name: 'I have read and understand the mission brief' }).click();
 
         await expect(page.getByText('You have acknowledged this mission brief.')).toBeVisible();
         await expect(shift(page).getByRole('button', { name: 'Sign Up' })).toBeVisible();
+    });
+
+    test('a long brief starts collapsed and says to decrypt it', async ({ page }) => {
+        await openEvent(page, seeded.longBriefEvent);
+
+        await expect(page.getByText("(Click 'Decrypt mission brief')")).toBeVisible();
+        const acknowledge = page.getByRole('button', { name: 'I have read and understand the mission brief' });
+        await expect(acknowledge).toBeHidden();
+
+        await page.getByRole('button', { name: 'Decrypt Mission Brief' }).click();
+        await expect(acknowledge).toBeVisible();
+        await expect(page.getByText('step 10: check in')).toBeVisible();
     });
 });
 
