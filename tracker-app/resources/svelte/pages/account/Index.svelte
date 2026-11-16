@@ -16,6 +16,7 @@
     import Minors from "./components/Minors.svelte";
     import Notifications from "./components/Notifications.svelte";
     import Delete from "./components/RequestDeletion.svelte";
+    import SetupWelcome from "./components/SetupWelcome.svelte";
     import { IndexViewModel, type IndexPageData } from "./models";
 
     const page = usePage<IndexPageData>();
@@ -23,7 +24,14 @@
     pageState.title = "Trooper Account";
 
     let vm = new IndexViewModel(page.props);
+
+    //  account setup redirects here with ?welcome
+    const just_set_up = new URLSearchParams(page.url.split("?")[1] ?? "").has("welcome");
 </script>
+
+{#if just_set_up}
+    <SetupWelcome />
+{/if}
 
 {#if vm.has_deletion_request}
     <CancelDeletion deletionDate={vm.deletion_date} />

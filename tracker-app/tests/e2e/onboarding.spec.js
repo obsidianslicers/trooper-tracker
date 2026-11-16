@@ -93,10 +93,16 @@ test.describe('account setup', () => {
         await legalName(page).fill('E2E Setup Legal Name');
         await page.getByRole('button', { name: 'Update' }).click();
 
-        await expect(page).toHaveURL(/\/account$/);
+        await expect(page).toHaveURL(/\/account\?welcome=1$/);
+        await expect(page.getByRole('heading', { name: 'Your account is set up' })).toBeVisible();
 
-        await page.goto('/events');
+        await page.getByRole('link', { name: 'See Upcoming Events' }).click();
         await expect(page).toHaveURL(/\/events$/);
+
+        // only the first time
+        await page.goto('/account');
+        await expect(page.getByText('Delete Account').first()).toBeVisible();
+        await expect(page.getByText('Your account is set up')).toHaveCount(0);
     });
 });
 
