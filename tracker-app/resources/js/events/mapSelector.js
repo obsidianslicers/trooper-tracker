@@ -1,14 +1,21 @@
 //  closest the first view zooms in, so events at one venue still show their surroundings
 const MAX_FIT_ZOOM = 12;
 
+//  "Use Current Location": the user's own area, a town or two across
+const USER_ZOOM = 11;
+
 export default function mapSelector(events) {
     return {
         map: null,
         markers: [],
         popup: null,
+        userMarker: null,
+        canLocate: 'geolocation' in navigator,
+        locating: false,
+        locationError: '',
 
         init() {
-            this.map = new google.maps.Map(this.$el);
+            this.map = new google.maps.Map(this.$refs.map);
 
             this.showEvents();
 
@@ -80,6 +87,53 @@ export default function mapSelector(events) {
                 if (this.map.getZoom() > MAX_FIT_ZOOM) {
                     this.map.setZoom(MAX_FIT_ZOOM);
                 }
+            });
+        },
+
+        //  Only on the button: the browser asks for permission the first time
+        centerOnUser() {
+            this.locating = true;
+            this.locationError = '';
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const position = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+
+                    this.locating = false;
+                    this.map.setCenter(position);
+                    this.map.setZoom(USER_ZOOM);
+                    this.showUser(position);
+                },
+                (err) => {
+                    this.locating = false;
+                    this.locationError = err.code === err.PERMISSION_DENIED
+                        ? 'Location access is turned off for this site in your browser.'
+                        : "Couldn't find your location. Try again in a moment.";
+                },
+                //  a fix from the last 10 minutes is close enough and comes back at once
+                { maximumAge: 10 * 60 * 1000, timeout: 10 * 1000 }
+            );
+        },
+
+        //  a blue dot, moved rather than added again on another click
+        showUser(position) {
+            if (this.userMarker) {
+                this.userMarker.setPosition(position);
+                return;
+            }
+
+            this.userMarker = new google.maps.Marker({
+                position,
+                map: this.map,
+                title: 'You are here',
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 6,
+                    fillColor: '#0d6efd',
+                    fillOpacity: 1,
+                    strokeColor: '#fff',
+                    strokeWeight: 2,
+                },
             });
         },
     }
