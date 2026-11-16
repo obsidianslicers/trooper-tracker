@@ -24,7 +24,6 @@
     @endif
 
     <div x-data="Events.Search.mapSelector(@js($events))"
-         x-init="init()"
          style="height: 600px;">
     </div>
 

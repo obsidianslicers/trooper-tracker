@@ -14,16 +14,33 @@ function fakeGoogleMaps() {
 
     const popups = [];
 
+    //  fitBounds "zooms" to Map.fitZoom, as close as Google goes on a single point by default
     class Map {
+        static fitZoom = 21;
+
         constructor() {
             listening(this);
+            this.center = null;
+            this.zoom = null;
+            this.bounds = null;
         }
 
-        setCenter() {}
+        setCenter(center) {
+            this.center = center;
+        }
 
-        setZoom() {}
+        setZoom(zoom) {
+            this.zoom = zoom;
+        }
 
-        fitBounds() {}
+        getZoom() {
+            return this.zoom;
+        }
+
+        fitBounds(bounds) {
+            this.bounds = bounds;
+            this.zoom = Map.fitZoom;
+        }
     }
 
     class Marker {
@@ -54,7 +71,13 @@ function fakeGoogleMaps() {
     }
 
     class LatLngBounds {
-        extend() {}
+        constructor() {
+            this.points = [];
+        }
+
+        extend(point) {
+            this.points.push(point);
+        }
     }
 
     return {
@@ -64,8 +87,8 @@ function fakeGoogleMaps() {
             Marker,
             InfoWindow,
             LatLngBounds,
-            SymbolPath: { CIRCLE: 0 },
-            event: { addListenerOnce() {} },
+            //  the map is already idle, so a once-listener runs straight away
+            event: { addListenerOnce: (target, name, handler) => handler() },
         },
     };
 }
@@ -131,5 +154,56 @@ describe('mapSelector', () => {
 
         expect(content.querySelector('img')).toBeNull();
         expect(content.querySelector('a').textContent).toBe(name);
+    });
+});
+
+describe('mapSelector first view', () => {
+    let fake;
+    let getCurrentPosition;
+
+    function open(list) {
+        const map = mapSelector(list);
+        map.$el = document.createElement('div');
+        map.init();
+
+        return map.map;
+    }
+
+    beforeEach(() => {
+        fake = fakeGoogleMaps();
+        vi.stubGlobal('google', { maps: fake.maps });
+        getCurrentPosition = vi.fn();
+        vi.stubGlobal('navigator', { geolocation: { getCurrentPosition } });
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it('fits every upcoming event, and never asks for the location', () => {
+        fake.maps.Map.fitZoom = 9;
+
+        const map = open(events);
+
+        expect(map.bounds.points).toEqual([
+            { lat: 41.88, lng: -87.63 },
+            { lat: 41.52, lng: -88.08 },
+        ]);
+        expect(map.zoom).toBe(9);
+        expect(getCurrentPosition).not.toHaveBeenCalled();
+    });
+
+    it('stays zoomed out enough to see around a single event', () => {
+        fake.maps.Map.fitZoom = 21;
+
+        expect(open([events[0]]).zoom).toBe(12);
+    });
+
+    it('shows the continental US when there are no upcoming events', () => {
+        const map = open([]);
+
+        expect(map.center).toEqual({ lat: 39.8, lng: -98.6 });
+        expect(map.zoom).toBe(4);
+        expect(map.bounds).toBeNull();
     });
 });

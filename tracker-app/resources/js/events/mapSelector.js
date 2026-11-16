@@ -1,3 +1,6 @@
+//  closest the first view zooms in, so events at one venue still show their surroundings
+const MAX_FIT_ZOOM = 12;
+
 export default function mapSelector(events) {
     return {
         map: null,
@@ -5,12 +8,9 @@ export default function mapSelector(events) {
         popup: null,
 
         init() {
-            this.map = new google.maps.Map(this.$el, {
-                center: { lat: 28.5, lng: -81.3 },
-                zoom: 8,
-            });
+            this.map = new google.maps.Map(this.$el);
 
-            this.centerOnUser();
+            this.showEvents();
 
             events.forEach(event => {
                 const marker = new google.maps.Marker({
@@ -63,39 +63,24 @@ export default function mapSelector(events) {
             return card;
         },
 
-        centerOnUser() {
-            if (!navigator.geolocation) {
-                console.warn("Geolocation not supported");
+        //  The first view: every upcoming event, or the continental US when there are none
+        showEvents() {
+            if (events.length === 0) {
+                this.map.setCenter({ lat: 39.8, lng: -98.6 });
+                this.map.setZoom(4);
                 return;
             }
 
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const { latitude, longitude } = pos.coords;
+            const bounds = new google.maps.LatLngBounds();
+            events.forEach(event => bounds.extend({ lat: event.lat, lng: event.lng }));
+            this.map.fitBounds(bounds);
 
-                    this.map.setCenter({ lat: latitude, lng: longitude });
-                    this.map.setZoom(12);
-
-                    // Optional: drop a marker for the user
-                    new google.maps.Marker({
-                        position: { lat: latitude, lng: longitude },
-                        map: this.map,
-                        title: "You are here",
-                        icon: {
-                            path: google.maps.SymbolPath.CIRCLE,
-                            scale: 6,
-                            fillColor: "#0d6efd",
-                            fillOpacity: 1,
-                            strokeColor: "#fff",
-                            strokeWeight: 2,
-                        },
-                    });
-                },
-                (err) => {
-                    console.warn("User denied geolocation", err);
+            //  fitBounds zooms all the way in on a single event or a single venue
+            google.maps.event.addListenerOnce(this.map, 'idle', () => {
+                if (this.map.getZoom() > MAX_FIT_ZOOM) {
+                    this.map.setZoom(MAX_FIT_ZOOM);
                 }
-            );
-        }
-
+            });
+        },
     }
 }
