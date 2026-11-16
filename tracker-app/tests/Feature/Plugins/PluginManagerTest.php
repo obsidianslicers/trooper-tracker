@@ -92,6 +92,7 @@ class PluginManagerTest extends TestCase
         $this->assertTrue($this->subject->isLoaded('hello'));
         $this->assertSame('hello plugin', config('plugins.hello.name'));
         $this->assertTrue(view()->exists('hello::greeting'));
+        $this->assertSame('Hallo', __('hello::greetings.Hello there', [], 'de'));
         $this->assertTrue(app('router')->has('plugins.hello.ping'));
         $this->assertStringEndsWith('/plugins/hello/ping', route('plugins.hello.ping'));
         $this->get('/plugins/hello/ping')->assertOk()->assertSee('pong from hello plugin');

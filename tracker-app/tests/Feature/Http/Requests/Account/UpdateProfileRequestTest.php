@@ -117,7 +117,7 @@ class UpdateProfileRequestTest extends TestCase
             [
                 Trooper::LEGAL_NAME => 'Test Trooper',
                 Trooper::DISPLAY_NAME => 'Tester',
-                Trooper::THEME => TrooperTheme::CLONE ->value,
+                Trooper::THEME => TrooperTheme::CLONE->value,
             ],
             $subject->rules()
         );
@@ -157,5 +157,37 @@ class UpdateProfileRequestTest extends TestCase
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey(Trooper::DISPLAY_NAME, $validator->errors()->toArray());
+    }
+
+    public function test_rules_accepts_supported_locale_or_none(): void
+    {
+        config(['tracker.locales' => ['en' => 'English', 'de' => 'Deutsch']]);
+        $subject = new UpdateProfileRequest;
+
+        foreach (['de', null] as $locale)
+        {
+            $validator = Validator::make([
+                Trooper::LEGAL_NAME => 'Test Trooper',
+                Trooper::DISPLAY_NAME => 'Tester',
+                Trooper::THEME => TrooperTheme::SITH->value,
+                Trooper::LOCALE => $locale,
+            ], $subject->rules());
+
+            $this->assertFalse($validator->fails());
+        }
+    }
+
+    public function test_rules_rejects_unsupported_locale(): void
+    {
+        $subject = new UpdateProfileRequest;
+
+        $validator = Validator::make([
+            Trooper::LEGAL_NAME => 'Test Trooper',
+            Trooper::DISPLAY_NAME => 'Tester',
+            Trooper::THEME => TrooperTheme::SITH->value,
+            Trooper::LOCALE => 'xx',
+        ], $subject->rules());
+
+        $this->assertArrayHasKey(Trooper::LOCALE, $validator->errors()->toArray());
     }
 }

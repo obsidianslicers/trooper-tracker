@@ -6,6 +6,7 @@ use App\Enums\TrooperTheme;
 use App\Messages\Account\Queries\GetCostumesWithPrefixes;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
+use App\Services\TranslationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -23,10 +24,42 @@ class TrooperDetails extends JsonResource
             Trooper::DISPLAY_NAME => $this->display_name,
             Trooper::PHONE => $this->phone,
             Trooper::THEME => $this->theme,
+            Trooper::LOCALE => $this->locale,
             Trooper::DISPLAY_COSTUME_ID => $this->display_costume_id,
             'display_costumes' => $this->getDisplayCostumes(),
             'theme_enums' => TrooperTheme::toValueLabels(),
+            'locale_options' => $this->getLocaleOptions(),
         ];
+    }
+
+    /**
+     * Empty when the site offers one language, so the page can hide the picker.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function getLocaleOptions(): array
+    {
+        $translations = app(TranslationService::class);
+        $locales = $translations->locales();
+
+        if (count($locales) < 2)
+        {
+            return [];
+        }
+
+        $site_language = $locales[$translations->siteLocale()];
+
+        $options = [[
+            'value' => '',
+            'label' => __('common.Site default (:language)', ['language' => $site_language]),
+        ]];
+
+        foreach ($locales as $locale => $name)
+        {
+            $options[] = ['value' => $locale, 'label' => $name];
+        }
+
+        return $options;
     }
 
     private function getDisplayCostumes(): array

@@ -10,10 +10,13 @@ function generatorForm(options: Partial<DetailsForm> = {}): InertiaForm<DetailsF
         display_costume_id: null,
         phone: '',
         theme: '',
+        locale: '',
         ...options
     };
 
-    propertyRemover(data, ['display_costumes', 'theme_enums']);
+    data.locale = data.locale ?? '';
+
+    propertyRemover(data, ['display_costumes', 'theme_enums', 'locale_options']);
 
     return useForm<DetailsForm>(data);
 }
@@ -24,16 +27,19 @@ export type DetailsForm = {
     phone: string;
     display_costume_id: number | null;
     theme: string;
+    locale: string | null;
 };
 
 export type DetailsPageData = DetailsForm & {
     display_costumes: Option[];
     theme_enums: Option[];
+    locale_options: Option[];
 }
 
 export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, DetailsForm> {
     display_costumes: Option[] = $state([]);
     theme_enums: Option[] = $state([]);
+    locale_options: Option[] = $state([]);
 
     constructor(pageData: DetailsPageData) {
         super();
@@ -41,6 +47,7 @@ export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, Deta
         this.form = generatorForm(pageData);
         this.display_costumes = pageData.display_costumes || [];
         this.theme_enums = pageData.theme_enums || [];
+        this.locale_options = pageData.locale_options || [];
     }
 
     submit = async (e: Event) => {

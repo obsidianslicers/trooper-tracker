@@ -359,6 +359,19 @@ EventStatus::toValidator();    // 'draft,open,closed,cancelled'
 
 ---
 
+## Translations
+
+User-facing text goes through Laravel's translator, keyed by the English text, in one PHP file per feature: `lang/<locale>/<feature>.php` (`common.php` is shared by every page).
+
+- Blade/PHP: `__('events.Sign up')`, `__('common.Hello, :name', ['name' => $name])`. Every key must be in `lang/en`.
+- Svelte: `import { t } from '$lib/i18n'` then `t('Sign up')`. `common` is shared on every page; PageData adds more groups as a `lang` prop via `TranslationService::groups()`.
+- Plugins: `plugins/<slug>/lang/<locale>/<group>.php`, used as `__('<slug>::<group>.Text')`.
+- `TranslationFilesTest` fails on keys missing from English; `php artisan tracker:report-translations` reports untranslated lines per language.
+
+See `docs/LOCALIZATION.md`.
+
+---
+
 ## Authorization
 
 Policies live in `app/Policies/` and use `HasTrooperPermissionsTrait`:
@@ -384,3 +397,4 @@ Available policies: `AwardPolicy`, `EventPolicy`, `NoticePolicy`, `OrganizationP
 | Deployment | `docs/DEPLOY.md` |
 | Plugins (hooks, slots, settings) | `docs/PLUGINS.md` |
 | Browser tests & coverage plan | `docs/E2E_TESTING.md` |
+| Translations & languages | `docs/LOCALIZATION.md` |

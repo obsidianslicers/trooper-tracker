@@ -69,6 +69,13 @@ jobs:
           TERM: xterm
         run: composer test:ci
 
+      # Missing translations fall back to English, so this only reports them;
+      # undefined and orphaned keys fail TranslationFilesTest above.
+      - name: Report translations
+        if: (success() || failure()) && matrix.plugins == 'composer'
+        working-directory: ./tracker-app
+        run: php artisan tracker:report-translations --markdown >> "$GITHUB_STEP_SUMMARY"
+
   e2e-tests:
     name: Browser and JS tests
     runs-on: ubuntu-latest

@@ -58,7 +58,7 @@ Configuration reference for all `.env` variables in Troop Tracker.
 ## Localization
 
 ### APP_LOCALE
-- **Purpose**: Default language
+- **Purpose**: The site's default language. Troopers can pick another on their account page when `tracker.locales` offers more than one (see [LOCALIZATION.md](LOCALIZATION.md))
 - **Required**: No
 - **Default**: `en`
 

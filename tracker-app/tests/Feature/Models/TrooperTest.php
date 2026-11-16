@@ -849,7 +849,7 @@ class TrooperTest extends TestCase
         $wheres = $query->wheres ?? [];
 
         $has_null_read_at = collect($wheres)->contains(
-            fn(array $where): bool => ($where['type'] ?? null) === 'Null'
+            fn (array $where): bool => ($where['type'] ?? null) === 'Null'
             && ($where['column'] ?? null) === 'read_at'
         );
 
@@ -895,5 +895,14 @@ class TrooperTest extends TestCase
 
         $this->assertInstanceOf(TrooperTheme::class, $subject->{Trooper::THEME});
         $this->assertSame(TrooperTheme::STORMTROOPER, $subject->{Trooper::THEME});
+    }
+
+    public function test_preferred_locale_returns_a_supported_language_or_null(): void
+    {
+        config(['tracker.locales' => ['en' => 'English', 'de' => 'Deutsch']]);
+
+        $this->assertSame('de', Trooper::factory()->make([Trooper::LOCALE => 'de'])->preferredLocale());
+        $this->assertNull(Trooper::factory()->make([Trooper::LOCALE => 'fr'])->preferredLocale());
+        $this->assertNull(Trooper::factory()->make([Trooper::LOCALE => null])->preferredLocale());
     }
 }

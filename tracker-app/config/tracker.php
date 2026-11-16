@@ -25,6 +25,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Languages
+    |--------------------------------------------------------------------------
+    |
+    | The languages troopers can pick on their account page, as locale => the
+    | language's own name. APP_LOCALE sets the site default and must be one of
+    | these. Strings come from lang/<locale>/*.php, falling back to English.
+    | See docs/LOCALIZATION.md.
+    |
+    */
+
+    'locales' => [
+        'en' => 'English',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Tentative Sign-up Cutoff
     |--------------------------------------------------------------------------
     |

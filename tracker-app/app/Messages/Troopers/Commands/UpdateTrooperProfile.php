@@ -11,7 +11,7 @@ use Hyperdrive\Message;
 /**
  * Command message for updating a trooper's profile information.
  *
- * @method static void call(Trooper $trooper, string $legal_name, string $display_name, TrooperTheme $theme, string|null $phone, int|null $display_costume_id)
+ * @method static void call(Trooper $trooper, string $legal_name, string $display_name, TrooperTheme $theme, string|null $locale, string|null $phone, int|null $display_costume_id)
  */
 final class UpdateTrooperProfile extends Message
 {
@@ -20,6 +20,7 @@ final class UpdateTrooperProfile extends Message
         private readonly string $legal_name,
         private readonly string $display_name,
         private readonly TrooperTheme $theme,
+        private readonly ?string $locale,
         private readonly ?string $phone,
         private readonly ?int $display_costume_id,
     ) {}
@@ -34,6 +35,7 @@ final class UpdateTrooperProfile extends Message
         $this->trooper->legal_name = $this->legal_name;
         $this->trooper->display_name = $this->display_name;
         $this->trooper->theme = $this->theme;
+        $this->trooper->locale = $this->locale;
         $this->trooper->phone = $this->phone;
         $this->trooper->display_costume_id = $this->display_costume_id;
 

@@ -56,4 +56,29 @@ class TrooperDetailsTest extends TestCase
             $result['display_costumes']
         );
     }
+
+    public function test_to_array_hides_language_options_when_site_has_one_language(): void
+    {
+        config(['tracker.locales' => ['en' => 'English']]);
+        $trooper = Trooper::factory()->create();
+
+        $result = (new TrooperDetails($trooper))->toArray(new Request);
+
+        $this->assertSame([], $result['locale_options']);
+    }
+
+    public function test_to_array_lists_site_default_then_each_language(): void
+    {
+        config(['tracker.locales' => ['en' => 'English', 'de' => 'Deutsch'], 'app.locale' => 'de']);
+        $trooper = Trooper::factory()->create([Trooper::LOCALE => 'en']);
+
+        $result = (new TrooperDetails($trooper))->toArray(new Request);
+
+        $this->assertSame('en', $result[Trooper::LOCALE]);
+        $this->assertSame([
+            ['value' => '', 'label' => 'Site default (Deutsch)'],
+            ['value' => 'en', 'label' => 'English'],
+            ['value' => 'de', 'label' => 'Deutsch'],
+        ], $result['locale_options']);
+    }
 }

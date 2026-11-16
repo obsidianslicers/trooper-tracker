@@ -14,7 +14,7 @@ class HasEnumHelpersTest extends TestCase
 
     public function test_to_array_sorts_by_case_name_and_formats_labels(): void
     {
-        $result = array_map(static fn($label): string => (string) $label, HasEnumHelpersFixture::toArray());
+        $result = array_map(static fn ($label): string => (string) $label, HasEnumHelpersFixture::toArray());
 
         $this->assertSame([
             'alpha_value' => 'Alpha',
@@ -58,19 +58,31 @@ class HasEnumHelpersTest extends TestCase
     }
 
     /**
-     * @param array<int, array{value: string, label: mixed}> $labels
-     *
+     * @param  array<int, array{value: string, label: mixed}>  $labels
      * @return array<int, array{value: string, label: string}>
      */
     private function stringifyLabels(array $labels): array
     {
         return array_map(
-            static fn(array $label): array => [
+            static fn (array $label): array => [
                 'value' => $label['value'],
                 'label' => (string) $label['label'],
             ],
             $labels
         );
+    }
+
+    public function test_labels_are_translated_through_the_enums_group(): void
+    {
+        app('translator')->addLines(['enums.Alpha' => 'Alfa'], 'de');
+        app()->setLocale('de');
+
+        $this->assertSame('Alfa', HasEnumHelpersFixture::toArray()['alpha_value']);
+        $this->assertSame(
+            ['value' => 'alpha_value', 'label' => 'Alfa'],
+            HasEnumHelpersFixture::toValueLabels()[0]
+        );
+        $this->assertSame('Zeta', HasEnumHelpersFixture::caseLabel(HasEnumHelpersFixture::ZETA));
     }
 }
 

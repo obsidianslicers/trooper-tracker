@@ -15,6 +15,7 @@ use App\Models\Casts\PhoneNumberCast;
 use App\Models\Concerns\HasAuditTrail;
 use App\Models\Concerns\HasFilter;
 use App\Models\Scopes\HasTrooperScopes;
+use App\Services\TranslationService;
 use Hyperdrive\Contracts\Actor;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\MustVerifyEmail;
@@ -23,6 +24,7 @@ use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -46,6 +48,7 @@ class Trooper extends BaseTrooper implements
     AuthenticatableContract,
     AuthorizableContract,
     CanResetPasswordContract,
+    HasLocalePreference,
     MustVerifyEmailContract
 {
     use Authenticatable, Authorizable, CanResetPassword, MustVerifyEmail;
@@ -78,6 +81,19 @@ class Trooper extends BaseTrooper implements
     public function getAuditLabel(): string
     {
         return $this->display_name.' ('.$this->email.')';
+    }
+
+    /**
+     * The trooper's chosen language, or null for the site default. Mail and
+     * notifications use it to render in each recipient's own language.
+     */
+    public function preferredLocale(): ?string
+    {
+        $translations = app(TranslationService::class);
+
+        return $translations->isSupported($this->locale)
+            ? $this->locale
+            : null;
     }
 
     /**
