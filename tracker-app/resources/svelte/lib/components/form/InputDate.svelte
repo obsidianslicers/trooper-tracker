@@ -1,6 +1,5 @@
 <script lang="ts">
-    import flatpickr from "flatpickr";
-    import type { Instance } from "flatpickr/dist/types/instance";
+    import { attachDatePicker, usesNativePicker, type DatePicker } from "../../../../js/custom/date-picker.js";
     import { onDestroy, onMount } from "svelte";
     import InputError from "./InputError.svelte";
     import InputLabel from "./InputLabel.svelte";
@@ -15,6 +14,8 @@
     }
 
     const id = "id-" + crypto.randomUUID();
+    // a phone gets its own date picker; other devices get the calendar popup
+    const native = usesNativePicker();
 
     let {
         value = $bindable(),
@@ -26,19 +27,16 @@
     }: Props = $props();
 
     let input_element: HTMLInputElement | undefined = undefined;
-    let picker: Instance | null = null;
+    let picker: DatePicker | null = null;
 
     onMount(() => {
-        if (!input_element) {
+        if (!input_element || native) {
             return;
         }
 
-        picker = flatpickr(input_element, {
-            dateFormat: "Y-m-d",
-            defaultDate: value ?? undefined,
-            clickOpens: !disabled,
-            onChange: (_selected_dates, date_string) => {
-                value = date_string;
+        picker = attachDatePicker(input_element, {
+            onChange: (next_value: string) => {
+                value = next_value;
             },
         });
     });
@@ -48,28 +46,10 @@
         picker = null;
     });
 
+    // value set from outside: point the calendar at it (bind:value has updated the input)
     $effect(() => {
-        if (!picker) {
-            return;
-        }
-
-        const next_value = value ?? "";
-        const current_value = input_element?.value ?? "";
-
-        if (next_value === current_value) {
-            return;
-        }
-
-        if (next_value.length === 0) {
-            picker.clear(false);
-            return;
-        }
-
-        picker.setDate(next_value, false, "Y-m-d");
-    });
-
-    $effect(() => {
-        picker?.set("clickOpens", !disabled);
+        void value;
+        picker?.sync();
     });
 </script>
 
@@ -81,9 +61,9 @@
         ]}
         {id}
         bind:this={input_element}
-        type="text"
+        type={native ? "date" : "text"}
         {disabled}
-        {placeholder}
+        placeholder={native ? null : placeholder}
         onchange={change}
         bind:value
     />

@@ -283,8 +283,7 @@
                  name="shifts[${newIndex}][date]"
                  id="shifts.${newIndex}.date"
                  class="form-control date-picker form-control-sm"
-                 value="${defaultDate}"
-                 readonly="readonly">`;
+                 value="${defaultDate}">`;
             tr.appendChild(tdDate);
 
             // Starts_at input

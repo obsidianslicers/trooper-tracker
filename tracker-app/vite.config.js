@@ -68,7 +68,7 @@ export default defineConfig({
                         if (id.includes('axios') || id.includes('ziggy-js')) {
                             return 'vendor-core-utils';
                         }
-                        if (id.includes('flatpickr') || id.includes('sortablejs')) {
+                        if (id.includes('vanilla-calendar-pro') || id.includes('sortablejs')) {
                             return 'vendor-ui-helpers';
                         }
                         // 5. jQuery, Bootstrap, Typeahead & HTMX stay together to prevent loops
