@@ -129,10 +129,10 @@
                         @endphp
                         @if($is_old)
                             <span class="text-muted">
-                                {{ $last_active->format('M d, Y') }}
+                                {{ $last_active->localFormat('M d, Y') }}
                             </span>
                         @else
-                            {{ $last_active->format('M d, Y') }}
+                            {{ $last_active->localFormat('M d, Y') }}
                         @endif
                     @else
                     -

@@ -189,7 +189,7 @@ class UpdateShiftsRequest extends FormRequest
         {
             $validator->errors()->add(
                 "shifts.{$key}.status",
-                'Cannot close a shift that has not yet ended ('.$shift_ends_at->format('M j, Y g:i A').').',
+                'Cannot close a shift that has not yet ended ('.$shift_ends_at->localFormat('M j, Y g:i A').').',
             );
         }
     }

@@ -39,9 +39,9 @@
                     @endif
 
                     <div class="mb-2 text-muted small fw-semibold">
-                        {{ $shift->shift_starts_at->format('D, M j, Y') }}
+                        {{ $shift->shift_starts_at->localFormat('D, M j, Y') }}
                         &mdash;
-                        {{ $shift->shift_starts_at->format('g:i A') }} to {{ $shift->shift_ends_at->format('g:i A') }}
+                        {{ $shift->shift_starts_at->localFormat('g:i A') }} to {{ $shift->shift_ends_at->localFormat('g:i A') }}
                     </div>
 
                     <div class="d-flex gap-2 align-items-start">

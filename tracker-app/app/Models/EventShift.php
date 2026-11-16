@@ -164,8 +164,8 @@ class EventShift extends BaseEventShift
     {
         //Sat - Oct 03, 2026 - 2:00pm - 4:00pm
         return $this->full_date_display . ' - ' .
-            $this->shift_starts_at->format('g:ia') . ' - ' .
-            $this->shift_ends_at->format('g:ia');
+            $this->shift_starts_at->localFormat('g:ia') . ' - ' .
+            $this->shift_ends_at->localFormat('g:ia');
     }
 
     /**
@@ -178,8 +178,8 @@ class EventShift extends BaseEventShift
     public function getFullDateDisplayAttribute(): string
     {
         //Sat - Oct 03, 2026 
-        return $this->shift_starts_at->format('D') . ' - ' .
-            $this->shift_starts_at->format('M d, Y');
+        return $this->shift_starts_at->localFormat('D') . ' - ' .
+            $this->shift_starts_at->localFormat('M d, Y');
     }
 
     /**
@@ -199,8 +199,8 @@ class EventShift extends BaseEventShift
         $startFormat = ($start->format('a') === $end->format('a')) ? 'g' : 'ga';
 
         // Remove :00 from times to keep it tight (e.g., 2:00pm becomes 2pm)
-        $start_time = str_replace(':00', '', $start->format($startFormat));
-        $end_time = str_replace(':00', '', $end->format('ga'));
+        $start_time = str_replace(':00', '', $start->localFormat($startFormat));
+        $end_time = str_replace(':00', '', $end->localFormat('ga'));
 
         return $start_time . '-' . $end_time;
     }
@@ -244,8 +244,8 @@ class EventShift extends BaseEventShift
     public function getShortTimeDisplayAttribute(): string
     {
         //10/03 - 2:00pm - 4:00pm
-        return $this->shift_starts_at->format('m/d - g:ia') . ' - ' .
-            $this->shift_ends_at->format('g:ia');
+        return $this->shift_starts_at->localFormat('m/d - g:ia') . ' - ' .
+            $this->shift_ends_at->localFormat('g:ia');
     }
 
     /**

@@ -266,8 +266,8 @@ class Event extends BaseEvent
     {
         //Sat - Oct 03, 2026 - 2:00pm - 4:00pm
         return $this->full_date_display . ' - ' .
-            $this->event_start->format('g:ia') . ' - ' .
-            $this->event_end->format('g:ia');
+            $this->event_start->localFormat('g:ia') . ' - ' .
+            $this->event_end->localFormat('g:ia');
     }
 
     /**
@@ -280,8 +280,8 @@ class Event extends BaseEvent
     public function getFullDateDisplayAttribute(): string
     {
         //Sat - Oct 03, 2026 - 2:00pm - 4:00pm
-        return $this->event_start->format('D') . ' - ' .
-            $this->event_start->format('M d, Y');
+        return $this->event_start->localFormat('D') . ' - ' .
+            $this->event_start->localFormat('M d, Y');
     }
 
     /**
@@ -301,8 +301,8 @@ class Event extends BaseEvent
         $startFormat = ($start->format('a') === $end->format('a')) ? 'g' : 'ga';
 
         // Remove :00 from times to keep it tight (e.g., 2:00pm becomes 2pm)
-        $start_time = str_replace(':00', '', $start->format($startFormat));
-        $end_time = str_replace(':00', '', $end->format('ga'));
+        $start_time = str_replace(':00', '', $start->localFormat($startFormat));
+        $end_time = str_replace(':00', '', $end->localFormat('ga'));
 
         return $start_time . '-' . $end_time;
     }

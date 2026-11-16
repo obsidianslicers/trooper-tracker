@@ -76,6 +76,13 @@ Rules:
 
 **Enums.** `HasEnumHelpers::toArray()`, `toValueLabels()` and `caseLabel()` translate labels through `lang/<locale>/enums.php`. Add a new case's label to `lang/en/enums.php`; `TranslationFilesTest` checks every enum.
 
+## Dates and numbers
+
+- **Dates:** use `$date->localFormat('M j, Y')` instead of `->format()` for anything people read. The pattern is the key into `lang/<locale>/formats.php`, so English stays as written and another language maps it to its own order (`'M j, Y' => 'j. M Y'`, `'g:ia' => 'H:i'`). Carbon translates the month and day names. Add new patterns to `lang/en/formats.php`; `TranslationFilesTest` checks them. Keep `->format()` for machine values (`Y-m-d`, form inputs, CSV, URLs).
+- **Numbers:** `format_number($value, $decimals)` gives `1,234.5` in English and `1.234,5` in German. `format_funds()` follows the language too, unless it's given another thousands separator (form inputs pass `''`).
+- **Svelte:** `formatDate()` and `formatDateTime()` in `$lib/utils` use `locale()` from `$lib/i18n`.
+- Currency symbols are still hardcoded as `$`.
+
 ## Plugins
 
 A plugin ships `lang/<locale>/<group>.php` in its own folder. The plugin loader registers it under the plugin's slug:

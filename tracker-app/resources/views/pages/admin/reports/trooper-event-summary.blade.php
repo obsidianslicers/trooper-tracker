@@ -54,8 +54,8 @@
             @endif
             &mdash;
             @if($date_start || $date_end)
-                @if($date_start) from {{ $date_start->format('M d, Y') }} @endif
-                @if($date_end) to {{ $date_end->format('M d, Y') }} @endif
+                @if($date_start) from {{ $date_start->localFormat('M d, Y') }} @endif
+                @if($date_end) to {{ $date_end->localFormat('M d, Y') }} @endif
             @else
                 all time
             @endif

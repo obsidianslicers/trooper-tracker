@@ -19,6 +19,7 @@ use RecursiveIteratorIterator;
  *
  * Keys are "group.Line", or "slug::group.Line" for a plugin. Svelte and JS t('Line')
  * calls have no group and count as defined when any English group has the line.
+ * $date->localFormat('M j, Y') uses the key "formats.M j, Y".
  *
  * @method static array call(array $lang_paths, array $code_paths)
  */
@@ -30,6 +31,9 @@ final class GetTranslationReport extends Message
         ."(['\"])((?:\\\\.|(?!\\1).)*)\\1/s";
 
     private const string JS_CALL = '/(?<![\w.$])t\(\s*([\'"`])((?:\\\\.|(?!\1).)*)\1/s';
+
+    private const string LOCAL_FORMAT_CALL = '/->localFormat\(\s*'
+        ."(['\"])((?:\\\\.|(?!\\1).)*)\\1/s";
 
     private const string GROUPED_KEY = '/^(?:([a-z0-9_-]+)::)?([a-z0-9_-]+)\.(.+)$/s';
 
@@ -202,6 +206,11 @@ final class GetTranslationReport extends Message
                 }
 
                 $usages[] = [$key, $is_grouped, $relative];
+            }
+
+            foreach ($is_php ? $this->extractKeys($source, self::LOCAL_FORMAT_CALL) : [] as $format)
+            {
+                $usages[] = ["formats.{$format}", true, $relative];
             }
         }
 

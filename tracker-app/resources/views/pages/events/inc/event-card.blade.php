@@ -50,7 +50,7 @@
             </p>
             <p class="card-text d-flex align-items-baseline">
                 <i class="fa fa-fw fa-calendar-day flex-shrink-0 me-2"></i>
-                <span>{{ $event->event_start->format('D M d, Y') }}</span>
+                <span>{{ $event->event_start->localFormat('D M d, Y') }}</span>
             </p>
             <ul class="list-group list-group-flush">
                 @php($shifts_count = $event->event_shifts->count())
@@ -65,12 +65,12 @@
                        style="z-index: 2;">
                         <span>
                             @if($shifts_count > 1)
-                                {{ $shift->shift_starts_at->format('m/d') }}
+                                {{ $shift->shift_starts_at->localFormat('m/d') }}
                                 -
                             @endif
-                            {{ $shift->shift_starts_at->format('g:ia') }}
+                            {{ $shift->shift_starts_at->localFormat('g:ia') }}
                             -
-                            {{ $shift->shift_ends_at->format('g:ia') }}
+                            {{ $shift->shift_ends_at->localFormat('g:ia') }}
                         </span>
                         <span class="fw-bold">
                             @if($shift->troopers_allowed != null && $shift->event_troopers_count >= $shift->troopers_allowed)

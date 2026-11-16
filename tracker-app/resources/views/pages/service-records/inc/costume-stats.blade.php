@@ -4,7 +4,7 @@
     <div class="col-sm-4">
         <div class="card shadow-sm border-0 text-center py-3">
             <div class="h3 fw-bold text-primary mb-0">
-                {{ number_format($stats['total_deployments']) }}
+                {{ format_number($stats['total_deployments']) }}
             </div>
             <div class="text-uppercase text-muted small fw-bold">Total Deployments</div>
         </div>
@@ -12,7 +12,7 @@
     <div class="col-sm-4">
         <div class="card shadow-sm border-0 text-center py-3">
             <div class="h3 fw-bold text-info mb-0">
-                {{ number_format($stats['unique_troopers']) }}
+                {{ format_number($stats['unique_troopers']) }}
             </div>
             <div class="text-uppercase text-muted small fw-bold">Unique Troopers</div>
         </div>
@@ -20,7 +20,7 @@
     <div class="col-sm-4">
         <div class="card shadow-sm border-0 text-center py-3">
             <div class="h3 fw-bold text-success mb-0">
-                {{ $stats['last_deployed_at'] ? $stats['last_deployed_at']->format('M j, Y') : '—' }}
+                {{ $stats['last_deployed_at'] ? $stats['last_deployed_at']->localFormat('M j, Y') : '—' }}
             </div>
             <div class="text-uppercase text-muted small fw-bold">Last Deployed</div>
         </div>

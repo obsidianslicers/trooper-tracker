@@ -7,7 +7,7 @@
 
     <p>
         Your 6-month visitor access to <em>{{ config('app.name') }}</em> officially
-        expired on <strong>{{ $trooper->visitor_expires_at->format('F j, Y') }}</strong>.
+        expired on <strong>{{ $trooper->visitor_expires_at->localFormat('F j, Y') }}</strong>.
         The system held a brief moment of silence. Very brief.
     </p>
 
