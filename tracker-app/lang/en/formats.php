@@ -22,6 +22,7 @@ return [
     'g:ia' => 'g:ia',
     'ga' => 'ga',
     'j' => 'j',
+    'l, M j' => 'l, M j',
     'm/d' => 'm/d',
     'm/d - g:ia' => 'm/d - g:ia',
 ];
