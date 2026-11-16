@@ -1,4 +1,4 @@
-<x-accordion-card :label="'Contact Information (Commanding Officer)'">
+<x-accordion-card :label="'Contact Information (Point of Contact)'">
     <x-input-container>
         <x-label>Contact Name:</x-label>
         <x-input-text :property="'contact_name'"
