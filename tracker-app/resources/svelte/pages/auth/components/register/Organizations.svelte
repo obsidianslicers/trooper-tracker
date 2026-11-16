@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputCheckbox from "$lib/components/form/InputCheckbox.svelte";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputError from "$lib/components/form/InputError.svelte";
@@ -18,7 +19,7 @@
     const isMember = $derived(vm.form.membership_role === "member");
 </script>
 
-<p>Select your associated organizations below.</p>
+<p>{t("Select your associated organizations below.")}</p>
 <InputContainer>
     <InputError errors={vm.errors["organizations"]} />
 </InputContainer>
@@ -51,8 +52,8 @@
                     {#if organization.regions && organization.regions.length > 0}
                         <div class="mb-3">
                             <InputSelect
-                                label="Region/Garrison"
-                                placeholder="Select your Region/Garrison"
+                                label={t("Region/Garrison")}
+                                placeholder={t("Select your Region/Garrison")}
                                 disabled={isVisitor}
                                 bind:value={
                                     vm.form.organizations[organization.id]
@@ -70,8 +71,8 @@
 
                         <div class="mb-3">
                             <InputSelect
-                                label="Unit/Squad"
-                                placeholder="Select your Unit/Squad"
+                                label={t("Unit/Squad")}
+                                placeholder={t("Select your Unit/Squad")}
                                 disabled={!vm.form.organizations[
                                     organization.id
                                 ].region_id || isVisitor}

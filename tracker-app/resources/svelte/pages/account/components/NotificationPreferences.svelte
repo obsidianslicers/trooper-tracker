@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputCheckbox from "$lib/components/form/InputCheckbox.svelte";
     import type { NotificationPreferenceViewModel } from "../models";
 
@@ -11,10 +12,10 @@
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Notification Type</th>
-            <th class="text-center">Email</th>
-            <th class="text-center">Push</th>
-            <th class="text-center">Website</th>
+            <th>{t("Notification Type")}</th>
+            <th class="text-center">{t("Email")}</th>
+            <th class="text-center">{t("Push")}</th>
+            <th class="text-center">{t("Website")}</th>
         </tr>
     </thead>
     <tbody>

@@ -1,3 +1,4 @@
+import { t } from '$lib/i18n';
 import { YES_NO_OPTIONS } from "$lib/constants";
 import { ViewModel, type Option } from "$lib/domains/types.svelte";
 import toastStateSvelte from "$lib/states/toast-state.svelte";
@@ -55,7 +56,7 @@ export class EventNotificationsViewModel extends ViewModel {
         //  fire & forget the request, but we want to preserve the current URL and state
         const options = createPartialReloadOptions({
             onSuccess: (page: any) => {
-                toastStateSvelte.success("Notification frequency updated successfully.");
+                toastStateSvelte.success(t("Notification frequency updated successfully."));
             }
         });
 
@@ -72,7 +73,7 @@ export class EventNotificationsViewModel extends ViewModel {
         //  fire & forget the request, but we want to preserve the current URL and state
         const options = createPartialReloadOptions({
             onSuccess: (page: any) => {
-                toastStateSvelte.success("Push notifications updated successfully.");
+                toastStateSvelte.success(t("Push notifications updated successfully."));
             }
         });
 
@@ -116,7 +117,7 @@ export class EventNotificationsViewModel extends ViewModel {
 
         const options = createPartialReloadOptions({
             onSuccess: (page: any) => {
-                toastStateSvelte.success("Organization notifications updated successfully.");
+                toastStateSvelte.success(t("Organization notifications updated successfully."));
             }
         });
 

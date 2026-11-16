@@ -60,6 +60,6 @@ class LoginSubmitController extends Controller
             return Inertia::location($intended_url);
         }
 
-        return back()->withDanger('Invalid email or password.');
+        return back()->withDanger(__('auth.Invalid email or password.'));
     }
 }

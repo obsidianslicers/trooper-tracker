@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Notifications')
+@section('page-title', __('account.Notifications'))
 
 @section('content')
 
@@ -8,7 +8,7 @@
 
         @if($notifications->isEmpty())
             <x-card>
-                <p class="text-muted mb-0">No notifications yet.</p>
+                <p class="text-muted mb-0">{{ __('account.No notifications yet.') }}</p>
             </x-card>
         @else
             <div class="d-flex justify-content-end mb-2">
@@ -16,7 +16,7 @@
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-secondary">
-                        Clear all
+                        {{ __('account.Clear all') }}
                     </button>
                 </form>
             </div>

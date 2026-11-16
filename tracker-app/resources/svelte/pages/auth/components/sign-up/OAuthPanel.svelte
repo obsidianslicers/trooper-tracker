@@ -11,6 +11,6 @@
 
 {#if vm.oauth?.providers.length}
     <div class="d-grid gap-2 mb-3">
-        <OAuthLinks oauth={vm.oauth} prefix="Sign Up" />
+        <OAuthLinks oauth={vm.oauth} action="signup" />
     </div>
 {/if}

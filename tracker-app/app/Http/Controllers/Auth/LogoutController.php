@@ -29,7 +29,7 @@ class LogoutController extends PageController
      */
     public function __invoke(Request $request): RedirectResponse
     {
-        FlashType::success('You have been logged out.');
+        FlashType::success(__('auth.You have been logged out.'));
 
         Auth::logout();
 

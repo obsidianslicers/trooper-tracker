@@ -13,6 +13,6 @@
     <hr class="my-5" />
 
     <div class="d-grid gap-2 mb-3">
-        <OAuthLinks oauth={vm.oauth} prefix="Login" />
+        <OAuthLinks oauth={vm.oauth} action="login" />
     </div>
 {/if}

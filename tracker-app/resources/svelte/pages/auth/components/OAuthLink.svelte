@@ -1,12 +1,13 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { getRoute } from "$lib/utils";
     import type { LoginProvider } from "../models/types";
 
     interface Props {
-        prefix?: string;
+        action?: "login" | "signup";
         provider: LoginProvider;
     }
-    let { prefix = "Login", provider }: Props = $props();
+    let { action = "login", provider }: Props = $props();
 </script>
 
 <a
@@ -15,9 +16,13 @@
 >
     <img
         src={provider.icon_url}
-        alt="{provider.name} Logo"
+        alt={t(":provider Logo", { provider: provider.name })}
         style="width: 18px; height: 18px;"
         class="me-3"
     />
-    <span>{prefix} with {provider.name}</span>
+    <span>
+        {action === "signup"
+            ? t("Sign Up with :provider", { provider: provider.name })
+            : t("Login with :provider", { provider: provider.name })}
+    </span>
 </a>

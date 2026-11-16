@@ -4,12 +4,12 @@
 
     interface Props {
         oauth: AuthConfiguration | null;
-        prefix: string;
+        action: "login" | "signup";
     }
 
-    let { oauth, prefix }: Props = $props();
+    let { oauth, action }: Props = $props();
 </script>
 
 {#each oauth?.providers ?? [] as provider (provider.key)}
-    <OAuthLink {provider} {prefix} />
+    <OAuthLink {provider} {action} />
 {/each}

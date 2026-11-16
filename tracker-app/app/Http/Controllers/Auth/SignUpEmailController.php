@@ -45,7 +45,10 @@ class SignUpEmailController extends PageController
         {
             Session::forget('registration_auth');
 
-            FlashType::warning("Email sign up is disabled. Please sign up with {$required->name()}.");
+            FlashType::warning(__(
+                'auth.Email sign up is disabled. Please sign up with :provider.',
+                ['provider' => $required->name()]
+            ));
 
             return redirect()->route('auth.signup');
         }

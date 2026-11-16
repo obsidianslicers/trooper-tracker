@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import Button from "./Button.svelte";
 
     interface Props {
@@ -10,7 +11,7 @@
     }
 
     let {
-        label = "Submit",
+        label = t("Submit"),
         submitting = false,
         disabled = false,
         danger = false,

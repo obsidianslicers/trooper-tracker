@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { fade } from 'svelte/transition';
     import Alert from '../components/ui/Alert.svelte';
     import type { FlashType } from '../states/flash-state.svelte';
@@ -27,7 +28,7 @@
                         <button
                             type="button"
                             class="btn-close"
-                            aria-label="Dismiss"
+                            aria-label={t("Dismiss")}
                             onclick={() => flashState.dismiss(message.id)}
                         ></button>
                     {/if}

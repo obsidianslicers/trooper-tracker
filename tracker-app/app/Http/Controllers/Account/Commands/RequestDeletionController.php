@@ -28,10 +28,10 @@ class RequestDeletionController extends Controller
 
         RequestTrooperDeletion::call(trooper: $trooper);
 
-        FlashType::warning(
-            'Your account has been scheduled for permanent deletion. '.
-            'You may log back in within 30 days to cancel.'
-        );
+        FlashType::warning(__(
+            'account.Your account has been scheduled for permanent deletion. '
+                .'You may log back in within 30 days to cancel.'
+        ));
 
         Auth::logout();
 

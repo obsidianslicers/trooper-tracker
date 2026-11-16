@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { getRoute } from "$lib/utils";
 </script>
 
@@ -8,6 +9,6 @@
         class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2"
     >
         <i class="fa fa-fw fa-envelope"></i>
-        <span>Sign Up with Email</span>
+        <span>{t("Sign Up with Email")}</span>
     </a>
 </div>

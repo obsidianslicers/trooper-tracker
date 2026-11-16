@@ -33,7 +33,9 @@ class DeniedResubmitController extends Controller
             organizations: $request->validated('organizations', []),
         );
 
-        FlashType::success('Your application has been resubmitted. You will receive an email when a decision is made.');
+        FlashType::success(
+            __('account.Your application has been resubmitted. You will receive an email when a decision is made.')
+        );
 
         return redirect()->route('account.pending');
     }

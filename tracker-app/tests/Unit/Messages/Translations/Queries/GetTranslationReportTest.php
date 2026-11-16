@@ -92,6 +92,21 @@ class GetTranslationReportTest extends TestCase
         ], $this->relative($result['undefined']));
     }
 
+    public function test_handle_requires_svelte_page_lines_in_common_or_the_pages_group(): void
+    {
+        $this->writeGroup('lang/en/common.php', ['Save' => 'Save']);
+        $this->writeGroup('lang/en/account.php', ['Delete Account' => 'Delete Account']);
+        $this->writeGroup('lang/en/auth.php', ['Login' => 'Login']);
+        $this->write(
+            'code/resources/svelte/pages/account/Details.svelte',
+            "{t('Save')} {t('Delete Account')} {t('Login')}"
+        );
+
+        $undefined = array_keys($this->report()['undefined']);
+
+        $this->assertSame(['Login'], $undefined);
+    }
+
     public function test_handle_reads_escaped_quotes_in_keys(): void
     {
         $this->writeGroup('lang/en/common.php', ["Don't panic" => "Don't panic"]);

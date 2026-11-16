@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { Modal as BoostrapModal } from "bootstrap";
     import { onDestroy, onMount } from "svelte";
 
@@ -68,7 +69,7 @@
                     <button
                         type="button"
                         class="btn-close"
-                        aria-label="Close"
+                        aria-label={t("Close")}
                         onclick={canClose}
                     ></button>
                 {/if}

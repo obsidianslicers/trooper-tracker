@@ -65,6 +65,7 @@ class HandleInertiaRequests extends Middleware
                 'locale' => app()->getLocale(),
                 'messages' => app(TranslationService::class)->groups('common'),
             ],
+            'lang' => fn (): array => app(TranslationService::class)->forRoute($request->route()?->getName()),
             'results' => fn () => $request->session()->pull('results'),
             'plugin_slots' => fn (): array => $this->pluginSlots($request),
             'flash' => function () use ($request)

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
@@ -17,9 +18,9 @@
 
     let {
         show,
-        title = "Please confirm",
+        title = t("Please confirm"),
         message = "Are you sure you want to continue?",
-        confirmLabel = "Confirm",
+        confirmLabel = t("Confirm"),
         danger = false,
         submitting = false,
         onConfirm,

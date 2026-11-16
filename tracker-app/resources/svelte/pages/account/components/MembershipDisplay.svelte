@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import Alert from "$lib/components/ui/Alert.svelte";
     import { MembershipsViewModel } from "../models";
 
@@ -8,10 +9,10 @@
     let { vm }: Props = $props();
 </script>
 
-<h6 class="mb-3">Organization Memberships</h6>
+<h6 class="mb-3">{t("Organization Memberships")}</h6>
 
 {#if vm.organization_memberships.length === 0}
-    <Alert>No organization memberships are currently linked to you.</Alert>
+    <Alert>{t("No organization memberships are currently linked to you.")}</Alert>
 {:else}
     <table class="table table-striped">
         <tbody>

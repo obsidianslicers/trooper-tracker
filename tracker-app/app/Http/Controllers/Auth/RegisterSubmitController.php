@@ -62,7 +62,9 @@ class RegisterSubmitController extends Controller
 
             dispatch(new SendTrooperRegisteredNotificationsJob($trooper));
 
-            FlashType::success('Request submitted successfully! You will receive an e-mail when your request is approved or denied.');
+            FlashType::success(__(
+                'auth.Request submitted successfully! You will receive an e-mail when your request is approved or denied.'
+            ));
 
             return Inertia::location(route('auth.thank-you'));
         }

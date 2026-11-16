@@ -18,7 +18,8 @@ use RecursiveIteratorIterator;
  *   English) and orphaned keys English no longer has (usually reworded text).
  *
  * Keys are "group.Line", or "slug::group.Line" for a plugin. Svelte and JS t('Line')
- * calls have no group and count as defined when any English group has the line.
+ * calls have no group: they must be in `common` or, on a Svelte page, in the group
+ * named after the page's folder (see isFrontEndLineDefined).
  *
  * @method static array call(array $lang_paths, array $code_paths)
  */
@@ -153,11 +154,13 @@ final class GetTranslationReport extends Message
      */
     private function findUndefined(array $english): array
     {
-        $english_lines = [];
+        $groups_by_line = [];
 
         foreach (array_keys($english) as $key)
         {
-            $english_lines[preg_replace(self::GROUPED_KEY, '$3', $key)] = true;
+            preg_match(self::GROUPED_KEY, $key, $parts);
+            $group = ($parts[1] === '' ? '' : "{$parts[1]}::").$parts[2];
+            $groups_by_line[$parts[3]][$group] = true;
         }
 
         $undefined = [];
@@ -166,7 +169,7 @@ final class GetTranslationReport extends Message
         {
             $is_defined = $is_grouped
                 ? isset($english[$key])
-                : isset($english_lines[$key]);
+                : $this->isFrontEndLineDefined($groups_by_line[$key] ?? [], $file);
 
             if (!$is_defined)
             {
@@ -177,6 +180,28 @@ final class GetTranslationReport extends Message
         ksort($undefined);
 
         return array_map(fn (array $files): array => array_values(array_unique($files)), $undefined);
+    }
+
+    /**
+     * A Svelte page only gets `common` plus the group named after its route, which
+     * matches its folder (resources/svelte/pages/account → account). Shared Svelte
+     * components and plain JS only get `common`. Plugin front ends may use any group.
+     *
+     * @param  array<string, true>  $groups  groups whose English file has the line
+     */
+    private function isFrontEndLineDefined(array $groups, string $file): bool
+    {
+        if (preg_match('#resources/svelte/pages/([^/]+)/#', $file, $page) === 1)
+        {
+            return isset($groups['common']) || isset($groups[$page[1]]);
+        }
+
+        if (preg_match('#^resources/(svelte|js)/#', $file) === 1)
+        {
+            return isset($groups['common']);
+        }
+
+        return $groups !== [];
     }
 
     /**

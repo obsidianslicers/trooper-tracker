@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
@@ -15,11 +16,11 @@
     let { show, label, deleting, onDelete, onCancel }: Props = $props();
 </script>
 
-<Modal bind:show title="This cannot be undone" canClose={onCancel}>
+<Modal bind:show title={t("This cannot be undone")} canClose={onCancel}>
     <p>Are you sure you want to delete "{label}"?</p>
     <form onsubmit={onDelete}>
         <SubmitButtonContainer>
-            <SubmitButton label="Delete" danger={true} submitting={deleting} />
+            <SubmitButton label={t("Delete")} danger={true} submitting={deleting} />
             <CancelButton click={onCancel} />
         </SubmitButtonContainer>
     </form>

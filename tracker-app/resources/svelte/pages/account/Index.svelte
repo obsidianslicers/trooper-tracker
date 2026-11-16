@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import PluginSlot from "$lib/components/PluginSlot.svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
     import Tab from "$lib/components/ui/tabs/Tab.svelte";
@@ -31,27 +32,27 @@
 
 <Tabs defaultTab="profile">
     <TabHeader>
-        <Tab id="profile">Profile</Tab>
-        <Tab id="notifications">Notifications</Tab>
+        <Tab id="profile">{t("Profile")}</Tab>
+        <Tab id="notifications">{t("Notifications")}</Tab>
         {#if !vm.is_handler}
-            <Tab id="costumes">Costumes</Tab>
+            <Tab id="costumes">{t("Costumes")}</Tab>
         {/if}
-        <Tab id="memberships">Memberships</Tab>
+        <Tab id="memberships">{t("Memberships")}</Tab>
         {#if vm.has_friends}
-            <Tab id="friends">Friends</Tab>
+            <Tab id="friends">{t("Friends")}</Tab>
         {/if}
         {#if vm.has_minors}
-            <Tab id="minors">Cadets</Tab>
+            <Tab id="minors">{t("Cadets")}</Tab>
         {/if}
         {#if !vm.has_deletion_request}
-            <Tab id="delete">Delete Account</Tab>
+            <Tab id="delete">{t("Delete Account")}</Tab>
         {/if}
     </TabHeader>
     <TabContent>
         <TabPanel id="profile">
             {#if vm.is_visitor && vm.visitation_expiration_datetime}
                 <Alert>
-                    Your visitor status expires {vm.visitation_expiration_datetime}
+                    {t("Your visitor status expires :date", { date: vm.visitation_expiration_datetime })}
                 </Alert>
             {/if}
             <Details details={vm.pageData?.details} />
