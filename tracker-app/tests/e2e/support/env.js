@@ -48,5 +48,8 @@ export const e2eEnv = {
     SESSION_DRIVER: 'file',
     TELESCOPE_ENABLED: 'false',
     TRACKER_REQUIRE_XENFORO: 'false',
+    // The sign-up tour would start by itself on event pages and cover other tests' buttons;
+    // signup-tour.spec.js starts it from its button.
+    TRACKER_SIGNUP_TOUR: 'off',
     TRACKER_IMAGE_DRIVER: 'Intervention\\Image\\Drivers\\Gd\\Driver',
 };

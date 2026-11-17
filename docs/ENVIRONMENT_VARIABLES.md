@@ -119,6 +119,14 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **When to change**: Set it if your garrison counts a day at an event as one troop. It applies to every shift, past ones included, so turn it on before importing from TT1.0 (the import then keeps same-day linked events as separate events, and imported totals don't change). A garrison already running with same-day shifts will see those totals drop.
 - **Note**: Hours and charity still count for every shift. Event pages, forum posts and Discord announcements tell members about it on events with more than one shift on a day. See [Events](EVENTS.md#one-troop-per-day-optional).
 
+### TRACKER_SIGNUP_TOUR
+- **Purpose**: Who the event page's "How sign-up works" tour starts by itself for
+- **Required**: No
+- **Default**: `new_troopers` (troopers who haven't attended a troop yet)
+- **Example**: `everyone`
+- **When to change**: `everyone` while a garrison moves over from another tracker, so every member sees it once; `off` to leave only the button
+- **Note**: It starts once per browser, on an event with a shift open for sign-up. The "How sign-up works" button above the roster replays it whatever the setting. An unknown value acts like `off`. See [Events](EVENTS.md#sign-up-tour).
+
 ### TRACKER_IMAGE_DRIVER
 - **Purpose**: Image processing driver for photo uploads
 - **Required**: No

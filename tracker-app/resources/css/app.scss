@@ -740,6 +740,48 @@ input.searching {
     overflow-y: auto;
 }
 
+//  the event page's sign-up tour (pages/events/inc/signup-tour.blade.php)
+.signup-tour-example {
+    border-style: dashed;
+}
+
+//  absolute in page coordinates, so the browser scrolls it with the content; the shadow dims
+//  everything around the hole however far the page scrolls
+.signup-tour-spotlight {
+    position: absolute;
+    z-index: 1075;
+    pointer-events: none;
+    border-radius: .5rem;
+    box-shadow: 0 0 0 3px var(--bs-warning), 0 0 0 100000px rgba(0, 0, 0, .6);
+    transition: top .35s ease, left .35s ease, width .35s ease, height .35s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
+.signup-tour-spotlight--none {
+    box-shadow: 0 0 0 100000px rgba(0, 0, 0, .6);
+}
+
+//  along the bottom on phones, bottom right from tablets up
+.signup-tour-card {
+    position: fixed;
+    z-index: 1080;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-height: 45vh;
+    overflow-y: auto;
+
+    @media (min-width: 768px) {
+        left: auto;
+        right: 24px;
+        bottom: 24px;
+        width: 440px;
+    }
+}
+
 img.forum-smiley {
     height: 1.2em;
     vertical-align: middle;
