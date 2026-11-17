@@ -164,6 +164,8 @@ test.describe('as an administrator', () => {
         const twelve_years_ago = new Date();
         twelve_years_ago.setFullYear(twelve_years_ago.getFullYear() - 12);
         await page.getByLabel('Date of Birth').fill(twelve_years_ago.toISOString().slice(0, 10));
+        // Close the date picker so it doesn't cover the button.
+        await page.keyboard.press('Escape');
         await page.getByRole('button', { name: 'Update Guardian' }).click();
         await expect(page.locator('.text-danger').getByText(/guardian email field is required/i)).toBeVisible();
 
