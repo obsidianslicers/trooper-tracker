@@ -23,7 +23,7 @@ class TentativeStatusReminderMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Update Your Tentative Status'
+            subject: config('mail.prefix').' '.__('emails.Update Your Tentative Status')
         );
     }
 
@@ -32,7 +32,7 @@ class TentativeStatusReminderMail extends Mailable implements ShouldQueue
         $event = $this->event_trooper->event_shift->event;
 
         return new Content(
-            view: 'emails.events.tentative-status-reminder',
+            view: email_view('events.tentative-status-reminder'),
             with: [
                 'event_trooper' => $this->event_trooper,
                 'event' => $event,

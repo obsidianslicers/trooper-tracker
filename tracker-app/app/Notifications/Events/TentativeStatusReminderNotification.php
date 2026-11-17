@@ -28,8 +28,11 @@ class TentativeStatusReminderNotification extends BaseNotification
         $days_until = (int) now()->diffInDays($event->event_start, false);
 
         return [
-            'title' => 'Update Your Tentative Status: '.$event->name,
-            'body' => "You have {$days_until} day(s) to confirm or cancel your tentative status.",
+            'title' => __('notifications.Update Your Tentative Status: :name', ['name' => $event->name]),
+            'body' => trans_choice(
+                'notifications.You have :count day to confirm or cancel your tentative status.|You have :count days to confirm or cancel your tentative status.',
+                $days_until
+            ),
             'url' => '/events/details/'.$event->id,
         ];
     }

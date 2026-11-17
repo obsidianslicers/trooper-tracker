@@ -22,8 +22,8 @@ class TrooperRegisteredNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'New Trooper Registration',
-            'body' => 'A new trooper is awaiting approval.',
+            'title' => __('notifications.New Trooper Registration'),
+            'body' => __('notifications.A new trooper is awaiting approval.'),
             'url' => route('admin.troopers.approvals.index', absolute: false),
         ];
     }

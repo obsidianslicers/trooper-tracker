@@ -43,7 +43,7 @@ class TrooperApproved extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Welcome, Trooper! You Passed Inspection!'
+            subject: config('mail.prefix').' '.__('emails.Welcome, Trooper! You Passed Inspection!')
         );
     }
 
@@ -55,7 +55,7 @@ class TrooperApproved extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.trooper-approved',
+            view: email_view('admin.troopers.trooper-approved'),
             with: [
                 'trooper' => $this->trooper,
             ]

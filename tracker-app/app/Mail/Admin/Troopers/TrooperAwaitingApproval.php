@@ -41,7 +41,7 @@ class TrooperAwaitingApproval extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Awaiting Approval',
+            subject: config('mail.prefix').' '.__('emails.Awaiting Approval'),
         );
     }
 
@@ -53,7 +53,7 @@ class TrooperAwaitingApproval extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.awaiting-approval',
+            view: email_view('admin.troopers.awaiting-approval'),
         );
     }
 

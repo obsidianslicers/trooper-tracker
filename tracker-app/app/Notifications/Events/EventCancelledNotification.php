@@ -25,8 +25,8 @@ class EventCancelledNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Event Cancelled: '.$this->event->name,
-            'body' => 'This event has been cancelled.',
+            'title' => __('notifications.Event Cancelled: :name', ['name' => $this->event->name]),
+            'body' => __('notifications.This event has been cancelled.'),
             'url' => '/events/cancelled',
         ];
     }

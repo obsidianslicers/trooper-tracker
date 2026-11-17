@@ -38,7 +38,7 @@ class TentativeStatusReminderMailTest extends TestCase
         $mail = new TentativeStatusReminderMail($event_trooper);
         $content = $mail->content();
 
-        $this->assertSame('emails.events.tentative-status-reminder', $content->view);
+        $this->assertSame('emails.en.events.tentative-status-reminder', $content->view);
         $this->assertArrayHasKey('event_trooper', $content->with);
         $this->assertArrayHasKey('event', $content->with);
         $this->assertArrayHasKey('days_until', $content->with);

@@ -35,7 +35,7 @@ class SupervisorDown extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.supervisor-down',
+            view: email_view('admin.supervisor-down'),
             with: [
                 'trooper' => $this->trooper,
                 'minutes_since_last_heartbeat' => $this->minutes_since_last_heartbeat,

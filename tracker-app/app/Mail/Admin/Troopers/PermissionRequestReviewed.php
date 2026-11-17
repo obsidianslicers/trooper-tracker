@@ -27,10 +27,12 @@ class PermissionRequestReviewed extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
-        $decision = $this->isApproved() ? 'Approved' : 'Denied';
+        $subject = $this->isApproved()
+            ? __('emails.Permission Request Approved')
+            : __('emails.Permission Request Denied');
 
         return new Envelope(
-            subject: config('mail.prefix').' Permission Request '.$decision
+            subject: config('mail.prefix').' '.$subject
         );
     }
 
@@ -39,7 +41,7 @@ class PermissionRequestReviewed extends Mailable implements ShouldQueue
         $request = $this->permission_request;
 
         return new Content(
-            view: 'emails.admin.troopers.permission-request-reviewed',
+            view: email_view('admin.troopers.permission-request-reviewed'),
             with: [
                 'permission_request' => $request,
                 'requester' => $request->requester,

@@ -27,7 +27,7 @@ class ForumPostCommandStaffMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Forum Post — Command Staff Alert'
+            subject: config('mail.prefix').' '.__('xenforo::emails.Forum Post — Command Staff Alert')
         );
     }
 

@@ -34,6 +34,6 @@
         </a>
     </p>
 
-    @include('emails.inc.signature')
+    @include(email_view('inc.signature'))
 
 @endsection

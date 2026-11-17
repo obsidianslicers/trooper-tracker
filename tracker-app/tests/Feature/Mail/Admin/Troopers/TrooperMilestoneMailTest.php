@@ -35,7 +35,7 @@ class TrooperMilestoneMailTest extends TestCase
         $content = $mail->content();
         $html = $mail->render();
 
-        $this->assertSame('emails.admin.troopers.trooper-milestone', $content->view);
+        $this->assertSame('emails.en.admin.troopers.trooper-milestone', $content->view);
         $this->assertTrue($mail->achievements->contains($achievement));
         $this->assertStringContainsString(e($achievement->trooper->legal_name), $html);
         $this->assertStringContainsString(e($achievement->trooper->display_name), $html);

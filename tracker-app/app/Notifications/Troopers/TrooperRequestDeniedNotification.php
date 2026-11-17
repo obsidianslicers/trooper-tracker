@@ -27,15 +27,17 @@ class TrooperRequestDeniedNotification extends BaseNotification
 
     public function toArray(Trooper $notifiable): array
     {
-        $body = "Your request to join {$this->trooper_request->organization->name} was not approved.";
+        $body = __('notifications.Your request to join :organization was not approved.', [
+            'organization' => $this->trooper_request->organization->name,
+        ]);
 
         if ($this->trooper_request->denial_reason)
         {
-            $body .= " Reason: {$this->trooper_request->denial_reason}";
+            $body .= ' '.__('notifications.Reason: :reason', ['reason' => $this->trooper_request->denial_reason]);
         }
 
         return [
-            'title' => 'Join Request Not Approved',
+            'title' => __('notifications.Join Request Not Approved'),
             'body' => $body,
             'url' => '/account',
         ];

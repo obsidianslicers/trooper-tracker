@@ -23,14 +23,14 @@ class TrooperResubmitted extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Trooper Resubmitted Application',
+            subject: config('mail.prefix').' '.__('emails.Trooper Resubmitted Application'),
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.trooper-resubmitted',
+            view: email_view('admin.troopers.trooper-resubmitted'),
         );
     }
 

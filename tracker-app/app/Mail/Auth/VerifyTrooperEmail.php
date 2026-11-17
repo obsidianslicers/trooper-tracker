@@ -40,7 +40,7 @@ class VerifyTrooperEmail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Verify Your Email Address',
+            subject: config('mail.prefix').' '.__('emails.Verify Your Email Address'),
         );
     }
 
@@ -52,7 +52,7 @@ class VerifyTrooperEmail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.auth.verify-email',
+            view: email_view('auth.verify-email'),
             with: ['url' => $this->url],
         );
     }

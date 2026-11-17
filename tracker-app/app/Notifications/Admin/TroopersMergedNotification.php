@@ -27,8 +27,13 @@ class TroopersMergedNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Troopers Merged',
-            'body' => "{$this->source_trooper->legal_name} (#{$this->source_trooper->id}) was merged into {$this->target_trooper->legal_name} (#{$this->target_trooper->id}).",
+            'title' => __('notifications.Troopers Merged'),
+            'body' => __('notifications.:source (#:source_id) was merged into :target (#:target_id).', [
+                'source' => $this->source_trooper->legal_name,
+                'source_id' => $this->source_trooper->id,
+                'target' => $this->target_trooper->legal_name,
+                'target_id' => $this->target_trooper->id,
+            ]),
             'url' => "/admin/troopers/{$this->target_trooper->id}",
         ];
     }

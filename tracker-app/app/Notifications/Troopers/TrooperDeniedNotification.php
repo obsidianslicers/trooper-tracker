@@ -26,15 +26,15 @@ class TrooperDeniedNotification extends BaseNotification
 
     public function toArray(Trooper $notifiable): array
     {
-        $body = 'Your registration was not approved.';
+        $body = __('notifications.Your registration was not approved.');
 
         if ($this->denial_reason)
         {
-            $body .= " Reason: {$this->denial_reason}";
+            $body .= ' '.__('notifications.Reason: :reason', ['reason' => $this->denial_reason]);
         }
 
         return [
-            'title' => 'Registration Not Approved',
+            'title' => __('notifications.Registration Not Approved'),
             'body' => $body,
             'url' => '/account',
         ];

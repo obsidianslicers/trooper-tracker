@@ -29,8 +29,8 @@ class PermissionRequestSubmittedNotification extends BaseNotification
         $trooper = $this->permission_request->trooper->display_name;
 
         return [
-            'title' => 'Permission Request',
-            'body' => "{$requester} has requested permission changes for {$trooper}.",
+            'title' => __('notifications.Permission Request'),
+            'body' => __('notifications.:requester has requested permission changes for :trooper.', ['requester' => $requester, 'trooper' => $trooper]),
             'url' => '/admin/troopers/permissions/approvals',
         ];
     }

@@ -25,7 +25,7 @@ class TrooperRegisteredTest extends TestCase
     {
         $mail = new TrooperRegistered;
 
-        $this->assertSame('emails.auth.registered', $mail->content()->view);
+        $this->assertSame('emails.en.auth.registered', $mail->content()->view);
         $this->assertSame([], $mail->attachments());
     }
 }

@@ -44,7 +44,7 @@ class EventShiftComplete extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Event Shift Complete - Action Required'
+            subject: config('mail.prefix').' '.__('emails.Event Shift Complete - Action Required')
         );
     }
 
@@ -59,7 +59,7 @@ class EventShiftComplete extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.events.event-shift-complete',
+            view: email_view('events.event-shift-complete'),
             with: [
                 'event_trooper' => $this->event_trooper,
                 'trooper' => $this->event_trooper->trooper,

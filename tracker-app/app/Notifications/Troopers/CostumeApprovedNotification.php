@@ -34,8 +34,8 @@ class CostumeApprovedNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Costume Approved',
-            'body' => "{$this->costume_name} is approved for {$this->club_name}.",
+            'title' => __('notifications.Costume Approved'),
+            'body' => __('notifications.:costume is approved for :club.', ['costume' => $this->costume_name, 'club' => $this->club_name]),
             'url' => '/account',
         ];
     }

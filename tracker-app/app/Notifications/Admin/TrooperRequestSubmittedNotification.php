@@ -28,8 +28,8 @@ class TrooperRequestSubmittedNotification extends BaseNotification
         $org = $this->trooper_request->organization;
 
         return [
-            'title' => 'Club Join Request',
-            'body' => "{$trooper->display_name} has requested to join {$org->name}.",
+            'title' => __('notifications.Club Join Request'),
+            'body' => __('notifications.:trooper has requested to join :organization.', ['trooper' => $trooper->display_name, 'organization' => $org->name]),
             'url' => route('admin.troopers.approvals.index', absolute: false),
         ];
     }

@@ -26,14 +26,14 @@ class TrooperMilestoneMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Daily Trooper Milestones',
+            subject: config('mail.prefix').' '.__('emails.Daily Trooper Milestones'),
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.trooper-milestone',
+            view: email_view('admin.troopers.trooper-milestone'),
         );
     }
 

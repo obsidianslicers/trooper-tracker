@@ -28,14 +28,14 @@ class VisitorAccessExpired extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Your Visitor Access Has Expired'
+            subject: config('mail.prefix').' '.__('emails.Your Visitor Access Has Expired')
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.visitor-access-expired',
+            view: email_view('admin.troopers.visitor-access-expired'),
             with: [
                 'trooper' => $this->trooper,
             ]

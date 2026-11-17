@@ -32,7 +32,7 @@ class ShareEventRosterTest extends TestCase
         $mail = new ShareEventRoster($event_share);
         $content = $mail->content();
 
-        $this->assertSame('emails.events.share-event-roster', $content->view);
+        $this->assertSame('emails.en.events.share-event-roster', $content->view);
         $this->assertSame($event_share->id, $content->with['event_share']->id);
         $this->assertSame($event_share->trooper->id, $content->with['trooper']->id);
         $this->assertSame($event_share->event->id, $content->with['event']->id);

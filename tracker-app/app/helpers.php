@@ -92,3 +92,17 @@ if (!function_exists('format_number'))
         return $formatted === false ? number_format((float) $value, $decimals) : $formatted;
     }
 }
+
+if (!function_exists('email_view'))
+{
+    /**
+     * The email view for the current language: emails/<locale>/<name> when that language has
+     * its own copy, otherwise the English one in emails/en.
+     */
+    function email_view(string $name): string
+    {
+        $localized = 'emails.'.app()->getLocale().'.'.$name;
+
+        return view()->exists($localized) ? $localized : 'emails.en.'.$name;
+    }
+}

@@ -56,7 +56,7 @@ class Fix406OutstandingCredit extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.fix406-outstanding-credit',
+            view: email_view('admin.fix406-outstanding-credit'),
             with: [
                 'trooper' => $this->trooper,
                 'outstanding_rows' => $this->outstanding_rows,

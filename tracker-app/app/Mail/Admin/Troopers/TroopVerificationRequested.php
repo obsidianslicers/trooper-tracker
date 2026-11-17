@@ -33,14 +33,14 @@ class TroopVerificationRequested extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Troop Verification Request'
+            subject: config('mail.prefix').' '.__('emails.Troop Verification Request')
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.troop-verification-requested',
+            view: email_view('admin.troopers.troop-verification-requested'),
             with: [
                 'trooper_name' => $this->trooper_name,
                 'event_name' => $this->event_name,

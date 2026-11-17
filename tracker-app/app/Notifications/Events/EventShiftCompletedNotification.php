@@ -30,8 +30,8 @@ class EventShiftCompletedNotification extends BaseNotification
         $time_display = $this->event_trooper->event_shift->time_display;
 
         return [
-            'title' => "Event Shift Completed for {$name}",
-            'body' => "This event shift {$time_display} has completed.",
+            'title' => __('notifications.Event Shift Completed for :name', ['name' => $name]),
+            'body' => __('notifications.This event shift :time has completed.', ['time' => $time_display]),
             'url' => "/events/details/{$event_id}#shift-{$shift_id}",
         ];
     }

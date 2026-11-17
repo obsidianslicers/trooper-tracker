@@ -27,7 +27,7 @@ class TrooperPromotedToGoingNotification extends BaseNotification
         $event = $this->event_trooper->event_shift->event;
 
         return [
-            'title' => "You're Now Going!",
+            'title' => __("notifications.You're Now Going!"),
             'body' => $event->name,
             'url' => '/events/details/'.$event->id,
         ];

@@ -28,8 +28,8 @@ class TrooperRequestApprovedNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Join Request Approved',
-            'body' => "You've been added to {$this->trooper_request->organization->name}!",
+            'title' => __('notifications.Join Request Approved'),
+            'body' => __("notifications.You've been added to :organization!", ['organization' => $this->trooper_request->organization->name]),
             'url' => '/account',
         ];
     }

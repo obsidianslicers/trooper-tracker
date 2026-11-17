@@ -46,8 +46,12 @@ class TroopVerificationRequestedNotification extends BaseNotification
         $clubs = implode(', ', $this->club_names);
 
         return [
-            'title' => 'Troop Verification Request',
-            'body' => "{$this->trooper_name} confirmed {$this->event_name} for {$clubs}.",
+            'title' => __('notifications.Troop Verification Request'),
+            'body' => __('notifications.:trooper confirmed :event for :clubs.', [
+                'trooper' => $this->trooper_name,
+                'event' => $this->event_name,
+                'clubs' => $clubs,
+            ]),
             'url' => '/admin/troopers/troop-verifications',
         ];
     }

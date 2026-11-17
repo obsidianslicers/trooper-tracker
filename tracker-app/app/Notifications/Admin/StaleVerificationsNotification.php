@@ -31,8 +31,11 @@ class StaleVerificationsNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Troop Verifications Waiting',
-            'body' => "{$this->count} troop verification(s) have waited more than 30 days.",
+            'title' => __('notifications.Troop Verifications Waiting'),
+            'body' => trans_choice(
+                'notifications.:count troop verification has waited more than 30 days.|:count troop verifications have waited more than 30 days.',
+                $this->count
+            ),
             'url' => '/admin/troopers/troop-verifications',
         ];
     }

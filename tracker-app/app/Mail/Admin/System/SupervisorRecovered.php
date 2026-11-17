@@ -33,7 +33,7 @@ class SupervisorRecovered extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.supervisor-recovered',
+            view: email_view('admin.supervisor-recovered'),
             with: [
                 'trooper' => $this->trooper,
             ],

@@ -39,7 +39,7 @@ class VerifyTrooperEmailTest extends TestCase
         $mail = new VerifyTrooperEmail($url);
         $content = $mail->content();
 
-        $this->assertSame('emails.auth.verify-email', $content->view);
+        $this->assertSame('emails.en.auth.verify-email', $content->view);
         $this->assertSame(['url' => $url], $content->with);
     }
 

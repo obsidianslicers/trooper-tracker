@@ -32,14 +32,14 @@ class CostumeRequestSubmitted extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Costume Approval Request'
+            subject: config('mail.prefix').' '.__('emails.Costume Approval Request')
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.costume-request-submitted',
+            view: email_view('admin.troopers.costume-request-submitted'),
             with: [
                 'trooper_name' => $this->trooper_name,
                 'costume_name' => $this->costume_name,

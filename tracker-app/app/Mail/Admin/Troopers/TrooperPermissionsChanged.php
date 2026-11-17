@@ -27,14 +27,14 @@ class TrooperPermissionsChanged extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Your Permissions Have Changed'
+            subject: config('mail.prefix').' '.__('emails.Your Permissions Have Changed')
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.trooper-permissions-changed',
+            view: email_view('admin.troopers.trooper-permissions-changed'),
             with: [
                 'trooper' => $this->permission_request->trooper,
                 'changes' => PermissionRequestsCollection::changeSummary($this->permission_request),

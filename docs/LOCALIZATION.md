@@ -83,6 +83,14 @@ Rules:
 - **Svelte:** `formatDate()` and `formatDateTime()` in `$lib/utils` use `locale()` from `$lib/i18n`.
 - Currency symbols are still hardcoded as `$`.
 
+## Emails and notifications
+
+- **Subjects and notification text** use the `emails` and `notifications` groups like any other string: `__('emails.Account Deletion Requested')`, `__('notifications.:trooper has requested to join :organization.', [...])`. Use `trans_choice` for counts.
+- **Email bodies** are whole Blade views per language under `resources/views/emails/<locale>/`, because long letters read better translated as a whole than line by line. English lives in `emails/en/`. Mailables pick the view with `email_view('events.trooper-signup')`, which returns `emails.<locale>.<name>` when that file exists and falls back to `emails.en.<name>`. Includes inside an email use it too: `@include(email_view('inc.signature'))`.
+- To translate an email, copy its view from `emails/en/` to `emails/<locale>/` at the same path and translate it. Emails you haven't copied stay in English.
+- Mail and notifications render in the recipient's language (see above), so `email_view()`, `__()` and `localFormat()` all follow the trooper.
+- System mail for maintainers (exception reports, Supervisor alerts, one-off `Fix…` reports) stays in English.
+
 ## Plugins
 
 A plugin ships `lang/<locale>/<group>.php` in its own folder. The plugin loader registers it under the plugin's slug:

@@ -33,7 +33,7 @@ class GuardianAwarenessTest extends TestCase
     {
         $mail = new GuardianAwareness;
 
-        $this->assertSame('emails.auth.guardian-awareness', $mail->content()->view);
+        $this->assertSame('emails.en.auth.guardian-awareness', $mail->content()->view);
     }
 
     public function test_attachments_are_empty(): void

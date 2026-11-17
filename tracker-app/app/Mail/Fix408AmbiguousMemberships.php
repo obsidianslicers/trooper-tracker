@@ -57,7 +57,7 @@ class Fix408AmbiguousMemberships extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.fix408-ambiguous-memberships',
+            view: email_view('admin.fix408-ambiguous-memberships'),
             with: [
                 'trooper' => $this->trooper,
                 'ambiguous_memberships' => $this->ambiguous_memberships,

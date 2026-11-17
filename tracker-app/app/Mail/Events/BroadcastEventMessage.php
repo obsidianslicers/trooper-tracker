@@ -44,7 +44,7 @@ class BroadcastEventMessage extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' 📣 Event Message'
+            subject: config('mail.prefix').' '.__('emails.📣 Event Message')
         );
     }
 
@@ -56,7 +56,7 @@ class BroadcastEventMessage extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.events.broadcast-event-message',
+            view: email_view('events.broadcast-event-message'),
             with: [
                 'event' => $this->event,
                 'broadcast_message' => $this->message,

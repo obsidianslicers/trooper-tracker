@@ -44,7 +44,7 @@ class ShareEventRoster extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Event Roster Link'
+            subject: config('mail.prefix').' '.__('emails.Event Roster Link')
         );
     }
 
@@ -59,7 +59,7 @@ class ShareEventRoster extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.events.share-event-roster',
+            view: email_view('events.share-event-roster'),
             with: [
                 'event_share' => $this->event_share,
                 'trooper' => $this->event_share->trooper,

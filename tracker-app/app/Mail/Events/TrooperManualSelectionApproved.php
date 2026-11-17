@@ -27,14 +27,14 @@ class TrooperManualSelectionApproved extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Event Sign-Up Status Update - Approved to GOING'
+            subject: config('mail.prefix').' '.__('emails.Event Sign-Up Status Update - Approved to GOING')
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.events.trooper-manual-selection-approved',
+            view: email_view('events.trooper-manual-selection-approved'),
             with: [
                 'event_trooper' => $this->event_trooper,
                 'trooper' => $this->event_trooper->trooper,

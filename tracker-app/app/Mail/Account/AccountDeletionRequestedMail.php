@@ -24,14 +24,14 @@ class AccountDeletionRequestedMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Account Deletion Requested',
+            subject: config('mail.prefix').' '.__('emails.Account Deletion Requested'),
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.account.deletion-requested',
+            view: email_view('account.deletion-requested'),
             with: [
                 'trooper' => $this->trooper,
                 'deletion_date' => $this->trooper->deletion_requested_at?->addDays(30)->toFormattedDateString(),

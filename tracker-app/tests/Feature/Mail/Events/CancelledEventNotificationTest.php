@@ -30,7 +30,7 @@ class CancelledEventNotificationTest extends TestCase
         $mail = new CancelledEventNotification($event);
         $content = $mail->content();
 
-        $this->assertSame('emails.events.cancelled-event-notification', $content->view);
+        $this->assertSame('emails.en.events.cancelled-event-notification', $content->view);
         $this->assertSame($event->id, $content->with['event']->id);
         $this->assertSame([], $mail->attachments());
     }

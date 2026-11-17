@@ -24,8 +24,8 @@ class TrooperResubmittedNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Trooper Resubmitted Application',
-            'body' => "{$this->trooper->display_name} has resubmitted their application after a denial.",
+            'title' => __('notifications.Trooper Resubmitted Application'),
+            'body' => __('notifications.:trooper has resubmitted their application after a denial.', ['trooper' => $this->trooper->display_name]),
             'url' => route('admin.troopers.approvals.index', absolute: false),
         ];
     }

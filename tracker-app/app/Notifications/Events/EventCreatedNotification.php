@@ -70,8 +70,8 @@ class EventCreatedNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'New Event: '.$this->event->name,
-            'body' => $this->event->venue ?? 'See Troop Tracker for details',
+            'title' => __('notifications.New Event: :name', ['name' => $this->event->name]),
+            'body' => $this->event->venue ?? __('notifications.See Troop Tracker for details'),
             'url' => '/events/details/'.$this->event->id,
         ];
     }

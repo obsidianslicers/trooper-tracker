@@ -27,7 +27,7 @@ class TrooperSignedUpNotification extends BaseNotification
         $event = $this->event_trooper->event_shift->event;
 
         return [
-            'title' => 'Event Sign-Up Confirmed',
+            'title' => __('notifications.Event Sign-Up Confirmed'),
             'body' => $event->name,
             'url' => '/events/details/'.$event->id,
         ];
