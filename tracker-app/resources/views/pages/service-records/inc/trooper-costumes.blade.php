@@ -39,7 +39,7 @@
             <div class="text-center py-5 bg-light rounded border">
                 @if(!$trooper->is_handler)
                     <i class="bi bi-person-badge fs-1"></i>
-                    <p class="mt-2 text-muted">No Attached Costumes ... Yet!</p>
+                    <p class="mt-2 text-muted">{{ __('service-records.No Attached Costumes ... Yet!') }}</p>
                 @endif
             </div>
         </div>

@@ -7,8 +7,7 @@
         <div class="d-flex align-items-center gap-2 mb-2">
             <i class="fa fa-fw fa-clipboard-check service-record-confirmation-icon"></i>
             <strong class="service-record-confirmation-title">
-                {{ $pending_shifts->count() }} shift{{ $pending_shifts->count() === 1 ? '' : 's' }} need{{ $pending_shifts->count() === 1 ? 's' : '' }}
-                confirmation
+                {{ trans_choice('service-records.:count shift needs confirmation|:count shifts need confirmation', $pending_shifts->count()) }}
             </strong>
         </div>
         <div class="service-record-confirmation-list">
@@ -26,9 +25,9 @@
                         </div>
                         <div class="d-flex gap-2">
                             <a href="{{ $shift->event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::ATTENDED) }}"
-                               class="btn btn-success btn-sm">Made It</a>
+                               class="btn btn-success btn-sm">{{ __('service-records.Made It') }}</a>
                             <a href="{{ $shift->event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND) }}"
-                               class="btn btn-outline-danger btn-sm">Missed It</a>
+                               class="btn btn-outline-danger btn-sm">{{ __('service-records.Missed It') }}</a>
                         </div>
                     </div>
                 </div>
@@ -43,8 +42,8 @@
     <div class="mb-3 d-none d-lg-block">
         <button x-on:click="toggleView()"
                 class="btn btn-outline-secondary btn-sm">
-            <span x-show="view === 'cards'">Switch to Table View</span>
-            <span x-show="view === 'table'">Switch to Card View</span>
+            <span x-show="view === 'cards'">{{ __('service-records.Switch to Table View') }}</span>
+            <span x-show="view === 'table'">{{ __('service-records.Switch to Card View') }}</span>
         </button>
     </div>
 
@@ -74,24 +73,24 @@
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <small class="text-muted d-block">Date & Time</small>
+                                <small class="text-muted d-block">{{ __('service-records.Date & Time') }}</small>
                                 <p class="mb-0">{{ $shift->full_date_display }}</p>
                                 <p class="text-muted small mb-0">{{ $shift->compact_time_display }}</p>
                             </div>
                         </div>
                         <div class="card-footer">
                             <div>
-                                <small class="text-muted d-block">Attended Costume</small>
+                                <small class="text-muted d-block">{{ __('service-records.Attended Costume') }}</small>
                                 @if($shift->event_trooper->costume)
                                     <p class="mb-0"><strong>{{ $shift->event_trooper->costume->name }}</strong></p>
                                 @elseif($shift->event_trooper->is_handler)
-                                    <p class="mb-0">Handler</p>
+                                    <p class="mb-0">{{ __('service-records.Handler') }}</p>
                                 @else
                                     <p class="mb-0 text-muted">N/A</p>
                                 @endif
                                 @if($shift->event_trooper->attended && !empty($shift->event_trooper->credited_org_names))
                                     <div class="mt-1">
-                                        <small class="text-muted d-block">Credited To</small>
+                                        <small class="text-muted d-block">{{ __('service-records.Credited To') }}</small>
                                         @foreach($shift->event_trooper->credited_org_names as $org_name)
                                             <span class="badge bg-secondary me-1">{{ $org_name }}</span>
                                         @endforeach
@@ -104,7 +103,7 @@
             @empty
                 <div class="col-12">
                     <div class="alert alert-info mb-0">
-                        No Historical Shifts ... Yet!
+                        {{ __('service-records.No Historical Shifts ... Yet!') }}
                     </div>
                 </div>
             @endforelse
@@ -117,9 +116,9 @@
             <thead>
                 <tr>
                     <th></th>
-                    <th>Recent Shifts</th>
-                    <th class="text-center">Date</th>
-                    <th>Attended Costume</th>
+                    <th>{{ __('service-records.Recent Shifts') }}</th>
+                    <th class="text-center">{{ __('service-records.Date') }}</th>
+                    <th>{{ __('service-records.Attended Costume') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -152,14 +151,14 @@
                             @if($shift->event_trooper->costume != null)
                                 <b>{{ $shift->event_trooper->costume->name }}</b>
                             @elseif($shift->event_trooper->is_handler)
-                                Handler
+                                {{ __('service-records.Handler') }}
                             @else
                                 <span class="text-muted">N/A</span>
                             @endif
                             @if($shift->event_trooper->attended && !empty($shift->event_trooper->credited_org_names))
                                 <div style="white-space: normal;"
                                      class="mt-1">
-                                    <small class="text-muted d-block">Credited To</small>
+                                    <small class="text-muted d-block">{{ __('service-records.Credited To') }}</small>
                                     @foreach($shift->event_trooper->credited_org_names as $org_name)
                                         <span class="badge bg-secondary me-1">{{ $org_name }}</span>
                                     @endforeach
@@ -169,7 +168,7 @@
                     </tr>
                 @empty
                     <x-table-empty :colspan="4">
-                        No Recent Shifts ... Yet!
+                        {{ __('service-records.No Recent Shifts ... Yet!') }}
                     </x-table-empty>
                 @endforelse
             </tbody>

@@ -7,12 +7,12 @@
 
     <div class="d-flex align-items-center mb-4">
         <h2 class="h4 mb-0 text-uppercase fw-bold">
-            <i class="fa-solid fa-images me-2"></i> Photo Gallery
+            <i class="fa-solid fa-images me-2"></i> {{ __('service-records.Photo Gallery') }}
         </h2>
     </div>
 
     @if($uploads->isEmpty())
-        <p class="text-muted">No event photos have been uploaded yet.</p>
+        <p class="text-muted">{{ __('service-records.No event photos have been uploaded yet.') }}</p>
     @else
         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
             @foreach($uploads as $upload)
@@ -25,7 +25,7 @@
                                data-bs-target="#photoGalleryModal"
                                data-photo-url="{{ $upload->large_url }}">
                                 <img src="{{ $upload->small_url }}"
-                                     alt="Event photo"
+                                     alt="{{ __('service-records.Event photo') }}"
                                      style="object-fit: cover; width: 100%; height: 100%;" />
                             </a>
                         </div>
@@ -40,7 +40,7 @@
                                 {{ $upload->event->event_start?->localFormat('M j, Y') }}
                             </div>
                             <div class="small text-muted text-truncate">
-                                By {{ $upload->trooper->display_name }}
+                                {{ __('service-records.By :name', ['name' => $upload->trooper->display_name]) }}
                             </div>
                             @if($upload->troopers->isNotEmpty())
                                 <div class="small text-muted text-truncate mt-1">
@@ -91,11 +91,11 @@
                     <button type="button"
                             class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
                             data-bs-dismiss="modal"
-                            aria-label="Close"></button>
+                            aria-label="{{ __('service-records.Close') }}"></button>
 
                     <img id="photoGalleryModalImage"
                          src=""
-                         alt="Event photo"
+                         alt="{{ __('service-records.Event photo') }}"
                          class="img-fluid w-100" />
                 </div>
             </div>

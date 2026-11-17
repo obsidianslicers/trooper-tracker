@@ -9,7 +9,7 @@
         <div class="d-flex flex-wrap gap-3 justify-content-between align-items-end mb-4">
             <div class="d-flex flex-wrap gap-3 align-items-center">
                 <h2 class="h4 mb-0 text-uppercase fw-bold">
-                    <i class="fa-brands fa-empire me-2"></i> Leaderboard
+                    <i class="fa-brands fa-empire me-2"></i> {{ __('service-records.Leaderboard') }}
                 </h2>
 
                 @if($organization)
@@ -48,7 +48,7 @@
         <div class="col-12">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
-                    <i class="fa-solid fa-bolt me-2"></i> Top 30 Troopers
+                    <i class="fa-solid fa-bolt me-2"></i> {{ __('service-records.Top 30 Troopers') }}
                 </div>
                 @if($leaderboard['operatives']->isNotEmpty())
                     @php
@@ -61,20 +61,20 @@
                                     <th scope="col"
                                         class="ps-3"
                                         style="width: 4rem;">
-                                        Rank
+                                        {{ __('service-records.Rank') }}
                                     </th>
                                     <th scope="col">
-                                        Trooper
+                                        {{ __('service-records.Trooper') }}
                                     </th>
                                     <th scope="col"
                                         class="text-end"
                                         style="width: 8rem;">
-                                        Troops
+                                        {{ __('service-records.Troops') }}
                                     </th>
                                     <th scope="col"
                                         class="pe-3"
                                         style="width: 35%;">
-                                        Activity
+                                        {{ __('service-records.Activity') }}
                                     </th>
                                 </tr>
                             </thead>
@@ -96,7 +96,7 @@
                                             {{ $op->troop_count }}
                                             <small class="text-muted"
                                                    style="font-size: 0.6rem;">
-                                                TROOPS
+                                                {{ __('service-records.TROOPS') }}
                                             </small>
                                         </td>
                                         <td class="pe-3">
@@ -117,7 +117,7 @@
                 @else
                     <div class="card-body">
                         <p class="text-muted mb-0">
-                            No troopers found for the selected leaderboard filters.
+                            {{ __('service-records.No troopers found for the selected leaderboard filters.') }}
                         </p>
                     </div>
                 @endif
@@ -127,7 +127,7 @@
         <div class="col-xl-6 col-lg-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
-                    <i class="fa-solid fa-chart-pie me-2"></i> Organization Activity
+                    <i class="fa-solid fa-chart-pie me-2"></i> {{ __('service-records.Organization Activity') }}
                 </div>
                 <div class="card-body">
                     @forelse($leaderboard['dominance'] as $dominant_organization)
@@ -140,7 +140,7 @@
                             ])
                         </div>
                     @empty
-                        <p class="text-muted mb-0">No organization activity found.</p>
+                        <p class="text-muted mb-0">{{ __('service-records.No organization activity found.') }}</p>
                     @endforelse
                 </div>
             </div>
@@ -149,8 +149,8 @@
         <div class="col-xl-6 col-lg-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
-                    <i class="fa-solid fa-shield-halved me-2"></i> Top 5 Deployed Costumes
-                    <span class="text-muted fw-normal ms-1" style="font-size: 0.7rem;">— click to view rankings</span>
+                    <i class="fa-solid fa-shield-halved me-2"></i> {{ __('service-records.Top 5 Deployed Costumes') }}
+                    <span class="text-muted fw-normal ms-1" style="font-size: 0.7rem;">{{ __('service-records.— click to view rankings') }}</span>
                 </div>
                 <div class="card-body">
                     @forelse($leaderboard['diversity'] as $kit)
@@ -169,7 +169,7 @@
                             ])
                         </div>
                     @empty
-                        <p class="text-muted mb-0">No costume deployments found.</p>
+                        <p class="text-muted mb-0">{{ __('service-records.No costume deployments found.') }}</p>
                     @endforelse
                 </div>
             </div>
@@ -179,7 +179,7 @@
         <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
-                    <i class="fa-solid fa-magnifying-glass me-2"></i> Costume Stats Lookup
+                    <i class="fa-solid fa-magnifying-glass me-2"></i> {{ __('service-records.Costume Stats Lookup') }}
                 </div>
                 <div class="card-body">
                     <div x-data="ServiceRecords.costumeSearch()"
@@ -188,7 +188,7 @@
                         <x-label value="Search Costumes" />
                         <input type="text"
                                class="form-control"
-                               placeholder="Type a costume name..."
+                               placeholder="{{ __('service-records.Type a costume name...') }}"
                                x-model="search"
                                x-on:focus="showResults = true"
                                x-on:click.away="showResults = false"

@@ -29,7 +29,7 @@ class VerifyNoticeSubmitController extends PageController
     {
         $request->user()->sendEmailVerificationNotification();
 
-        FlashType::success('A new verification link has been sent to your email.');
+        FlashType::success(__('verifications.A new verification link has been sent to your email.'));
 
         return redirect()->route('verification.notice');
     }

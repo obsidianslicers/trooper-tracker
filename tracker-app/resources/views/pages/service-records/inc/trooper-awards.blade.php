@@ -2,8 +2,8 @@
     <x-table>
         <thead>
             <tr>
-                <th>Award</th>
-                <th>Date</th>
+                <th>{{ __('service-records.Award') }}</th>
+                <th>{{ __('service-records.Date') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -19,7 +19,7 @@
                 </tr>
             @empty
                 <x-table-empty :colspan="2">
-                    No Awards ... Yet!
+                    {{ __('service-records.No Awards ... Yet!') }}
                 </x-table-empty>
             @endforelse
         </tbody>

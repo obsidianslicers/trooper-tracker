@@ -10,7 +10,7 @@
                 <input type="text"
                        name="q"
                        value="{{ $term }}"
-                       placeholder="Search troopers, events, TK IDs..."
+                       placeholder="{{ __('search.Search troopers, events, TK IDs...') }}"
                        class="form-control"
                        autofocus />
                 <select name="type" class="form-select" style="max-width: 160px;">
@@ -19,7 +19,7 @@
                     @endforeach
                 </select>
                 <button type="submit" class="btn btn-primary text-nowrap">
-                    <i class="fa fa-fw fa-search"></i> Search
+                    <i class="fa fa-fw fa-search"></i> {{ __('search.Search') }}
                 </button>
             </form>
         </div>
@@ -28,12 +28,12 @@
     @if (strlen(trim($term)) < 2)
         <div class="text-center text-muted py-5">
             <i class="fa-solid fa-magnifying-glass fa-3x mb-3 d-block"></i>
-            Enter at least 2 characters to search.
+            {{ __('search.Enter at least 2 characters to search.') }}
         </div>
     @elseif ($results === null)
         <div class="text-center text-muted py-5">
             <i class="fa-solid fa-magnifying-glass fa-3x mb-3 d-block"></i>
-            No results.
+            {{ __('search.No results.') }}
         </div>
     @else
 
@@ -42,18 +42,18 @@
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
                     <i class="fa-solid fa-user-astronaut me-2"></i>
-                    Troopers
+                    {{ __('search.Troopers') }}
                     <span class="badge bg-secondary ms-2">{{ $results['troopers']->count() }}</span>
                 </div>
                 @if ($results['troopers']->isEmpty())
-                    <div class="card-body text-muted">No troopers found for &ldquo;{{ $term }}&rdquo;.</div>
+                    <div class="card-body text-muted">{{ __('search.No troopers found for “:term”.', ['term' => $term]) }}</div>
                 @else
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Memberships / IDs</th>
+                                    <th>{{ __('search.Name') }}</th>
+                                    <th>{{ __('search.Memberships / IDs') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -85,8 +85,9 @@
                     </div>
                     @if ($results['troopers']->count() === 25)
                         <div class="card-footer text-muted small">
-                            Showing first 25 results &mdash;
-                            <a href="{{ route('search.all', ['q' => $term, 'type' => 'troopers']) }}">search troopers only</a> for more.
+                            {!! __('search.Showing first 25 results — :link for more.', [
+                                'link' => '<a href="'.e(route('search.all', ['q' => $term, 'type' => 'troopers'])).'">'.e(__('search.search troopers only')).'</a>',
+                            ]) !!}
                         </div>
                     @endif
                 @endif
@@ -98,20 +99,20 @@
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
                     <i class="fa-solid fa-calendar-days me-2"></i>
-                    Events / Troops
+                    {{ __('search.Events / Troops') }}
                     <span class="badge bg-secondary ms-2">{{ $results['events']->count() }}</span>
                 </div>
                 @if ($results['events']->isEmpty())
-                    <div class="card-body text-muted">No events found for &ldquo;{{ $term }}&rdquo;.</div>
+                    <div class="card-body text-muted">{{ __('search.No events found for “:term”.', ['term' => $term]) }}</div>
                 @else
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Event</th>
-                                    <th>Club</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
+                                    <th>{{ __('search.Event') }}</th>
+                                    <th>{{ __('search.Club') }}</th>
+                                    <th>{{ __('search.Date') }}</th>
+                                    <th>{{ __('search.Status') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -145,8 +146,9 @@
                     </div>
                     @if ($results['events']->count() === 25)
                         <div class="card-footer text-muted small">
-                            Showing first 25 results &mdash;
-                            <a href="{{ route('search.all', ['q' => $term, 'type' => 'events']) }}">search events only</a> for more.
+                            {!! __('search.Showing first 25 results — :link for more.', [
+                                'link' => '<a href="'.e(route('search.all', ['q' => $term, 'type' => 'events'])).'">'.e(__('search.search events only')).'</a>',
+                            ]) !!}
                         </div>
                     @endif
                 @endif

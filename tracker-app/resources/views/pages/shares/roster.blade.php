@@ -6,31 +6,27 @@
     @if ($share->is_viewable)
         <x-message :type="'info'">
             <h6 class="fw-bold">
-                Note on Roster Flexibility:
+                {{ __('shares.Note on Roster Flexibility:') }}
             </h6>
             <p>
-                The following list of attendees and costumes for <b>{{ $event->name }}</b> is our
-                current plan, please consider it a "<i>working draft.</i>" Our members are volunteers
-                with family and professional obligations that can occasionally result in last-minute
-                changes to personnel and/or specific costume characters. We will do our best to notify
-                you of any major shifts in our attendance.
+                {!! __('shares.The following list of attendees and costumes for :event is our current plan, please consider it a "<i>working draft.</i>" Our members are volunteers with family and professional obligations that can occasionally result in last-minute changes to personnel and/or specific costume characters. We will do our best to notify you of any major shifts in our attendance.', ['event' => '<b>'.e($event->name).'</b>']) !!}
             </p>
         </x-message>
         @foreach($event->event_shifts as $event_shift)
             @include('pages.shares.inc.shift-header', compact('event_shift'))
             <div class="ms-5">
-                <h5>Troopers</h5>
+                <h5>{{ __('shares.Troopers') }}</h5>
                 <x-table>
                     <thead>
                         <tr>
                             <th>
-                                Trooper
+                                {{ __('shares.Trooper') }}
                             </th>
                             <th>
-                                Costume
+                                {{ __('shares.Costume') }}
                             </th>
                             <th>
-                                Status
+                                {{ __('shares.Status') }}
                             </th>
                         </tr>
                     </thead>
@@ -62,15 +58,15 @@
                 </x-table>
                 @if($event_shift->event_guests->isNotEmpty())
                     <hr />
-                    <h5>Guests</h5>
+                    <h5>{{ __('shares.Guests') }}</h5>
                     <x-table>
                         <thead>
                             <tr>
                                 <th>
-                                    Guest
+                                    {{ __('shares.Guest') }}
                                 </th>
                                 <th>
-                                    Status
+                                    {{ __('shares.Status') }}
                                 </th>
                             </tr>
                         </thead>
@@ -95,8 +91,7 @@
         @endforeach
     @else
         <x-message :type="'danger'">
-            This link has expired or is no longer available. Please contact your {{ config('app.name') }} event
-            coordinator for more information.
+            {{ __('shares.This link has expired or is no longer available. Please contact your :app event coordinator for more information.', ['app' => config('app.name')]) }}
         </x-message>
     @endif
 @endsection

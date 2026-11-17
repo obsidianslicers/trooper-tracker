@@ -2,14 +2,14 @@
     <div class="text-center text-muted py-5">
         <i class="fa-solid fa-camera fa-3x mb-3 d-block"></i>
         @if(auth()->id() === $trooper->id)
-            <p class="mb-2">You don't have any tagged photos yet.</p>
+            <p class="mb-2">{{ __('service-records.You don\'t have any tagged photos yet.') }}</p>
             <p class="mb-0">
-                Find yourself in a photo in the
-                <a href="{{ route('service-records.photo-gallery') }}">photo gallery</a>, open its event,
-                and click <span class="fw-bold">"Tag me"</span> to add it here.
+                {!! __('service-records.Find yourself in a photo in the :gallery, open its event, and click <span class="fw-bold">"Tag me"</span> to add it here.', [
+                    'gallery' => '<a href="'.e(route('service-records.photo-gallery')).'">'.e(__('service-records.photo gallery')).'</a>',
+                ]) !!}
             </p>
         @else
-            <p class="mb-0">No tagged photos yet.</p>
+            <p class="mb-0">{{ __('service-records.No tagged photos yet.') }}</p>
         @endif
     </div>
 @else
@@ -25,7 +25,7 @@
                            data-photo-url="{{ $event_upload->large_url }}">
                             <img src="{{ $event_upload->small_url }}"
                                  class="img-fluid"
-                                 alt="Service record photo"
+                                 alt="{{ __('service-records.Service record photo') }}"
                                  style="object-fit: cover; width: 100%; height: 100%;" />
                         </a>
                     </div>
