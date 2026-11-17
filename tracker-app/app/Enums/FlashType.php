@@ -113,6 +113,7 @@ enum FlashType: string
     {
         session()->flash(self::DANGER->value, $message);
     }
+
     /**
      * "Costume \"Vader\" was created successfully." in the current language. The model's
      * name comes from lang/<locale>/models.php when that file has it.
