@@ -45,7 +45,6 @@ return [
     'After you pick a costume:' => 'After you pick a costume:',
     'After your costume is picked, this menu on your row sets whether you\'re going. This is also where you cancel.' => 'After your costume is picked, this menu on your row sets whether you\'re going. This is also where you cancel.',
     'Another successful mission completed. The Empire salutes you.' => 'Another successful mission completed. The Empire salutes you.',
-    'Any requested characters' => 'Any requested characters',
     'Approve' => 'Approve',
     'Approved by :name' => 'Approved by :name',
     'Approved by :name on :date' => 'Approved by :name on :date',

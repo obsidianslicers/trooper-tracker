@@ -61,7 +61,6 @@ const event = (overrides: Partial<EventSummary> = {}): EventSummary => ({
 
 const pageData = (events: EventSummary[]): ListEventsPageData => ({
     events,
-    costume_organizations: [{ value: 10, label: '501st' }, { value: 11, label: 'Rebel Legion' }],
     hosting_organizations: [
         { id: 1, name: 'Florida Garrison', parent_id: null, depth: 0 },
         { id: 2, name: 'Central Region', parent_id: 1, depth: 1 },
@@ -141,18 +140,6 @@ describe('ListEventsViewModel', () => {
         expect(cookies.get('hosting_organization_ids')).toBe('');
     });
 
-    it('filters to events open to the requested characters', () => {
-        const vm = new ListEventsViewModel(pageData([
-            event({ id: 1 }),
-            event({ id: 2, organizations: [{ id: 11, name: 'Rebel Legion', can_attend: true }] }),
-        ]));
-
-        vm.setCostumeOrganization('11');
-
-        expect(vm.filtered.map((e) => e.id)).toEqual([2]);
-        expect(vm.costume_organization_name).toBe('Rebel Legion');
-    });
-
     it('narrows to my troops and to troops that need troopers', () => {
         const vm = new ListEventsViewModel(pageData([
             event({ id: 1, shifts: [shift({ my_status: 'going', my_status_label: 'Going' })] }),
@@ -184,20 +171,17 @@ describe('ListEventsViewModel', () => {
 
     it('restores filters from the cookies the other event pages share', () => {
         cookies.set('hosting_organization_ids', '3,99');
-        cookies.set('costume_organization_id', '10');
         cookies.set('display_allowed_orgs', '0');
 
         const vm = new ListEventsViewModel(pageData([]));
 
         expect(vm.hosting_organization_ids).toEqual(['3']);
-        expect(vm.costume_organization_id).toBe('10');
         expect(vm.show_allowed_orgs).toBe(false);
     });
 
     it('clears every filter at once', () => {
         const vm = new ListEventsViewModel(pageData([event()]));
         vm.setSearch('x');
-        vm.setCostumeOrganization('10');
         vm.toggleHosting('3', true);
         vm.toggleOnlyMine();
 

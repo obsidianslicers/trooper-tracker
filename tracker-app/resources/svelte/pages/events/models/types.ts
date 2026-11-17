@@ -39,11 +39,6 @@ export type EventSummary = {
     organizations: EventOrganization[];
 };
 
-export type OrganizationOption = {
-    value: number;
-    label: string;
-};
-
 export type HostingOrganization = {
     id: number;
     name: string;
@@ -80,7 +75,6 @@ export type EventMonth = {
 
 export type ListEventsPageData = {
     events: EventSummary[];
-    costume_organizations: OrganizationOption[];
     hosting_organizations: HostingOrganization[];
     notices: Notices;
     has_map: boolean;

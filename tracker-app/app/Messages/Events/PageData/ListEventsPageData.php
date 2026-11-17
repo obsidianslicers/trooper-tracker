@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace App\Messages\Events\PageData;
 
-use App\Enums\OrganizationType;
 use App\Messages\Events\Queries\GetEventsForDisplay;
 use App\Messages\Events\Queries\GetTrooperSignUpStatuses;
 use App\Messages\Events\Resources\UpcomingEventResource;
 use App\Messages\Notices\Queries\GetFirstUnreadNotice;
 use App\Messages\Notices\Queries\GetUnreadNoticeCount;
 use App\Messages\Notices\Resources\UnreadNoticeResource;
-use App\Messages\Organizations\Queries\GetOrganizations;
 use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use App\Messages\Organizations\Resources\HostingOrganizationOptions;
-use App\Messages\Organizations\Resources\OrganizationOptions;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\Trooper;
@@ -37,10 +34,6 @@ final class ListEventsPageData extends Message
     {
         return [
             'events' => $this->getEvents(),
-            'costume_organizations' => new OrganizationOptions(
-                GetOrganizations::call(),
-                OrganizationType::ORGANIZATION,
-            ),
             'hosting_organizations' => new HostingOrganizationOptions(
                 GetOrganizationsForPicker::call(trooper: $this->actor, data: []),
             ),

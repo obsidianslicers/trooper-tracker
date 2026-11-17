@@ -9,13 +9,11 @@ import type {
     HostingOrganization,
     ListEventsPageData,
     Notices,
-    OrganizationOption,
 } from "../types";
 
 //  Shared with the calendar, completed and cancelled pages, so a filter set here sticks there.
 export const COOKIES = {
     hosting: "hosting_organization_ids",
-    costume: "costume_organization_id",
     allowed_orgs: "display_allowed_orgs",
     only_mine: "events_only_mine",
     needs_troopers: "events_needs_troopers",
@@ -25,13 +23,11 @@ export type ShiftState = "full" | "empty" | "going";
 
 export class ListEventsViewModel extends ViewModel {
     events: EventSummary[] = $state([]);
-    costume_organizations: OrganizationOption[] = [];
     hosting_organizations: HostingOrganization[] = [];
     notices: Notices = $state({ count: 0, notice: null });
     has_map: boolean = false;
 
     search_term: string = $state("");
-    costume_organization_id: string = $state("");
     hosting_organization_ids: string[] = $state([]);
     show_allowed_orgs: boolean = $state(true);
     only_mine: boolean = $state(false);
@@ -45,7 +41,6 @@ export class ListEventsViewModel extends ViewModel {
         super();
 
         this.events = page_data.events ?? [];
-        this.costume_organizations = page_data.costume_organizations ?? [];
         this.hosting_organizations = page_data.hosting_organizations ?? [];
         this.notices = page_data.notices ?? { count: 0, notice: null };
         this.has_map = page_data.has_map ?? false;
@@ -97,16 +92,9 @@ export class ListEventsViewModel extends ViewModel {
 
     get has_filters(): boolean {
         return this.search_term.trim().length > 0
-            || this.costume_organization_id !== ""
             || this.has_hosting_filter
             || this.only_mine
             || this.needs_troopers;
-    }
-
-    get costume_organization_name(): string {
-        const id = Number(this.costume_organization_id);
-
-        return this.costume_organizations.find((o) => o.value === id)?.label ?? "";
     }
 
     hostingName = (id: string): string => {
@@ -125,14 +113,6 @@ export class ListEventsViewModel extends ViewModel {
 
         if (hosts.size > 0 && !hosts.has(String(event.organization_id ?? ""))) {
             return false;
-        }
-
-        if (this.costume_organization_id) {
-            const id = Number(this.costume_organization_id);
-
-            if (!event.organizations.some((o) => o.id === id && o.can_attend)) {
-                return false;
-            }
         }
 
         if (this.only_mine && !this.isMine(event)) {
@@ -211,11 +191,6 @@ export class ListEventsViewModel extends ViewModel {
         this.search_term = value;
     };
 
-    setCostumeOrganization = (value: string) => {
-        this.costume_organization_id = value;
-        setCookie(COOKIES.costume, value);
-    };
-
     toggleHosting = (id: string, checked: boolean) => {
         const ids = new Set(this.hosting_organization_ids);
 
@@ -255,7 +230,6 @@ export class ListEventsViewModel extends ViewModel {
 
     clearFilters = () => {
         this.search_term = "";
-        this.setCostumeOrganization("");
         this.clearHosting();
 
         if (this.only_mine) {
@@ -297,10 +271,6 @@ export class ListEventsViewModel extends ViewModel {
             .map((id) => id.trim())
             .filter((id) => known.has(id));
 
-        const costume = getCookie(COOKIES.costume) ?? "";
-        const costume_known = this.costume_organizations.some((o) => String(o.value) === costume);
-
-        this.costume_organization_id = costume_known ? costume : "";
         this.show_allowed_orgs = (getCookie(COOKIES.allowed_orgs) ?? "1") === "1";
         this.only_mine = getCookie(COOKIES.only_mine) === "1";
         this.needs_troopers = getCookie(COOKIES.needs_troopers) === "1";

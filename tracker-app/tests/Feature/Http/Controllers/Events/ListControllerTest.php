@@ -34,7 +34,7 @@ class ListControllerTest extends TestCase
             ->where('events.0.name', 'Hospital visit')
             ->where('events.0.url', route('events.display', ['event' => $event]))
             ->has('events.0.shifts', 1)
-            ->has('costume_organizations')
+            ->missing('costume_organizations')
             ->has('hosting_organizations')
             ->has('notices'));
     }

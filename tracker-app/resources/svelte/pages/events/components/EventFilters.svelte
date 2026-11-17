@@ -7,7 +7,7 @@
 
 <div class="event-filters mb-2">
     <div class="row g-2 align-items-stretch">
-        <div class="col-12 col-lg-5">
+        <div class="col-12 col-md-8">
             <div class="input-group">
                 <span class="input-group-text"><i class="fa fa-fw fa-magnifying-glass"></i></span>
                 <input
@@ -20,20 +20,7 @@
                 />
             </div>
         </div>
-        <div class="col-12 col-md-6 col-lg-4">
-            <select
-                class="form-select h-100"
-                aria-label={t("Requested Character Types:")}
-                value={vm.costume_organization_id}
-                onchange={(e) => vm.setCostumeOrganization(e.currentTarget.value)}
-            >
-                <option value="">{t("Any requested characters")}</option>
-                {#each vm.costume_organizations as organization (organization.value)}
-                    <option value={String(organization.value)}>{organization.label}</option>
-                {/each}
-            </select>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3">
+        <div class="col-12 col-md-4">
             <button
                 type="button"
                 class={["btn w-100 h-100", vm.has_hosting_filter ? "btn-primary" : "btn-outline-light"]}
@@ -70,18 +57,6 @@
             {t("Needs troopers")}
         </button>
 
-        {#if vm.costume_organization_id}
-            <span class="badge text-bg-info d-inline-flex align-items-center py-2">
-                {vm.costume_organization_name}
-                <button
-                    type="button"
-                    class="btn-close btn-close-white ms-2"
-                    style="font-size: .6rem;"
-                    aria-label={t("Remove requested character type filter")}
-                    onclick={() => vm.setCostumeOrganization("")}
-                ></button>
-            </span>
-        {/if}
         {#each vm.active_hosting_ids as id (id)}
             <span class="badge text-bg-primary d-inline-flex align-items-center py-2">
                 {vm.hostingName(id)}

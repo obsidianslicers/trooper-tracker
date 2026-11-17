@@ -98,19 +98,6 @@ class ListEventsPageDataTest extends TestCase
         $this->assertSame($not_allowed->name, $clubs[$not_allowed->id]['name']);
     }
 
-    public function test_handle_lists_costume_organizations(): void
-    {
-        $trooper = Trooper::factory()->asActive()->create();
-        $club = Organization::factory()->asOrganization()->create();
-
-        $result = $this->resolve((new ListEventsPageData($trooper))->handle());
-
-        $this->assertContains(
-            ['value' => $club->id, 'label' => $club->name],
-            $result['costume_organizations'],
-        );
-    }
-
     /**
      * The page data as the Svelte page receives it, with every resource turned into JSON.
      */
