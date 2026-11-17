@@ -1,9 +1,9 @@
 <script lang="ts">
     import Modal from "$lib/components/ui/Modal.svelte";
     import { t } from "$lib/i18n";
-    import type { ListEventsViewModel } from "../models";
+    import type { EventFiltersViewModel } from "../models";
 
-    let { vm }: { vm: ListEventsViewModel } = $props();
+    let { vm }: { vm: EventFiltersViewModel } = $props();
 
     const close = () => (vm.show_hosting_picker = false);
 </script>

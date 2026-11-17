@@ -1,19 +1,17 @@
 import { getCookie, setCookie } from "$lib/cookies";
-import { ViewModel } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
 import type {
     EventMonth,
     EventShift,
     EventSummary,
-    HostingOrganization,
     ListEventsPageData,
     Notices,
 } from "../types";
+import { EventFiltersViewModel, HOSTING_COOKIE } from "./EventFiltersViewModel.svelte";
 
-//  Shared with the calendar, completed and cancelled pages, so a filter set here sticks there.
 export const COOKIES = {
-    hosting: "hosting_organization_ids",
+    hosting: HOSTING_COOKIE,
     allowed_orgs: "display_allowed_orgs",
     only_mine: "events_only_mine",
     needs_troopers: "events_needs_troopers",
@@ -21,40 +19,23 @@ export const COOKIES = {
 
 export type ShiftState = "full" | "empty" | "going";
 
-export class ListEventsViewModel extends ViewModel {
+export class ListEventsViewModel extends EventFiltersViewModel {
     events: EventSummary[] = $state([]);
-    hosting_organizations: HostingOrganization[] = [];
     notices: Notices = $state({ count: 0, notice: null });
-    has_map: boolean = false;
 
-    search_term: string = $state("");
-    hosting_organization_ids: string[] = $state([]);
     show_allowed_orgs: boolean = $state(true);
     only_mine: boolean = $state(false);
     needs_troopers: boolean = $state(false);
-    show_hosting_picker: boolean = $state(false);
-
-    private parents: Record<string, string> = {};
-    private children: Record<string, string[]> = {};
 
     constructor(page_data: Partial<ListEventsPageData>) {
-        super();
+        super(page_data);
 
         this.events = page_data.events ?? [];
-        this.hosting_organizations = page_data.hosting_organizations ?? [];
         this.notices = page_data.notices ?? { count: 0, notice: null };
-        this.has_map = page_data.has_map ?? false;
 
-        for (const organization of this.hosting_organizations) {
-            if (organization.parent_id !== null) {
-                const parent = String(organization.parent_id);
-
-                this.parents[String(organization.id)] = parent;
-                (this.children[parent] ??= []).push(String(organization.id));
-            }
-        }
-
-        this.restore();
+        this.show_allowed_orgs = (getCookie(COOKIES.allowed_orgs) ?? "1") === "1";
+        this.only_mine = getCookie(COOKIES.only_mine) === "1";
+        this.needs_troopers = getCookie(COOKIES.needs_troopers) === "1";
     }
 
     filtered: EventSummary[] = $derived.by(() => this.events.filter((event) => this.matches(event)));
@@ -80,38 +61,14 @@ export class ListEventsViewModel extends ViewModel {
         return this.events.filter((event) => this.isMine(event)).length;
     }
 
-    get has_hosting_filter(): boolean {
-        const selected = this.hosting_organization_ids.length;
-
-        return selected > 0 && selected < this.hosting_organizations.length;
-    }
-
-    get active_hosting_ids(): string[] {
-        return this.has_hosting_filter ? this.hosting_organization_ids : [];
-    }
-
     get has_filters(): boolean {
-        return this.search_term.trim().length > 0
-            || this.has_hosting_filter
+        return super.has_filters
             || this.only_mine
             || this.needs_troopers;
     }
 
-    hostingName = (id: string): string => {
-        return this.hosting_organizations.find((o) => String(o.id) === id)?.name ?? "";
-    };
-
-    matches(event: EventSummary): boolean {
-        const term = this.search_term.trim().toLowerCase();
-
-        if (term && !event.name.toLowerCase().includes(term)
-            && !(event.venue_address ?? "").toLowerCase().includes(term)) {
-            return false;
-        }
-
-        const hosts = this.matchingHostIds();
-
-        if (hosts.size > 0 && !hosts.has(String(event.organization_id ?? ""))) {
+    override matches(event: EventSummary): boolean {
+        if (!super.matches(event)) {
             return false;
         }
 
@@ -124,35 +81,6 @@ export class ListEventsViewModel extends ViewModel {
         }
 
         return true;
-    }
-
-    //  Picking a squad also shows events its garrison and club host; picking a club or
-    //  garrison also shows events hosted by everything beneath it.
-    matchingHostIds(): Set<string> {
-        const ids = new Set<string>();
-
-        for (const selected of this.active_hosting_ids) {
-            let id: string | undefined = selected;
-
-            while (id && !ids.has(id)) {
-                ids.add(id);
-                id = this.parents[id];
-            }
-
-            this.addDescendants(selected, ids);
-        }
-
-        return ids;
-    }
-
-    private addDescendants(id: string, ids: Set<string>): void {
-        for (const child of this.children[id] ?? []) {
-            if (!ids.has(child)) {
-                ids.add(child);
-            }
-
-            this.addDescendants(child, ids);
-        }
     }
 
     isMine(event: EventSummary): boolean {
@@ -187,32 +115,6 @@ export class ListEventsViewModel extends ViewModel {
         return Math.min(100, Math.round((shift.troopers / event.troopers_allowed) * 100));
     }
 
-    setSearch = (value: string) => {
-        this.search_term = value;
-    };
-
-    toggleHosting = (id: string, checked: boolean) => {
-        const ids = new Set(this.hosting_organization_ids);
-
-        if (checked) {
-            ids.add(id);
-        } else {
-            ids.delete(id);
-        }
-
-        this.hosting_organization_ids = [...ids];
-        this.persistHosting();
-    };
-
-    removeHosting = (id: string) => {
-        this.toggleHosting(id, false);
-    };
-
-    clearHosting = () => {
-        this.hosting_organization_ids = [];
-        this.persistHosting();
-    };
-
     toggleAllowedOrgs = () => {
         this.show_allowed_orgs = !this.show_allowed_orgs;
         setCookie(COOKIES.allowed_orgs, this.show_allowed_orgs ? "1" : "0");
@@ -228,10 +130,7 @@ export class ListEventsViewModel extends ViewModel {
         setCookie(COOKIES.needs_troopers, this.needs_troopers ? "1" : "0");
     };
 
-    clearFilters = () => {
-        this.search_term = "";
-        this.clearHosting();
-
+    protected override clearOwnFilters(): void {
         if (this.only_mine) {
             this.toggleOnlyMine();
         }
@@ -239,7 +138,7 @@ export class ListEventsViewModel extends ViewModel {
         if (this.needs_troopers) {
             this.toggleNeedsTroopers();
         }
-    };
+    }
 
     dismissNotice = () => {
         const notice = this.notices.notice;
@@ -258,21 +157,4 @@ export class ListEventsViewModel extends ViewModel {
             only: ["flash", "notices"],
         });
     };
-
-    private persistHosting(): void {
-        setCookie(COOKIES.hosting, this.has_hosting_filter ? this.hosting_organization_ids.join(",") : "");
-    }
-
-    private restore(): void {
-        const known = new Set(this.hosting_organizations.map((o) => String(o.id)));
-        const hosting = getCookie(COOKIES.hosting) ?? getCookie("hosting_organization_id") ?? "";
-
-        this.hosting_organization_ids = hosting.split(",")
-            .map((id) => id.trim())
-            .filter((id) => known.has(id));
-
-        this.show_allowed_orgs = (getCookie(COOKIES.allowed_orgs) ?? "1") === "1";
-        this.only_mine = getCookie(COOKIES.only_mine) === "1";
-        this.needs_troopers = getCookie(COOKIES.needs_troopers) === "1";
-    }
 }

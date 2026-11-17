@@ -5,7 +5,6 @@
     import EventCard from "./components/EventCard.svelte";
     import EventFilters from "./components/EventFilters.svelte";
     import EventViews from "./components/EventViews.svelte";
-    import HostingPicker from "./components/HostingPicker.svelte";
     import NoticeAlert from "./components/NoticeAlert.svelte";
     import SupportGoal from "./components/SupportGoal.svelte";
     import { ListEventsViewModel, type ListEventsPageData } from "./models";
@@ -26,7 +25,7 @@
     </Deferred>
 {/if}
 
-<EventViews has_map={vm.has_map} />
+<EventViews active="list" has_map={vm.has_map} />
 
 <EventFilters {vm} />
 
@@ -60,4 +59,3 @@
     </section>
 {/each}
 
-<HostingPicker {vm} />
