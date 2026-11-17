@@ -264,6 +264,35 @@ class EventDisplayControllerTest extends TestCase
         $response->assertSee('Trooping as ' . $organization->name);
     }
 
+    public function test_invoke_says_no_limits_when_no_club_is_limited(): void
+    {
+        $member = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = Event::factory()->create();
+        $this->clubOnEvent($event, 'Clone Club', true);
+        $this->clubOnEvent($event, 'Rebel Club', true);
+        $this->clubOnEvent($event, 'Sith Club', false);
+
+        $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSeeTextInOrder(['Trooper Quotas', 'No limits', 'Not open to', 'Sith Club']);
+        $response->assertDontSee('Troopers / Handlers');
+    }
+
+    public function test_invoke_lists_the_clubs_when_one_is_limited(): void
+    {
+        $member = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = Event::factory()->create();
+        $this->clubOnEvent($event, 'Clone Club', true);
+        $this->clubOnEvent($event, 'Rebel Club', true, 4);
+
+        $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSeeTextInOrder(['Trooper Quotas', 'Troopers / Handlers', 'Clone Club', 'Rebel Club', '4']);
+        $response->assertDontSee('No limits');
+    }
+
     public function test_invoke_requires_authentication(): void
     {
         $event = Event::factory()->create();
@@ -271,5 +300,14 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->get(route('events.display', ['event' => $event->id]));
 
         $response->assertRedirect(route('auth.login'));
+    }
+
+    private function clubOnEvent(Event $event, string $name, bool $can_attend, ?int $troopers_allowed = null): void
+    {
+        $club = Organization::factory()->asOrganization()->create([Organization::NAME => $name]);
+        EventOrganization::factory()->forEvent($event)->forOrganization($club)->create([
+            EventOrganization::CAN_ATTEND => $can_attend,
+            EventOrganization::TROOPERS_ALLOWED => $troopers_allowed,
+        ]);
     }
 }
