@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { t } from "$lib/i18n";
     import AccordionPanel from "$lib/components/AccordionPanel.svelte";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputDate from "$lib/components/form/InputDate.svelte";
@@ -11,6 +10,7 @@
     import TrooperStamps from "$lib/components/TrooperStamps.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
+    import { t } from "$lib/i18n";
     import { untrack } from "svelte";
     import { OverviewViewModel, type EventOverview } from "../models";
     import OrganizationLimits from "./OrganizationLimits.svelte";
@@ -28,11 +28,13 @@
     );
 
     let event_type = $derived(
-        overview.event_types.find((type) => type.value == vm.form.event_type_id),
+        overview.event_types.find(
+            (type) => type.value == vm.form.event_type_id,
+        ),
     );
 </script>
 
-<SlimView>
+<SlimView wide={true}>
     <form onsubmit={vm.submit} novalidate>
         <InputContainer>
             <InputSelect
@@ -43,7 +45,11 @@
             />
         </InputContainer>
         <InputContainer>
-            <InputText label={t("Name")} bind:value={vm.form.name} errors={vm.errors.name} />
+            <InputText
+                label={t("Name")}
+                bind:value={vm.form.name}
+                errors={vm.errors.name}
+            />
         </InputContainer>
         <InputContainer>
             <InputSelect
@@ -58,7 +64,9 @@
             {#if event_type && !event_type.is_counted}
                 <div class="form-text text-warning px-2">
                     <i class="fa fa-fw fa-circle-info"></i>
-                    {t("Non-troop-credit event: Does not count toward troop totals.")}
+                    {t(
+                        "Non-troop-credit event: Does not count toward troop totals.",
+                    )}
                 </div>
             {/if}
         </InputContainer>
@@ -71,33 +79,34 @@
             />
         </InputContainer>
 
-        <AccordionPanel label={t("Schedule")}>
-            <div class="row">
-                <div class="col-12 col-md-6 mb-3">
-                    <InputDate
-                        label={t("Starts")}
-                        with_time={true}
-                        placeholder={null}
-                        bind:value={vm.form.event_start}
-                        errors={vm.errors.event_start}
-                    />
-                </div>
-                <div class="col-12 col-md-6 mb-3">
-                    <InputDate
-                        label={t("Ends")}
-                        with_time={true}
-                        placeholder={null}
-                        bind:value={vm.form.event_end}
-                        errors={vm.errors.event_end}
-                    />
-                </div>
+        <div class="row">
+            <div class="col-12 col-md-6 mb-3">
+                <InputDate
+                    label={t("Starts")}
+                    with_time={true}
+                    placeholder={null}
+                    bind:value={vm.form.event_start}
+                    errors={vm.errors.event_start}
+                />
             </div>
+            <div class="col-12 col-md-6 mb-3">
+                <InputDate
+                    label={t("Ends")}
+                    with_time={true}
+                    placeholder={null}
+                    bind:value={vm.form.event_end}
+                    errors={vm.errors.event_end}
+                />
+            </div>
+        </div>
+
+        <InputContainer>
             <InputText
                 label={t("Website")}
                 bind:value={vm.form.event_website}
                 errors={vm.errors.event_website}
             />
-        </AccordionPanel>
+        </InputContainer>
 
         <AccordionPanel label={t("Location (Mission Coordinates)")}>
             <div class="row">
@@ -117,7 +126,11 @@
                 </div>
             </div>
             <InputContainer>
-                <InputText label={t("Venue")} bind:value={vm.form.venue} errors={vm.errors.venue} />
+                <InputText
+                    label={t("Venue")}
+                    bind:value={vm.form.venue}
+                    errors={vm.errors.venue}
+                />
             </InputContainer>
             <InputText
                 label={t("Venue Address")}
@@ -125,7 +138,9 @@
                 errors={vm.errors.venue_address}
             />
             <InputHelp>
-                {t("The full address of the venue, including street, city, state, and zip.")}
+                {t(
+                    "The full address of the venue, including street, city, state, and zip.",
+                )}
             </InputHelp>
         </AccordionPanel>
 
@@ -151,7 +166,9 @@
             />
         </AccordionPanel>
 
-        <AccordionPanel label={t("Character Requests & Attendee Limits (Trooper Quotas)")}>
+        <AccordionPanel
+            label={t("Character Requests & Attendee Limits (Trooper Quotas)")}
+        >
             <div class="row">
                 <div class="col-12 col-md-6 mb-3">
                     <InputText
@@ -172,6 +189,7 @@
                 <InputText
                     label={t("Requested Character Types")}
                     multiline={true}
+                    style="height: 128px"
                     bind:value={vm.form.requested_character_types}
                     errors={vm.errors.requested_character_types}
                 />
@@ -227,27 +245,45 @@
             <OrganizationLimits {vm} />
         </AccordionPanel>
 
-        <AccordionPanel label={t("Venue Permissions & Amenities (Logistics & Support)")}>
+        <AccordionPanel
+            label={t("Venue Permissions & Amenities (Logistics & Support)")}
+        >
             <div class="row">
                 <div class="col-12 col-md-6 mb-3">
-                    <YesNo label={t("Secure Staging Area")} bind:value={vm.form.secure_staging_area} />
+                    <YesNo
+                        label={t("Secure Staging Area")}
+                        bind:value={vm.form.secure_staging_area}
+                    />
                 </div>
                 <div class="col-12 col-md-6 mb-3">
-                    <YesNo label={t("Parking Available")} bind:value={vm.form.parking_available} />
+                    <YesNo
+                        label={t("Parking Available")}
+                        bind:value={vm.form.parking_available}
+                    />
                 </div>
                 <div class="col-12 col-md-6 mb-3">
-                    <YesNo label={t("Allow Blasters")} bind:value={vm.form.allow_blasters} />
+                    <YesNo
+                        label={t("Allow Blasters")}
+                        bind:value={vm.form.allow_blasters}
+                    />
                 </div>
                 <div class="col-12 col-md-6 mb-3">
-                    <YesNo label={t("Allow Props")} bind:value={vm.form.allow_props} />
+                    <YesNo
+                        label={t("Allow Props")}
+                        bind:value={vm.form.allow_props}
+                    />
                 </div>
                 <div class="col-12 col-md-6 mb-3">
-                    <YesNo label={t("Limited Mobility Accessible")} bind:value={vm.form.accessible} />
+                    <YesNo
+                        label={t("Limited Mobility Accessible")}
+                        bind:value={vm.form.accessible}
+                    />
                 </div>
             </div>
             <InputText
                 label={t("Amenities")}
                 multiline={true}
+                style="height: 384px"
                 bind:value={vm.form.amenities}
                 errors={vm.errors.amenities}
             />
@@ -263,11 +299,15 @@
             </InputContainer>
             <InputContainer>
                 <YesNo
-                    label={t("Require Mission Brief Acknowledgement Before Signup")}
+                    label={t(
+                        "Require Mission Brief Acknowledgement Before Signup",
+                    )}
                     bind:value={vm.form.require_mission_brief_ack}
                 />
                 <InputHelp>
-                    {t('When set to "Yes", troopers must explicitly acknowledge that they have read the mission brief on the event page before any sign-up buttons are shown.')}
+                    {t(
+                        'When set to "Yes", troopers must explicitly acknowledge that they have read the mission brief on the event page before any sign-up buttons are shown.',
+                    )}
                 </InputHelp>
             </InputContainer>
             <InputContainer>
@@ -278,7 +318,11 @@
                 />
             </InputContainer>
             {#if overview.plugin_fields}
-                <div class="plugin-slot" data-plugin-slot="admin.events.form.fields" bind:this={vm.plugin_fields}>
+                <div
+                    class="plugin-slot"
+                    data-plugin-slot="admin.events.form.fields"
+                    bind:this={vm.plugin_fields}
+                >
                     {@html overview.plugin_fields}
                 </div>
             {/if}
