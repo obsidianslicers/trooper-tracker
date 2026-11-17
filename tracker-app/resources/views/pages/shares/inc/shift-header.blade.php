@@ -3,7 +3,7 @@
         <b class="py-3">{{ $event_shift->short_time_display }}</b>
         <br />
         <span class="text-muted">
-            Shift Status:
+            {{ __('shares.Shift Status:') }}
         </span>
         {{ to_title($event_shift->status->name) }}
     </div>
@@ -12,12 +12,12 @@
         @if($event_shift->is_open)
             @if($event_shift->troopers_allowed != null && $count_of_troopers >= $event_shift->troopers_allowed)
                 <span class="text-success">
-                    FULL TROOP
+                    {{ __('shares.FULL TROOP') }}
                     <i class="fa fa-fw fa-check-circle ms-2"></i>
                 </span>
             @elseif($count_of_troopers == 0)
                 <span class="text-danger">
-                    NOT ENOUGH!
+                    {{ __('shares.NOT ENOUGH!') }}
                 </span>
             @else
                 {{ $count_of_troopers }}

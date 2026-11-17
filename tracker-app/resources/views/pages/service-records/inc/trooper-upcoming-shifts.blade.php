@@ -4,8 +4,8 @@
     <div class="mb-3 d-none d-lg-block">
         <button x-on:click="toggleView()"
                 class="btn btn-outline-secondary btn-sm">
-            <span x-show="view === 'cards'">Switch to Table View</span>
-            <span x-show="view === 'table'">Switch to Card View</span>
+            <span x-show="view === 'cards'">{{ __('service-records.Switch to Table View') }}</span>
+            <span x-show="view === 'table'">{{ __('service-records.Switch to Card View') }}</span>
         </button>
     </div>
 
@@ -30,21 +30,21 @@
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <small class="text-muted d-block">Date & Time</small>
+                                <small class="text-muted d-block">{{ __('service-records.Date & Time') }}</small>
                                 <p class="mb-0">{{ $shift->full_date_display }}</p>
                                 <p class="text-muted small mb-0">{{ $shift->compact_time_display }}</p>
                             </div>
                         </div>
                         <div class="card-footer">
                             <div>
-                                <small class="text-muted d-block">Planned Costume</small>
+                                <small class="text-muted d-block">{{ __('service-records.Planned Costume') }}</small>
                                 @if($shift->event_trooper->costume)
                                     <p class="mb-0"><strong>{{ $shift->event_trooper->costume->name }}</strong></p>
                                     <p class="small text-muted mb-0">
                                         <x-planned-org-credit :organizations="$shift->event_trooper->costume_organizations" />
                                     </p>
                                 @elseif($shift->event_trooper->is_handler)
-                                    <p class="mb-0">Handler</p>
+                                    <p class="mb-0">{{ __('service-records.Handler') }}</p>
                                 @endif
                             </div>
                         </div>
@@ -53,7 +53,7 @@
             @empty
                 <div class="col-12">
                     <div class="alert alert-info mb-0">
-                        No Upcoming Shifts ... Yet!
+                        {{ __('service-records.No Upcoming Shifts ... Yet!') }}
                     </div>
                 </div>
             @endforelse
@@ -66,9 +66,9 @@
             <thead>
                 <tr>
                     <th></th>
-                    <th>Upcoming Shifts</th>
-                    <th class="text-center">Date</th>
-                    <th>Planned Costume</th>
+                    <th>{{ __('service-records.Upcoming Shifts') }}</th>
+                    <th class="text-center">{{ __('service-records.Date') }}</th>
+                    <th>{{ __('service-records.Planned Costume') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -100,13 +100,13 @@
                                 <br />
                                 <x-planned-org-credit :organizations="$shift->event_trooper->costume_organizations" />
                             @elseif($shift->event_trooper->is_handler)
-                                Handler
+                                {{ __('service-records.Handler') }}
                             @endif
                         </td>
                     </tr>
                 @empty
                     <x-table-empty :colspan="4">
-                        No Upcoming Shifts ... Yet!
+                        {{ __('service-records.No Upcoming Shifts ... Yet!') }}
                     </x-table-empty>
                 @endforelse
             </tbody>

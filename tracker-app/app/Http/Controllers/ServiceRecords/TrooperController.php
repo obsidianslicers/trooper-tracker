@@ -34,7 +34,7 @@ class TrooperController extends PageController
     {
         if ($trooper->id == Auth::user()->id)
         {
-            $this->crumbs->addRoute('Profile', 'account.index');
+            $this->crumbs->addRoute(__('account.Profile'), 'account.index');
         }
 
         $data = GetTrooperServiceRecord::call(trooper_id: $trooper->id);

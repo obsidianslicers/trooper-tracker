@@ -50,7 +50,7 @@
     <x-slim-container>
 
         <x-message>
-            This page is for members only. Please log in to view full details.
+            {{ __('shares.This page is for members only. Please log in to view full details.') }}
         </x-message>
 
     </x-slim-container>

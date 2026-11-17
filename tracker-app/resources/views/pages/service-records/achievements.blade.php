@@ -7,7 +7,7 @@
         <!-- Responsive Header: Clean layout split on small viewports -->
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
             <h2 class="h4 mb-0 text-uppercase fw-bold text-white">
-                <i class="fa-brands fa-empire me-2"></i> Achievements
+                <i class="fa-brands fa-empire me-2"></i> {{ __('service-records.Achievements') }}
             </h2>
             <div class="align-self-start align-self-sm-auto">
                 <x-lookback :days="$days" />
@@ -21,9 +21,9 @@
                 <x-table>
                     <thead>
                         <tr>
-                            <th>Trooper</th>
-                            <th>Achievement</th>
-                            <th>Earned On</th>
+                            <th>{{ __('service-records.Trooper') }}</th>
+                            <th>{{ __('service-records.Achievement') }}</th>
+                            <th>{{ __('service-records.Earned On') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -63,7 +63,7 @@
                                         </div>
                                         <!-- Recipient Meta -->
                                         <div class="flex-grow-1 min-w-0 ms-3">
-                                            <small class="text-muted d-block text-uppercase fw-bold text-xs">Trooper</small>
+                                            <small class="text-muted d-block text-uppercase fw-bold text-xs">{{ __('service-records.Trooper') }}</small>
                                             <a href="{{ route('service-records.trooper', ['trooper' => $trooper_achievement->trooper]) }}"
                                                class="h6 mb-0 text-decoration-none fw-bold text-truncate d-block">
                                                 {{ $trooper_achievement->trooper->display_name }}
@@ -74,13 +74,13 @@
                                     <!-- Bottom Row: Achievement Context & Date Stamp -->
                                     <div class="row g-2 pt-2 border-top border-secondary align-items-center">
                                         <div class="col-7">
-                                            <small class="text-muted d-block text-uppercase fw-bold text-xs mb-0.5">Achievement Earned</small>
+                                            <small class="text-muted d-block text-uppercase fw-bold text-xs mb-0.5">{{ __('service-records.Achievement Earned') }}</small>
                                             <span class="text-white small fw-semibold d-block text-break">
                                                 {{ $trooper_achievement->display_description }}
                                             </span>
                                         </div>
                                         <div class="col-5 text-end">
-                                            <small class="text-muted d-block text-uppercase fw-bold text-xs mb-1">Date</small>
+                                            <small class="text-muted d-block text-uppercase fw-bold text-xs mb-1">{{ __('service-records.Date') }}</small>
                                             <span class="badge bg-secondary text-nowrap">
                                                 {{ $trooper_achievement->achievement_date->localFormat('M j, Y') }}
                                             </span>
@@ -98,7 +98,7 @@
             <!-- 3. EMPTY STATE: Standard fallback banner -->
             <div class="card bg-dark border-secondary text-center py-5 my-4">
                 <div class="card-body">
-                    <p class="text-muted mb-0">No achievements found in the last {{ $days }} days.</p>
+                    <p class="text-muted mb-0">{{ __('service-records.No achievements found in the last :days days.', ['days' => $days]) }}</p>
                 </div>
             </div>
         @endif

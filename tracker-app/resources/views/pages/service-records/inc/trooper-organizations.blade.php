@@ -6,10 +6,10 @@
             <thead>
                 <tr>
                     <th style="width: 40px;"></th>
-                    <th>Organization</th>
-                    <th>Identifier</th>
-                    <th>Membership ID</th>
-                    <th>Assignment Location</th>
+                    <th>{{ __('service-records.Organization') }}</th>
+                    <th>{{ __('service-records.Identifier') }}</th>
+                    <th>{{ __('service-records.Membership ID') }}</th>
+                    <th>{{ __('service-records.Assignment Location') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -56,7 +56,7 @@
                                             :height="36" />
                                 </div>
                                 <div class="flex-grow-1 min-w-0 ms-3">
-                                    <small class="text-muted d-block text-uppercase fw-bold text-xs">Organization</small>
+                                    <small class="text-muted d-block text-uppercase fw-bold text-xs">{{ __('service-records.Organization') }}</small>
                                     <span class="h6 mb-0 fw-bold text-white text-truncate d-block">
                                         {{ $trooper_organization->name }}
                                     </span>
@@ -77,7 +77,7 @@
 
                             <!-- Bottom Row: Unit Assignment Info -->
                             <div class="pt-2 border-top border-secondary mt-2">
-                                <small class="text-muted d-block text-uppercase fw-bold text-xs mb-0.5">Assignment</small>
+                                <small class="text-muted d-block text-uppercase fw-bold text-xs mb-0.5">{{ __('service-records.Assignment') }}</small>
                                 <span class="small text-white text-break">
                                     <i class="fa-solid fa-location-dot me-1 text-muted small"></i>
                                     {{ $trooper_organization->assignment->organization->name ?? 'Unassigned' }}
@@ -96,7 +96,7 @@
     <x-table>
         <tbody>
             <x-table-empty :colspan="5">
-                No Organization Memberships ... Yet!
+                {{ __('service-records.No Organization Memberships ... Yet!') }}
             </x-table-empty>
         </tbody>
     </x-table>

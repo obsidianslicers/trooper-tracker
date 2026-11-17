@@ -7,7 +7,7 @@
         <!-- Responsive Header: Stack vertically on mobile, horizontal row on desktop -->
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
             <h2 class="h4 mb-0 text-uppercase fw-bold text-white">
-                <i class="fa-brands fa-empire me-2"></i> Awards
+                <i class="fa-brands fa-empire me-2"></i> {{ __('service-records.Awards') }}
             </h2>
             <div class="align-self-start align-self-sm-auto">
                 <x-lookback :days="$days" />
@@ -21,10 +21,10 @@
                 <x-table>
                     <thead>
                         <tr>
-                            <th colspan="2">Organization</th>
-                            <th>Award</th>
-                            <th>Trooper</th>
-                            <th>Award Date</th>
+                            <th colspan="2">{{ __('service-records.Organization') }}</th>
+                            <th>{{ __('service-records.Award') }}</th>
+                            <th>{{ __('service-records.Trooper') }}</th>
+                            <th>{{ __('service-records.Award Date') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -70,7 +70,7 @@
                                                     :height="40" />
                                         </div>
                                         <div class="flex-grow-1 min-w-0">
-                                            <small class="text-muted d-block text-uppercase fw-bold text-xs">Recipient</small>
+                                            <small class="text-muted d-block text-uppercase fw-bold text-xs">{{ __('service-records.Recipient') }}</small>
                                             <a href="{{ route('service-records.trooper', ['trooper' => $award_trooper->trooper]) }}"
                                                class="h6 mb-0 text-decoration-none fw-bold text-truncate d-block">
                                                 {{ $award_trooper->trooper->display_name }}
@@ -81,7 +81,7 @@
                                     <!-- Detail Grid: Award info and Date side by side -->
                                     <div class="row g-2 pt-2 border-top border-secondary">
                                         <div class="col-7">
-                                            <small class="text-muted d-block text-uppercase fw-bold text-xs mb-0.5">Award / Unit</small>
+                                            <small class="text-muted d-block text-uppercase fw-bold text-xs mb-0.5">{{ __('service-records.Award / Unit') }}</small>
                                             <span class="text-white small fw-semibold d-block text-break">
                                                 {{ $award_trooper->award->name }}
                                             </span>
@@ -91,7 +91,7 @@
                                         </div>
                                         <div class="col-5 text-end">
                                             <small class="text-muted d-block text-uppercase fw-bold text-xs mb-0.5">
-                                                Awarded
+                                                {{ __('service-records.Awarded') }}
                                             </small>
                                             <span class="badge bg-secondary text-nowrap">
                                                 {{ $award_trooper->award_date->localFormat('M j, Y') }}
@@ -110,7 +110,7 @@
             <!-- 3. EMPTY STATE: Standard fallback layout -->
             <div class="card bg-dark border-secondary text-center py-5 my-4">
                 <div class="card-body">
-                    <p class="text-muted mb-0">No awards found in the last {{ $days }} days.</p>
+                    <p class="text-muted mb-0">{{ __('service-records.No awards found in the last :days days.', ['days' => $days]) }}</p>
                 </div>
             </div>
         @endif

@@ -8,17 +8,15 @@
 
             <div class="card shadow-sm">
                 <div class="card-body p-4">
-                    <h3 class="card-title mb-3">Check Your Inbox</h3>
+                    <h3 class="card-title mb-3">{{ __('verifications.Check Your Inbox') }}</h3>
 
                     <p class="text-muted">
-                        Welcome to the {{ config('app.name') }}! We've sent a verification link to
-                        your email address. Please click that link to finalize your registration, as
-                        you await approval.
+                        {{ __('verifications.Welcome to the :app! We\'ve sent a verification link to your email address. Please click that link to finalize your registration, as you await approval.', ['app' => config('app.name')]) }}
                     </p>
 
                     @if (session('status') == 'invalid')
                         <x-message type="danger">
-                            The verification link has expired or is invalid. Please request a new one below.
+                            {{ __('verifications.The verification link has expired or is invalid. Please request a new one below.') }}
                         </x-message>
                     @endif
 
@@ -30,13 +28,13 @@
                             @csrf
                             <button type="submit"
                                     class="btn btn-primary w-100">
-                                Resend Verification Email
+                                {{ __('verifications.Resend Verification Email') }}
                             </button>
                         </form>
                     </div>
                 </div>
                 <div class="card-footer text-muted small">
-                    Mission status: Awaiting email confirmation.
+                    {{ __('verifications.Mission status: Awaiting email confirmation.') }}
                 </div>
             </div>
         </div>

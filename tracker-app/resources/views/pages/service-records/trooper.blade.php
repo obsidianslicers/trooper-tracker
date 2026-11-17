@@ -6,14 +6,12 @@
 
     @if($trooper->membership_status === \App\Enums\MembershipStatus::DEPARTED)
         <div class="bg-dark border border-warning rounded p-4 mb-4 text-center">
-            <p class="text-warning fst-italic fs-5 mb-2">"The Force will be with you, always."</p>
+            <p class="text-warning fst-italic fs-5 mb-2">{{ __('service-records."The Force will be with you, always."') }}</p>
             <p class="text-light mb-2">
-                {{ $trooper->display_name }} has become one with the Force.
-                Their service, dedication, and the light they brought to those they served
-                will be honored here, always.
+                {{ __('service-records.:name has become one with the Force. Their service, dedication, and the light they brought to those they served will be honored here, always.', ['name' => $trooper->display_name]) }}
             </p>
             <p class="text-warning small mb-0 fst-italic">
-                — In memoriam. May the Force be with them, always. —
+                {{ __('service-records.— In memoriam. May the Force be with them, always. —') }}
             </p>
         </div>
     @endif
@@ -40,13 +38,13 @@
                         <a href="{{ route('admin.service-records.missing-credits', ['trooper_id' => $trooper->id]) }}"
                            class="btn btn-outline-danger">
                             <i class="fa fa-fw fa-triangle-exclamation"></i>
-                            Fix Missing Credit
+                            {{ __('service-records.Fix Missing Credit') }}
                         </a>
                     @endif
                     <a href="{{ route('admin.troopers.profile', compact('trooper')) }}"
                        class="btn btn-outline-warning">
                         <i class="fa fa-fw fa-edit"></i>
-                        Edit
+                        {{ __('service-records.Edit') }}
                     </a>
                 @endcan
             </div>
@@ -71,7 +69,7 @@
                                         data-bs-toggle="tab"
                                         data-bs-target="#upcoming-shifts"
                                         aria-selected="true"
-                                        role="tab">Upcoming</button>
+                                        role="tab">{{ __('service-records.Upcoming') }}</button>
                             </li>
                         @endif
                         <li class="nav-item"
@@ -81,7 +79,7 @@
                                     data-bs-target="#recent-shifts"
                                     aria-selected="{{ $trooper->membership_status === \App\Enums\MembershipStatus::DEPARTED ? 'true' : 'false' }}"
                                     @if($trooper->membership_status !== \App\Enums\MembershipStatus::DEPARTED) tabindex="-1" @endif
-                                    role="tab">History</button>
+                                    role="tab">{{ __('service-records.History') }}</button>
                         </li>
                         <li class="nav-item"
                             role="presentation">
@@ -90,7 +88,7 @@
                                     data-bs-target="#awards"
                                     aria-selected="false"
                                     tabindex="-1"
-                                    role="tab">Awards</button>
+                                    role="tab">{{ __('service-records.Awards') }}</button>
                         </li>
                         <li class="nav-item"
                             role="presentation">
@@ -99,7 +97,7 @@
                                     data-bs-target="#costumes"
                                     aria-selected="false"
                                     tabindex="-1"
-                                    role="tab">Costumes</button>
+                                    role="tab">{{ __('service-records.Costumes') }}</button>
                         </li>
                         <li class="nav-item"
                             role="presentation">
@@ -108,7 +106,7 @@
                                     data-bs-target="#photos"
                                     aria-selected="false"
                                     tabindex="-1"
-                                    role="tab">Photos</button>
+                                    role="tab">{{ __('service-records.Photos') }}</button>
                         </li>
                         @if(config('tracker.support.url'))
                             <li class="nav-item"
@@ -118,7 +116,7 @@
                                         data-bs-target="#donations"
                                         aria-selected="false"
                                         tabindex="-1"
-                                        role="tab">Support</button>
+                                        role="tab">{{ __('service-records.Support') }}</button>
                             </li>
                         @endif
                     </ul>
@@ -146,7 +144,7 @@
                          id="costumes"
                          role="tabpanel">
                         @if($trooper->is_handler)
-                            Handlers don't typically have costumes, but they can still earn awards and serve in missions!
+                            {{ __('service-records.Handlers don\'t typically have costumes, but they can still earn awards and serve in missions!') }}
                         @else
                             @include('pages.service-records.inc.trooper-organizations')
                             <br />
@@ -202,11 +200,11 @@
                     <button type="button"
                             class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
                             data-bs-dismiss="modal"
-                            aria-label="Close"></button>
+                            aria-label="{{ __('service-records.Close') }}"></button>
 
                     <img id="serviceRecordPhotoModalImage"
                          src=""
-                         alt="Service record photo"
+                         alt="{{ __('service-records.Service record photo') }}"
                          class="img-fluid w-100" />
                 </div>
             </div>

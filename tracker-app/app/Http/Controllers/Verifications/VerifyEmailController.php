@@ -30,7 +30,7 @@ class VerifyEmailController extends PageController
     {
         $request->fulfill();
 
-        FlashType::success('Thank you for verifying your email!');
+        FlashType::success(__('verifications.Thank you for verifying your email!'));
 
         return redirect()->route('account.index');
     }
