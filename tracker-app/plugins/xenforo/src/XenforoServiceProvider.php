@@ -97,7 +97,7 @@ class XenforoServiceProvider extends PluginServiceProvider
         });
 
         $this->addSystemCheck(
-            'XenForo API',
+            'xenforo::plugin.XenForo API',
             fn (): bool => filled(config('plugins.xenforo.base_url'))
                 && filled(config('plugins.xenforo.api_key')),
         );
@@ -140,10 +140,10 @@ class XenforoServiceProvider extends PluginServiceProvider
         Event::observe(EventThreadObserver::class);
         EventTrooper::observe(EventTrooperThreadObserver::class);
 
-        $this->addNotificationCategory(EventForumPostNotification::CATEGORY, 'Event Forum Post');
+        $this->addNotificationCategory(EventForumPostNotification::CATEGORY, 'xenforo::plugin.Event Forum Post');
         $this->addNotificationCategory(
             ForumPostCommandStaffNotification::CATEGORY,
-            'Forum Post Command Staff',
+            'xenforo::plugin.Forum Post Command Staff',
             for_command_staff: true,
         );
 

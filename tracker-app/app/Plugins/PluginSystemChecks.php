@@ -60,7 +60,7 @@ class PluginSystemChecks
         catch (Throwable $e)
         {
             return new SystemCheckResult(
-                $check['label'],
+                (string) __($check['label']),
                 SystemCheckStatus::FAIL,
                 $e->getMessage(),
             );
@@ -73,6 +73,6 @@ class PluginSystemChecks
 
         $status = $result ? SystemCheckStatus::PASS : SystemCheckStatus::WARN;
 
-        return new SystemCheckResult($check['label'], $status);
+        return new SystemCheckResult((string) __($check['label']), $status);
     }
 }

@@ -105,6 +105,13 @@ __('discord::settings.Webhook URL')
 
 The same rules apply: English text as keys and a complete `en` folder. Core never edits a plugin's lang files.
 
+Two kinds of plugin text can't call `__()` where they're written, so core translates them when it shows them:
+
+- **plugin.json text.** The description and each setting's label and help are looked up in the plugin's `lang/<locale>/plugin.php`, keyed by the English text. A line that file doesn't have is shown as written.
+- **Labels the plugin registers** with `addSystemCheck`, `addNotificationCategory` or `addClubSynchronizer`. Providers boot before the trooper's language is set, so pass the key rather than translated text: `$this->addNotificationCategory('forum_reply', 'hello::plugin.Forum Reply')`. Core runs `__()` on it when the label is shown. A plain label still works; it just stays in English. Keys passed this way aren't seen by the report, so add them to `lang/en/plugin.php` yourself.
+
+Plugin emails are short, so their views use `__()` lines rather than per-language copies.
+
 ## Checking translations
 
 | Check | What it catches | Fails the build? |

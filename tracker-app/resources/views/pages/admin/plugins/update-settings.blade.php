@@ -15,11 +15,11 @@
         @php($property = 'settings.'.$setting->key)
         <x-input-container>
           <x-label>
-            {{ $setting->label }}:
+            {{ $manifest->translate($setting->label) }}:
           </x-label>
           @if($setting->type === 'secret')
             <x-input-password :property="$property"
-                              :placeholder="filled($settings[$setting->key] ?? null) ? 'Saved. Leave empty to keep it.' : ''" />
+                              :placeholder="filled($settings[$setting->key] ?? null) ? __('admin.Saved. Leave empty to keep it.') : ''" />
           @elseif($setting->type === 'boolean')
             <x-input-yesno :property="$property"
                            :value="(bool) ($settings[$setting->key] ?? false)" />
@@ -29,7 +29,7 @@
           @endif
           @if($setting->help !== '')
             <x-input-help>
-              {{ $setting->help }}
+              {{ $manifest->translate($setting->help) }}
             </x-input-help>
           @endif
         </x-input-container>

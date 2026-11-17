@@ -1,15 +1,15 @@
 @if($linked_troops->isNotEmpty())
     <h6 class="text-muted text-uppercase small fw-bold mt-4 mb-2">
-        Troops from the HoloNet
+        {{ __('holonet::service-records.Troops from the HoloNet') }}
     </h6>
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0">
             <thead>
                 <tr class="small text-muted">
-                    <th>Date</th>
-                    <th>Event</th>
-                    <th>Costume</th>
-                    <th>Tracker</th>
+                    <th>{{ __('holonet::service-records.Date') }}</th>
+                    <th>{{ __('holonet::service-records.Event') }}</th>
+                    <th>{{ __('holonet::service-records.Costume') }}</th>
+                    <th>{{ __('holonet::service-records.Tracker') }}</th>
                 </tr>
             </thead>
             <tbody>

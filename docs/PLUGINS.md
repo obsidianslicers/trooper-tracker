@@ -240,7 +240,7 @@ Inside a plugin, follow the same conventions as core: Hyperdrive messages for bu
 
 ### Translations
 
-Put the plugin's text in `lang/<locale>/<group>.php` inside the plugin folder, keyed by the English text, with every key in `lang/en`. The loader registers the folder under the plugin's slug, so `__('hello::greetings.Hello there')` works in PHP and Blade, and a Svelte slot can ask for `TranslationService::groups('hello::greetings')`. See [LOCALIZATION.md](LOCALIZATION.md#plugins).
+Put the plugin's text in `lang/<locale>/<group>.php` inside the plugin folder, keyed by the English text, with every key in `lang/en`. The loader registers the folder under the plugin's slug, so `__('hello::greetings.Hello there')` works in PHP and Blade, and a Svelte slot can ask for `TranslationService::groups('hello::greetings')`. Put plugin.json's description and setting labels and help in `lang/<locale>/plugin.php`, and pass registered labels as keys (`'hello::plugin.Forum Reply'`). See [LOCALIZATION.md](LOCALIZATION.md#plugins).
 
 ---
 

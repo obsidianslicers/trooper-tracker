@@ -24,18 +24,25 @@ class RefreshTrackerLinkController extends Controller
 
         if ($link->refreshed_at !== null && $link->refreshed_at->gt(now()->subMinutes($cooldown)))
         {
-            FlashType::info("Troops from {$link->tracker_name} are already up to date.");
+            FlashType::info(__('holonet::account.Troops from :tracker are already up to date.', [
+                'tracker' => $link->tracker_name,
+            ]));
 
             return redirect()->route('plugins.holonet.index');
         }
 
         if (RefreshTrackerLink::call(link: $link))
         {
-            FlashType::success("Troops from {$link->tracker_name} are up to date.");
+            FlashType::success(__('holonet::account.Troops from :tracker are up to date.', [
+                'tracker' => $link->tracker_name,
+            ]));
         }
         else
         {
-            FlashType::warning("{$link->tracker_name} couldn't be refreshed: {$link->last_error}");
+            FlashType::warning(__("holonet::account.:tracker couldn't be refreshed: :problem", [
+                'tracker' => $link->tracker_name,
+                'problem' => $link->last_error,
+            ]));
         }
 
         return redirect()->route('plugins.holonet.index');

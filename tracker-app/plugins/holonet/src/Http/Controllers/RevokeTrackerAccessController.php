@@ -22,7 +22,9 @@ class RevokeTrackerAccessController extends Controller
 
         RevokeTrackerGrant::call(grant: $grant);
 
-        FlashType::success("{$grant->tracker_name} can no longer see your troop history here.");
+        FlashType::success(__('holonet::account.:tracker can no longer see your troop history here.', [
+            'tracker' => $grant->tracker_name,
+        ]));
 
         return redirect()->route('plugins.holonet.index');
     }

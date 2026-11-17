@@ -8,6 +8,6 @@
        target="_blank"
        rel="noopener noreferrer">
         <i class="fa fa-fw fa-comments"></i>
-        Forum Profile
+        {{ __('xenforo::service-records.Forum Profile') }}
     </a>
 @endif

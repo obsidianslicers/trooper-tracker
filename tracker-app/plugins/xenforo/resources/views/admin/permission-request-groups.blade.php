@@ -1,14 +1,16 @@
 @if(!$has_account)
     <p class="text-muted small">
-        This trooper has no linked forum account, so forum groups cannot be requested.
+        {{ __('xenforo::admin.This trooper has no linked forum account, so forum groups cannot be requested.') }}
     </p>
 @else
     <div class="row">
         @foreach([
-            ['title' => 'Add Forum Groups', 'field' => 'groups_to_add', 'groups' => $addable,
-                'empty' => 'No other forum groups are available.'],
-            ['title' => 'Remove Forum Groups', 'field' => 'groups_to_remove', 'groups' => $current,
-                'empty' => 'This trooper is not in any requestable forum groups.'],
+            ['title' => __('xenforo::admin.Add Forum Groups'), 'field' => 'groups_to_add',
+                'groups' => $addable,
+                'empty' => __('xenforo::admin.No other forum groups are available.')],
+            ['title' => __('xenforo::admin.Remove Forum Groups'), 'field' => 'groups_to_remove',
+                'groups' => $current,
+                'empty' => __('xenforo::admin.This trooper is not in any requestable forum groups.')],
         ] as $column)
             <div class="col-md-6 mb-3">
                 <h6>{{ $column['title'] }}</h6>

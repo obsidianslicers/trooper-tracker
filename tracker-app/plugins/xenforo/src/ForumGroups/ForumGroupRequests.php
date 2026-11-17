@@ -80,7 +80,7 @@ final class ForumGroupRequests implements PermissionRequestExtension
 
         if (!$this->forum_groups->hasAccount($trooper))
         {
-            $validator->errors()->add($field, 'This trooper has no forum account.');
+            $validator->errors()->add($field, __('xenforo::admin.This trooper has no forum account.'));
         }
     }
 

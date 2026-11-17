@@ -32,7 +32,7 @@
                     <strong>{{ $manifest->name }}</strong>
                     <span class="text-muted small">({{ $manifest->slug }})</span>
                     @if($manifest->description !== '')
-                        <div class="small text-muted">{{ $manifest->description }}</div>
+                        <div class="small text-muted">{{ $manifest->translate($manifest->description) }}</div>
                     @endif
                     @if($manifest->author !== '')
                         <div class="small text-muted">{{ __('admin.By :author', ['author' => $manifest->author]) }}</div>
@@ -108,7 +108,7 @@
                           class="d-inline"
                           action="{{ route($toggle_route, ['slug' => $manifest->slug]) }}"
                           @if($toggle_route === 'admin.plugins.enable' && $manifest->capabilities !== [])
-                              data-confirm="Turn on {{ $manifest->name }}? {{ __('admin.It :capabilities.', ['capabilities' => $plugin['capability_summary']]) }}"
+                              data-confirm="{{ __('admin.Turn on :plugin?', ['plugin' => $manifest->name]) }} {{ __('admin.It :capabilities.', ['capabilities' => $plugin['capability_summary']]) }}"
                               onsubmit="return confirm(this.dataset.confirm);"
                           @endif>
                         @csrf
@@ -135,7 +135,7 @@
                         <form method="POST"
                               class="d-inline"
                               action="{{ route('admin.plugins.uninstall', ['slug' => $manifest->slug]) }}"
-                              data-confirm="Uninstall {{ $manifest->name }}? This deletes its data and settings."
+                              data-confirm="{{ __('admin.Uninstall :plugin? This deletes its data and settings.', ['plugin' => $manifest->name]) }}"
                               onsubmit="return confirm(this.dataset.confirm);">
                             @csrf
                             <button type="submit"

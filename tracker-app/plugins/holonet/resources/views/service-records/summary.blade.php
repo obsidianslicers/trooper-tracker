@@ -8,8 +8,8 @@
             <tr class="small">
                 <td class="text-muted border-0">
                     <span data-bs-toggle="tooltip"
-                          data-bs-title="Troops recorded by other garrisons' trackers this trooper linked">
-                        HoloNet
+                          data-bs-title="{{ __('holonet::service-records.Troops recorded by other garrisons\' trackers this trooper linked') }}">
+                        {{ __('holonet::service-records.HoloNet') }}
                     </span>
                 </td>
                 <td class="text-end fw-bold border-0">
@@ -18,13 +18,13 @@
                 </td>
             </tr>
             <tr class="small">
-                <td class="text-muted border-0">All-Time Troops</td>
+                <td class="text-muted border-0">{{ __('holonet::service-records.All-Time Troops') }}</td>
                 <td class="text-end fw-bold border-0">
                     <x-number-format :value="(int) ($service_summary['total_shifts'] ?? 0) + $linked_count" />
                 </td>
             </tr>
             <tr class="small">
-                <td class="text-muted border-0">All-Time Hours</td>
+                <td class="text-muted border-0">{{ __('holonet::service-records.All-Time Hours') }}</td>
                 <td class="text-end fw-bold border-0">
                     <x-number-format :value="(float) ($service_summary['total_hours'] ?? 0) + $linked_hours" />
                 </td>

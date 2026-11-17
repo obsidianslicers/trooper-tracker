@@ -22,7 +22,7 @@ class RemoveTrackerLinkController extends Controller
 
         RemoveTrackerLink::call(link: $link);
 
-        FlashType::success("{$link->tracker_name} is no longer linked.");
+        FlashType::success(__('holonet::account.:tracker is no longer linked.', ['tracker' => $link->tracker_name]));
 
         return redirect()->route('plugins.holonet.index');
     }

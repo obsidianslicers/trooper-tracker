@@ -44,7 +44,9 @@ class ForumReplyController
         }
 
         $flashMessage = json_encode([
-            'message' => $success ? 'Reply posted!' : 'Failed to post reply.',
+            'message' => $success
+                ? __('xenforo::events.Reply posted!')
+                : __('xenforo::events.Failed to post reply.'),
             'type' => $success ? 'success' : 'danger',
         ]);
 

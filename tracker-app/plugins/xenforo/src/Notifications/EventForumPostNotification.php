@@ -37,8 +37,10 @@ class EventForumPostNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'New Forum Reply: '.$this->event->name,
-            'body' => $this->username.' posted a reply in the event thread.',
+            'title' => __('xenforo::notifications.New Forum Reply: :event', ['event' => $this->event->name]),
+            'body' => __('xenforo::notifications.:name posted a reply in the event thread.', [
+                'name' => $this->username,
+            ]),
             'url' => '/events/details/'.$this->event->id,
         ];
     }

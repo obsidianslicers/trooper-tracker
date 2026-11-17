@@ -30,7 +30,7 @@ class FinishTrackerLinkController extends Controller
 
         if ($tracker === null || !hash_equals((string) $pending['state'], (string) $request->query('state')))
         {
-            FlashType::danger('That link request has expired. Please try again.');
+            FlashType::danger(__('holonet::account.That link request has expired. Please try again.'));
 
             return redirect()->route('plugins.holonet.index');
         }
@@ -39,7 +39,7 @@ class FinishTrackerLinkController extends Controller
 
         if (!is_string($code) || $code === '')
         {
-            FlashType::warning("{$tracker->name} wasn't linked.");
+            FlashType::warning(__("holonet::account.:tracker wasn't linked.", ['tracker' => $tracker->name]));
 
             return redirect()->route('plugins.holonet.index');
         }
@@ -50,7 +50,10 @@ class FinishTrackerLinkController extends Controller
         }
         catch (TrackerUnavailableException $e)
         {
-            FlashType::danger("{$tracker->name} couldn't be linked: {$e->getMessage()}");
+            FlashType::danger(__("holonet::account.:tracker couldn't be linked: :problem", [
+                'tracker' => $tracker->name,
+                'problem' => $e->getMessage(),
+            ]));
 
             return redirect()->route('plugins.holonet.index');
         }
@@ -64,7 +67,7 @@ class FinishTrackerLinkController extends Controller
 
         RefreshTrackerLink::call(link: $link);
 
-        FlashType::success("{$tracker->name} is linked.");
+        FlashType::success(__('holonet::account.:tracker is linked.', ['tracker' => $tracker->name]));
 
         return redirect()->route('plugins.holonet.index');
     }
