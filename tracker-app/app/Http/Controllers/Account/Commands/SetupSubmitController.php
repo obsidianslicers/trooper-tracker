@@ -36,6 +36,7 @@ class SetupSubmitController extends PageController
             notification_frequency: $request->validated('notification_frequency')
         );
 
-        return redirect()->route('account.index');
+        //  the account page welcomes the trooper when it sees ?welcome
+        return redirect()->route('account.index', ['welcome' => 1]);
     }
 }

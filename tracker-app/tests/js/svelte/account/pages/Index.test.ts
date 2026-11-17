@@ -2,7 +2,7 @@
 import { render, screen } from '@testing-library/svelte';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { page } = vi.hoisted(() => ({ page: { props: {} as Record<string, any> } }));
+const { page } = vi.hoisted(() => ({ page: { props: {} as Record<string, any>, url: '/account' } }));
 
 vi.mock('@inertiajs/svelte', () => ({
     usePage: () => page,
@@ -62,7 +62,10 @@ const props = (overrides: Record<string, unknown> = {}) => ({
 });
 
 describe('Account Index', () => {
-    beforeEach(() => (page.props = props()));
+    beforeEach(() => {
+        page.props = props();
+        page.url = '/account';
+    });
 
     it('shows the standard account tabs', () => {
         render(Index);
@@ -101,6 +104,21 @@ describe('Account Index', () => {
         expect(screen.getByText('Account deletion scheduled.')).toBeTruthy();
         expect(screen.getByText('Jan 31, 2026')).toBeTruthy();
         expect(screen.queryByText('Delete Account')).toBeNull();
+    });
+
+    it('welcomes a trooper who just finished setup, with a way to the events', () => {
+        page.url = '/account?welcome=1';
+
+        render(Index);
+
+        expect(screen.getByRole('heading', { name: 'Your account is set up' })).toBeTruthy();
+        expect(screen.getByRole('link', { name: 'See Upcoming Events' }).getAttribute('href')).toBe('/events.list');
+    });
+
+    it('does not welcome a trooper on later visits', () => {
+        render(Index);
+
+        expect(screen.queryByText('Your account is set up')).toBeNull();
     });
 
     it('tells expiring visitors when their access ends', () => {
