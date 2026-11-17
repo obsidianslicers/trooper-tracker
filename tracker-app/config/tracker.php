@@ -66,6 +66,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Sign-Up Tour
+    |--------------------------------------------------------------------------
+    |
+    | A short walkthrough of signing up, on the event page. It starts by itself
+    | once per browser, on an event with a shift open for sign-up, for:
+    | "new_troopers" (no troop attended yet), "everyone", or nobody ("off").
+    | The "How sign-up works" button above the roster replays it either way.
+    |
+    */
+
+    'signup_tour' => env('TRACKER_SIGNUP_TOUR', 'new_troopers'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Support Information
     |--------------------------------------------------------------------------
     |

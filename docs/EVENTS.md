@@ -168,6 +168,22 @@ A costume decision means the trooper either picked a real costume or explicitly 
 
 **Source:** `app/Messages/Events/Commands/SignUpEventTrooper.php`
 
+### Sign-up tour
+
+Signing up has no form or Submit button: Sign Up adds the trooper as `PENDING`, and the costume, status and Made It / Missed It all save from their own roster row. The event page's "How sign-up works" tour shows where each of those happens, on dashed example rows above the real shifts (nothing in them works, and nothing in the tour signs anyone up). It dims the page around each step's target and walks through: signing up for each shift (or opening a collapsed one), the mission brief first when it must be acknowledged, picking a costume, the optional backup costume, changing plans, adding a friend or guest, and saying whether they made it. A step whose target isn't on the page is left out.
+
+The **How sign-up works** button above the roster replays it at any time. `TRACKER_SIGNUP_TOUR` decides who it also starts for by itself, on an event with a shift open for sign-up:
+
+| Value | Starts by itself for |
+|---|---|
+| `new_troopers` (default) | troopers with no attended sign-up yet (`ATTENDED` or `AWAITING_VERIFICATION`, any event type) |
+| `everyone` | every trooper, for example while a garrison moves over from another tracker |
+| `off` | nobody; the button still works |
+
+Once a trooper finishes or closes it, the browser remembers (localStorage, per trooper), so it doesn't start by itself again on that browser. There's nothing stored on the server, so a new phone or a cleared browser shows it once more.
+
+**Source:** `app/Support/SignUpTour.php`, `resources/views/pages/events/inc/signup-tour.blade.php`, `resources/js/events/signupTour.js`
+
 ---
 
 ## Standby Promotion Flow

@@ -1,9 +1,12 @@
 import eventSelector from './eventSelector';
 import mapSelector from './mapSelector';
 import shiftsView from './shiftsView';
+import signupTour from './signupTour';
 
 export default function (Alpine) {
     window.Events = window.Events || {};
+
+    window.Events.signupTour = signupTour;
 
     window.Events.Search = window.Events.Search || {};
 
