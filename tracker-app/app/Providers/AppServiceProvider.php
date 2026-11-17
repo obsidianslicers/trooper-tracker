@@ -15,6 +15,8 @@ use App\Services\BreadCrumbService;
 use App\View\Composers\EventTypeOptionsComposer;
 use App\View\Composers\NavbarNotificationsComposer;
 use App\View\Composers\ShiftAddTrooperComposer;
+use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
@@ -83,6 +85,7 @@ class AppServiceProvider extends ServiceProvider
         JsonResource::withoutWrapping();
 
         $this->logMissingTranslations();
+        $this->registerLocalFormat();
 
         Gate::policy(TrooperRequest::class, TrooperRequestPolicy::class);
 
@@ -231,5 +234,25 @@ class AppServiceProvider extends ServiceProvider
 
             return null;
         });
+    }
+
+    /**
+     * $date->localFormat('M j, Y') formats with the current language's version of
+     * that pattern from lang/<locale>/formats.php (keyed by the English pattern),
+     * with month and day names translated.
+     */
+    private function registerLocalFormat(): void
+    {
+        $macro = function (string $format): string
+        {
+            $key = "formats.{$format}";
+            $localized = Lang::has($key) ? __($key) : $format;
+
+            /** @var Carbon|CarbonImmutable $this */
+            return $this->translatedFormat($localized);
+        };
+
+        Carbon::macro('localFormat', $macro);
+        CarbonImmutable::macro('localFormat', $macro);
     }
 }

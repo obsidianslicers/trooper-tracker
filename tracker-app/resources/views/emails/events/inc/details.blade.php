@@ -9,7 +9,7 @@
             {{ $event->venue_address }}
         </a>
     </li>
-    <li><b>Shift:</b> {{ $event_shift->shift_starts_at->format('F j, Y g:i A') }} - {{ $event_shift->shift_ends_at->format('g:i A') }}</li>
+    <li><b>Shift:</b> {{ $event_shift->shift_starts_at->localFormat('F j, Y g:i A') }} - {{ $event_shift->shift_ends_at->localFormat('g:i A') }}</li>
     <li>
         <b>Add to Calendar:</b>
         <a target="_blank"

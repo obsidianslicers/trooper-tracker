@@ -19,7 +19,7 @@
                         Active Strength
                     </h6>
                     <h2 class="display-6 fw-bold">
-                        {{ number_format($dashboard['personnel']['active_count']) }}
+                        {{ format_number($dashboard['personnel']['active_count']) }}
                     </h2>
                     <small class="text-muted">Mission Ready</small>
                 </div>
@@ -35,7 +35,7 @@
                         Trooper Count
                     </h6>
                     <h2 class="display-6 fw-bold">
-                        {{ number_format($dashboard['personnel']['trooper_count']) }}
+                        {{ format_number($dashboard['personnel']['trooper_count']) }}
                     </h2>
                 </div>
             </div>
@@ -50,7 +50,7 @@
                         Handler Corps
                     </h6>
                     <h2 class="display-6 fw-bold">
-                        {{ number_format($dashboard['personnel']['handler_count']) }}
+                        {{ format_number($dashboard['personnel']['handler_count']) }}
                     </h2>
                     <small class="text-muted">Support Staff</small>
                 </div>
@@ -66,7 +66,7 @@
                         New Enlistments
                     </h6>
                     <h2 class="display-6 fw-bold text-primary">
-                        {{ number_format($dashboard['personnel']['new_enlistments']) }}
+                        {{ format_number($dashboard['personnel']['new_enlistments']) }}
                     </h2>
                 </div>
             </div>
@@ -84,7 +84,7 @@
                         Ghost Count
                     </h6>
                     <h2 class="display-6 fw-bold text-secondary">
-                        {{ number_format($dashboard['personnel']['ghost_count']) }}
+                        {{ format_number($dashboard['personnel']['ghost_count']) }}
                     </h2>
                 </div>
             </div>
@@ -99,7 +99,7 @@
                         Attendance
                     </h6>
                     <h2 class="display-6 fw-bold">
-                        {{ number_format($dashboard['personnel']['attendance_count']) }}
+                        {{ format_number($dashboard['personnel']['attendance_count']) }}
                     </h2>
                 </div>
             </div>
@@ -114,7 +114,7 @@
                         Attrition Risk
                     </h6>
                     <h2 class="display-6 fw-bold text-danger">
-                        {{ number_format($dashboard['personnel']['attrition_risk']) }}
+                        {{ format_number($dashboard['personnel']['attrition_risk']) }}
                     </h2>
                 </div>
             </div>
@@ -129,7 +129,7 @@
                         Fulfillment
                     </h6>
                     <h2 class="display-6 fw-bold text-success">
-                        {{ number_format($dashboard['logistics']['fulfillment_rate'], 1) }}%
+                        {{ format_number($dashboard['logistics']['fulfillment_rate'], 1) }}%
                     </h2>
                 </div>
             </div>
@@ -154,7 +154,7 @@
                                 Total Credits
                             </p>
                             <h4 class="fw-bold mb-0 text-success">
-                                ${{ number_format($dashboard['impact']['total_credits'], 2) }}
+                                ${{ format_number($dashboard['impact']['total_credits'], 2) }}
                             </h4>
                         </div>
                         <div class="col-4 border-end">
@@ -164,7 +164,7 @@
                                 Volunteer Hours
                             </p>
                             <h4 class="fw-bold mb-0">
-                                {{ number_format($dashboard['impact']['volunteer_hours']) }}h
+                                {{ format_number($dashboard['impact']['volunteer_hours']) }}h
                             </h4>
                         </div>
                         <div class="col-4">
@@ -174,7 +174,7 @@
                                 Internal Support
                             </p>
                             <h4 class="fw-bold mb-0">
-                                ${{ number_format($dashboard['impact']['internal_donations'], 2) }}
+                                ${{ format_number($dashboard['impact']['internal_donations'], 2) }}
                             </h4>
                         </div>
                     </div>
@@ -192,7 +192,7 @@
                             Notice Read Rate
                         </span>
                         <span class="fw-bold">
-                            {{ number_format($dashboard['engagement']['notice_penetration'], 1) }}%
+                            {{ format_number($dashboard['engagement']['notice_penetration'], 1) }}%
                         </span>
                     </div>
                     <div class="progress mt-2 mb-3"

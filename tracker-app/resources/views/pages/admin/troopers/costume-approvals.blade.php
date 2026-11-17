@@ -32,7 +32,7 @@
                         </td>
                         <td>{{ $trooper_costume->organization_costume->costume->name }}</td>
                         <td>{{ $trooper_costume->organization_costume->organization->name }}</td>
-                        <td class="text-nowrap">{{ $trooper_costume->created_at?->format('M j, Y') }}</td>
+                        <td class="text-nowrap">{{ $trooper_costume->created_at?->localFormat('M j, Y') }}</td>
                         <td class="text-end text-nowrap">
                             @include('pages.admin.troopers.partials.costume-review-buttons', compact('trooper_costume'))
                         </td>

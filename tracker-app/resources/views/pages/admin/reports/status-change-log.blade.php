@@ -23,7 +23,7 @@
             @forelse ($changes as $change)
                 <tr>
                     <td class="text-nowrap">
-                        {{ $change->created_at->format('D - M d, Y g:ia') }}
+                        {{ $change->created_at->localFormat('D - M d, Y g:ia') }}
                     </td>
                     <td>
                         <a href="{{ route('admin.events.update', $change->auditable->event_shift->event) }}">

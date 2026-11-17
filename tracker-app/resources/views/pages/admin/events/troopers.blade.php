@@ -151,7 +151,7 @@
                                     </td>
                                     <td>
                                         @if($event_trooper->status === \App\Enums\EventTrooperStatus::GOING && $event_trooper->updated_at)
-                                            {{ $event_trooper->updated_at->format('M j, Y g:ia') }}
+                                            {{ $event_trooper->updated_at->localFormat('M j, Y g:ia') }}
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
@@ -220,7 +220,7 @@
                                     </td>
                                     <td>
                                         @if($event_guest->status === \App\Enums\EventGuestStatus::GOING && $event_guest->updated_at)
-                                            {{ $event_guest->updated_at->format('M j, Y g:ia') }}
+                                            {{ $event_guest->updated_at->localFormat('M j, Y g:ia') }}
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif

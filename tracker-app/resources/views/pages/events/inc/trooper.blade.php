@@ -253,7 +253,7 @@
                 <i class="small text-muted">
                     Approved by {{ $event_trooper->updated_by->display_name }}
                     @if($event_trooper->updated_at)
-                        on {{ $event_trooper->updated_at->format('M j, Y g:ia') }}
+                        on {{ $event_trooper->updated_at->localFormat('M j, Y g:ia') }}
                     @endif
                 </i>
             @endif

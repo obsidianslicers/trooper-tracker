@@ -39,7 +39,7 @@
                                     <i class="fa fa-fw {{ $trooper_achievement->type->toIcon() }} me-2 text-warning"></i>
                                     {{ $trooper_achievement->display_description }}
                                 </td>
-                                <td class="text-nowrap">{{ $trooper_achievement->achievement_date->format('M j, Y') }}</td>
+                                <td class="text-nowrap">{{ $trooper_achievement->achievement_date->localFormat('M j, Y') }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -82,7 +82,7 @@
                                         <div class="col-5 text-end">
                                             <small class="text-muted d-block text-uppercase fw-bold text-xs mb-1">Date</small>
                                             <span class="badge bg-secondary text-nowrap">
-                                                {{ $trooper_achievement->achievement_date->format('M j, Y') }}
+                                                {{ $trooper_achievement->achievement_date->localFormat('M j, Y') }}
                                             </span>
                                         </div>
                                     </div>

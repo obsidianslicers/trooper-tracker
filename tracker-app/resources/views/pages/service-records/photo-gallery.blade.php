@@ -37,7 +37,7 @@
                                 </a>
                             </div>
                             <div class="small text-muted">
-                                {{ $upload->event->event_start?->format('M j, Y') }}
+                                {{ $upload->event->event_start?->localFormat('M j, Y') }}
                             </div>
                             <div class="small text-muted text-truncate">
                                 By {{ $upload->trooper->display_name }}

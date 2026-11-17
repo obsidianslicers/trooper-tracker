@@ -189,7 +189,7 @@
               enctype="multipart/form-data">
             @csrf
             <p class="text-muted small">
-                Upload a plugin as a .zip file (up to {{ number_format($uploads['max_kilobytes'] / 1024, 1) }} MB)
+                Upload a plugin as a .zip file (up to {{ format_number($uploads['max_kilobytes'] / 1024, 1) }} MB)
                 with its plugin.json at the top. It is installed disabled. Composer packages it
                 needs are installed by the next deploy.
                 A plugin runs code on the server once enabled, so only install plugins you trust.

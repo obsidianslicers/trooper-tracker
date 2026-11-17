@@ -28,7 +28,7 @@
         @include('pages.events.inc.event-filters', compact('costume_organizations'))
 
         @foreach ($months as $month)
-            <h3 class="mt-5">{{ $month['date']->format('F Y') }}</h3>
+            <h3 class="mt-5">{{ $month['date']->localFormat('F Y') }}</h3>
 
             <x-table class="event-calendar">
                 <thead>
@@ -53,8 +53,8 @@
                                     <div class="calendar-content">
 
                                         <div class="calendar-date float-end fw-bold small {{ $date->month !== $month['date']->month ? 'text-muted' : '' }}">
-                                            <span class="d-md-none">{{ $date->format('D') }}</span>
-                                            {{ $date->format('j') }}
+                                            <span class="d-md-none">{{ $date->localFormat('D') }}</span>
+                                            {{ $date->localFormat('j') }}
                                         </div>
                                         <br />
 

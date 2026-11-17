@@ -50,7 +50,7 @@
                             @endphp
                             <tr>
                                 <td>
-                                    {{ $shift->shift_starts_at->format('D') }}
+                                    {{ $shift->shift_starts_at->localFormat('D') }}
                                 </td>
                                 <td>
                                     <x-input-date :property="'shifts.' . $shift->id . '.date'"

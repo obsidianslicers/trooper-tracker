@@ -64,7 +64,7 @@
                                 {{ $trooper->display_name }}
                             </td>
                             <td>
-                                {{ $trooper->pivot->award_date->format('M d, Y') }}
+                                {{ $trooper->pivot->award_date->localFormat('M d, Y') }}
                             </td>
                             <td class="text-end">
                                 <form method="POST"

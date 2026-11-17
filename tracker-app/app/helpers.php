@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
 
@@ -66,6 +67,28 @@ if (!function_exists('qs'))
         $value = round((float) $value, 2);
         $decimals = fmod($value, 1.0) == 0.0 ? 0 : 2;
 
-        return number_format($value, $decimals, '.', $thousands_separator);
+        if ($thousands_separator !== ',')
+        {
+            return number_format($value, $decimals, '.', $thousands_separator);
+        }
+
+        return format_number($value, $decimals);
+    }
+}
+
+if (!function_exists('format_number'))
+{
+    /**
+     * Format a number for display in the current language: 1,234.5 in English, 1.234,5 in German.
+     */
+    function format_number(int|float|string|null $value, int $decimals = 0): string
+    {
+        $formatted = Number::format(
+            (float) $value,
+            precision: $decimals,
+            locale: app()->getLocale()
+        );
+
+        return $formatted === false ? number_format((float) $value, $decimals) : $formatted;
     }
 }

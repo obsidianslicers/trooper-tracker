@@ -33,7 +33,7 @@ class AdminTrooperDetails extends JsonResource
             'phone' => $trooper->phone,
             'membership_status' => $trooper->membership_status->value,
             'membership_status_options' => $this->getStatusOptions(),
-            'last_active_at' => $trooper->last_active_at?->format('D - M d, Y') ?? 'Never',
+            'last_active_at' => $trooper->last_active_at?->localFormat('D - M d, Y') ?? 'Never',
             'is_invalid' => $trooper->membership_status === MembershipStatus::INVALID,
             'is_departed' => $trooper->membership_status === MembershipStatus::DEPARTED,
             'is_untrusted' => (bool) $trooper->is_untrusted,

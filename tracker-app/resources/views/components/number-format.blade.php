@@ -5,5 +5,5 @@
         {{ $prefix }}
     @endif
     {{-- decimals="cents": show cents only when the amount has them --}}
-    {{ $value == 0 ? $nulldisplay : ($decimals === 'cents' ? format_funds($value) : number_format($value, $decimals)) }}
+    {{ $value == 0 ? $nulldisplay : ($decimals === 'cents' ? format_funds($value) : format_number($value, $decimals)) }}
 </span>
