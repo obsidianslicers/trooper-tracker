@@ -28,7 +28,7 @@ class DisableSubmitController extends Controller
             return redirect()->route('admin.plugins.list');
         }
 
-        FlashType::success("Plugin \"{$manifest->name}\" was disabled.");
+        FlashType::success(__('admin.Plugin ":plugin" was disabled.', ['plugin' => $manifest->name]));
 
         return redirect()->route('admin.plugins.list');
     }

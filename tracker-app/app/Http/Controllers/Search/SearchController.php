@@ -29,12 +29,12 @@ class SearchController extends PageController
 
         $search_title = match ($request->user()->theme)
         {
-            TrooperTheme::STORMTROOPER => 'Holonet Scanner',
-            TrooperTheme::BOUNTY_HUNTER => 'Bounty Puck',
-            TrooperTheme::SITH => 'Force Sight',
-            TrooperTheme::CLONE => 'Battalion Ledger',
-            TrooperTheme::REBEL => 'Echo Base Intel',
-            default => 'Search Results',
+            TrooperTheme::STORMTROOPER => __('search.Holonet Scanner'),
+            TrooperTheme::BOUNTY_HUNTER => __('search.Bounty Puck'),
+            TrooperTheme::SITH => __('search.Force Sight'),
+            TrooperTheme::CLONE => __('search.Battalion Ledger'),
+            TrooperTheme::REBEL => __('search.Echo Base Intel'),
+            default => __('search.Search Results'),
         };
 
         $search_types = SearchType::toArray();

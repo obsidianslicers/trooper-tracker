@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputError from "$lib/components/form/InputError.svelte";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import {
@@ -110,7 +111,7 @@
                 disabled={vm.options.disabled}
                 onclick={() => (selected = vm.clearSelection())}
             >
-                Clear
+                {t("Clear")}
             </button>
         {/if}
     </div>
@@ -125,7 +126,7 @@
 >
     <div class="trooper-picker-modal">
         <div class="mb-3">
-            <label class="form-label" for="trooper-search">Search</label>
+            <label class="form-label" for="trooper-search">{t("Search")}</label>
             <input
                 id="trooper-search"
                 type="text"
@@ -139,7 +140,7 @@
         {#if vm.is_loading}
             <p class="text-muted mb-3">
                 <i class="fa fa-fw fa-spinner fa-spin"></i>
-                Scanning Troopers...
+                {t("Scanning Troopers...")}
             </p>
         {/if}
 
@@ -150,7 +151,7 @@
         {/if}
 
         {#if !vm.is_loading && vm.term.trim().length > 0 && vm.troopers.length === 0}
-            <p class="text-danger mb-0">No troopers matched your search.</p>
+            <p class="text-danger mb-0">{t("No troopers matched your search.")}</p>
         {/if}
 
         {#if vm.troopers.length > 0}

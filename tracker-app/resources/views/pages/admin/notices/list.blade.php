@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Notice to the Troopers')
+@section('page-title', __('admin.Notice to the Troopers'))
 
 @section('content')
 @php($organization_id = $organization->id ?? null)
@@ -15,13 +15,13 @@
     <div class="col-sm-12 col-md-6 text-end">
 
         <x-button-group>
-            <x-button-group-link :label="'Active'"
+            <x-button-group-link :label="__('admin.Active')"
                                  :url="route('admin.notices.list', qs(['scope' => 'active']))"
                                  :active="$scope == 'active'" />
-            <x-button-group-link :label="'Past'"
+            <x-button-group-link :label="__('admin.Past')"
                                  :url="route('admin.notices.list', qs(['scope' => 'past']))"
                                  :active="$scope == 'past'" />
-            <x-button-group-link :label="'Future'"
+            <x-button-group-link :label="__('admin.Future')"
                                  :url="route('admin.notices.list', qs(['scope' => 'future']))"
                                  :active="$scope == 'future'" />
         </x-button-group>
@@ -34,14 +34,14 @@
         <tr>
             <th style="width: 36px;"></th>
             <th>
-                Title
+                {{ __('admin.Title') }}
             </th>
             <th>
-                Organization
+                {{ __('admin.Organization') }}
             </th>
             <th>
                 <x-link-button-create :url="route('admin.notices.create', ['organization_id' => $organization_id])">
-                    Notice
+                    {{ __('admin.Notice') }}
                 </x-link-button-create>
             </th>
         </tr>
@@ -61,7 +61,7 @@
                 </td>
                 <td>
                     @if($notice->organization_id === null)
-                        Everyone
+                        {{ __('admin.Everyone') }}
                     @else
                         <a href="{{ route('admin.notices.list', qs(['organization_id' => $notice->organization_id])) }}">
                             {{ $notice->organization->name }}

@@ -1,15 +1,15 @@
-<x-accordion-card :label="'Character Requests & Attendee Limits (Trooper Quotas)'">
+<x-accordion-card :label="__('admin.Character Requests & Attendee Limits (Trooper Quotas)')">
 
     <x-input-container>
         <div class="row">
             <div class="col-12 col-md-6">
-                <x-label>Expected Attendees:</x-label>
+                <x-label>{{ __('admin.Expected Attendees:') }}</x-label>
                 <x-input-text :property="'expected_attendees'"
                               :value="$event->expected_attendees"
                               x-model.fill="form.expected_attendees" />
             </div>
             <div class="col-12 col-md-6">
-                <x-label>Requested Number of Characters:</x-label>
+                <x-label>{{ __('admin.Requested Number of Characters:') }}</x-label>
                 <x-input-text :property="'requested_number_characters'"
                               :value="$event->requested_number_characters"
                               x-model.fill="form.requested_number_characters" />
@@ -18,7 +18,7 @@
     </x-input-container>
 
     <x-input-container>
-        <x-label>Requested Character Types:</x-label>
+        <x-label>{{ __('admin.Requested Character Types:') }}</x-label>
         <x-input-text :property="'requested_character_types'"
                       :multiline="true"
                       :value="$event->requested_character_types"
@@ -28,14 +28,14 @@
     <x-input-container>
         <div class="row">
             <div class="col-12 col-md-6">
-                <x-label>Maximum Shift Sign-Ups (per event):</x-label>
+                <x-label>{{ __('admin.Maximum Shift Sign-Ups (per event):') }}</x-label>
                 <x-input-text :property="'shifts_allowed'"
                               :value="$event->shifts_allowed"
                               x-model.fill="form.shifts_allowed"
-                              placeholder="blank=unlimited" />
+                              :placeholder="__('admin.blank=unlimited')" />
             </div>
             <div class="col-12 col-md-6">
-                <x-label>Tentative Sign-Ups Allowed (per shift):</x-label>
+                <x-label>{{ __('admin.Tentative Sign-Ups Allowed (per shift):') }}</x-label>
                 <x-input-yesno :property="'tentative_signups_allowed'"
                                :value="$event->tentative_signups_allowed"
                                x-model.fill="form.tentative_signups_allowed" />
@@ -46,18 +46,18 @@
     <x-input-container>
         <div class="row">
             <div class="col-12 col-md-6">
-                <x-label>Trooper Capacity (per shift):</x-label>
+                <x-label>{{ __('admin.Trooper Capacity (per shift):') }}</x-label>
                 <x-input-text :property="'troopers_allowed'"
                               :value="$event->troopers_allowed"
                               x-model.fill="form.troopers_allowed"
-                              placeholder="blank=unlimited" />
+                              :placeholder="__('admin.blank=unlimited')" />
             </div>
             <div class="col-12 col-md-6">
-                <x-label>Handler Capacity (per shift):</x-label>
+                <x-label>{{ __('admin.Handler Capacity (per shift):') }}</x-label>
                 <x-input-text :property="'handlers_allowed'"
                               :value="$event->handlers_allowed"
                               x-model.fill="form.handlers_allowed"
-                              placeholder="blank=unlimited, zero=none" />
+                              :placeholder="__('admin.blank=unlimited, zero=none')" />
             </div>
         </div>
     </x-input-container>
@@ -65,18 +65,18 @@
     <x-input-container>
         <div class="row">
             <div class="col-12 col-md-6">
-                <x-label>Limit <b class="text-success">Add a Trooper</b> Sign-Ups (per shift):</x-label>
+                <x-label>{!! __('admin.Limit <b class="text-success">Add a Trooper</b> Sign-Ups (per shift):') !!}</x-label>
                 <x-input-text :property="'friends_allowed'"
                               :value="$event->friends_allowed"
                               x-model.fill="form.friends_allowed"
-                              placeholder="blank=unlimited, zero=none" />
+                              :placeholder="__('admin.blank=unlimited, zero=none')" />
             </div>
             <div class="col-12 col-md-6">
-                <x-label>Limit <b class="text-success">Add a Guest</b> Sign-Ups (per shift):</x-label>
+                <x-label>{!! __('admin.Limit <b class="text-success">Add a Guest</b> Sign-Ups (per shift):') !!}</x-label>
                 <x-input-text :property="'guests_allowed'"
                               :value="$event->guests_allowed"
                               x-model.fill="form.guests_allowed"
-                              placeholder="blank=unlimited, zero=none" />
+                              :placeholder="__('admin.blank=unlimited, zero=none')" />
             </div>
         </div>
     </x-input-container>
@@ -84,12 +84,12 @@
     <x-table class="mt-3">
         <thead>
             <tr>
-                <th colspan="2">Costume Organization Requested</th>
+                <th colspan="2">{{ __('admin.Costume Organization Requested') }}</th>
                 <th>
-                    Can Sign Up
+                    {{ __('admin.Can Sign Up') }}
                 </th>
-                <th>Limit Troopers</th>
-                <th>Limit Handlers</th>
+                <th>{{ __('admin.Limit Troopers') }}</th>
+                <th>{{ __('admin.Limit Handlers') }}</th>
             </tr>
         </thead>
         @foreach ($organizations as $organization)
@@ -134,8 +134,7 @@
             <tr>
                 <td colspan="5"
                     class="text-muted">
-                    ** Troopers will be placed on stand-by when an organization limit is reached.
-                    Troopers must select their organization when signing up.
+                    {{ __('admin.** Troopers will be placed on stand-by when an organization limit is reached. Troopers must select their organization when signing up.') }}
                 </td>
             </tr>
         </tfoot>

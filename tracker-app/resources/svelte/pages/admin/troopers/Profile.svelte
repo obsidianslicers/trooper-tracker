@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import Tab from "$lib/components/ui/tabs/Tab.svelte";
     import TabContent from "$lib/components/ui/tabs/TabContent.svelte";
     import TabHeader from "$lib/components/ui/tabs/TabHeader.svelte";
@@ -20,7 +21,7 @@
     // Commands answer with the refreshed page data as `results` (partial reload).
     let data = $derived<ProfilePageData>(page.props.results ?? page.props);
 
-    pageState.title = "Trooper Profile";
+    pageState.title = t("Trooper Profile");
 
     const tabs = [
         "profile",
@@ -41,17 +42,17 @@
 
 <Tabs defaultTab={default_tab}>
     <TabHeader>
-        <Tab id="profile">Profile</Tab>
+        <Tab id="profile">{t("Profile")}</Tab>
         {#if data.authority}
-            <Tab id="authority">Authority</Tab>
+            <Tab id="authority">{t("Authority")}</Tab>
         {/if}
-        <Tab id="memberships">Memberships</Tab>
+        <Tab id="memberships">{t("Memberships")}</Tab>
         {#if data.guardian}
-            <Tab id="guardian">Guardian</Tab>
+            <Tab id="guardian">{t("Guardian")}</Tab>
         {/if}
-        <Tab id="costumes">Costumes</Tab>
-        <Tab id="events">Events</Tab>
-        <Tab id="changes">Changes</Tab>
+        <Tab id="costumes">{t("Costumes")}</Tab>
+        <Tab id="events">{t("Events")}</Tab>
+        <Tab id="changes">{t("Changes")}</Tab>
     </TabHeader>
     <TabContent>
         <TabPanel id="profile">

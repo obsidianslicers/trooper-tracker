@@ -5,7 +5,7 @@
     <div class="col-sm-12 col-md-8">
         <x-input-container>
             <x-input-text :property="'search_term'"
-                          :placeholder="'Search Event Name ...'"
+                          :placeholder="__('events.Search Event Name ...')"
                           :value="null"
                           x-model="form.search_term" />
         </x-input-container>
@@ -96,7 +96,7 @@
                         {{ __('events.Search Events:') }}
                     </x-label>
                     <x-input-text :property="'search_term_modal'"
-                                  :placeholder="'Search Event Name ...'"
+                                  :placeholder="__('events.Search Event Name ...')"
                                   :value="null"
                                   x-model="form.search_term" />
                 </x-input-container>
@@ -108,7 +108,7 @@
                     <x-input-select :property="'costume_organization_id'"
                                     :options="$costume_organizations->pluck('name', 'id')->toArray()"
                                     :value="null"
-                                    :placeholder="'-- Requested Characters --'"
+                                    :placeholder="__('events.-- Requested Characters --')"
                                     x-ref="costumeOrganizationSelect"
                                     data-costume-organization-labels='@json($costume_organizations->mapWithKeys(fn($organization) => [(string) $organization->id => $organization->name])->all())'
                                     x-on:change="persistCostumeOrganization()"

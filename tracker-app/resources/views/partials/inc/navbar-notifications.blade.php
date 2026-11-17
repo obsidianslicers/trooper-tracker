@@ -5,7 +5,7 @@
            role="button"
            data-bs-toggle="dropdown"
            aria-expanded="false"
-           aria-label="Notifications">
+           aria-label="{{ __('layout.Notifications') }}">
             <span class="position-relative">
                 <i class="fa fa-fw fa-bell"></i>
                 @if($pushNotificationUnreadCount > 0)
@@ -15,12 +15,12 @@
                     </span>
                 @endif
             </span>
-            <span class="d-md-none ms-1">Notifications</span>
+            <span class="d-md-none ms-1">{{ __('layout.Notifications') }}</span>
         </a>
 
         <div class="dropdown-menu dropdown-menu-end p-0 notifications-menu">
             <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
-                <span class="fw-semibold">Notifications</span>
+                <span class="fw-semibold">{{ __('layout.Notifications') }}</span>
                 @if($navbar_notifications->isNotEmpty())
                     <form method="POST"
                           action="{{ route('account.push-notifications.clear') }}">
@@ -28,7 +28,7 @@
                         @method('DELETE')
                         <button type="submit"
                                 class="btn btn-sm btn-outline-secondary">
-                            Clear all
+                            {{ __('layout.Clear all') }}
                         </button>
                     </form>
                 @endif
@@ -51,12 +51,12 @@
                     </button>
                 </form>
             @empty
-                <p class="small opacity-75 px-3 py-3 mb-0">No notifications yet.</p>
+                <p class="small opacity-75 px-3 py-3 mb-0">{{ __('layout.No notifications yet.') }}</p>
             @endforelse
 
             <a class="dropdown-item text-center small border-top py-2"
                href="{{ route('account.push-notifications') }}">
-                See all notifications
+                {{ __('layout.See all notifications') }}
             </a>
         </div>
     </li>

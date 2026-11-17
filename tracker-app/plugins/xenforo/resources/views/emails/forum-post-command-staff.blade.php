@@ -2,11 +2,11 @@
 
 @section('message')
     <p>
-        Esteemed Command Staff,
+        {{ __('xenforo::emails.Esteemed Command Staff,') }}
     </p>
 
     <p>
-        <strong>{{ $poster->display_name }}</strong> has posted a comment on the following deployment and is requesting command staff attention:
+        {!! __('xenforo::emails.:name has posted a comment on the following deployment and is requesting command staff attention:', ['name' => '<strong>'.e($poster->display_name).'</strong>']) !!}
     </p>
 
     <p>
@@ -19,6 +19,6 @@
         </a>
     </p>
 
-    @include('emails.inc.signature')
+    @include(email_view('inc.signature'))
 
 @endsection

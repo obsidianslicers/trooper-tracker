@@ -62,8 +62,9 @@ class UpdateTroopersRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'roster_complete.*' => 'The roster form was too large to submit in full, so no '
-                .'changes were saved. Edit fewer rows and try again.',
+            'roster_complete.*' => __(
+                'admin.The roster form was too large to submit in full, so no changes were saved. Edit fewer rows and try again.'
+            ),
         ];
     }
 }

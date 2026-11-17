@@ -28,7 +28,7 @@ class EventForumPostMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' New Forum Reply'
+            subject: config('mail.prefix').' '.__('xenforo::emails.New Forum Reply')
         );
     }
 

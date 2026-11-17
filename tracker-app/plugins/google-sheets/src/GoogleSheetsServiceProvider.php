@@ -30,7 +30,7 @@ class GoogleSheetsServiceProvider extends PluginServiceProvider
         $this->addSheetField();
 
         $this->addSystemCheck(
-            'Google Sheets credentials',
+            'google-sheets::plugin.Google Sheets credentials',
             fn (): bool => $this->app->make(GoogleSheetsClient::class)->isConfigured(),
         );
     }

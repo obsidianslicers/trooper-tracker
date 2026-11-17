@@ -34,7 +34,7 @@ class InstantEventNotificationTest extends TestCase
         $content = $mail->content();
 
         $this->assertSame('[TEST] New Event Posted', $mail->envelope()->subject);
-        $this->assertSame('emails.events.instant-event-notification', $content->view);
+        $this->assertSame('emails.en.events.instant-event-notification', $content->view);
         $this->assertSame($event_notification->id, $content->with['event_notification']->id);
         $this->assertSame($event->id, $content->with['event']->id);
         $this->assertSame([], $mail->attachments());

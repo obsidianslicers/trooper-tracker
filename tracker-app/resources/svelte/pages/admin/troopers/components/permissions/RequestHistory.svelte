@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import type { PermissionRequest } from "../../models/vms";
     import PermissionRequestDetails from "./PermissionRequestDetails.svelte";
 
@@ -15,7 +16,7 @@
     };
 </script>
 
-<h5 class="mt-4">Your Requests</h5>
+<h5 class="mt-4">{t("Your Requests")}</h5>
 
 {#if requests.length > 0}
     <div class="row row-cols-1 row-cols-md-2 g-4">
@@ -36,5 +37,5 @@
         {/each}
     </div>
 {:else}
-    <p class="text-muted small">You have not submitted any permission requests.</p>
+    <p class="text-muted small">{t("You have not submitted any permission requests.")}</p>
 {/if}

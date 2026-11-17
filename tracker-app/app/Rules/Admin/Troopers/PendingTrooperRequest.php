@@ -31,12 +31,12 @@ class PendingTrooperRequest implements ValidationRule
         {
             if ($trooper_request->status !== TrooperRequestStatus::PENDING)
             {
-                $fail('The trooper request must have a pending status.');
+                $fail(__('admin.The trooper request must have a pending status.'));
             }
         }
         else
         {
-            $fail('The specified trooper request could not be found.');
+            $fail(__('admin.The specified trooper request could not be found.'));
         }
     }
 }

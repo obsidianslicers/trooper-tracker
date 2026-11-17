@@ -25,7 +25,7 @@ class BroadcastEventMessageNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Event Message: '.$this->event->name,
+            'title' => __('notifications.Event Message: :name', ['name' => $this->event->name]),
             'body' => $this->message,
             'url' => route('events.display', $this->event, absolute: false),
         ];

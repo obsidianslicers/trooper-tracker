@@ -25,7 +25,7 @@ class DenyPermissionsController extends Controller
             denial_reason: $request->validated('denial_reason'),
         );
 
-        FlashType::success('Permission request denied.');
+        FlashType::success(__('admin.Permission request denied.'));
 
         return redirect()->route('admin.troopers.permissions.approvals');
     }

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { usePage } from "@inertiajs/svelte";
 
     const page = usePage();
@@ -10,7 +11,7 @@
     <div class="col text-center">
         <img
             src="{baseUrl}/img/logo.jpg"
-            alt="Trooper Tracker Logo"
+            alt={t("Trooper Tracker Logo")}
             class="img-fluid rounded"
         />
     </div>

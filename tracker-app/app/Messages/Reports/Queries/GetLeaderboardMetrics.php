@@ -115,7 +115,7 @@ final class GetLeaderboardMetrics extends Message
             {
                 return [
                     'id' => $record->costume->id ?? null,
-                    'name' => $record->costume->name ?? 'Unknown Kit',
+                    'name' => $record->costume->name ?? __('admin.Unknown Kit'),
                     'count' => $record->occurrence_count,
                 ];
             });

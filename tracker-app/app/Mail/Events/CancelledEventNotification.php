@@ -43,7 +43,7 @@ class CancelledEventNotification extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Event Cancelled'
+            subject: config('mail.prefix').' '.__('emails.Event Cancelled')
         );
     }
 
@@ -55,7 +55,7 @@ class CancelledEventNotification extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.events.cancelled-event-notification',
+            view: email_view('events.cancelled-event-notification'),
             with: [
                 'event' => $this->event,
             ]

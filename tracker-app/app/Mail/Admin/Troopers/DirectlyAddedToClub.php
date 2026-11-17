@@ -34,14 +34,14 @@ class DirectlyAddedToClub extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' You\'ve Been Added to '.$this->organization->name
+            subject: config('mail.prefix').' '.__("emails.You've Been Added to :organization", ['organization' => $this->organization->name])
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.directly-added-to-club',
+            view: email_view('admin.troopers.directly-added-to-club'),
             with: [
                 'trooper' => $this->trooper,
                 'organization' => $this->organization,

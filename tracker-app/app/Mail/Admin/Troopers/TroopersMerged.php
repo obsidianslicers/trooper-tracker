@@ -25,14 +25,14 @@ class TroopersMerged extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Troopers Merged',
+            subject: config('mail.prefix').' '.__('emails.Troopers Merged'),
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.troopers-merged',
+            view: email_view('admin.troopers.troopers-merged'),
         );
     }
 

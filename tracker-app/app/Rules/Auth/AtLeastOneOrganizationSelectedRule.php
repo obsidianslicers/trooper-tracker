@@ -32,7 +32,7 @@ class AtLeastOneOrganizationSelectedRule implements ValidationRule
 
         if (!is_array($value) || !collect($value)->contains($finder))
         {
-            $fail('Please select at least one organization.');
+            $fail(__('auth.Please select at least one organization.'));
         }
     }
 }

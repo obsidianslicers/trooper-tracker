@@ -18,8 +18,8 @@ class UpdateController extends PageController
 {
     protected function initialized(): void
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('Notices', 'admin.notices.list');
+        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
+        $this->crumbs->addRoute(__('admin.Notices'), 'admin.notices.list');
     }
 
     /**

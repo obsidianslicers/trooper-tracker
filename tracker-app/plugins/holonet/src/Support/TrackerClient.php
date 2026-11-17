@@ -32,7 +32,7 @@ class TrackerClient
 
         if (!$response->successful() || !is_int($response->json('holonet')))
         {
-            throw new TrackerUnavailableException('HoloNet isn\'t turned on there yet.');
+            throw new TrackerUnavailableException(__("holonet::account.HoloNet isn't turned on there yet."));
         }
 
         return $response->json('shares_history') === true;
@@ -89,12 +89,14 @@ class TrackerClient
         {
             $this->markBusy($tracker_url, (int) $response->header('Retry-After'));
 
-            throw new TrackerUnavailableException('The tracker asked us to slow down. Trying again later.');
+            throw new TrackerUnavailableException(
+                __('holonet::account.The tracker asked us to slow down. Trying again later.')
+            );
         }
 
         if ($response->status() === 401)
         {
-            throw new LinkRevokedException('The tracker no longer accepts this link.');
+            throw new LinkRevokedException(__('holonet::account.The tracker no longer accepts this link.'));
         }
 
         $data = $response->json();
@@ -164,7 +166,7 @@ class TrackerClient
         }
         catch (ConnectionException $e)
         {
-            throw new TrackerUnavailableException("The tracker couldn't be reached.", 0, $e);
+            throw new TrackerUnavailableException(__("holonet::account.The tracker couldn't be reached."), 0, $e);
         }
     }
 }

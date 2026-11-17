@@ -35,8 +35,8 @@ class UpdateCharityRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'shifts.*.charity_direct_funds.*' => 'Enter an amount in dollars and cents, like 12.50.',
-            'shifts.*.charity_indirect_funds.*' => 'Enter an amount in dollars and cents, like 12.50.',
+            'shifts.*.charity_direct_funds.*' => __('admin.Enter an amount in dollars and cents, like 12.50.'),
+            'shifts.*.charity_indirect_funds.*' => __('admin.Enter an amount in dollars and cents, like 12.50.'),
         ];
     }
 

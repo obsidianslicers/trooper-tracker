@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import ActionMenu from "$lib/components/ui/actionmenus/ActionMenu.svelte";
     import ActionMenuDelete from "$lib/components/ui/actionmenus/ActionMenuDelete.svelte";
     import ActionMenuUpdate from "$lib/components/ui/actionmenus/ActionMenuUpdate.svelte";
@@ -25,7 +26,7 @@
             <button
                 type="button"
                 class="btn btn-link p-0 text-reset text-decoration-none d-block"
-                aria-label="Toggle section items"
+                aria-label={t("Toggle section items")}
                 onclick={() => vm.toggleSection(section.id)}
             >
                 <i

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputHelp from "$lib/components/form/InputHelp.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
@@ -20,7 +21,7 @@
 <form onsubmit={vm.submit}>
     <InputContainer>
         <InputText
-            label="Label"
+            label={t("Label")}
             bind:value={vm.form.label}
             errors={vm.errors.label}
         />
@@ -28,7 +29,7 @@
 
     <InputContainer>
         <InputText
-            label="Icon"
+            label={t("Icon")}
             bind:value={vm.form.icon}
             errors={vm.errors.icon}
         />
@@ -37,7 +38,7 @@
                 href="https://fontawesome.com/search?ic=free-collection"
                 target="_blank"
             >
-                Font Awesome class, e.g.
+                {t("Font Awesome class, e.g.")}
             </a>
             <code>fa-user-plus</code>
         </InputHelp>

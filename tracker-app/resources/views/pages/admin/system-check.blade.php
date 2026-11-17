@@ -1,13 +1,12 @@
 @extends('layouts.base')
 
-@section('page-title', 'System Check')
+@section('page-title', __('admin.System Check'))
 
 @section('content')
 
 <div class="mt-2">
     <p class="text-muted">
-        Verifies PHP requirements, server settings, and integrations needed for this
-        install to run correctly.
+        {{ __('admin.Verifies PHP requirements, server settings, and integrations needed for this install to run correctly.') }}
     </p>
 
     @foreach($checks as $group => $results)
@@ -37,11 +36,11 @@
 
     <div class="card mb-3">
         <div class="card-header">
-            Errors (last 30 days)
+            {{ __('admin.Errors (last 30 days)') }}
         </div>
         @if($recent_errors->isEmpty())
             <div class="card-body text-muted">
-                No error-level log entries in the last 30 days.
+                {{ __('admin.No error-level log entries in the last 30 days.') }}
             </div>
         @else
             <ul class="list-group list-group-flush">
@@ -57,7 +56,7 @@
                         <a href="#" class="small"
                            data-bs-toggle="collapse"
                            data-bs-target="#error-detail-{{ $index }}">
-                            View full error
+                            {{ __('admin.View full error') }}
                         </a>
                         <div id="error-detail-{{ $index }}" class="collapse mt-2">
                             <pre class="bg-dark text-light p-2 rounded small mb-0" style="white-space: pre-wrap;">{{ $entry->message }}</pre>

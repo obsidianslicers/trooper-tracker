@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Troop Verifications')
+@section('page-title', __('admin.Troop Verifications'))
 
 @section('content')
 
@@ -9,17 +9,16 @@
         <x-card>
 
             <p class="text-muted">
-                These troopers need a moderator to confirm their troops. Approve each club
-                that should get credit. A club you approve counts the troop right away.
+                {{ __('admin.These troopers need a moderator to confirm their troops. Approve each club that should get credit. A club you approve counts the troop right away.') }}
             </p>
 
             <x-table>
                 <thead>
                     <tr>
-                        <th>Trooper</th>
-                        <th>Troop</th>
-                        <th>Costume</th>
-                        <th>Club credit</th>
+                        <th>{{ __('admin.Trooper') }}</th>
+                        <th>{{ __('admin.Troop') }}</th>
+                        <th>{{ __('admin.Costume') }}</th>
+                        <th>{{ __('admin.Club credit') }}</th>
                     </tr>
                 </thead>
                 @forelse ($event_troopers as $event_trooper)
@@ -42,9 +41,9 @@
                             @if ($event_trooper->costume)
                                 {{ $event_trooper->costume->name }}
                             @elseif ($event_trooper->is_attending_without_costume)
-                                <span class="text-muted">No costume</span>
+                                <span class="text-muted">{{ __('admin.No costume') }}</span>
                             @else
-                                <span class="text-muted">None picked</span>
+                                <span class="text-muted">{{ __('admin.None picked') }}</span>
                             @endif
                         </td>
                         <td class="text-nowrap">
@@ -57,7 +56,7 @@
                                         @csrf
                                         <button type="submit"
                                                 class="btn btn-sm btn-success">
-                                            Approve
+                                            {{ __('admin.Approve') }}
                                         </button>
                                     </form>
                                     <form method="POST"
@@ -66,7 +65,7 @@
                                         @csrf
                                         <button type="submit"
                                                 class="btn btn-sm btn-outline-danger">
-                                            Remove
+                                            {{ __('admin.Remove') }}
                                         </button>
                                     </form>
                                 </div>
@@ -75,7 +74,7 @@
                     </tr>
                 @empty
                     <x-table-empty :colspan="4">
-                        No troops are waiting for verification.
+                        {{ __('admin.No troops are waiting for verification.') }}
                     </x-table-empty>
                 @endforelse
             </x-table>

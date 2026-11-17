@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'FAQ & Help')
+@section('page-title', __('faq.FAQ & Help'))
 
 @section('content')
 
@@ -8,20 +8,20 @@
         <div class="col-lg-9">
 
             <p class="text-muted text-center mb-4">
-                Your mission briefing for Troop Tracker — from enlisting to suiting up on deployment day.
+                {{ __('faq.Your mission briefing for Troop Tracker — from enlisting to suiting up on deployment day.') }}
             </p>
 
             @auth
                 @if(Auth::user()->is_administrator)
                     <div class="d-flex gap-2 justify-content-end mb-3">
                         <a href="{{ route('admin.faq.index') }}" class="btn btn-sm btn-outline-warning">
-                            <i class="fa fa-fw fa-gear me-1"></i> Manage FAQ
+                            <i class="fa fa-fw fa-gear me-1"></i> {{ __('faq.Manage FAQ') }}
                         </a>
                     </div>
                 @endif
             @endauth
 
-            <input type="text" id="faq-search" class="form-control mb-4" placeholder="Search questions...">
+            <input type="text" id="faq-search" class="form-control mb-4" placeholder="{{ __('faq.Search questions...') }}">
 
             {{-- Quick-jump anchor pills --}}
             <div class="d-flex flex-wrap gap-2 justify-content-center mb-5" id="faq-pills">
@@ -48,7 +48,7 @@
                                 @if(Auth::user()->is_administrator)
                                     <a href="{{ route('admin.faq.items.create') }}?section_id={{ $section->id }}"
                                        class="btn btn-sm btn-outline-warning ms-auto"
-                                       title="Add item to this section">
+                                       title="{{ __('faq.Add item to this section') }}">
                                         <i class="fa fa-fw fa-plus"></i>
                                     </a>
                                 @endif
@@ -79,7 +79,7 @@
                                         <div class="mt-2 pt-2 border-top border-secondary d-flex justify-content-end">
                                             <a href="{{ route('admin.faq.items.update', $item) }}"
                                                class="btn btn-sm btn-outline-warning">
-                                                <i class="fa fa-fw fa-edit me-1"></i> Edit
+                                                <i class="fa fa-fw fa-edit me-1"></i> {{ __('faq.Edit') }}
                                             </a>
                                         </div>
                                     @endif
@@ -99,19 +99,19 @@
 
             @if($support_href)
                 <div id="faq-contact" class="text-center mt-5 pt-4 border-top border-secondary">
-                    <p class="text-muted mb-2">Still have questions?</p>
+                    <p class="text-muted mb-2">{{ __('faq.Still have questions?') }}</p>
                     <a href="{{ $support_href }}" class="btn btn-outline-secondary" target="_blank" rel="noopener">
-                        <i class="fa fa-fw fa-life-ring me-1"></i> Contact
+                        <i class="fa fa-fw fa-life-ring me-1"></i> {{ __('faq.Contact') }}
                     </a>
                 </div>
             @endif
 
             <div id="faq-no-results" class="text-muted text-center py-5" style="display:none;">
-                No questions match your search.
+                {{ __('faq.No questions match your search.') }}
                 @if($support_href)
                     <div class="mt-3">
                         <a href="{{ $support_href }}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener">
-                            <i class="fa fa-fw fa-life-ring me-1"></i> Contact
+                            <i class="fa fa-fw fa-life-ring me-1"></i> {{ __('faq.Contact') }}
                         </a>
                     </div>
                 @endif

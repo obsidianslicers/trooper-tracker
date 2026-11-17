@@ -22,8 +22,8 @@ class MembershipApprovedNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Membership Approved',
-            'body' => 'Welcome, Trooper!',
+            'title' => __('notifications.Membership Approved'),
+            'body' => __('notifications.Welcome, Trooper!'),
             'url' => route('account.index', absolute: false),
         ];
     }

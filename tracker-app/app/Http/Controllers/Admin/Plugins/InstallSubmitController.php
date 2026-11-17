@@ -34,18 +34,23 @@ class InstallSubmitController extends Controller
 
         if ($result['is_staged'])
         {
-            FlashType::info("Version {$manifest->version} of \"{$manifest->name}\" needs Composer "
-                .'packages. The next deploy installs them and then applies the update; '
-                ."{$result['previous_version']} keeps running until then.");
+            FlashType::info(__(
+                'admin.Version :version of ":plugin" needs Composer packages. The next deploy installs them and then applies the update; :previous keeps running until then.',
+                ['version' => $manifest->version, 'plugin' => $manifest->name, 'previous' => $result['previous_version']]
+            ));
 
             return redirect()->route('admin.plugins.list');
         }
 
+        $replace = [
+            'plugin' => $manifest->name,
+            'version' => $manifest->version,
+            'previous' => $result['previous_version'] ?? '',
+        ];
+
         FlashType::success($result['previous_version'] === null
-            ? "Plugin \"{$manifest->name}\" {$manifest->version} was installed. "
-                .'Enable it to turn it on.'
-            : "Plugin \"{$manifest->name}\" was upgraded from {$result['previous_version']} "
-                ."to {$manifest->version}. Its settings and data were kept.");
+            ? __('admin.Plugin ":plugin" :version was installed. Enable it to turn it on.', $replace)
+            : __('admin.Plugin ":plugin" was upgraded from :previous to :version. Its settings and data were kept.', $replace));
 
         return redirect()->route('admin.plugins.list');
     }

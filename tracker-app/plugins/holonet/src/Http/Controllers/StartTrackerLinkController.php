@@ -36,14 +36,14 @@ class StartTrackerLinkController extends Controller
 
         if ($tracker === null || !LinkEligibility::canLink($request->user()))
         {
-            FlashType::danger('That tracker can\'t be linked.');
+            FlashType::danger(__("holonet::account.That tracker can't be linked."));
 
             return redirect()->route('plugins.holonet.index');
         }
 
         if (!RequestLimit::attemptLink($request->user()->id))
         {
-            FlashType::danger('Too many link attempts. Please try again in an hour.');
+            FlashType::danger(__('holonet::account.Too many link attempts. Please try again in an hour.'));
 
             return redirect()->route('plugins.holonet.index');
         }
@@ -52,7 +52,10 @@ class StartTrackerLinkController extends Controller
 
         if ($problem !== null)
         {
-            FlashType::warning("{$tracker->name} can't be linked: {$problem}");
+            FlashType::warning(__("holonet::account.:tracker can't be linked: :problem", [
+                'tracker' => $tracker->name,
+                'problem' => $problem,
+            ]));
 
             return redirect()->route('plugins.holonet.index');
         }
@@ -84,7 +87,7 @@ class StartTrackerLinkController extends Controller
         {
             return $client->sharesHistory($tracker->url)
                 ? null
-                : 'it doesn\'t share troop history with other trackers.';
+                : __("holonet::account.it doesn't share troop history with other trackers.");
         }
         catch (TrackerUnavailableException $e)
         {

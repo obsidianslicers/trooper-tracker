@@ -30,7 +30,7 @@ class TrooperApprovedTest extends TestCase
         $mail = new TrooperApproved($trooper);
         $content = $mail->content();
 
-        $this->assertSame('emails.admin.troopers.trooper-approved', $content->view);
+        $this->assertSame('emails.en.admin.troopers.trooper-approved', $content->view);
         $this->assertSame($trooper, $content->with['trooper']);
         $this->assertSame([], $mail->attachments());
     }

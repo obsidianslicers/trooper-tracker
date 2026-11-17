@@ -24,14 +24,14 @@ class AccountDeletionCancelledMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Account Deletion Cancelled',
+            subject: config('mail.prefix').' '.__('emails.Account Deletion Cancelled'),
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.account.deletion-cancelled',
+            view: email_view('account.deletion-cancelled'),
             with: ['trooper' => $this->trooper],
         );
     }

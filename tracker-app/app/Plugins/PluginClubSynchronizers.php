@@ -60,7 +60,10 @@ final class PluginClubSynchronizers
      */
     public function options(): array
     {
-        $options = array_map(fn (array $entry): string => $entry['label'], $this->synchronizers);
+        $options = array_map(
+            fn (array $entry): string => (string) __($entry['label']),
+            $this->synchronizers,
+        );
         asort($options);
 
         return $options;

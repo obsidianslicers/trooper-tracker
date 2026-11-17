@@ -1,3 +1,4 @@
+import { t } from "$lib/i18n";
 import { ViewModel } from "$lib/domains/types.svelte";
 import toastStateSvelte from "$lib/states/toast-state.svelte";
 import { createPartialReloadOptions, getRoute } from "$lib/utils";
@@ -38,7 +39,7 @@ export class IndexViewModel extends ViewModel {
         const url = getRoute("admin.event-types.reorder");
 
         const options = createPartialReloadOptions({
-            onSuccess: () => toastStateSvelte.success("Event types reordered."),
+            onSuccess: () => toastStateSvelte.success(t("Event types reordered.")),
         });
 
         router.post(url, { ids: ordered_ids }, options);

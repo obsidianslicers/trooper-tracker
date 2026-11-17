@@ -30,13 +30,15 @@ class EnableSubmitController extends Controller
 
         if ($record->is_enable_pending)
         {
-            FlashType::info("\"{$manifest->name}\" needs packages that are installed on deploy. "
-                .'It turns on with the next deploy.');
+            FlashType::info(__(
+                'admin.":plugin" needs packages that are installed on deploy. It turns on with the next deploy.',
+                ['plugin' => $manifest->name]
+            ));
 
             return redirect()->route('admin.plugins.list');
         }
 
-        FlashType::success("Plugin \"{$manifest->name}\" was enabled.");
+        FlashType::success(__('admin.Plugin ":plugin" was enabled.', ['plugin' => $manifest->name]));
 
         return redirect()->route('admin.plugins.list');
     }

@@ -17,7 +17,7 @@ class ApproveCostumeController extends Controller
     {
         ApproveTrooperCostume::call(trooper_costume: $trooper_costume);
 
-        FlashType::success('Costume approved.');
+        FlashType::success(__('admin.Costume approved.'));
 
         return redirect()->back();
     }

@@ -51,7 +51,7 @@ class AssignTrooperSubmitController extends PageController
 
         AwardGranted::dispatch($award_trooper);
 
-        FlashType::success('... and the Award goes to '.$trooper->display_name);
+        FlashType::success(__('admin.... and the Award goes to :name', ['name' => $trooper->display_name]));
 
         return redirect()->route('admin.awards.list-troopers', $award);
     }

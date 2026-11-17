@@ -22,14 +22,14 @@ class StaleVerifications extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Troop Verifications Waiting',
+            subject: config('mail.prefix').' '.__('emails.Troop Verifications Waiting'),
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.stale-verifications',
+            view: email_view('admin.troopers.stale-verifications'),
         );
     }
 }

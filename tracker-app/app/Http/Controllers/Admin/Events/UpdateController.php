@@ -22,8 +22,8 @@ class UpdateController extends PageController
 {
     protected function initialized(): void
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('Events', 'admin.events.list');
+        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
+        $this->crumbs->addRoute(__('admin.Events'), 'admin.events.list');
     }
 
     /**
@@ -43,7 +43,7 @@ class UpdateController extends PageController
 
         if ($event->is_draft)
         {
-            $msg = 'This event is currently in Draft status and not visible to troopers.';
+            $msg = __('admin.This event is currently in Draft status and not visible to troopers.');
 
             FlashType::warning($msg);
         }

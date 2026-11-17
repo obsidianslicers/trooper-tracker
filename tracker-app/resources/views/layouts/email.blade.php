@@ -7,7 +7,7 @@
           content="width=device-width" />
     <meta http-equiv="Content-Type"
           content="text/html; charset=UTF-8" />
-    <title>Troop Tracker</title>
+    <title>{{ __('layout.Troop Tracker') }}</title>
     <style media="all"
            type="text/css">
         /* -------------------------------------
@@ -456,11 +456,9 @@
                             </tr>
                             <tr>
                                 <td class="aligncenter content-block">
-                                    If you wish to modify your notification subscription,
-                                    you may do so using your
-                                    <a href="{{ route('account.index') }}">
-                                        Imperial control panel
-                                    </a>.
+                                    {!! __('layout.If you wish to modify your notification subscription, you may do so using your :link.', [
+                                        'link' => '<a href="'.e(route('account.index')).'">'.e(__('layout.Imperial control panel')).'</a>',
+                                    ]) !!}
                                 </td>
                             </tr>
                         </table>

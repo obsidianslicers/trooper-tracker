@@ -29,14 +29,14 @@ class TrooperRequestDenied extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Join Request Not Approved — '.$this->trooper_request->organization->name
+            subject: config('mail.prefix').' '.__('emails.Join Request Not Approved — :organization', ['organization' => $this->trooper_request->organization->name])
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.trooper-request-denied',
+            view: email_view('admin.troopers.trooper-request-denied'),
             with: [
                 'trooper' => $this->trooper_request->trooper,
                 'organization' => $this->trooper_request->organization,

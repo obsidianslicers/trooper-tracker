@@ -29,7 +29,7 @@ class RequestPermissionsSubmitController extends Controller
             extensions: $request->validated('extensions', []),
         );
 
-        FlashType::success('Permission request sent to the administrators.');
+        FlashType::success(__('admin.Permission request sent to the administrators.'));
 
         return redirect()->route('admin.troopers.permissions.request');
     }

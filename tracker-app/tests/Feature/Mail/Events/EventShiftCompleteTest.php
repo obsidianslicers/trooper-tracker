@@ -34,7 +34,7 @@ class EventShiftCompleteTest extends TestCase
         $subject = new EventShiftComplete($event_trooper);
         $content = $subject->content();
 
-        $this->assertSame('emails.events.event-shift-complete', $content->view);
+        $this->assertSame('emails.en.events.event-shift-complete', $content->view);
         $this->assertSame($event_trooper->id, $content->with['event_trooper']->id);
         $this->assertSame($event_trooper->trooper->id, $content->with['trooper']->id);
         $this->assertSame($event_trooper->event_shift->event->id, $content->with['event']->id);

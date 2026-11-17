@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Update Notice')
+@section('page-title', __('admin.Update Notice'))
 
 @section('content')
 
@@ -15,7 +15,7 @@
 
       <x-input-container>
         <x-label>
-          Organization:
+          {{ __('admin.Organization:') }}
         </x-label>
         <x-input-text :property="'organization_name'"
                       :disabled="true"
@@ -24,7 +24,7 @@
 
       <x-input-container>
         <x-label>
-          Type:
+          {{ __('admin.Type:') }}
         </x-label>
         <x-input-select :property="'type'"
                         :value="$notice->type->value"
@@ -33,7 +33,7 @@
 
       <x-input-container>
         <x-label>
-          Title:
+          {{ __('admin.Title:') }}
         </x-label>
         <x-input-text :property="'title'"
                       :value="$notice->title" />
@@ -43,14 +43,14 @@
         <div class="row">
           <div class="col-6">
             <x-label>
-              Starts:
+              {{ __('admin.Starts:') }}
             </x-label>
             <x-input-datetime :property="'starts_at'"
                               :value="$notice->starts_at" />
           </div>
           <div class="col-6">
             <x-label>
-              Ends:
+              {{ __('admin.Ends:') }}
             </x-label>
             <x-input-datetime :property="'ends_at'"
                               :value="$notice->ends_at" />
@@ -60,7 +60,7 @@
 
       <x-input-container>
         <x-label>
-          Message:
+          {{ __('admin.Message:') }}
         </x-label>
         <x-input-text class="markdown-editor"
                       :multiline="true"
@@ -70,7 +70,7 @@
 
       <x-submit-container>
         <x-submit-button>
-          Update
+          {{ __('admin.Update') }}
         </x-submit-button>
         <x-link-button-cancel :url="route('admin.notices.list')" />
       </x-submit-container>

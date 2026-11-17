@@ -1,5 +1,5 @@
 <h5 class="mb-3">
-    🎯 This Month's Support Goal -
+    🎯 {{ __('components.This Month\'s Support Goal') }} -
     <span class="text-muted">
         ${{ format_number($goal, 2) }}
     </span>
@@ -21,7 +21,7 @@
 <a href="{{ config('tracker.support.url') }}"
    target="_blank"
    class="btn btn-outline-success mb-2">
-    ❤️ Support the Garrison
+    {{ __('components.❤️ Support the Garrison') }}
     <span class="fa fa-fw fa-external-link"></span>
 </a>
 <br>

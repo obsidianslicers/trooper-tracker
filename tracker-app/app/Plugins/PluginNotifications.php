@@ -64,7 +64,7 @@ final class PluginNotifications
     private function labels(callable $filter): array
     {
         return array_map(
-            fn (array $category): string => $category['label'],
+            fn (array $category): string => (string) __($category['label']),
             array_filter($this->categories, $filter),
         );
     }

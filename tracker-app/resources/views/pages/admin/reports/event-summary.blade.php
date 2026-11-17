@@ -1,12 +1,12 @@
 @extends('layouts.base')
 
-@section('page-title', 'Event Volunteer Counts')
+@section('page-title', __('admin.Event Volunteer Counts'))
 
 @section('content')
 
     <x-table class="caption-top">
         <caption>
-            Summary of Event Details over the last {{ $lookback }} days.
+            {{ __('admin.Summary of Event Details over the last :days days.', ['days' => $lookback]) }}
         </caption>
         <thead>
             <tr>
@@ -16,37 +16,37 @@
                 <th scope="col"
                     class="text-nowrap text-center"
                     colspan="2">
-                    -- Troopers --
+                    {{ __('admin.-- Troopers --') }}
                 </th>
                 <th scope="col"
                     class="text-nowrap text-center"
                     colspan="2">
-                    -- Donations --
+                    {{ __('admin.-- Donations --') }}
                 </th>
             </tr>
             <tr>
                 <th style="width: 36px;"></th>
                 <th>
-                    Name
+                    {{ __('admin.Name') }}
                 </th>
                 <th>
-                    Shifts
+                    {{ __('admin.Shifts') }}
                 </th>
                 <th scope="col"
                     class="text-end">
-                    Unique Count
+                    {{ __('admin.Unique Count') }}
                 </th>
                 <th scope="col"
                     class="text-end">
-                    Attendance
+                    {{ __('admin.Attendance') }}
                 </th>
                 <th scope="col"
                     class="text-end">
-                    Direct
+                    {{ __('admin.Direct') }}
                 </th>
                 <th scope="col"
                     class="text-end">
-                    Indirect
+                    {{ __('admin.Indirect') }}
                 </th>
             </tr>
         </thead>
@@ -82,13 +82,13 @@
                 </tr>
             @empty
                 <x-table-empty :colspan="7">
-                    There are not any events that have been closed in the last {{ $lookback }} days.
+                    {{ __('admin.There are not any events that have been closed in the last :days days.', ['days' => $lookback]) }}
                 </x-table-empty>
             @endforelse
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="2">Total</th>
+                <th colspan="2">{{ __('admin.Total') }}</th>
                 <th class="text-end">
                     <x-number-format :value="$events->sum('event_shifts_count')" />
                 </th>

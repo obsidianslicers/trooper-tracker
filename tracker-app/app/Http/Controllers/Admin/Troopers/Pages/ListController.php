@@ -24,16 +24,9 @@ use Illuminate\Http\Request;
  */
 class ListController extends PageController
 {
-    private const SORT_COLS = [
-        Trooper::DISPLAY_NAME => 'Name / Email',
-        Trooper::MEMBERSHIP_ROLE => 'Role',
-        Trooper::MEMBERSHIP_STATUS => 'Status',
-        Trooper::LAST_ACTIVE_AT => 'Last Seen',
-    ];
-
     protected function initialized(): void
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
+        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
     }
 
     /**
@@ -47,7 +40,7 @@ class ListController extends PageController
     {
         $trooper = $request->user();
 
-        $sort_col = array_key_exists($request->query('sort_col'), self::SORT_COLS)
+        $sort_col = array_key_exists($request->query('sort_col'), $this->sortColumns())
             ? $request->query('sort_col')
             : Trooper::DISPLAY_NAME;
 
@@ -117,7 +110,7 @@ class ListController extends PageController
     {
         $headers = [];
 
-        foreach (self::SORT_COLS as $col => $label)
+        foreach ($this->sortColumns() as $col => $label)
         {
             $active = $sort_col === $col;
             $next_dir = ($active && $sort_dir === 'asc') ? 'desc' : 'asc';
@@ -130,5 +123,18 @@ class ListController extends PageController
         }
 
         return $headers;
+    }
+
+    /**
+     * @return array<string, string> column => header label
+     */
+    private function sortColumns(): array
+    {
+        return [
+            Trooper::DISPLAY_NAME => __('admin.Name / Email'),
+            Trooper::MEMBERSHIP_ROLE => __('admin.Role'),
+            Trooper::MEMBERSHIP_STATUS => __('admin.Status'),
+            Trooper::LAST_ACTIVE_AT => __('admin.Last Seen'),
+        ];
     }
 }

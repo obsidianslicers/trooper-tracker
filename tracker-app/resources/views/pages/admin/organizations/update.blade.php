@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Update Organization')
+@section('page-title', __('admin.Update Organization'))
 
 @section('content')
 
@@ -21,7 +21,7 @@
                         @isset($organization->parent)
                             <x-input-container>
                                 <x-label>
-                                    Parent {{ $organization->parent->type->name }}:
+                                    {{ __('admin.Parent :type:', ['type' => $organization->parent->type->label()]) }}
                                 </x-label>
                                 <x-input-hidden :property="'parent_id'"
                                                 :value="$organization->parent_id" />
@@ -39,7 +39,7 @@
 
                         <x-input-container>
                             <x-label>
-                                Name:
+                                {{ __('admin.Name:') }}
                             </x-label>
                             <x-input-text :property="'name'"
                                           :value="$organization->name" />
@@ -49,15 +49,14 @@
                             && auth()->user()->is_administrator)
                             <x-input-container>
                                 <x-label>
-                                    Roster sync:
+                                    {{ __('admin.Roster sync:') }}
                                 </x-label>
                                 <x-input-select :property="'synchronizer'"
                                                 :options="$synchronizer_options"
-                                                :placeholder="'None'"
+                                                :placeholder="__('admin.None')"
                                                 :value="$organization->synchronizer" />
                                 <x-input-help>
-                                    Keeps this club's members and costumes in step with
-                                    the club's own records.
+                                    {{ __('admin.Keeps this club\'s members and costumes in step with the club\'s own records.') }}
                                 </x-input-help>
                             </x-input-container>
                         @endif
@@ -67,7 +66,7 @@
 
                         <x-submit-container>
                             <x-submit-button>
-                                Update
+                                {{ __('admin.Update') }}
                             </x-submit-button>
                             <x-link-button-cancel :url="route('admin.organizations.list')" />
                         </x-submit-container>
@@ -84,7 +83,7 @@
                         <div class="col-sm-12">
                             <p class="form-help text-center">
                                 <i class="form-help text-muted">
-                                    The uploaded image will be resized to large 128x128 and small 32x32.
+                                    {{ __('admin.The uploaded image will be resized to large 128x128 and small 32x32.') }}
                                 </i>
                             </p>
                         </div>

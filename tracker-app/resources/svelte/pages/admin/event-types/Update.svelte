@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import PluginSlot from "$lib/components/PluginSlot.svelte";
     import TrooperStamps from "$lib/components/TrooperStamps.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
@@ -9,20 +10,17 @@
 
     const page = usePage<UpdatePageData>();
 
-    pageState.title = "Update Event Type";
+    pageState.title = t("Update Event Type");
 
     let vm = new UpdateViewModel(page.props);
 </script>
 
 <SlimView>
-    <EventTypeForm {vm} label="Update">
+    <EventTypeForm {vm} label={t("Update")}>
         {#snippet counted_notice()}
             {#if vm.changes_past_totals}
                 <div class="alert alert-warning small mt-2 mb-0">
-                    This also applies to the {vm.events_count} event(s) already using
-                    this type, including past ones.
-                    Leaderboards change right away and troop totals overnight.
-                    Milestones already reached are kept.
+                    {t("This also applies to the :count event already using this type, including past ones. Leaderboards change right away and troop totals overnight. Milestones already reached are kept.|This also applies to the :count events already using this type, including past ones. Leaderboards change right away and troop totals overnight. Milestones already reached are kept.", {}, vm.events_count)}
                 </div>
             {/if}
         {/snippet}

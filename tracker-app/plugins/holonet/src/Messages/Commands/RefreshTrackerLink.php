@@ -98,7 +98,7 @@ final class RefreshTrackerLink extends Message
             $this->link->troops()->delete();
             $this->link->update([
                 HolonetLink::STATUS => HolonetLink::STATUS_REVOKED,
-                HolonetLink::LAST_ERROR => 'Access was removed on the other tracker.',
+                HolonetLink::LAST_ERROR => __('holonet::account.Access was removed on the other tracker.'),
             ]);
         });
     }

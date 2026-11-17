@@ -29,8 +29,8 @@ class TrooperPermissionsChangedNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Permissions Changed',
-            'body' => 'An administrator has updated your permissions.',
+            'title' => __('notifications.Permissions Changed'),
+            'body' => __('notifications.An administrator has updated your permissions.'),
             'url' => '/account',
         ];
     }

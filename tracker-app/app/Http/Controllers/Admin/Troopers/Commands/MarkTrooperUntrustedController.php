@@ -20,7 +20,7 @@ class MarkTrooperUntrustedController extends ProfileCommandController
             review_costumes: $request->boolean('review_costumes'),
         );
 
-        FlashType::success("{$trooper->display_name} is marked do not trust.");
+        FlashType::success(__('admin.:name is marked do not trust.', ['name' => $trooper->display_name]));
 
         return $this->respondWithResults($request);
     }

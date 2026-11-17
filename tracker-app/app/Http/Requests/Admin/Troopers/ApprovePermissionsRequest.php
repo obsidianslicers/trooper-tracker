@@ -44,7 +44,7 @@ class ApprovePermissionsRequest extends FormRequest
     {
         if (!$value instanceof PermissionRequest || !$value->isPending())
         {
-            $fail('This permission request has already been reviewed.');
+            $fail(__('admin.This permission request has already been reviewed.'));
 
             return;
         }
@@ -52,7 +52,7 @@ class ApprovePermissionsRequest extends FormRequest
         if ($value->membership_role !== null
             && $value->trooper->membership_role->hasAdministratorAccess())
         {
-            $fail('This trooper is now an administrator or staff officer. Deny the request instead.');
+            $fail(__('admin.This trooper is now an administrator or staff officer. Deny the request instead.'));
         }
     }
 }

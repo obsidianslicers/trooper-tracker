@@ -15,8 +15,8 @@ class CreateSectionController extends Controller
 {
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('FAQ', 'admin.faq.index');
+        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
+        $this->crumbs->addRoute(__('admin.FAQ'), 'admin.faq.index');
     }
 
     public function __invoke(Request $request): InertiaResponse|SymfonyResponse

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import type { MembershipApprovalsViewModel } from "../../models/vms";
     import TrooperApprovalCard from "./TrooperApprovalCard.svelte";
 
@@ -10,11 +11,11 @@
 </script>
 
 <div class="mb-5">
-    <h5>Trooper Approvals</h5>
+    <h5>{t("Trooper Approvals")}</h5>
 
     {#if vm.trooper_approvals.length > 0}
         <p class="text-muted small mb-3">
-            {vm.trooper_approvals.length} trooper(s) awaiting review and activation.
+            {t(":count trooper awaiting review and activation.|:count troopers awaiting review and activation.", {}, vm.trooper_approvals.length)}
         </p>
 
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-2 g-4">
@@ -27,7 +28,7 @@
     {:else}
         <p class="text-muted small mb-3">
             <i class="fa fa-fw fa-circle-check text-success me-2"></i>
-            No troopers awaiting review and activation.
+            {t("No troopers awaiting review and activation.")}
         </p>
     {/if}
 </div>

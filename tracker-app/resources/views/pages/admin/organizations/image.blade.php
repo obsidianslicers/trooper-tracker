@@ -12,7 +12,7 @@
           enctype="multipart/form-data">
 
         <img src="{{ map_image_url($organization->image_path_lg, DEFAULT_ORGANIZATION_IMAGE_URL) }}"
-             alt="Organization Logo"
+             alt="{{ __('admin.Organization Logo') }}"
              class="img-fluid m-3 pointer"
              width="128"
              height="128"
@@ -25,7 +25,7 @@
                accept="image/*"
                onchange="this.form.requestSubmit();">
         <p class="form-help text-muted">
-            Click to Replace Logo
+            {{ __('admin.Click to Replace Logo') }}
         </p>
     </form>
 

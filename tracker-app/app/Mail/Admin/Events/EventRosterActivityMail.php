@@ -23,14 +23,14 @@ class EventRosterActivityMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Event Roster Update'
+            subject: config('mail.prefix').' '.__('emails.Event Roster Update')
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.events.event-roster-activity',
+            view: email_view('admin.events.event-roster-activity'),
             with: [
                 'event_trooper' => $this->event_trooper,
                 'event' => $this->event_trooper->event_shift->event,

@@ -22,8 +22,8 @@ class VisitorAccessExpiredNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Visitor Access Expired',
-            'body' => 'Your 6-month visitor access has expired. Log in to request renewal.',
+            'title' => __('notifications.Visitor Access Expired'),
+            'body' => __('notifications.Your 6-month visitor access has expired. Log in to request renewal.'),
             'url' => '/account/visitor/renew',
         ];
     }

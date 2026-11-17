@@ -45,7 +45,7 @@ class InstantEventNotification extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' New Event Posted'
+            subject: config('mail.prefix').' '.__('emails.New Event Posted')
         );
     }
 
@@ -57,7 +57,7 @@ class InstantEventNotification extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.events.instant-event-notification',
+            view: email_view('events.instant-event-notification'),
             with: [
                 'event_notification' => $this->event_notification,
                 'event_shifts' => $this->event_notification->event->event_shifts,

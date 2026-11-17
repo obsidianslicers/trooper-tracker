@@ -37,7 +37,7 @@ class DenyTrooperMembershipController extends Controller
     {
         DenyTrooperMembership::call($request);
 
-        FlashType::success('Trooper membership denied successfully.');
+        FlashType::success(__('admin.Trooper membership denied successfully.'));
 
         return Inertia::render('admin/troopers/MembershipApprovals');
     }

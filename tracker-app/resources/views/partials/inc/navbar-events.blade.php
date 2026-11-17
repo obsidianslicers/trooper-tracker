@@ -5,25 +5,25 @@
            href="#"
            role="button"
            data-bs-toggle="dropdown">
-            Events
+            {{ __('layout.Events') }}
         </a>
 
         <ul class="dropdown-menu">
             <x-nav-link :url="route('events.list')"
                         :active="request()->routeIs('events.*')">
                 <i class="fa fa-fw fa-list fa-lg me-2"></i>
-                List
+                {{ __('layout.List') }}
             </x-nav-link>
             <x-nav-link :url="route('events.calendar')"
                         :active="request()->routeIs('events.*')">
                 <i class="fa fa-fw fa-calendar-days fa-lg me-2"></i>
-                Calendar
+                {{ __('layout.Calendar') }}
             </x-nav-link>
             @if(config('services.google.maps_api_key'))
                 <x-nav-link :url="route('events.map')"
                             :active="request()->routeIs('events.*')">
                     <i class="fa fa-fw fa-map fa-lg me-2"></i>
-                    Map
+                    {{ __('layout.Map') }}
                 </x-nav-link>
             @endif
             <li>
@@ -32,12 +32,12 @@
             <x-nav-link :url="route('events.closed')"
                         :active="request()->routeIs('events.*')">
                 <i class="fa fa-fw fa-circle-check fa-lg me-2"></i>
-                Completed
+                {{ __('layout.Completed') }}
             </x-nav-link>
             <x-nav-link :url="route('events.cancelled')"
                         :active="request()->routeIs('events.*')">
                 <i class="fa fa-fw fa-ban fa-lg me-2"></i>
-                Cancelled
+                {{ __('layout.Cancelled') }}
             </x-nav-link>
             @role(['event_coordinator'])
                 <li>
@@ -46,12 +46,12 @@
                 <x-nav-link :url="route('admin.events.list')"
                             :active="request()->routeIs('admin.events.list')">
                     <i class="fa fa-fw fa-clipboard-list fa-lg me-2"></i>
-                    My Events
+                    {{ __('layout.My Events') }}
                 </x-nav-link>
                 <x-nav-link :url="route('admin.events.create')"
                             :active="request()->routeIs('admin.events.create')">
                     <i class="fa fa-fw fa-plus fa-lg me-2"></i>
-                    Create Event
+                    {{ __('layout.Create Event') }}
                 </x-nav-link>
             @endrole
         </ul>

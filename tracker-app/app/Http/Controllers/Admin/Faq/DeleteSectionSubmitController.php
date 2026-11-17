@@ -21,7 +21,11 @@ class DeleteSectionSubmitController extends Controller
 
         if ($faq_count > 0)
         {
-            FlashType::danger("Cannot delete \"{$section->label}\" — it has {$faq_count} FAQ item(s). Move or delete them first.");
+            FlashType::danger(trans_choice(
+                'admin.Cannot delete ":section" — it has :count FAQ item. Move or delete it first.|Cannot delete ":section" — it has :count FAQ items. Move or delete them first.',
+                $faq_count,
+                ['section' => $section->label]
+            ));
 
             return Inertia::render('admin/faq/Index');
         }

@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Awards')
+@section('page-title', __('service-records.Awards'))
 
 @section('content')
     <div class="container-fluid py-4">

@@ -31,7 +31,7 @@ class BroadcastEventMessageTest extends TestCase
 
         $content = $mail->content();
 
-        $this->assertSame('emails.events.broadcast-event-message', $content->view);
+        $this->assertSame('emails.en.events.broadcast-event-message', $content->view);
         $this->assertSame($event->id, $content->with['event']->id);
         $this->assertSame($message, $content->with['broadcast_message']);
         $this->assertSame([], $mail->attachments());

@@ -16,7 +16,7 @@ class IndexController extends Controller
 {
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
+        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
     }
 
     public function __invoke(Request $request): InertiaResponse|SymfonyResponse

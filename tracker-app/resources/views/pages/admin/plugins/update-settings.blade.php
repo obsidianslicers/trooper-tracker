@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', $manifest->name.' Settings')
+@section('page-title', __('admin.:plugin Settings', ['plugin' => $manifest->name]))
 
 @section('content')
 
@@ -15,11 +15,11 @@
         @php($property = 'settings.'.$setting->key)
         <x-input-container>
           <x-label>
-            {{ $setting->label }}:
+            {{ $manifest->translate($setting->label) }}:
           </x-label>
           @if($setting->type === 'secret')
             <x-input-password :property="$property"
-                              :placeholder="filled($settings[$setting->key] ?? null) ? 'Saved. Leave empty to keep it.' : ''" />
+                              :placeholder="filled($settings[$setting->key] ?? null) ? __('admin.Saved. Leave empty to keep it.') : ''" />
           @elseif($setting->type === 'boolean')
             <x-input-yesno :property="$property"
                            :value="(bool) ($settings[$setting->key] ?? false)" />
@@ -29,7 +29,7 @@
           @endif
           @if($setting->help !== '')
             <x-input-help>
-              {{ $setting->help }}
+              {{ $manifest->translate($setting->help) }}
             </x-input-help>
           @endif
         </x-input-container>
@@ -37,7 +37,7 @@
 
       <x-submit-container>
         <x-submit-button>
-          Save
+          {{ __('admin.Save') }}
         </x-submit-button>
         <x-link-button-cancel :url="route('admin.plugins.list')" />
       </x-submit-container>

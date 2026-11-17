@@ -29,7 +29,7 @@ class RevokeCostumeRequest extends FormRequest
                 {
                     if ($value->isPending())
                     {
-                        $fail('This costume is still waiting for review.');
+                        $fail(__('admin.This costume is still waiting for review.'));
                     }
                 },
             ],

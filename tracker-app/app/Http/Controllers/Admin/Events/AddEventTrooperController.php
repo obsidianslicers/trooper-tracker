@@ -31,7 +31,7 @@ class AddEventTrooperController extends PageController
 
         if ($event_shift->isSignedUp($trooper))
         {
-            FlashType::danger("{$trooper->display_name} is already signed up for this shift.");
+            FlashType::danger(__('admin.:name is already signed up for this shift.', ['name' => $trooper->display_name]));
 
             return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
         }
@@ -61,7 +61,7 @@ class AddEventTrooperController extends PageController
 
         if (!$event_shift->isValidStationChoice($event_shift_station_id))
         {
-            FlashType::danger('Select a station before adding a trooper.');
+            FlashType::danger(__('admin.Select a station before adding a trooper.'));
 
             return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
         }
@@ -75,7 +75,7 @@ class AddEventTrooperController extends PageController
             event_shift_station_id: $event_shift_station_id,
         );
 
-        FlashType::success("{$trooper->display_name} was added to the shift.");
+        FlashType::success(__('admin.:name was added to the shift.', ['name' => $trooper->display_name]));
 
         return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
     }

@@ -24,8 +24,8 @@ class RecruitSubmitController extends PageController
 {
     protected function initialized(): void
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
+        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
+        $this->crumbs->addRoute(__('admin.Troopers'), 'admin.troopers.list');
     }
 
     public function __invoke(Request $request): RedirectResponse

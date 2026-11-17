@@ -27,14 +27,14 @@ class TrooperManualSelectionStandBy extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Event Sign-Up Status Update - Changed to STAND BY'
+            subject: config('mail.prefix').' '.__('emails.Event Sign-Up Status Update - Changed to STAND BY')
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.events.trooper-manual-selection-standby',
+            view: email_view('events.trooper-manual-selection-standby'),
             with: [
                 'event_trooper' => $this->event_trooper,
                 'trooper' => $this->event_trooper->trooper,

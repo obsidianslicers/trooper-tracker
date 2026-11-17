@@ -83,6 +83,14 @@ Rules:
 - **Svelte:** `formatDate()` and `formatDateTime()` in `$lib/utils` use `locale()` from `$lib/i18n`.
 - Currency symbols are still hardcoded as `$`.
 
+## Emails and notifications
+
+- **Subjects and notification text** use the `emails` and `notifications` groups like any other string: `__('emails.Account Deletion Requested')`, `__('notifications.:trooper has requested to join :organization.', [...])`. Use `trans_choice` for counts.
+- **Email bodies** are whole Blade views per language under `resources/views/emails/<locale>/`, because long letters read better translated as a whole than line by line. English lives in `emails/en/`. Mailables pick the view with `email_view('events.trooper-signup')`, which returns `emails.<locale>.<name>` when that file exists and falls back to `emails.en.<name>`. Includes inside an email use it too: `@include(email_view('inc.signature'))`.
+- To translate an email, copy its view from `emails/en/` to `emails/<locale>/` at the same path and translate it. Emails you haven't copied stay in English.
+- Mail and notifications render in the recipient's language (see above), so `email_view()`, `__()` and `localFormat()` all follow the trooper.
+- System mail for maintainers (exception reports, Supervisor alerts, one-off `Fix…` reports) stays in English.
+
 ## Plugins
 
 A plugin ships `lang/<locale>/<group>.php` in its own folder. The plugin loader registers it under the plugin's slug:
@@ -97,6 +105,13 @@ __('discord::settings.Webhook URL')
 
 The same rules apply: English text as keys and a complete `en` folder. Core never edits a plugin's lang files.
 
+Two kinds of plugin text can't call `__()` where they're written, so core translates them when it shows them:
+
+- **plugin.json text.** The description and each setting's label and help are looked up in the plugin's `lang/<locale>/plugin.php`, keyed by the English text. A line that file doesn't have is shown as written.
+- **Labels the plugin registers** with `addSystemCheck`, `addNotificationCategory` or `addClubSynchronizer`. Providers boot before the trooper's language is set, so pass the key rather than translated text: `$this->addNotificationCategory('forum_reply', 'hello::plugin.Forum Reply')`. Core runs `__()` on it when the label is shown. A plain label still works; it just stays in English. Keys passed this way aren't seen by the report, so add them to `lang/en/plugin.php` yourself.
+
+Plugin emails are short, so their views use `__()` lines rather than per-language copies.
+
 ## Checking translations
 
 | Check | What it catches | Fails the build? |
@@ -109,6 +124,7 @@ Locally (`APP_ENV=local`), a key that no language defines is also logged as a wa
 ## Adding a language
 
 1. Copy `lang/en` to `lang/<locale>` and translate the values (leave out lines you haven't translated yet; they fall back to English).
-2. Add the language to `locales` in `config/tracker.php`.
-3. Validation messages: run `php artisan lang:publish` once to get `lang/en/validation.php`, then add `lang/<locale>/validation.php`. The [laravel-lang](https://github.com/Laravel-Lang/lang) project has ready-made translations of it for most languages.
-4. Run `php artisan tracker:report-translations` to see what's left.
+2. Do the same for each plugin's `plugins/<slug>/lang/en`, and copy the emails you want translated from `resources/views/emails/en` to `resources/views/emails/<locale>`.
+3. Add the language to `locales` in `config/tracker.php`.
+4. Validation messages: run `php artisan lang:publish` once to get `lang/en/validation.php`, then add `lang/<locale>/validation.php`. The [laravel-lang](https://github.com/Laravel-Lang/lang) project has ready-made translations of it for most languages.
+5. Run `php artisan tracker:report-translations` to see what's left.

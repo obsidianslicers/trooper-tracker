@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import Button from "$lib/components/ui/buttons/Button.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
@@ -7,24 +8,24 @@
 
     const page = usePage<MissingCreditsPageData>();
 
-    pageState.title = "Missing Credit";
+    pageState.title = t("Missing Credit");
 
     let vm = new MissingCreditsViewModel(page.props);
 
     let emptyStateMessage = $derived(
         vm.filtered_trooper
-            ? "Job well done! No missing-credit shifts found for this trooper."
-            : "Job well done! No missing-credit shifts found."
+            ? t("Job well done! No missing-credit shifts found for this trooper.")
+            : t("Job well done! No missing-credit shifts found.")
     );
 </script>
 
 {#if vm.filtered_trooper}
     <p class="text-muted small mb-3">
-        Showing missing-credit shifts for
+        {t("Showing missing-credit shifts for")}
         <a href={vm.trooperServiceRecordRoute(vm.filtered_trooper.id)}>
             {vm.filtered_trooper.display_name}
         </a>.
-        <a href={vm.clear_filter_route}>View all missing credit</a>
+        <a href={vm.clear_filter_route}>{t("View all missing credit")}</a>
     </p>
 {/if}
 
@@ -35,7 +36,7 @@
     </div>
 {:else}
     {#if vm.total > 0}
-        <p class="text-muted small mb-2">Showing {vm.rows.length} of {vm.total}</p>
+        <p class="text-muted small mb-2">{t("Showing :shown of :total", { shown: vm.rows.length, total: vm.total })}</p>
     {/if}
 
     {#if vm.rows.length > 0}
@@ -43,11 +44,11 @@
             <table class="table align-middle">
                 <thead>
                     <tr>
-                        <th>Trooper</th>
-                        <th>Event</th>
-                        <th>Shift</th>
-                        <th>Costume</th>
-                        <th>Assign Credit To</th>
+                        <th>{t("Trooper")}</th>
+                        <th>{t("Event")}</th>
+                        <th>{t("Shift")}</th>
+                        <th>{t("Costume")}</th>
+                        <th>{t("Assign Credit To")}</th>
                         <th></th>
                     </tr>
                 </thead>

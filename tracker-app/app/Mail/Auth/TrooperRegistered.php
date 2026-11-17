@@ -40,7 +40,7 @@ class TrooperRegistered extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Thanks for Registering!',
+            subject: config('mail.prefix').' '.__('emails.Thanks for Registering!'),
         );
     }
 
@@ -52,7 +52,7 @@ class TrooperRegistered extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.auth.registered',
+            view: email_view('auth.registered'),
         );
     }
 

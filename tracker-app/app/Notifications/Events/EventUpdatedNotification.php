@@ -30,8 +30,8 @@ class EventUpdatedNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Event Updated: '.$this->event->name,
-            'body' => 'This event has important updates. Please check the event for details.',
+            'title' => __('notifications.Event Updated: :name', ['name' => $this->event->name]),
+            'body' => __('notifications.This event has important updates. Please check the event for details.'),
             'url' => '/events/details/'.$this->event->id,
         ];
     }

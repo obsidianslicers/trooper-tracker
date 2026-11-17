@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', $costume->name . ' — Costume Leaderboard')
+@section('page-title', __('service-records.:costume — Costume Leaderboard', ['costume' => $costume->name]))
 
 @section('content')
 <div class="container-fluid py-4">
@@ -24,7 +24,7 @@
                     @endif
                     <x-label value="Club" />
                     <x-input-select :property="'organization_id'"
-                                    :placeholder="'All Clubs'"
+                                    :placeholder="__('service-records.All Clubs')"
                                     :value="$organization_id"
                                     :options="$organizations->pluck('name', 'id')->toArray()"
                                     onchange="this.form.submit()" />

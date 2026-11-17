@@ -26,12 +26,12 @@ class RemoveShiftStationController extends PageController
 
         if (!$removed)
         {
-            FlashType::danger('Cannot remove a station with roster signups.');
+            FlashType::danger(__('admin.Cannot remove a station with roster signups.'));
 
             return response()->noContent()->header('HX-Redirect', route('admin.events.shifts', compact('event')));
         }
 
-        FlashType::success('Station removed.');
+        FlashType::success(__('admin.Station removed.'));
 
         return response()->noContent()->header('HX-Redirect', route('admin.events.shifts', compact('event')));
     }

@@ -87,8 +87,9 @@ class CheckXenforoBan
             $request->session()->regenerateToken();
 
             return redirect()->route('auth.login')->withErrors([
-                'banned' => 'You are currently banned. '
-                    .'Please refer to command staff for additional information.',
+                'banned' => __(
+                    'xenforo::account.You are currently banned. Please refer to command staff for additional information.'
+                ),
             ]);
         }
 

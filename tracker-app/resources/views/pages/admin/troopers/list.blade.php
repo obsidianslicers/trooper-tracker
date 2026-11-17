@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Troopers')
+@section('page-title', __('admin.Troopers'))
 
 @section('content')
 
@@ -16,7 +16,7 @@
                 @endforeach
                 <input type="text"
                        name="search_term"
-                       placeholder="Search Name, Legal Name, Email (at least 3 chars)"
+                       placeholder="{{ __('admin.Search Name, Legal Name, Email (at least 3 chars)') }}"
                        class="form-control rounded-start"
                        value="{{ $search_term }}" />
 
@@ -36,7 +36,7 @@
                 <select name="organization_id"
                         class="form-select"
                         onchange="this.form.submit()">
-                    <option value="">All Groups</option>
+                    <option value="">{{ __('admin.All Groups') }}</option>
                     @foreach($organizations as $org)
                         <option value="{{ $org->id }}"
                                 {{ $organization_id == $org->id ? 'selected' : '' }}>
@@ -58,11 +58,11 @@
 
             <a href="{{ route('admin.troopers.recruit') }}"
                class="btn btn-outline-primary btn-sm">
-                <i class="fa fa-fw fa-user-plus"></i> Recruit Trooper
+                <i class="fa fa-fw fa-user-plus"></i> {{ __('admin.Recruit Trooper') }}
             </a>
 
             <x-button-group>
-                <x-button-group-link :label="'All'"
+                <x-button-group-link :label="__('admin.All')"
                                      :url="route('admin.troopers.list')"
                                      :active="$membership_role === null" />
                 @foreach(\App\Enums\MembershipRole::toArray() as $value => $name)
@@ -101,16 +101,16 @@
                         @endif
                         {{ $trooper->display_name }}
                         @if($trooper->membership_status === \App\Enums\MembershipStatus::INVALID)
-                            <span class="badge bg-secondary ms-1">Created in Error</span>
+                            <span class="badge bg-secondary ms-1">{{ __('admin.Created in Error') }}</span>
                         @endif
                         @if($trooper->membership_status === \App\Enums\MembershipStatus::DEPARTED)
-                            <span class="badge bg-dark border border-warning text-warning ms-1">In Memoriam</span>
+                            <span class="badge bg-dark border border-warning text-warning ms-1">{{ __('admin.In Memoriam') }}</span>
                         @endif
                         <br />
                         <span class="text-muted">{{ $trooper->legal_name }}</span>
                         <br />
                         @if($trooper->email[0] == '^')
-                            <span class="text-muted">( missing email )</span>
+                            <span class="text-muted">{{ __('admin.( missing email )') }}</span>
                         @else
                             {{ $trooper->email }}
                         @endif
@@ -140,7 +140,7 @@
                     </td>
                     <td>
                         <x-action-menu>
-                            <x-action-link-update :label="'Update'"
+                            <x-action-link-update :label="__('admin.Update')"
                                                   :url="route('admin.troopers.profile', compact('trooper'))" />
                         </x-action-menu>
                     </td>

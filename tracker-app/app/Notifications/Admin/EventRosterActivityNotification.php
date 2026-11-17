@@ -33,16 +33,16 @@ class EventRosterActivityNotification extends BaseNotification
         $event = $this->event_trooper->event_shift->event;
         $trooper = $this->event_trooper->trooper;
 
-        $verb = match ($this->action)
+        $body = match ($this->action)
         {
-            RosterAction::CANCELLED => 'cancelled from',
-            RosterAction::RESIGNED_UP => 're-signed up for',
-            default => 'signed up for',
+            RosterAction::CANCELLED => 'notifications.:trooper has cancelled from this event.',
+            RosterAction::RESIGNED_UP => 'notifications.:trooper has re-signed up for this event.',
+            default => 'notifications.:trooper has signed up for this event.',
         };
 
         return [
-            'title' => 'Roster Update: '.$event->name,
-            'body' => $trooper->display_name.' has '.$verb.' this event.',
+            'title' => __('notifications.Roster Update: :name', ['name' => $event->name]),
+            'body' => __($body, ['trooper' => $trooper->display_name]),
             'url' => '/events/details/'.$event->id,
         ];
     }

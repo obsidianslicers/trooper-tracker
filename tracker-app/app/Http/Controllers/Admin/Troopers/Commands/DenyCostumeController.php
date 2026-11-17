@@ -17,7 +17,7 @@ class DenyCostumeController extends Controller
     {
         DenyTrooperCostume::call(trooper_costume: $trooper_costume);
 
-        FlashType::success('Costume request denied.');
+        FlashType::success(__('admin.Costume request denied.'));
 
         return redirect()->back();
     }

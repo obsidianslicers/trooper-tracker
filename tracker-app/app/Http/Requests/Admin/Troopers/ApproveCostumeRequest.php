@@ -29,7 +29,7 @@ class ApproveCostumeRequest extends FormRequest
                 {
                     if (!$value->isPending())
                     {
-                        $fail('This costume has already been reviewed.');
+                        $fail(__('admin.This costume has already been reviewed.'));
                     }
                 },
             ],

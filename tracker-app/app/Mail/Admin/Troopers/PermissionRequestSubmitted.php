@@ -27,7 +27,7 @@ class PermissionRequestSubmitted extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Permission Request Submitted'
+            subject: config('mail.prefix').' '.__('emails.Permission Request Submitted')
         );
     }
 
@@ -36,7 +36,7 @@ class PermissionRequestSubmitted extends Mailable implements ShouldQueue
         $request = $this->permission_request;
 
         return new Content(
-            view: 'emails.admin.troopers.permission-request-submitted',
+            view: email_view('admin.troopers.permission-request-submitted'),
             with: [
                 'permission_request' => $request,
                 'trooper' => $request->trooper,

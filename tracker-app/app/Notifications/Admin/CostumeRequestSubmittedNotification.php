@@ -44,8 +44,12 @@ class CostumeRequestSubmittedNotification extends BaseNotification
         $clubs = implode(', ', $this->club_names);
 
         return [
-            'title' => 'Costume Approval Request',
-            'body' => "{$this->trooper_name} added {$this->costume_name} for {$clubs}.",
+            'title' => __('notifications.Costume Approval Request'),
+            'body' => __('notifications.:trooper added :costume for :clubs.', [
+                'trooper' => $this->trooper_name,
+                'costume' => $this->costume_name,
+                'clubs' => $clubs,
+            ]),
             'url' => '/admin/troopers/costume-approvals',
         ];
     }

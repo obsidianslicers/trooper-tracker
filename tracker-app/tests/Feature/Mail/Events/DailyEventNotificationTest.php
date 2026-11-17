@@ -37,7 +37,7 @@ class DailyEventNotificationTest extends TestCase
         $content = $mail->content();
 
         $this->assertSame('[TEST] New Event Posted', $mail->envelope()->subject);
-        $this->assertSame('emails.events.daily-event-notification', $content->view);
+        $this->assertSame('emails.en.events.daily-event-notification', $content->view);
         $this->assertCount(1, $content->with['event_notifications']);
         $this->assertSame([], $mail->attachments());
     }

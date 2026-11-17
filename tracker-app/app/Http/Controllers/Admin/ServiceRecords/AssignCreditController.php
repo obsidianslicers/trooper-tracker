@@ -23,7 +23,7 @@ class AssignCreditController extends Controller
             is_override: $request->boolean('is_override'),
         );
 
-        FlashType::success('Credit assigned.');
+        FlashType::success(__('admin.Credit assigned.'));
 
         // Render the page directly (no redirect) so the frontend's `only: ['flash']` partial
         // reload is honored in a single round trip — the rows/filtered_trooper props are already

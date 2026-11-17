@@ -74,7 +74,7 @@ class SentryServiceProvider extends PluginServiceProvider
 
         $this->addWebhook('sentry', SentryTunnelController::class, 'sentry'); // = TUNNEL_PATH
 
-        $this->addSystemCheck('Sentry server DSN', fn (): bool => $settings->serverDsn() !== null);
+        $this->addSystemCheck('sentry::plugin.Sentry server DSN', fn (): bool => $settings->serverDsn() !== null);
     }
 
     /**

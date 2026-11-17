@@ -16,8 +16,8 @@ class UpdateController extends PageController
 {
     protected function initialized(): void
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('Event Types', 'admin.event-types.index');
+        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
+        $this->crumbs->addRoute(__('admin.Event Types'), 'admin.event-types.index');
     }
 
     public function __invoke(Request $request, EventType $event_type): InertiaResponse|SymfonyResponse

@@ -16,5 +16,5 @@
         </label>
     </div>
 @empty
-    <span class="text-muted small">(Unattached)</span>
+    <span class="text-muted small">{{ __('admin.(Unattached)') }}</span>
 @endforelse

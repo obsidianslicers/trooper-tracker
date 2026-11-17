@@ -1,3 +1,4 @@
+import { t } from "$lib/i18n";
 import { ViewModel } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 
@@ -22,8 +23,8 @@ function createCostumePickerOptions(
 ): CostumePickerOptions {
     return {
         label: null,
-        placeholder: "No costume selected",
-        modal_title: "Select Costume",
+        placeholder: t("No costume selected"),
+        modal_title: t("Select Costume"),
         debounce_ms: 350,
         disabled: false,
         errors: [],

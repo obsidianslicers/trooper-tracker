@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Share Event')
+@section('page-title', __('shares.Share Event'))
 
 @section('page-meta')
 

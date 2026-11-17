@@ -1,3 +1,4 @@
+import { t } from '../i18n.js';
 //  closest the first view zooms in, so events at one venue still show their surroundings
 const MAX_FIT_ZOOM = 12;
 
@@ -107,8 +108,8 @@ export default function mapSelector(events) {
                 (err) => {
                     this.locating = false;
                     this.locationError = err.code === err.PERMISSION_DENIED
-                        ? 'Location access is turned off for this site in your browser.'
-                        : "Couldn't find your location. Try again in a moment.";
+                        ? t('Location access is turned off for this site in your browser.')
+                        : t("Couldn't find your location. Try again in a moment.");
                 },
                 //  a fix from the last 10 minutes is close enough and comes back at once
                 { maximumAge: 10 * 60 * 1000, timeout: 10 * 1000 }
@@ -125,7 +126,7 @@ export default function mapSelector(events) {
             this.userMarker = new google.maps.Marker({
                 position,
                 map: this.map,
-                title: 'You are here',
+                title: t('You are here'),
                 icon: {
                     path: google.maps.SymbolPath.CIRCLE,
                     scale: 6,

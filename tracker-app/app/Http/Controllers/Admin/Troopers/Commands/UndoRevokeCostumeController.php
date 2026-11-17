@@ -17,7 +17,7 @@ class UndoRevokeCostumeController extends Controller
     {
         UndoRevokeTrooperCostume::call(trooper_costume: $trooper_costume);
 
-        FlashType::success('Revoke undone. The costume is approved again.');
+        FlashType::success(__('admin.Revoke undone. The costume is approved again.'));
 
         return redirect()->back();
     }

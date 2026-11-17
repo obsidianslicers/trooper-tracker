@@ -43,7 +43,7 @@ class TrooperSignUp extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Event Sign-Up Confirmation'
+            subject: config('mail.prefix').' '.__('emails.Event Sign-Up Confirmation')
         );
     }
 
@@ -55,7 +55,7 @@ class TrooperSignUp extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.events.trooper-signup',
+            view: email_view('events.trooper-signup'),
             with: [
                 'event_trooper' => $this->event_trooper,
                 'trooper' => $this->event_trooper->trooper,

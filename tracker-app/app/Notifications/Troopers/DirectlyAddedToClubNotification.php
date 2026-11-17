@@ -28,8 +28,8 @@ class DirectlyAddedToClubNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Added to Club',
-            'body' => "You have been added to {$this->organization->name}.",
+            'title' => __('notifications.Added to Club'),
+            'body' => __('notifications.You have been added to :organization.', ['organization' => $this->organization->name]),
             'url' => '/account',
         ];
     }

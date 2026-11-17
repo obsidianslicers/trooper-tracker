@@ -46,7 +46,7 @@ class DailyEventNotification extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' New Event Posted'
+            subject: config('mail.prefix').' '.__('emails.New Event Posted')
         );
     }
 
@@ -63,7 +63,7 @@ class DailyEventNotification extends Mailable implements ShouldQueue
         $this->event_notifications->load(['event', 'event.organization', 'event.event_shifts']);
 
         return new Content(
-            view: 'emails.events.daily-event-notification',
+            view: email_view('events.daily-event-notification'),
             with: [
                 'event_notifications' => $this->event_notifications,
             ]

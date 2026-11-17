@@ -33,7 +33,7 @@ class ExceptionOccurredTest extends TestCase
         $mail = new ExceptionOccurred($trooper, $exception, $context);
         $content = $mail->content();
 
-        $this->assertSame('emails.exception-occurred', $content->view);
+        $this->assertSame('emails.en.exception-occurred', $content->view);
         $this->assertSame($trooper, $content->with['trooper']);
         $this->assertSame($exception, $content->with['exception']);
         $this->assertSame($context, $content->with['context']);

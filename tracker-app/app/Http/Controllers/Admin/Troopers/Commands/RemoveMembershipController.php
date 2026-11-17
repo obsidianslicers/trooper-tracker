@@ -26,7 +26,7 @@ class RemoveMembershipController extends ProfileCommandController
     {
         RemoveTrooperMembership::call(trooper: $trooper, organization: $organization);
 
-        FlashType::success("Removed {$trooper->display_name} from {$organization->name}");
+        FlashType::success(__('admin.Removed :trooper from :organization', ['trooper' => $trooper->display_name, 'organization' => $organization->name]));
 
         return $this->respondWithResults($request);
     }

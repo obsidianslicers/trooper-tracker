@@ -33,7 +33,7 @@ class MemberOrganizationRule implements ValidationRule
 
         if ($org && $org->organizations()->count() !== 0)
         {
-            $fail('Members must join at the lowest-level organization.');
+            $fail(__('account.Members must join at the lowest-level organization.'));
         }
     }
 }

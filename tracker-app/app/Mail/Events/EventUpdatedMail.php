@@ -26,14 +26,14 @@ class EventUpdatedMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Event Details Updated'
+            subject: config('mail.prefix').' '.__('emails.Event Details Updated')
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.events.event-updated',
+            view: email_view('events.event-updated'),
             with: [
                 'event' => $this->event,
                 'changed_fields' => $this->changed_fields,

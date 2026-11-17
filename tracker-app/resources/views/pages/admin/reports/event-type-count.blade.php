@@ -1,27 +1,27 @@
 @extends('layouts.base')
 
-@section('page-title', 'Event Type Counts')
+@section('page-title', __('admin.Event Type Counts'))
 
 @section('content')
 
     <x-table class="caption-top">
         <caption>
-            Count of Event Types over the last {{ $lookback }} days.
+            {{ __('admin.Count of Event Types over the last :days days.', ['days' => $lookback]) }}
         </caption>
         <thead>
             <tr>
-                <th scope="col">Event Type</th>
+                <th scope="col">{{ __('admin.Event Type') }}</th>
                 <th scope="col"
                     class="text-end">
-                    Event Count
+                    {{ __('admin.Event Count') }}
                 </th>
                 <th scope="col"
                     class="text-end">
-                    Unique Trooper Count
+                    {{ __('admin.Unique Trooper Count') }}
                 </th>
                 <th scope="col"
                     class="text-end">
-                    Total Trooper Attendance
+                    {{ __('admin.Total Trooper Attendance') }}
                 </th>
             </tr>
         </thead>
@@ -45,13 +45,13 @@
                 </tr>
             @empty
                 <x-table-empty :colspan="4">
-                    There are not any events that have been closed in the last {{ $lookback }} days.
+                    {{ __('admin.There are not any events that have been closed in the last :days days.', ['days' => $lookback]) }}
                 </x-table-empty>
             @endforelse
         </tbody>
         <tfoot>
             <tr>
-                <th scope="row">Total</th>
+                <th scope="row">{{ __('admin.Total') }}</th>
                 <th class="text-end">
                     <x-number-format :value="$event_types->sum('count')" />
                 </th>

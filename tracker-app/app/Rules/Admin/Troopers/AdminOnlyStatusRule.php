@@ -40,7 +40,7 @@ class AdminOnlyStatusRule implements ValidationRule
 
         if ($status->isAdminOnly() || $current?->isAdminOnly())
         {
-            $fail('Only an administrator can change a trooper to or from this status.');
+            $fail(__('admin.Only an administrator can change a trooper to or from this status.'));
         }
     }
 }

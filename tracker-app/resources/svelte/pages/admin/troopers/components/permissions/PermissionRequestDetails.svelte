@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import type { PermissionRequest, PermissionRequestOrganization } from "../../models/vms";
 
     interface Props {
@@ -9,19 +10,19 @@
 </script>
 
 <dl class="row mb-0">
-    <dt class="col-4">Trooper:</dt>
+    <dt class="col-4">{t("Trooper:")}</dt>
     <dd class="col-8">
         {request.trooper.display_name}
         <span class="text-muted small">({request.trooper.legal_name})</span>
     </dd>
     {#if request.requester}
-        <dt class="col-4">Requested By:</dt>
+        <dt class="col-4">{t("Requested By:")}</dt>
         <dd class="col-8">{request.requester.display_name}</dd>
     {/if}
-    <dt class="col-4">Submitted:</dt>
+    <dt class="col-4">{t("Submitted:")}</dt>
     <dd class="col-8">{request.created}</dd>
     {#if request.membership_role_label}
-        <dt class="col-4">Role:</dt>
+        <dt class="col-4">{t("Role:")}</dt>
         <dd class="col-8">{request.membership_role_label}</dd>
     {/if}
     {#snippet organizationList(organizations: PermissionRequestOrganization[])}
@@ -35,13 +36,13 @@
         {/each}
     {/snippet}
     {#if request.moderated_organizations_to_add.length > 0}
-        <dt class="col-4">Add Moderation:</dt>
+        <dt class="col-4">{t("Add Moderation:")}</dt>
         <dd class="col-8">
             {@render organizationList(request.moderated_organizations_to_add)}
         </dd>
     {/if}
     {#if request.moderated_organizations_to_remove.length > 0}
-        <dt class="col-4">Remove Moderation:</dt>
+        <dt class="col-4">{t("Remove Moderation:")}</dt>
         <dd class="col-8">
             {@render organizationList(request.moderated_organizations_to_remove)}
         </dd>
@@ -51,11 +52,11 @@
         <dd class="col-8">{change.value}</dd>
     {/each}
     {#if request.note}
-        <dt class="col-4">Note:</dt>
+        <dt class="col-4">{t("Note:")}</dt>
         <dd class="col-8" style="white-space: pre-line">{request.note}</dd>
     {/if}
     {#if request.denial_reason}
-        <dt class="col-4">Denial Reason:</dt>
+        <dt class="col-4">{t("Denial Reason:")}</dt>
         <dd class="col-8">{request.denial_reason}</dd>
     {/if}
 </dl>

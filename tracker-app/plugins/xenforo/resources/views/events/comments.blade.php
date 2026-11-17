@@ -10,7 +10,7 @@
 @if(!empty($posts) || $hasThread)
     <div id="forum-comments"
          class="mt-5">
-        <x-section-title>Forum Comments</x-section-title>
+        <x-section-title>{{ __('xenforo::events.Forum Comments') }}</x-section-title>
 
         @if(!empty($posts))
             <div class="list-group mb-3">
@@ -43,7 +43,7 @@
                                            target="_blank"
                                            rel="noopener noreferrer"
                                            class="btn btn-sm btn-outline-secondary"
-                                           title="View on forum">
+                                           title="{{ __('xenforo::events.View on forum') }}">
                                             <i class="fa fa-fw fa-external-link-alt"></i>
                                         </a>
                                     @endif
@@ -77,7 +77,7 @@
                                   id="forum-reply-message"
                                   class="form-control"
                                   rows="3"
-                                  placeholder="Write a reply..."
+                                  placeholder="{{ __('xenforo::events.Write a reply...') }}"
                                   maxlength="10000"
                                   required></textarea>
                     </div>
@@ -92,13 +92,13 @@
                                    value="1"
                                    id="notify-command-staff">
                             <label class="form-check-label text-muted small" for="notify-command-staff">
-                                <i class="fa fa-fw fa-bell me-1"></i>Notify command staff
+                                <i class="fa fa-fw fa-bell me-1"></i>{{ __('xenforo::events.Notify command staff') }}
                             </label>
                         </div>
                     </div>
                     <button type="submit"
                             class="btn btn-primary">
-                        Post Reply
+                        {{ __('xenforo::events.Post Reply') }}
                     </button>
                 </div>
             </form>
@@ -111,7 +111,7 @@
                        target="_blank"
                        rel="noopener noreferrer"
                        class="btn btn-outline-secondary">
-                        View full thread
+                        {{ __('xenforo::events.View full thread') }}
                     </a>
                 </div>
             </div>

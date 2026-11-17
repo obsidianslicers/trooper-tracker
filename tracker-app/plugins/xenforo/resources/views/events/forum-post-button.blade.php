@@ -6,7 +6,7 @@
        class="btn btn-outline-secondary"
        target="_blank"
        rel="noopener noreferrer"
-       title="View Forum Post">
+       title="{{ __('xenforo::events.View Forum Post') }}">
         <i class="fa fa-fw fa-comments"></i>
     </a>
 @endif

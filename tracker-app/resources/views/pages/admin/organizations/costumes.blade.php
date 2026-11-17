@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Organizations')
+@section('page-title', __('admin.Organizations'))
 
 @section('content')
 
@@ -14,10 +14,10 @@
             <thead>
                 <tr>
                     <th>
-                        Name
+                        {{ __('admin.Name') }}
                     </th>
                     <th>
-                        Synchronized
+                        {{ __('admin.Synchronized') }}
                     </th>
                 </tr>
             </thead>

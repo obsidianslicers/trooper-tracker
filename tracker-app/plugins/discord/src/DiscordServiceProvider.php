@@ -27,7 +27,7 @@ class DiscordServiceProvider extends PluginServiceProvider
         $this->addOrganizationMentionField();
 
         $this->addSystemCheck(
-            'Discord webhook',
+            'discord::plugin.Discord webhook',
             fn (): bool => $this->app->make(DiscordNotifier::class)->isConfigured(),
         );
     }

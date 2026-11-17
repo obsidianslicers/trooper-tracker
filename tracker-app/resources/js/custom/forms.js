@@ -1,3 +1,4 @@
+import { t } from '../i18n.js';
 /** SCOPED BUTTON DISABLE FOR HTMX **/
 document.body.addEventListener('htmx:configRequest', function (event) {
     const form = event.detail.elt;
@@ -11,7 +12,7 @@ document.body.addEventListener('htmx:configRequest', function (event) {
     if (button && (button === activeElement || activeElement.form === form)) {
         button.disabled = true;
         button.dataset.originalText = button.innerHTML;
-        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Transmitting ...';
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> ' + t('Transmitting ...');
 
         const restore = () => {
             button.disabled = false;
@@ -46,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {  // Attach listener to eve
 
             button.disabled = true;
             button.dataset.originalText = button.innerHTML;
-            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting ...';
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> ' + t('Submitting ...');
         });
     });
 });

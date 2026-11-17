@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { sortable } from "$lib/actions/sortable";
     import DeleteConfirmationModal from "$lib/components/DeleteConfirmationModal.svelte";
     import CreateButton from "$lib/components/ui/buttons/CreateButton.svelte";
@@ -11,18 +12,18 @@
 
     const page = usePage<IndexPageData>();
 
-    pageState.title = "FAQs";
+    pageState.title = t("FAQs");
 
     let vm = new IndexViewModel(page.props);
 </script>
 
 <p class="text-muted small mb-2">
     <i class="fa fa-fw fa-grip-vertical me-1"></i>
-    Drag rows to reorder
+    {t("Drag rows to reorder")}
     {#if vm.showing_sections}
-        the FAQ Sections
+        {t("the FAQ Sections")}
     {:else}
-        the FAQs
+        {t("the FAQs")}
     {/if}
 </p>
 
@@ -30,13 +31,13 @@
     <table class="table">
         <thead>
             <tr>
-                <th style="width: 120px;">Re-Order</th>
-                <th style="width: 120px;">Expand FAQs</th>
-                <th colspan="2">Title</th>
-                <th style="width: 120px;">FAQs</th>
+                <th style="width: 120px;">{t("Re-Order")}</th>
+                <th style="width: 120px;">{t("Expand FAQs")}</th>
+                <th colspan="2">{t("Title")}</th>
+                <th style="width: 120px;">{t("FAQs")}</th>
                 <th class="text-end">
                     <CreateButton
-                        label="Section"
+                        label={t("Section")}
                         href={getRoute("admin.faq.sections.create")}
                         small={true}
                         disabled={!vm.showing_sections}
@@ -55,7 +56,7 @@
                         <th></th>
                         <th class="text-end">
                             <CreateButton
-                                label="Item"
+                                label={t("Item")}
                                 small={true}
                                 href={section.create_item_route}
                             />

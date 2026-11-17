@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputSelect from "$lib/components/form/InputSelect.svelte";
@@ -34,14 +35,14 @@
                 <div class="row">
                     <div class="col-12 col-md-6 mb-3">
                         <InputText
-                            label="Identifier"
+                            label={t("Identifier")}
                             bind:value={vm.form.identifier}
                             errors={vm.errors.identifier}
                         />
                     </div>
                     <div class="col-12 col-md-6 mb-3">
                         <InputSelect
-                            label="Member Of"
+                            label={t("Member Of")}
                             options={organization.assignment_options}
                             bind:value={vm.form.assignment}
                             errors={vm.errors.assignment}
@@ -50,17 +51,17 @@
                 </div>
                 <InputContainer>
                     <InputSelect
-                        label="Status"
+                        label={t("Status")}
                         options={status_options}
                         bind:value={vm.form.membership_status}
                         errors={vm.errors.membership_status}
                     />
                 </InputContainer>
                 <SubmitButtonContainer>
-                    <SubmitButton label="Update" submitting={vm.submitting} />
+                    <SubmitButton label={t("Update")} submitting={vm.submitting} />
                     {#if organization.is_member}
                         <Button
-                            label="Remove Membership"
+                            label={t("Remove Membership")}
                             btnclass="btn-outline-danger"
                             click={vm.remove}
                         />
@@ -68,7 +69,7 @@
                 </SubmitButtonContainer>
             {:else}
                 <p class="mb-0">
-                    {organization.identifier ?? "No identifier"} &mdash;
+                    {organization.identifier ?? t("No identifier")} &mdash;
                     {organization.membership_status}
                 </p>
             {/if}
@@ -78,7 +79,7 @@
 
 <ConfirmationModal
     show={vm.pending_removal}
-    title="Remove membership"
+    title={t("Remove membership")}
     message={vm.confirm_message}
     confirmLabel="Remove"
     danger={true}

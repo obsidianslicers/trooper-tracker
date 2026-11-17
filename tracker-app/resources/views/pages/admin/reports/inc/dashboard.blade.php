@@ -2,7 +2,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h4 mb-0 text-uppercase fw-bold">
             <i class="fa-brands fa-empire me-2"></i>
-            Operations Dashboard
+            {{ __('admin.Operations Dashboard') }}
         </h2>
 
         <x-lookback :days="$days" />
@@ -14,14 +14,14 @@
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
                         data-bs-toggle="tooltip"
-                        data-bs-title="Verified troopers currently marked as 'Active'.">
+                        data-bs-title="{{ __('admin.Verified troopers currently marked as \'Active\'.') }}">
                         <i class="fa-fw fa-solid fa-users-gear me-1"></i>
-                        Active Strength
+                        {{ __('admin.Active Strength') }}
                     </h6>
                     <h2 class="display-6 fw-bold">
                         {{ format_number($dashboard['personnel']['active_count']) }}
                     </h2>
-                    <small class="text-muted">Mission Ready</small>
+                    <small class="text-muted">{{ __('admin.Mission Ready') }}</small>
                 </div>
             </div>
         </div>
@@ -30,9 +30,9 @@
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
                         data-bs-toggle="tooltip"
-                        data-bs-title="Total number of troopers in the registry.">
+                        data-bs-title="{{ __('admin.Total number of troopers in the registry.') }}">
                         <i class="fa-fw fa-solid fa-address-card me-1"></i>
-                        Trooper Count
+                        {{ __('admin.Trooper Count') }}
                     </h6>
                     <h2 class="display-6 fw-bold">
                         {{ format_number($dashboard['personnel']['trooper_count']) }}
@@ -45,14 +45,14 @@
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
                         data-bs-toggle="tooltip"
-                        data-bs-title="Active support staff and handlers.">
+                        data-bs-title="{{ __('admin.Active support staff and handlers.') }}">
                         <i class="fa-fw fa-solid fa-user-shield me-1"></i>
-                        Handler Corps
+                        {{ __('admin.Handler Corps') }}
                     </h6>
                     <h2 class="display-6 fw-bold">
                         {{ format_number($dashboard['personnel']['handler_count']) }}
                     </h2>
-                    <small class="text-muted">Support Staff</small>
+                    <small class="text-muted">{{ __('admin.Support Staff') }}</small>
                 </div>
             </div>
         </div>
@@ -61,9 +61,9 @@
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
                         data-bs-toggle="tooltip"
-                        data-bs-title="New members joined (and activated) within this reporting window.">
+                        data-bs-title="{{ __('admin.New members joined (and activated) within this reporting window.') }}">
                         <i class="fa-fw fa-solid fa-user-plus me-1"></i>
-                        New Enlistments
+                        {{ __('admin.New Enlistments') }}
                     </h6>
                     <h2 class="display-6 fw-bold text-primary">
                         {{ format_number($dashboard['personnel']['new_enlistments']) }}
@@ -79,9 +79,9 @@
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
                         data-bs-toggle="tooltip"
-                        data-bs-title="Active members with no system activity in this reporting window.">
+                        data-bs-title="{{ __('admin.Active members with no system activity in this reporting window.') }}">
                         <i class="fa-fw fa-solid fa-ghost me-1"></i>
-                        Ghost Count
+                        {{ __('admin.Ghost Count') }}
                     </h6>
                     <h2 class="display-6 fw-bold text-secondary">
                         {{ format_number($dashboard['personnel']['ghost_count']) }}
@@ -94,9 +94,9 @@
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
                         data-bs-toggle="tooltip"
-                        data-bs-title="Total individual trooper appearances at events.">
+                        data-bs-title="{{ __('admin.Total individual trooper appearances at events.') }}">
                         <i class="fa-fw fa-solid fa-calendar-check me-1"></i>
-                        Attendance
+                        {{ __('admin.Attendance') }}
                     </h6>
                     <h2 class="display-6 fw-bold">
                         {{ format_number($dashboard['personnel']['attendance_count']) }}
@@ -109,9 +109,9 @@
                 <div class="card-body">
                     <h6 class="text-danger text-uppercase small fw-bold"
                         data-bs-toggle="tooltip"
-                        data-bs-title="Active members who did not attend an event in this reporting window.">
+                        data-bs-title="{{ __('admin.Active members who did not attend an event in this reporting window.') }}">
                         <i class="fa-fw fa-solid fa-triangle-exclamation me-1"></i>
-                        Attrition Risk
+                        {{ __('admin.Attrition Risk') }}
                     </h6>
                     <h2 class="display-6 fw-bold text-danger">
                         {{ format_number($dashboard['personnel']['attrition_risk']) }}
@@ -124,9 +124,9 @@
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
                         data-bs-toggle="tooltip"
-                        data-bs-title="Percentage of events successfully completed.">
+                        data-bs-title="{{ __('admin.Percentage of events successfully completed.') }}">
                         <i class="fa-fw fa-solid fa-check-to-slot me-1"></i>
-                        Fulfillment
+                        {{ __('admin.Fulfillment') }}
                     </h6>
                     <h2 class="display-6 fw-bold text-success">
                         {{ format_number($dashboard['logistics']['fulfillment_rate'], 1) }}%
@@ -142,7 +142,7 @@
                     <h5 class="mb-0 fw-bold">
                         <i class="fa-fw fa-solid fa-hand-holding-dollar me-2 text-primary">
                         </i>
-                        Galactic Impact
+                        {{ __('admin.Galactic Impact') }}
                     </h5>
                 </div>
                 <div class="card-body border-top">
@@ -150,8 +150,8 @@
                         <div class="col-4 border-end">
                             <p class="text-muted mb-1 small"
                                data-bs-toggle="tooltip"
-                               data-bs-title="Combined direct and indirect funds raised for charity during events.">
-                                Total Credits
+                               data-bs-title="{{ __('admin.Combined direct and indirect funds raised for charity during events.') }}">
+                                {{ __('admin.Total Credits') }}
                             </p>
                             <h4 class="fw-bold mb-0 text-success">
                                 ${{ format_number($dashboard['impact']['total_credits'], 2) }}
@@ -160,18 +160,18 @@
                         <div class="col-4 border-end">
                             <p class="text-muted mb-1 small"
                                data-bs-toggle="tooltip"
-                               data-bs-title="Total volunteer-hours contributed by all participating troopers.">
-                                Volunteer Hours
+                               data-bs-title="{{ __('admin.Total volunteer-hours contributed by all participating troopers.') }}">
+                                {{ __('admin.Volunteer Hours') }}
                             </p>
                             <h4 class="fw-bold mb-0">
-                                {{ format_number($dashboard['impact']['volunteer_hours']) }}h
+                                {{ __('admin.:hoursh', ['hours' => format_number($dashboard['impact']['volunteer_hours'])]) }}
                             </h4>
                         </div>
                         <div class="col-4">
                             <p class="text-muted mb-1 small"
                                data-bs-toggle="tooltip"
-                               data-bs-title="Donations made internally by troopers to support organization goals.">
-                                Internal Support
+                               data-bs-title="{{ __('admin.Donations made internally by troopers to support organization goals.') }}">
+                                {{ __('admin.Internal Support') }}
                             </p>
                             <h4 class="fw-bold mb-0">
                                 ${{ format_number($dashboard['impact']['internal_donations'], 2) }}
@@ -205,10 +205,10 @@
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small"
                               data-bs-toggle="tooltip"
-                              data-bs-title="Number of merit-based awards issued to troopers in this reporting window.">
+                              data-bs-title="{{ __('admin.Number of merit-based awards issued to troopers in this reporting window.') }}">
                             <i class="fa-fw fa-solid fa-medal me-2 text-warning">
                             </i>
-                            Awards Issued
+                            {{ __('admin.Awards Issued') }}
                         </span>
                         <span class="fw-bold">
                             {{ $dashboard['engagement']['award_velocity'] }}
@@ -217,10 +217,10 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="small"
                               data-bs-toggle="tooltip"
-                              data-bs-title="Amount of gallery activity, measured by events with new photo uploads.">
+                              data-bs-title="{{ __('admin.Amount of gallery activity, measured by events with new photo uploads.') }}">
                             <i class="fa-fw fa-solid fa-camera me-2 text-info">
                             </i>
-                            Photos Tagged
+                            {{ __('admin.Photos Tagged') }}
                         </span>
                         <span class="fw-bold">
                             {{ $dashboard['engagement']['photo_activity'] }}
@@ -237,10 +237,10 @@
                     <h5 class="mb-0 fw-bold">
                         <i class="fa-fw fa-solid fa-trophy me-2 text-warning">
                         </i>
-                        Unit Performance Leaderboard
+                        {{ __('admin.Unit Performance Leaderboard') }}
                     </h5>
                     <small class="text-muted">
-                        Ranked by Funds Raised
+                        {{ __('admin.Ranked by Funds Raised') }}
                     </small>
                 </div>
                 <div class="table-responsive">
@@ -249,33 +249,33 @@
                             <tr>
                                 <th class="ps-4"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Primary Hosting Organization.">
-                                    Hosting Organization
+                                    data-bs-title="{{ __('admin.Primary Hosting Organization.') }}">
+                                    {{ __('admin.Hosting Organization') }}
                                 </th>
                                 <th class="text-center"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Successful 'Closed' status events hosted by this organization.">
-                                    Events
+                                    data-bs-title="{{ __('admin.Successful \'Closed\' status events hosted by this organization.') }}">
+                                    {{ __('admin.Events') }}
                                 </th>
                                 <th class="text-center"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Total Trooper count who 'Attended' events hosted by this organization (does not take into account costume worn).">
-                                    Troopers
+                                    data-bs-title="{{ __('admin.Total Trooper count who \'Attended\' events hosted by this organization (does not take into account costume worn).') }}">
+                                    {{ __('admin.Troopers') }}
                                 </th>
                                 <th class="text-end pe-4"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Total direct financial contribution attributed to this organization's efforts.">
-                                    Direct
+                                    data-bs-title="{{ __('admin.Total direct financial contribution attributed to this organization\'s efforts.') }}">
+                                    {{ __('admin.Direct') }}
                                 </th>
                                 <th class="text-end pe-4"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Total indirect financial contribution attributed to this organization's efforts.">
-                                    Indirect
+                                    data-bs-title="{{ __('admin.Total indirect financial contribution attributed to this organization\'s efforts.') }}">
+                                    {{ __('admin.Indirect') }}
                                 </th>
                                 <th class="text-end pe-4"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Total financial contribution attributed to this organization's efforts.">
-                                    Total
+                                    data-bs-title="{{ __('admin.Total financial contribution attributed to this organization\'s efforts.') }}">
+                                    {{ __('admin.Total') }}
                                 </th>
                             </tr>
                         </thead>

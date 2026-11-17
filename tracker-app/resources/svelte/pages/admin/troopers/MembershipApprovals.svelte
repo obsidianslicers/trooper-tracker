@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import PluginSlot from "$lib/components/PluginSlot.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
@@ -7,7 +8,7 @@
     import type { MembershipApprovalsPageData } from "./models";
     import { MembershipApprovalsViewModel } from "./models";
 
-    pageState.title = "Trooper Approvals";
+    pageState.title = t("Trooper Approvals");
 
     const page = usePage<MembershipApprovalsPageData>();
 

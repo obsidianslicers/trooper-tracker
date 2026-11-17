@@ -21,7 +21,7 @@ class ApproveTroopCreditController extends Controller
     ): RedirectResponse {
         ApproveTroopCredit::call(event_trooper: $event_trooper, organization_id: $organization->id);
 
-        FlashType::success("Approved {$organization->name} credit.");
+        FlashType::success(__('admin.Approved :organization credit.', ['organization' => $organization->name]));
 
         return redirect()->back();
     }

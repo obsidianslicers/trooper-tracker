@@ -42,7 +42,7 @@ class DenyTrooperRequestController extends Controller
             $request->validated('denial_reason'),
         );
 
-        FlashType::success('Trooper request denied successfully.');
+        FlashType::success(__('admin.Trooper request denied successfully.'));
 
         return Inertia::render('admin/troopers/MembershipApprovals');
     }

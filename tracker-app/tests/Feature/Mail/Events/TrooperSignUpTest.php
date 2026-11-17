@@ -33,7 +33,7 @@ class TrooperSignUpTest extends TestCase
         $mail = new TrooperSignUp($event_trooper);
         $content = $mail->content();
 
-        $this->assertSame('emails.events.trooper-signup', $content->view);
+        $this->assertSame('emails.en.events.trooper-signup', $content->view);
         $this->assertSame($event_trooper->trooper->id, $content->with['trooper']->id);
         $this->assertSame($event_trooper->event_shift->id, $content->with['event_shift']->id);
         $this->assertSame($event_trooper->event_shift->event->id, $content->with['event']->id);

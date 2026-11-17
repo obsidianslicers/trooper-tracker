@@ -1,3 +1,4 @@
+import { t } from "$lib/i18n";
 import type { Trooper } from "$lib/components/models/TrooperPickerViewModel.svelte";
 import { SubmitableViewModel, type Option } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
@@ -144,13 +145,13 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
     }
 
     get role_options(): Option[] {
-        const options: Option[] = [{ value: "", label: "No change" }];
+        const options: Option[] = [{ value: "", label: t("No change") }];
 
         const is_moderator = this.current_role === "moderator";
         const is_event_coordinator = this.current_role === "event_coordinator";
 
         if (!is_event_coordinator) {
-            options.push({ value: "event_coordinator", label: "Make event coordinator" });
+            options.push({ value: "event_coordinator", label: t("Make event coordinator") });
         }
 
         options.push({
@@ -159,7 +160,7 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
         });
 
         if (is_moderator || is_event_coordinator) {
-            options.push({ value: "member", label: "Set back to regular trooper" });
+            options.push({ value: "member", label: t("Set back to regular trooper") });
         }
 
         return options;

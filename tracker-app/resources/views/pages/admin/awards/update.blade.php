@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Update Award')
+@section('page-title', __('admin.Update Award'))
 
 @section('content')
 
@@ -17,7 +17,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Organization:
+                        {{ __('admin.Organization:') }}
                     </x-label>
                     <x-input-text :property="'organization_name'"
                                   :disabled="true"
@@ -26,7 +26,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Frequency:
+                        {{ __('admin.Frequency:') }}
                     </x-label>
                     <x-input-select :property="'false'"
                                     :disabled="true"
@@ -36,7 +36,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Name:
+                        {{ __('admin.Name:') }}
                     </x-label>
                     <x-input-text :property="'name'"
                                   :value="$award->name" />
@@ -44,7 +44,7 @@
 
                 <x-submit-container>
                     <x-submit-button>
-                        Update
+                        {{ __('admin.Update') }}
                     </x-submit-button>
                     <x-link-button-cancel :url="route('admin.awards.list')" />
                 </x-submit-container>

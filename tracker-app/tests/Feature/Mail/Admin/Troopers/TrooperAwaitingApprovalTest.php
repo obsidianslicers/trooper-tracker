@@ -25,7 +25,7 @@ class TrooperAwaitingApprovalTest extends TestCase
     {
         $mail = new TrooperAwaitingApproval;
 
-        $this->assertSame('emails.admin.troopers.awaiting-approval', $mail->content()->view);
+        $this->assertSame('emails.en.admin.troopers.awaiting-approval', $mail->content()->view);
         $this->assertSame([], $mail->attachments());
     }
 }

@@ -1,3 +1,4 @@
+import { t } from "$lib/i18n";
 import { ViewModel } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 
@@ -27,10 +28,10 @@ function createTrooperPickerOptions(
 ): TrooperPickerOptions {
     return {
         label: null,
-        placeholder: "Trooper",
-        button_label: "Pick Trooper",
-        modal_title: "Select Trooper",
-        search_placeholder: "Search troopers by name, TK ID, or email",
+        placeholder: t("Trooper"),
+        button_label: t("Pick Trooper"),
+        modal_title: t("Select Trooper"),
+        search_placeholder: t("Search troopers by name, TK ID, or email"),
         debounce_ms: 350,
         disabled: false,
         errors: [],

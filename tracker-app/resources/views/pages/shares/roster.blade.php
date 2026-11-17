@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Shared Event Roster')
+@section('page-title', __('shares.Shared Event Roster'))
 
 @section('content')
     @if ($share->is_viewable)

@@ -30,13 +30,15 @@ class PermissionRequestReviewedNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         $trooper = $this->permission_request->trooper->display_name;
-        $decision = $this->permission_request->status === PermissionRequestStatus::APPROVED
-            ? 'approved'
-            : 'denied';
+        $is_approved = $this->permission_request->status === PermissionRequestStatus::APPROVED;
 
         return [
-            'title' => 'Permission Request '.ucfirst($decision),
-            'body' => "Your permission request for {$trooper} was {$decision}.",
+            'title' => $is_approved
+                ? __('notifications.Permission Request Approved')
+                : __('notifications.Permission Request Denied'),
+            'body' => $is_approved
+                ? __('notifications.Your permission request for :trooper was approved.', ['trooper' => $trooper])
+                : __('notifications.Your permission request for :trooper was denied.', ['trooper' => $trooper]),
             'url' => '/admin/troopers/permissions',
         ];
     }

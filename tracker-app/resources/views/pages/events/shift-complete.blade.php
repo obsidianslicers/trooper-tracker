@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Event Shift Complete')
+@section('page-title', __('events.Event Shift Complete'))
 
 @section('content')
 

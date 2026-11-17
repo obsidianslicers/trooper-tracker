@@ -29,14 +29,14 @@ class TrooperDenied extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Registration Not Approved'
+            subject: config('mail.prefix').' '.__('emails.Registration Not Approved')
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.trooper-denied',
+            view: email_view('admin.troopers.trooper-denied'),
             with: [
                 'trooper' => $this->trooper,
                 'denial_reason' => $this->denial_reason,

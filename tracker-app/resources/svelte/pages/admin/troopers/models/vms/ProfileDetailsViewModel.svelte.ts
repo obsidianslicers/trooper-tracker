@@ -1,3 +1,4 @@
+import { t } from "$lib/i18n";
 import { SubmitableViewModel } from "$lib/domains/types.svelte";
 import { createPartialReloadOptions, getRoute } from "$lib/utils";
 import { router, useForm } from "@inertiajs/svelte";
@@ -20,24 +21,24 @@ export type ProfileAction = "void" | "unvoid" | "rip" | "unrip";
 
 const ACTION_PROMPTS: Record<ProfileAction, { title: string; message: string; label: string }> = {
     void: {
-        title: "Void trooper",
-        message: "Mark this trooper as created in error? They will not be able to log in.",
-        label: "Void",
+        title: t("Void trooper"),
+        message: t("Mark this trooper as created in error? They will not be able to log in."),
+        label: t("Void"),
     },
     unvoid: {
-        title: "Restore trooper",
-        message: "Restore this trooper so they can log in again?",
-        label: "Restore",
+        title: t("Restore trooper"),
+        message: t("Restore this trooper so they can log in again?"),
+        label: t("Restore"),
     },
     rip: {
-        title: "Mark R.I.P.",
-        message: "Mark this trooper as departed? Their service record will show a memorial tribute.",
-        label: "Mark R.I.P.",
+        title: t("Mark R.I.P."),
+        message: t("Mark this trooper as departed? Their service record will show a memorial tribute."),
+        label: t("Mark R.I.P."),
     },
     unrip: {
-        title: "Unmark R.I.P.",
-        message: "Remove the R.I.P. status from this trooper?",
-        label: "Unmark R.I.P.",
+        title: t("Unmark R.I.P."),
+        message: t("Remove the R.I.P. status from this trooper?"),
+        label: t("Unmark R.I.P."),
     },
 };
 

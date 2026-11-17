@@ -31,7 +31,7 @@ class TrooperMilestoneNotification extends BaseNotification
         $trooper_count = $troopers->count();
 
         return [
-            'title' => 'Daily Trooper Milestones',
+            'title' => __('notifications.Daily Trooper Milestones'),
             'body' => $this->summaryBody($troopers, $milestone_count),
             'url' => '/service-records/achievements',
             'trooper_count' => $trooper_count,
@@ -51,9 +51,14 @@ class TrooperMilestoneNotification extends BaseNotification
         $names = $troopers->pluck('display_name');
         $shown_names = $names->take(3)->implode(', ');
         $remaining = $names->count() - 3;
-        $name_summary = $remaining > 0 ? $shown_names.' and '.$remaining.' more' : $shown_names;
-        $milestone_word = $milestone_count === 1 ? 'milestone' : 'milestones';
+        $name_summary = $remaining > 0
+            ? __('notifications.:names and :remaining more', ['names' => $shown_names, 'remaining' => $remaining])
+            : $shown_names;
 
-        return $name_summary.' achieved '.$milestone_count.' '.$milestone_word.'.';
+        return trans_choice(
+            'notifications.:names achieved :count milestone.|:names achieved :count milestones.',
+            $milestone_count,
+            ['names' => $name_summary]
+        );
     }
 }

@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Events / Troops')
+@section('page-title', __('admin.Events / Troops'))
 
 @section('content')
 @php($organization_id = $organization->id ?? null)
@@ -16,7 +16,7 @@
             @endforeach
             <input type="text"
                    name="search_term"
-                   placeholder="Search Event Name (at least 3 chars)"
+                   placeholder="{{ __('admin.Search Event Name (at least 3 chars)') }}"
                    class="form-control rounded-start"
                    value="{{ $search_term }}" />
 
@@ -36,7 +36,7 @@
     <div class="col-sm-12 col-md-6 text-end">
 
         <x-button-group>
-            <x-button-group-link :label="'All'"
+            <x-button-group-link :label="__('admin.All')"
                                  :url="route('admin.events.list', qs(['status' => null]))"
                                  :active="$status === null" />
             @foreach($status_options as $value => $name)
@@ -54,20 +54,20 @@
         <tr>
             <th style="width: 36px;"></th>
             <th>
-                Name
+                {{ __('admin.Name') }}
             </th>
             <th>
-                Shifts
+                {{ __('admin.Shifts') }}
             </th>
             <th>
-                Organization
+                {{ __('admin.Organization') }}
             </th>
             <th>
-                Status
+                {{ __('admin.Status') }}
             </th>
             <th>
                 <x-link-button-create :url="route('admin.events.create', ['organization_id' => request('organization_id')])">
-                    Event
+                    {{ __('admin.Event') }}
                 </x-link-button-create>
             </th>
         </tr>

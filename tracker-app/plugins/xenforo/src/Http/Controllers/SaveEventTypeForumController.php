@@ -30,7 +30,7 @@ class SaveEventTypeForumController extends Controller
             EventTypeForum::ARCHIVE_FORUM_ID => $validated['xenforo_archive_forum_id'] ?? null,
         ]);
 
-        FlashType::success("Forums for \"{$event_type->name}\" saved.");
+        FlashType::success(__('xenforo::admin.Forums for ":type" saved.', ['type' => $event_type->name]));
 
         return redirect()->route('admin.event-types.update', compact('event_type'));
     }

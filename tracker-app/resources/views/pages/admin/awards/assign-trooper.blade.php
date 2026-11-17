@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Award Trooper')
+@section('page-title', __('admin.Award Trooper'))
 
 @section('content')
 
@@ -13,7 +13,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Award:
+                        {{ __('admin.Award:') }}
                     </x-label>
                     <x-input-text :property="'award_name'"
                                   :disabled="true"
@@ -22,7 +22,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Organization:
+                        {{ __('admin.Organization:') }}
                     </x-label>
                     <x-input-text :property="'organization_name'"
                                   :disabled="true"
@@ -31,7 +31,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Award Date:
+                        {{ __('admin.Award Date:') }}
                     </x-label>
                     <x-input-date :property="'award_date'"
                                   :value="$award_date->format('Y-m-d')" />
@@ -39,7 +39,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Trooper:
+                        {{ __('admin.Trooper:') }}
                     </x-label>
                     <x-input-picker :property="'trooper_id'"
                                     :route="'pickers.trooper'"
@@ -48,10 +48,10 @@
                                     :value="$award_trooper->trooper_id" />
                 </x-input-container>
 
-                <x-modal-picker :label="'Find a Trooper'" />
+                <x-modal-picker :label="__('admin.Find a Trooper')" />
 
                 <x-submit-container>
-                    <x-submit-button>Submit</x-submit-button>
+                    <x-submit-button>{{ __('admin.Submit') }}</x-submit-button>
                     <x-link-button-cancel :url="route('admin.awards.list-troopers', compact('award'))" />
                 </x-submit-container>
 

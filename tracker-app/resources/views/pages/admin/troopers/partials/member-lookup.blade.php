@@ -4,12 +4,12 @@
     <div class="alert alert-danger d-flex gap-2 align-items-start py-2 px-3 mt-2 mb-0 small">
         <i class="fa-solid fa-triangle-exclamation mt-1 flex-shrink-0"></i>
         <div>
-            <div class="fw-semibold">Duplicate identifier</div>
+            <div class="fw-semibold">{{ __('admin.Duplicate identifier') }}</div>
             <div>
                 <a href="{{ route('admin.troopers.profile', $duplicate) }}" target="_blank">
                     {{ $duplicate->display_name }}
                 </a>
-                already holds <strong>{{ $identifier }}</strong>.
+                {!! __('admin.already holds :identifier.', ['identifier' => '<strong>'.e($identifier).'</strong>']) !!}
             </div>
         </div>
     </div>
@@ -46,7 +46,7 @@
             <div class="text-muted">{{ $member['formatted_identifier'] }}{{ $member['unit_name'] ? ' &mdash; ' . $member['unit_name'] : '' }}</div>
             @if($member['profile_url'])
                 <a href="{{ $member['profile_url'] }}" target="_blank" rel="noopener noreferrer" class="small">
-                    View profile <i class="fa-solid fa-arrow-up-right-from-square fa-xs"></i>
+                    {{ __('admin.View profile') }} <i class="fa-solid fa-arrow-up-right-from-square fa-xs"></i>
                 </a>
             @endif
         </div>
@@ -55,9 +55,12 @@
     <div class="alert alert-warning d-flex gap-2 align-items-start py-2 px-3 mt-2 mb-0 small">
         <i class="fa-solid fa-circle-question mt-1 flex-shrink-0"></i>
         <div>
-            <span class="fw-semibold">Not found</span> &mdash;
-            No member with identifier <strong>{{ $identifier }}</strong>
-            @if($org_name) was found in {{ $org_name }}.@else was found.@endif
+            <span class="fw-semibold">{{ __('admin.Not found') }}</span> &mdash;
+            @if($org_name)
+                {!! __('admin.No member with identifier :identifier was found in :organization.', ['identifier' => '<strong>'.e($identifier).'</strong>', 'organization' => e($org_name)]) !!}
+            @else
+                {!! __('admin.No member with identifier :identifier was found.', ['identifier' => '<strong>'.e($identifier).'</strong>']) !!}
+            @endif
         </div>
     </div>
 @endif

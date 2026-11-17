@@ -19,8 +19,8 @@ class CreateController extends PageController
 {
     protected function initialized(): void
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('Awards', 'admin.awards.list');
+        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
+        $this->crumbs->addRoute(__('admin.Awards'), 'admin.awards.list');
     }
 
     /**

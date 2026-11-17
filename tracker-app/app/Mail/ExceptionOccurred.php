@@ -67,7 +67,7 @@ class ExceptionOccurred extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.exception-occurred',
+            view: email_view('exception-occurred'),
             with: [
                 'trooper' => $this->trooper,
                 'exception' => $this->exception,

@@ -41,7 +41,7 @@ class SyncThreadWatch
 
         if ($status < 200 || $status >= 300)
         {
-            FlashType::danger('Unable to update your forum thread subscription. Please try again.');
+            FlashType::danger(__('xenforo::events.Unable to update your forum thread subscription. Please try again.'));
 
             return false;
         }

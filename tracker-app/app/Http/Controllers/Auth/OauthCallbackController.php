@@ -181,12 +181,14 @@ class OauthCallbackController extends PageController
 
     private function missingEmail(LoginProvider $login_provider): RedirectResponse
     {
-        $message = "Your {$login_provider->name()} account did not provide an email address. "
-            .'Please contact an administrator.';
+        $message = __(
+            'auth.Your :provider account did not provide an email address. Please contact an administrator.',
+            ['provider' => $login_provider->name()]
+        );
 
         if ($this->providers->required() === null)
         {
-            $message .= ' Or log in with email/password.';
+            $message .= ' '.__('auth.Or log in with email/password.');
         }
 
         return redirect()

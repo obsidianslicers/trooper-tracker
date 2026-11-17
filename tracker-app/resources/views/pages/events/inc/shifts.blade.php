@@ -47,4 +47,4 @@
 @include('pages.events.inc.broadcast-message', compact('event', 'can_moderate'))
 
 <x-modal-picker :id="'modal-trooper'"
-                :label="'Find a Trooper'" />
+                :label="__('events.Find a Trooper')" />

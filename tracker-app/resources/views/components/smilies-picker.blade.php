@@ -10,7 +10,7 @@
             class="btn btn-sm btn-outline-secondary"
             x-on:click="open = !open">
         <i class="far fa-smile me-1"></i>
-        Smilies
+        {{ __('components.Smilies') }}
         <i class="fas fa-chevron-down ms-1 fa-xs" x-bind:class="open ? 'fa-rotate-180' : ''"></i>
     </button>
     @endif

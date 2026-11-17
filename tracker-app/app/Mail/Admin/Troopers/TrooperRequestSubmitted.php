@@ -29,14 +29,14 @@ class TrooperRequestSubmitted extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Club Join Request Submitted'
+            subject: config('mail.prefix').' '.__('emails.Club Join Request Submitted')
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.trooper-request-submitted',
+            view: email_view('admin.troopers.trooper-request-submitted'),
             with: [
                 'trooper_request' => $this->trooper_request,
                 'organization' => $this->trooper_request->organization,

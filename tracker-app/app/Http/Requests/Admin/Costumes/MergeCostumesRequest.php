@@ -44,11 +44,11 @@ class MergeCostumesRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'source_costume_id.required' => 'Duplicate costume is required.',
-            'source_costume_id.exists' => 'The selected duplicate costume does not exist or cannot be merged.',
-            'target_costume_id.required' => 'Costume to keep is required.',
-            'target_costume_id.different' => 'Costume to keep must be different from the duplicate.',
-            'target_costume_id.exists' => 'The selected costume to keep does not exist.',
+            'source_costume_id.required' => __('admin.Duplicate costume is required.'),
+            'source_costume_id.exists' => __('admin.The selected duplicate costume does not exist or cannot be merged.'),
+            'target_costume_id.required' => __('admin.Costume to keep is required.'),
+            'target_costume_id.different' => __('admin.Costume to keep must be different from the duplicate.'),
+            'target_costume_id.exists' => __('admin.The selected costume to keep does not exist.'),
         ];
     }
 }

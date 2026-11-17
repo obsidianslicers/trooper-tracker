@@ -5,14 +5,14 @@
         <a href="{{ request()->fullUrlWithoutQuery('days') }}"
            class="btn btn-outline-dark text-uppercase small fw-bold
                   {{ $days === null ? 'active' : '' }}">
-            All Time
+            {{ __('components.All Time') }}
         </a>
     @endif
     @foreach([30, 60, 90, 180, 360] as $interval)
         <a href="{{ request()->fullUrlWithQuery(['days' => $interval]) }}"
            class="btn btn-outline-dark text-uppercase small fw-bold
                   {{ $days == $interval ? 'active' : '' }}">
-            {{ $interval }}D
+            {{ __('components.:daysD', ['days' => $interval]) }}
         </a>
     @endforeach
 </div>

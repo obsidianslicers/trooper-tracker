@@ -62,11 +62,11 @@ class RequestPermissionsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'trooper_id.required' => 'Pick the trooper this request is for.',
-            'trooper_id.not_in' => 'You cannot request permission changes for yourself.',
-            'trooper_id.exists' => 'The selected trooper does not exist (or is not active).',
-            'moderated_organization_ids.required_if' => 'Pick an organization to moderate.',
-            'moderated_organization_ids.*.in' => 'You can only pick organizations you moderate.',
+            'trooper_id.required' => __('admin.Pick the trooper this request is for.'),
+            'trooper_id.not_in' => __('admin.You cannot request permission changes for yourself.'),
+            'trooper_id.exists' => __('admin.The selected trooper does not exist (or is not active).'),
+            'moderated_organization_ids.required_if' => __('admin.Pick an organization to moderate.'),
+            'moderated_organization_ids.*.in' => __('admin.You can only pick organizations you moderate.'),
         ];
     }
 
@@ -101,7 +101,7 @@ class RequestPermissionsRequest extends FormRequest
             return;
         }
 
-        $validator->errors()->add('membership_role', 'Choose a change to request.');
+        $validator->errors()->add('membership_role', __('admin.Choose a change to request.'));
     }
 
     private function validateRoleChange(Validator $validator): void
@@ -117,18 +117,18 @@ class RequestPermissionsRequest extends FormRequest
         {
             $validator->errors()->add(
                 'membership_role',
-                'System owner and staff officer roles cannot be changed.'
+                __('admin.System owner and staff officer roles cannot be changed.')
             );
         }
         elseif ($this->input('membership_role') === MembershipRole::MEMBER->value
             && !in_array($trooper->membership_role, [MembershipRole::MODERATOR, MembershipRole::EVENT_COORDINATOR], true))
         {
-            $validator->errors()->add('membership_role', 'This trooper is not a moderator or event coordinator.');
+            $validator->errors()->add('membership_role', __('admin.This trooper is not a moderator or event coordinator.'));
         }
         elseif ($this->input('membership_role') === MembershipRole::EVENT_COORDINATOR->value
             && $trooper->membership_role === MembershipRole::EVENT_COORDINATOR)
         {
-            $validator->errors()->add('membership_role', 'This trooper is already an event coordinator.');
+            $validator->errors()->add('membership_role', __('admin.This trooper is already an event coordinator.'));
         }
     }
 
@@ -156,7 +156,7 @@ class RequestPermissionsRequest extends FormRequest
         {
             $validator->errors()->add(
                 'moderated_organization_ids',
-                'Change at least one organization.'
+                __('admin.Change at least one organization.')
             );
         }
     }

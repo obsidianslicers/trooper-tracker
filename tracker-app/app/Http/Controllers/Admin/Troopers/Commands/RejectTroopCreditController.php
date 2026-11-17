@@ -21,7 +21,7 @@ class RejectTroopCreditController extends Controller
     ): RedirectResponse {
         RejectTroopCredit::call(event_trooper: $event_trooper, organization_id: $organization->id);
 
-        FlashType::success("Removed {$organization->name} credit.");
+        FlashType::success(__('admin.Removed :organization credit.', ['organization' => $organization->name]));
 
         return redirect()->back();
     }

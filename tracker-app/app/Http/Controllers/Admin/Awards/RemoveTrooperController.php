@@ -40,7 +40,7 @@ class RemoveTrooperController extends PageController
 
             AwardRevoked::dispatch($award_trooper);
 
-            FlashType::success('Removed award from '.$trooper_name);
+            FlashType::success(__('admin.Removed award from :name', ['name' => $trooper_name]));
         }
 
         return redirect()->route('admin.awards.list-troopers', $award);

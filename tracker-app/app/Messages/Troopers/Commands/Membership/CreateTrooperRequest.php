@@ -42,7 +42,11 @@ final class CreateTrooperRequest extends Message
         {
             $label = $this->organization->identifier_display ?? 'identifier';
 
-            $msg = "{$this->organization->name} {$label} {$this->identifier} is already assigned to another trooper.";
+            $msg = __('account.:organization :label :identifier is already assigned to another trooper.', [
+                'organization' => $this->organization->name,
+                'label' => $label,
+                'identifier' => $this->identifier,
+            ]);
 
             //  both organizations & organization_id are used in the validation error
             //  display, so we need to set both dpending on whether registration or

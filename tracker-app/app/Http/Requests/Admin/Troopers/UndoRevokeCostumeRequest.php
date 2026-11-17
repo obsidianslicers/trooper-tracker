@@ -29,7 +29,7 @@ class UndoRevokeCostumeRequest extends FormRequest
                 {
                     if (!$value->isRevoked())
                     {
-                        $fail('This costume has not been revoked.');
+                        $fail(__('admin.This costume has not been revoked.'));
                     }
                 },
             ],

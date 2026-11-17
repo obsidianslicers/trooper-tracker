@@ -31,12 +31,12 @@ class PendingTrooperMembership implements ValidationRule
         {
             if ($trooper->membership_status !== MembershipStatus::PENDING)
             {
-                $fail('The trooper must have a pending membership status.');
+                $fail(__('admin.The trooper must have a pending membership status.'));
             }
         }
         else
         {
-            $fail('The specified trooper could not be found.');
+            $fail(__('admin.The specified trooper could not be found.'));
         }
     }
 }

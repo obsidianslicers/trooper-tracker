@@ -29,14 +29,14 @@ class TrooperRequestApproved extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Join Request Approved — '.$this->trooper_request->organization->name
+            subject: config('mail.prefix').' '.__('emails.Join Request Approved — :organization', ['organization' => $this->trooper_request->organization->name])
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.trooper-request-approved',
+            view: email_view('admin.troopers.trooper-request-approved'),
             with: [
                 'trooper' => $this->trooper_request->trooper,
                 'organization' => $this->trooper_request->organization,

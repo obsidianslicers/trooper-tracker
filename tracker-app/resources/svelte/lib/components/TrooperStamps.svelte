@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { getRoute } from "$lib/utils";
 
     interface Props {
@@ -20,7 +21,7 @@
 
 {#snippet who(id: number, name: string, at: string)}
     {#if name}
-        by
+        {t("by")}
         <a href={getRoute("admin.troopers.profile", { trooper: id })}>
             {name}
         </a>
@@ -34,7 +35,7 @@
         <div class="col-12 text-end">
             {#if trooper_stamps.deleted_at}
                 <span class="text-muted">
-                    soft deleted
+                    {t("soft deleted")}
                     {@render who(
                         trooper_stamps.deleted_id,
                         trooper_stamps.deleted_by,
@@ -43,7 +44,7 @@
                 </span>
             {:else if trooper_stamps.created_at == trooper_stamps.updated_at}
                 <span class="text-muted">
-                    created
+                    {t("created")}
                     {@render who(
                         trooper_stamps.created_id,
                         trooper_stamps.created_by,
@@ -52,7 +53,7 @@
                 </span>
             {:else}
                 <span class="text-muted">
-                    updated
+                    {t("updated")}
                     {@render who(
                         trooper_stamps.updated_id,
                         trooper_stamps.updated_by,

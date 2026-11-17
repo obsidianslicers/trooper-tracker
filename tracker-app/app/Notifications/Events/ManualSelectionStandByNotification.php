@@ -30,7 +30,7 @@ class ManualSelectionStandByNotification extends BaseNotification
         $event = $this->event_trooper->event_shift->event;
 
         return [
-            'title' => 'Moved to Stand By',
+            'title' => __('notifications.Moved to Stand By'),
             'body' => $event->name,
             'url' => '/events/details/'.$event->id,
         ];

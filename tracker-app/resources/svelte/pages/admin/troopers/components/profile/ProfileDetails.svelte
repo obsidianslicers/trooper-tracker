@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
     import InputCheckbox from "$lib/components/form/InputCheckbox.svelte";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
@@ -31,68 +32,68 @@
 
 <SlimView>
     {#if details.is_invalid}
-        <Alert type="danger">This trooper was created in error (invalid).</Alert
+        <Alert type="danger">{t("This trooper was created in error (invalid).")}</Alert
         >
     {/if}
     {#if details.can_unvoid}
         <Button
-            label="Restore"
+            label={t("Restore")}
             click={() => vm.action("unvoid")}
             btnclass="btn-secondary"
         />
     {/if}
     {#if details.is_departed}
-        <Alert type="secondary">This trooper is departed (R.I.P.).</Alert>
+        <Alert type="secondary">{t("This trooper is departed (R.I.P.).")}</Alert>
     {/if}
     {#if details.can_unmark_rip}
         <Button
-            label="Unmark R.I.P."
+            label={t("Unmark R.I.P.")}
             click={() => vm.action("unrip")}
             btnclass="btn-secondary"
         />
     {/if}
     {#if details.is_untrusted}
-        <Alert type="warning">Untrusted: {details.untrusted_reason}</Alert>
+        <Alert type="warning">{t("Untrusted: :reason", { reason: details.untrusted_reason ?? "" })}</Alert>
     {/if}
 
     <form onsubmit={vm.submit}>
         <InputContainer>
             <InputText
-                label="Legal Name"
+                label={t("Legal Name")}
                 bind:value={vm.form.legal_name}
                 errors={vm.errors.legal_name}
             />
         </InputContainer>
         <InputContainer>
             <InputText
-                label="Display Name"
+                label={t("Display Name")}
                 bind:value={vm.form.display_name}
                 errors={vm.errors.display_name}
             />
         </InputContainer>
         <InputContainer>
             <InputText
-                label="Email"
+                label={t("Email")}
                 bind:value={vm.form.email}
                 errors={vm.errors.email}
             />
         </InputContainer>
         <InputContainer>
             <InputText
-                label="Phone"
+                label={t("Phone")}
                 bind:value={vm.form.phone}
                 errors={vm.errors.phone}
             />
         </InputContainer>
         <InputContainer>
             <InputSelect
-                label="Status"
+                label={t("Status")}
                 options={details.membership_status_options}
                 bind:value={vm.form.membership_status}
                 errors={vm.errors.membership_status}
             />
         </InputContainer>
-        <p class="text-muted">Last active: {details.last_active_at}</p>
+        <p class="text-muted">{t("Last active: :date", { date: details.last_active_at ?? "" })}</p>
         <SubmitButtonContainer>
             <span class="float-start">
                 <a
@@ -101,20 +102,20 @@
                     })}
                     class="btn btn-outline-info mb-2"
                 >
-                    Service Record
+                    {t("Service Record")}
                 </a>
             </span>
-            <SubmitButton label="Update" submitting={vm.submitting} />
+            <SubmitButton label={t("Update")} submitting={vm.submitting} />
         </SubmitButtonContainer>
     </form>
 
     <hr />
 
     {#if details.can_mark_untrusted}
-        <h5 class="mt-4">Trust Issues</h5>
+        <h5 class="mt-4">{t("Trust Issues")}</h5>
         {#if details.is_untrusted}
             <Button
-                label="Clear Untrusted"
+                label={t("Clear Untrusted")}
                 click={vm.clearUntrusted}
                 btnclass="btn-secondary"
             />
@@ -122,20 +123,20 @@
             <form onsubmit={vm.markUntrusted}>
                 <InputContainer>
                     <InputText
-                        label="Reason"
+                        label={t("Reason")}
                         bind:value={vm.untrusted.untrusted_reason}
                         errors={vm.untrusted.errors.untrusted_reason}
                     />
                 </InputContainer>
                 <InputContainer>
                     <InputCheckbox
-                        label="Review costumes"
+                        label={t("Review costumes")}
                         bind:checked={vm.untrusted.review_costumes}
                     />
                 </InputContainer>
                 <SubmitButtonContainer>
                     <SubmitButton
-                        label="Mark Untrusted"
+                        label={t("Mark Untrusted")}
                         danger={true}
                         submitting={vm.untrusted.processing}
                     />
@@ -149,7 +150,7 @@
         <div class="row mb-3">
             <div class="col text-end">
                 <Button
-                    label="Mark R.I.P."
+                    label={t("Mark R.I.P.")}
                     click={() => vm.action("rip")}
                     btnclass="btn-outline-secondary"
                 />
@@ -160,7 +161,7 @@
         <div class="row mb-3">
             <div class="col text-end">
                 <Button
-                    label="Void (created in error)"
+                    label={t("Void (created in error)")}
                     click={() => vm.action("void")}
                     btnclass="btn-outline-danger"
                 />

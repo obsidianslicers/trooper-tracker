@@ -46,7 +46,7 @@ class HolonetServiceProvider extends PluginServiceProvider
         $this->addToSlot('account.profile.sections', 'holonet::account-link');
 
         $this->addSystemCheck(
-            'Linked trackers: this tracker is on the list',
+            'holonet::plugin.Linked trackers: this tracker is on the list',
             fn (): bool => $this->app->make(TrackerDirectory::class)->listsThisTracker(),
         );
     }

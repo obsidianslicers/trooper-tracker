@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Plugins;
 
 use App\Enums\PluginCapability;
+use Illuminate\Support\Facades\Lang;
 use InvalidArgumentException;
 
 /**
@@ -68,6 +69,17 @@ final readonly class PluginManifest
         $composer = json_decode((string) file_get_contents($file), true);
 
         return is_array($composer) ? $composer : [];
+    }
+
+    /**
+     * Plugin text from plugin.json (description, setting labels and help) in the current
+     * language, from the plugin's lang/<locale>/plugin.php when it has the line.
+     */
+    public function translate(string $text): string
+    {
+        $key = "{$this->slug}::plugin.{$text}";
+
+        return $text !== '' && Lang::has($key) ? (string) __($key) : $text;
     }
 
     public function can(PluginCapability $capability): bool

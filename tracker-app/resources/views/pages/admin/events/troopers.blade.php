@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Event Roster')
+@section('page-title', __('admin.Event Roster'))
 
 @section('content')
 
@@ -23,7 +23,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Event:
+                        {{ __('admin.Event:') }}
                     </x-label>
                     <x-input-text :property="'event_name'"
                                   :disabled="true"
@@ -32,7 +32,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Event Status:
+                        {{ __('admin.Event Status:') }}
                     </x-label>
                     <x-input-text :property="'event_status'"
                                   :disabled="true"
@@ -41,7 +41,7 @@
 
                 @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
                     <x-message>
-                        Manual Selection Event: all signups begin as Stand By and require Command Staff approval to move to Going.
+                        {{ __('admin.Manual Selection Event: all signups begin as Stand By and require Command Staff approval to move to Going.') }}
                     </x-message>
                 @endif
 
@@ -49,28 +49,28 @@
                     <thead>
                         <tr>
                             <th>
-                                Trooper Name
+                                {{ __('admin.Trooper Name') }}
                             </th>
                             <th>
-                                Costume
+                                {{ __('admin.Costume') }}
                             </th>
                             <th>
-                                Status
+                                {{ __('admin.Status') }}
                             </th>
                             @if($has_station_shifts)
                                 <th>
-                                    Station
+                                    {{ __('admin.Station') }}
                                 </th>
                             @endif
                             <th>
-                                Credited Org
+                                {{ __('admin.Credited Org') }}
                             </th>
                             @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
                                 <th>
-                                    Approved By
+                                    {{ __('admin.Approved By') }}
                                 </th>
                                 <th>
-                                    Approved At
+                                    {{ __('admin.Approved At') }}
                                 </th>
                             @endif
                             <th></th>
@@ -101,7 +101,7 @@
                                     <x-input-select :property="'troopers.' . $event_trooper->id . '.costume_id'"
                                                     :options="$event_trooper->costume_options"
                                                     :value="$event_trooper->costume_id"
-                                                    :placeholder="'-- No Costume --'"
+                                                    :placeholder="__('admin.-- No Costume --')"
                                                     class="form-select-sm"
                                                     hx-get="{{ route('admin.events.troopers.org-options', compact('event', 'event_trooper')) }}"
                                                     hx-vals="js:{costume_id: this.value}"
@@ -126,7 +126,7 @@
                                             <x-input-select :property="'troopers.' . $event_trooper->id . '.event_shift_station_id'"
                                                             :options="$event_shift->event_shift_stations->pluck('name', 'id')->toArray()"
                                                             :value="$event_trooper->event_shift_station_id"
-                                                            :placeholder="'-- Select Station --'"
+                                                            :placeholder="__('admin.-- Select Station --')"
                                                             class="form-select-sm" />
                                         @else
                                             <span class="text-muted">-</span>
@@ -164,7 +164,7 @@
                                                 hx-post="{{ route('admin.events.troopers.remove', compact('event', 'event_trooper')) }}"
                                                 hx-confirm="Remove {{ $event_trooper->trooper->display_name }} from the roster?"
                                                 hx-trigger="click"
-                                                title="Remove from roster">
+                                                title="{{ __('admin.Remove from roster') }}">
                                             <i class="fa fw fa-times"></i>
                                         </button>
                                     @endif
@@ -172,7 +172,7 @@
                             </tr>
                         @empty
                             <x-table-empty :colspan="$trooper_colspan">
-                                No troopers assigned to this shift.
+                                {{ __('admin.No troopers assigned to this shift.') }}
                             </x-table-empty>
                         @endforelse
 
@@ -180,7 +180,7 @@
                             <tr>
                                 <td colspan="{{ $trooper_colspan }}"
                                     class="ps-4 text-muted small">
-                                    Guests
+                                    {{ __('admin.Guests') }}
                                 </td>
                             </tr>
                         @endif
@@ -191,13 +191,13 @@
                                     @if($event_guest->added_by_trooper)
                                         <br />
                                         <i class="small text-muted">
-                                            Added by {{ $event_guest->added_by_trooper->display_name }}
+                                            {{ __('admin.Added by :name', ['name' => $event_guest->added_by_trooper->display_name]) }}
                                         </i>
                                     @endif
                                 </td>
                                 <td>
                                     <i class="small text-muted">
-                                        Guest
+                                        {{ __('admin.Guest') }}
                                     </i>
                                 </td>
                                 <td>
@@ -245,7 +245,7 @@
                                             data-bs-toggle="modal"
                                             data-bs-target="#modal-trooper">
                                         <i class="fa fa-fw fa-plus-circle me-1"></i>
-                                        Add Trooper
+                                        {{ __('admin.Add Trooper') }}
                                     </button>
                                     <div id="admin-add-step2-{{ $event_shift->id }}"></div>
                                     <div class="d-none"
@@ -261,7 +261,7 @@
                     @endforeach
                 </x-table>
 
-                <x-modal-picker :id="'modal-trooper'" :label="'Find a Trooper'" />
+                <x-modal-picker :id="'modal-trooper'" :label="__('admin.Find a Trooper')" />
 
                 {{-- Must stay the last named field: PHP drops input past max_input_vars. --}}
                 <input type="hidden"
@@ -270,7 +270,7 @@
 
                 <x-submit-container>
                     @if(Auth::user()->is_administrator || Auth::user()->isModeratorForOrganization($event->organization))
-                        <x-submit-button>Update</x-submit-button>
+                        <x-submit-button>{{ __('admin.Update') }}</x-submit-button>
                     @endif
                     <x-link-button-cancel :url="route('admin.events.troopers', compact('event'))" />
                 </x-submit-container>
