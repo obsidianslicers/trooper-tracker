@@ -6,17 +6,15 @@
 
     <x-table class="caption-top">
         <caption>
-            Troopers who {{ \App\Enums\EventTrooperStatus::ATTENDED->name }} an event where
-            their status was updated by someone other than the trooper in action for
-            the last {{ $lookback }} days.
+            {{ __('admin.Troopers who :attended an event where their status was updated by someone other than the trooper in action for the last :days days.', ['attended' => \App\Enums\EventTrooperStatus::ATTENDED->label(), 'days' => $lookback]) }}
         </caption>
         <thead>
             <tr>
-                <th scope="col">Date/Time</th>
-                <th scope="col">Event</th>
-                <th scope="col">Shift</th>
-                <th scope="col">Trooper</th>
-                <th scope="col">Updated By</th>
+                <th scope="col">{{ __('admin.Date/Time') }}</th>
+                <th scope="col">{{ __('admin.Event') }}</th>
+                <th scope="col">{{ __('admin.Shift') }}</th>
+                <th scope="col">{{ __('admin.Trooper') }}</th>
+                <th scope="col">{{ __('admin.Updated By') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -44,7 +42,7 @@
                 </tr>
             @empty
                 <x-table-empty :colspan="5">
-                    No status changes found that were updated by anyone but the trooper.
+                    {{ __('admin.No status changes found that were updated by anyone but the trooper.') }}
                 </x-table-empty>
             @endforelse
         </tbody>

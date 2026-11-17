@@ -19,8 +19,10 @@ class DeleteSubmitController extends Controller
 
         if ($request->user()->cannot('delete', $event_type))
         {
-            FlashType::danger("\"{$event_type->name}\" is used by past events, so it can't be deleted. "
-                .'Uncheck "Offered on the event form" to hide it instead.');
+            FlashType::danger(__(
+                'admin.":name" is used by past events, so it can\'t be deleted. Uncheck "Offered on the event form" to hide it instead.',
+                ['name' => $event_type->name]
+            ));
 
             return redirect()->back();
         }

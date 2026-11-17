@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputDate from "$lib/components/form/InputDate.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
@@ -24,20 +25,20 @@
     <form onsubmit={vm.submit}>
         <InputContainer>
             <InputDate
-                label="Date of Birth"
+                label={t("Date of Birth")}
                 bind:value={vm.form.date_of_birth}
                 errors={vm.errors.date_of_birth}
             />
         </InputContainer>
         <InputContainer>
             <InputText
-                label="Guardian Email"
+                label={t("Guardian Email")}
                 bind:value={vm.form.guardian_email}
                 errors={vm.errors.guardian_email}
             />
         </InputContainer>
         <SubmitButtonContainer>
-            <SubmitButton label="Update Guardian" submitting={vm.submitting} />
+            <SubmitButton label={t("Update Guardian")} submitting={vm.submitting} />
         </SubmitButtonContainer>
     </form>
 </SlimView>

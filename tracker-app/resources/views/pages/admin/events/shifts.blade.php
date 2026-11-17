@@ -17,7 +17,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Event:
+                        {{ __('admin.Event:') }}
                     </x-label>
                     <x-input-text :property="'event_name'"
                                   :disabled="true"
@@ -26,7 +26,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Event Status:
+                        {{ __('admin.Event Status:') }}
                     </x-label>
                     <x-input-text :property="'event_status'"
                                   :disabled="true"
@@ -37,10 +37,10 @@
                     <thead>
                         <tr>
                             <th></th>
-                            <th>Date</th>
-                            <th>Starts At</th>
-                            <th>Ends At</th>
-                            <th>Status</th>
+                            <th>{{ __('admin.Date') }}</th>
+                            <th>{{ __('admin.Starts At') }}</th>
+                            <th>{{ __('admin.Ends At') }}</th>
+                            <th>{{ __('admin.Status') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -84,7 +84,7 @@
                                                 aria-expanded="false"
                                                 onclick="toggleStationEditor({{ $shift->id }}, true)">
                                             <i class="fa fa-fw fa-plus me-1"></i>
-                                            Stations
+                                            {{ __('admin.Stations') }}
                                         </button>
                                     @endif
                                 </td>
@@ -99,11 +99,11 @@
                                                         <i class="fa fa-fw fa-map-marker"></i>
                                                     </span>
                                                     <div>
-                                                        <div class="fw-semibold">Stations</div>
+                                                        <div class="fw-semibold">{{ __('admin.Stations') }}</div>
                                                     @if($hasStationRows)
                                                             <div class="text-muted small mt-1">
                                                                 <i class="fa fa-fw fa-grip-vertical me-1"></i>
-                                                                Drag stations to change their display order.
+                                                                {{ __('admin.Drag stations to change their display order.') }}
                                                             </div>
                                                     @endif
                                                     </div>
@@ -113,7 +113,7 @@
                                                             class="btn btn-sm btn-outline-success flex-shrink-0"
                                                             onclick="addStationRow({{ $shift->id }})">
                                                         <i class="fa fa-fw fa-plus me-1"></i>
-                                                        Add Station
+                                                        {{ __('admin.Add Station') }}
                                                     </button>
                                                 @endif
                                             </div>
@@ -122,18 +122,18 @@
                                                  data-reorder-url="{{ route('admin.events.shifts.stations.reorder', ['event' => $event, 'event_shift' => $shift]) }}">
                                                     @foreach($shift->event_shift_stations->sortBy([['sequence', 'asc'], ['name', 'asc']]) as $station)
                                                         <div data-id="{{ $station->id }}" class="station-item">
-                                                            <button type="button" class="station-drag-handle" title="Drag to reorder" aria-label="Drag to reorder">
+                                                            <button type="button" class="station-drag-handle" title="{{ __('admin.Drag to reorder') }}" aria-label="{{ __('admin.Drag to reorder') }}">
                                                                 <i class="fa fa-fw fa-grip-vertical"></i>
                                                             </button>
                                                             <div class="station-field station-field--name">
-                                                                <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $station->id }}.name">Station name</label>
+                                                                <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $station->id }}.name">{{ __('admin.Station name') }}</label>
                                                                 <x-input-text :property="'shifts.' . $shift->id . '.stations.' . $station->id . '.name'"
                                                                               :value="$station->name"
                                                                               :disabled="!$event->is_active"
                                                                               class="form-control-sm" />
                                                             </div>
                                                             <div class="station-field station-field--capacity">
-                                                                <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $station->id }}.troopers_allowed">Capacity</label>
+                                                                <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $station->id }}.troopers_allowed">{{ __('admin.Capacity') }}</label>
                                                                 <x-input-text :property="'shifts.' . $shift->id . '.stations.' . $station->id . '.troopers_allowed'"
                                                                               :value="$station->troopers_allowed"
                                                                               :disabled="!$event->is_active"
@@ -146,9 +146,9 @@
                                                                             hx-post="{{ route('admin.events.shifts.stations.remove', ['event' => $event, 'event_shift' => $shift, 'event_shift_station' => $station]) }}"
                                                                             hx-confirm="Remove station {{ $station->name }}?"
                                                                             hx-trigger="click"
-                                                                            title="Remove station">
+                                                                            title="{{ __('admin.Remove station') }}">
                                                                         <i class="fa fa-fw fa-trash"></i>
-                                                                        <span class="visually-hidden">Remove {{ $station->name }}</span>
+                                                                        <span class="visually-hidden">{{ __('admin.Remove :station', ['station' => $station->name]) }}</span>
                                                                     </button>
                                                                 @endif
                                                             </div>
@@ -160,13 +160,13 @@
                                                                 <div class="station-item">
                                                                     <span class="station-drag-placeholder"></span>
                                                                     <div class="station-field station-field--name">
-                                                                        <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $key }}.name">Station name</label>
+                                                                        <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $key }}.name">{{ __('admin.Station name') }}</label>
                                                                         <x-input-text :property="'shifts.' . $shift->id . '.stations.' . $key . '.name'"
                                                                                       :value="$data['name'] ?? ''"
                                                                                       class="form-control-sm" />
                                                                     </div>
                                                                     <div class="station-field station-field--capacity">
-                                                                        <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $key }}.troopers_allowed">Capacity</label>
+                                                                        <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $key }}.troopers_allowed">{{ __('admin.Capacity') }}</label>
                                                                         <x-input-text :property="'shifts.' . $shift->id . '.stations.' . $key . '.troopers_allowed'"
                                                                                      :value="$data['troopers_allowed'] ?? ''"
                                                                                      class="form-control-sm" />
@@ -175,9 +175,9 @@
                                                                         <button type="button"
                                                                                 class="btn btn-sm btn-outline-danger station-remove"
                                                                                 onclick="this.closest('.station-item').remove()"
-                                                                                title="Remove station">
+                                                                                title="{{ __('admin.Remove station') }}">
                                                                             <i class="fa fa-fw fa-trash"></i>
-                                                                            <span class="visually-hidden">Remove station</span>
+                                                                            <span class="visually-hidden">{{ __('admin.Remove station') }}</span>
                                                                         </button>
                                                                     </div>
                                                                 </div>
@@ -226,7 +226,7 @@
                                             class="btn btn-sm btn-outline-success"
                                             onclick="addShiftRow('#shifts')">
                                         <i class="fa fa-fw fa-plus"></i>
-                                        Add Shift
+                                        {{ __('admin.Add Shift') }}
                                     </button>
                                 </td>
                             </tr>
@@ -236,7 +236,7 @@
 
                 @if($event->is_active)
                     <x-submit-container>
-                        <x-submit-button>Update</x-submit-button>
+                        <x-submit-button>{{ __('admin.Update') }}</x-submit-button>
                         <x-link-button-cancel :url="route('admin.events.shifts', compact('event'))" />
                     </x-submit-container>
                 @endif

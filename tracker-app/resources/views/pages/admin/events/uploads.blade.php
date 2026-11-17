@@ -40,7 +40,7 @@
                    accept=".jpg,.jpeg,.png,.webp,.heic,.heif" />
             <div id="upload-label"
                  class="text-muted">
-                Drag & drop JPG, PNG, WEBP, or HEIC images here, or click to upload
+                {{ __('admin.Drag & drop JPG, PNG, WEBP, or HEIC images here, or click to upload') }}
             </div>
         </div>
 

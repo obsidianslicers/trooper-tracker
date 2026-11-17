@@ -37,7 +37,7 @@
 
       <x-submit-container>
         <x-submit-button>
-          Save
+          {{ __('admin.Save') }}
         </x-submit-button>
         <x-link-button-cancel :url="route('admin.plugins.list')" />
       </x-submit-container>

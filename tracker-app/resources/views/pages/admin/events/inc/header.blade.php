@@ -1,5 +1,5 @@
 <x-input-container>
-    <x-label>Name:</x-label>
+    <x-label>{{ __('admin.Name:') }}</x-label>
     <x-input-text :property="'name'"
                   :value="$event->name"
                   x-model.fill="form.name" />
@@ -8,7 +8,7 @@
 <x-input-container>
     {{-- x-data sits on a plain element: Blade doesn't compile @js inside a component tag's attributes. --}}
     <div x-data="{ event_type: @js((string) old('event_type_id', $event->event_type_id)), help: @js($event_type_help) }">
-        <x-label for="event_type_id">Event Type:</x-label>
+        <x-label for="event_type_id">{{ __('admin.Event Type:') }}</x-label>
         <x-input-select :property="'event_type_id'"
                         :options="$event_type_options"
                         :value="$event->event_type_id"
@@ -29,7 +29,7 @@
 </x-input-container>
 
 <x-input-container>
-    <x-label>Status:</x-label>
+    <x-label>{{ __('admin.Status:') }}</x-label>
     <x-input-select :property="'status'"
                     :options="\App\Enums\EventStatus::toArray()"
                     :value="$event->status->value" />

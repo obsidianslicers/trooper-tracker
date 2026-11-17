@@ -12,6 +12,7 @@ return [
     'Achievements' => 'Achievements',
     'Active Donor' => 'Active Donor',
     'Activity' => 'Activity',
+    'All Clubs' => 'All Clubs',
     'Amount' => 'Amount',
     'Assignment' => 'Assignment',
     'Assignment Location' => 'Assignment Location',

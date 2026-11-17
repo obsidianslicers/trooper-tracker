@@ -18,7 +18,7 @@ class VoidTrooperController extends ProfileCommandController
 
         VoidTrooper::call(trooper: $trooper);
 
-        FlashType::success("{$trooper->display_name} has been marked as created in error.");
+        FlashType::success(__('admin.:name has been marked as created in error.', ['name' => $trooper->display_name]));
 
         return $this->respondWithResults($request);
     }

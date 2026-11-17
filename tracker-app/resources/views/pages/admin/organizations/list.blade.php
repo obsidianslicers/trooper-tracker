@@ -9,10 +9,10 @@
             <tr>
                 <th style="width: 36px;"></th>
                 <th>
-                    Name
+                    {{ __('admin.Name') }}
                 </th>
                 <th>
-                    Synchronized
+                    {{ __('admin.Synchronized') }}
                 </th>
                 <th></th>
             </tr>
@@ -43,22 +43,22 @@
                             <x-action-menu>
                                 @can('create', \App\Models\Organization::class)
                                     @if($organization->type == \App\Enums\OrganizationType::ORGANIZATION)
-                                        <x-action-link-create :label="'Add Region'"
+                                        <x-action-link-create :label="__('admin.Add Region')"
                                                               :url="route('admin.organizations.create', ['parent' => $organization])" />
-                                        <x-action-link-update :label="'Costumes'"
+                                        <x-action-link-update :label="__('admin.Costumes')"
                                                               :url="route('admin.organizations.costumes', compact('organization'))" />
                                     @endif
                                     @if($organization->type == \App\Enums\OrganizationType::REGION)
-                                        <x-action-link-create :label="'Add Unit'"
+                                        <x-action-link-create :label="__('admin.Add Unit')"
                                                               :url="route('admin.organizations.create', ['parent' => $organization])" />
                                     @endif
                                 @endcan
                                 <x-action-link-update :url="route('admin.organizations.update', compact('organization'))" />
                                 <x-action-separator />
-                                <x-action-link :label="'Add Notice'"
+                                <x-action-link :label="__('admin.Add Notice')"
                                                :icon="'fa-add'"
                                                :url="route('admin.notices.create', ['organization_id' => $organization->id])" />
-                                <x-action-link :label="'Notices'"
+                                <x-action-link :label="__('admin.Notices')"
                                                :url="route('admin.notices.list', ['organization_id' => $organization->id])" />
                             </x-action-menu>
                         @endif

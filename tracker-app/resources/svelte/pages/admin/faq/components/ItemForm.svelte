@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputHelp from "$lib/components/form/InputHelp.svelte";
     import InputMarkdown from "$lib/components/form/InputMarkdown.svelte";
@@ -26,7 +27,7 @@
 <form onsubmit={vm.submit}>
     <InputContainer>
         <InputSelect
-            label="Section"
+            label={t("Section")}
             bind:value={vm.form.section_id}
             options={section_options}
             errors={vm.errors.section_id}
@@ -35,7 +36,7 @@
 
     <InputContainer>
         <InputText
-            label="Title"
+            label={t("Title")}
             bind:value={vm.form.title}
             errors={vm.errors.title}
         />
@@ -43,25 +44,23 @@
 
     <InputContainer>
         <InputMarkdown
-            label="Description (Markdown)"
+            label={t("Description (Markdown)")}
             bind:value={vm.form.description}
             errors={vm.errors.description}
         />
         <InputHelp>
-            Leave blank for video-only items. Supports **bold**, *italic*,
-            lists, and links.
+            {t("Leave blank for video-only items. Supports **bold**, *italic*, lists, and links.")}
         </InputHelp>
     </InputContainer>
 
     <InputContainer>
         <InputText
-            label="Video URL"
+            label={t("Video URL")}
             bind:value={vm.form.video_url}
             errors={vm.errors.video_url}
         />
         <InputHelp>
-            Optional YouTube URL (watch or embed format). Leave blank for
-            Q&amp;A items.
+            {t("Optional YouTube URL (watch or embed format). Leave blank for Q&A items.")}
         </InputHelp>
     </InputContainer>
 

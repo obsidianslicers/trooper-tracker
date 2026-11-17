@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
@@ -19,7 +20,7 @@
 <div class="card-footer d-flex justify-content-between">
     {#if vm.submitted === true}
         <div class="w-100">
-            <Alert>Successfully Submitted</Alert>
+            <Alert>{t("Successfully Submitted")}</Alert>
         </div>
     {:else}
         <div class="w-100">
@@ -27,14 +28,14 @@
                 <form onsubmit={vm.deny}>
                     <InputContainer>
                         <InputText
-                            label="Denial Reason (optional)"
+                            label={t("Denial Reason (optional)")}
                             multiline={true}
                             bind:value={vm.denial_reason}
                         />
                     </InputContainer>
                     <SubmitButtonContainer>
                         <SubmitButton
-                            label="Confirm Denial"
+                            label={t("Confirm Denial")}
                             danger={true}
                             submitting={vm.submitting}
                         />
@@ -44,14 +45,14 @@
             {:else}
                 <div class="d-flex justify-content-between">
                     <DeleteButton
-                        label="Deny"
+                        label={t("Deny")}
                         outline={false}
                         icon={null}
                         disabled={vm.submitting}
                         click={() => (vm.denying = true)}
                     />
                     <CreateButton
-                        label="Approve"
+                        label={t("Approve")}
                         outline={false}
                         icon={null}
                         submitting={vm.submitting}

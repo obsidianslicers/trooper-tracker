@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputHelp from "$lib/components/form/InputHelp.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
@@ -15,7 +16,7 @@
     import RoleSelection from "./components/permissions/RoleSelection.svelte";
     import { RequestPermissionsViewModel, type RequestPermissionsPageData } from "./models";
 
-    pageState.title = "Request Permissions";
+    pageState.title = t("Request Permissions");
 
     const page = usePage<RequestPermissionsPageData>();
 
@@ -24,8 +25,7 @@
 
 <SlimCard>
     <p class="text-muted">
-        Ask an administrator to change a trooper's permissions. Nothing changes
-        until an administrator approves it.
+        {t("Ask an administrator to change a trooper's permissions. Nothing changes until an administrator approves it.")}
     </p>
     <form onsubmit={vm.submit}>
         <InputContainer>
@@ -33,7 +33,7 @@
                 bind:selected={vm.trooper}
                 onSelected={(t) => (vm.trooper = t)}
                 errors={vm.errors.trooper_id}
-                label="Trooper"
+                label={t("Trooper")}
             />
         </InputContainer>
 
@@ -50,20 +50,19 @@
 
             <InputContainer>
                 <InputText
-                    label="Note for the administrator"
+                    label={t("Note for the administrator")}
                     multiline={true}
                     bind:value={vm.form.note}
                     errors={vm.errors.note}
                 />
                 <InputHelp>
-                    Explain what this trooper will be doing so the approving
-                    administrator has the context.
+                    {t("Explain what this trooper will be doing so the approving administrator has the context.")}
                 </InputHelp>
             </InputContainer>
 
             <SubmitButtonContainer>
                 <SubmitButton
-                    label="Submit Request"
+                    label={t("Submit Request")}
                     submitting={vm.submitting}
                 />
             </SubmitButtonContainer>

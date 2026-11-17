@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { sortable } from "$lib/actions/sortable";
     import DeleteConfirmationModal from "$lib/components/DeleteConfirmationModal.svelte";
     import CreateButton from "$lib/components/ui/buttons/CreateButton.svelte";
@@ -10,28 +11,27 @@
 
     const page = usePage<IndexPageData>();
 
-    pageState.title = "Event Types";
+    pageState.title = t("Event Types");
 
     let vm = new IndexViewModel(page.props);
 </script>
 
 <p class="text-muted small mb-2">
     <i class="fa fa-fw fa-grip-vertical me-1"></i>
-    Drag rows to set the order of the Event Type list on the event form. The first
-    type shown is picked for new events.
+    {t("Drag rows to set the order of the Event Type list on the event form. The first type shown is picked for new events.")}
 </p>
 
 <div class="table-responsive mt-3">
     <table class="table align-middle">
         <thead>
             <tr>
-                <th style="width: 80px;">Order</th>
-                <th>Event Type</th>
-                <th style="width: 140px;">Troop credit</th>
-                <th style="width: 80px;">Events</th>
+                <th style="width: 80px;">{t("Order")}</th>
+                <th>{t("Event Type")}</th>
+                <th style="width: 140px;">{t("Troop credit")}</th>
+                <th style="width: 80px;">{t("Events")}</th>
                 <th class="text-end">
                     <CreateButton
-                        label="Event Type"
+                        label={t("Event Type")}
                         href={getRoute("admin.event-types.create")}
                         small={true}
                     />

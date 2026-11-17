@@ -18,7 +18,7 @@ class UpdateSettingsSubmitController extends Controller
 
         UpdatePluginSettings::call(slug: $slug, settings: $request->validated('settings') ?? []);
 
-        FlashType::success("Settings for \"{$manifest->name}\" were saved.");
+        FlashType::success(__('admin.Settings for ":plugin" were saved.', ['plugin' => $manifest->name]));
 
         return redirect()->route('admin.plugins.list');
     }

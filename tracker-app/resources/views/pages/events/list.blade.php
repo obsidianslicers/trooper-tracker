@@ -14,7 +14,7 @@
     </div>
 
     @if(TroopTracker::isSupportGoalEnabled())
-        <x-card :label="'Support'">
+        <x-card :label="__('events.Support')">
             <div hx-get="{{ route('widgets.support-htmx') }}"
                  hx-trigger="load"
                  hx-swap="outerHTML">

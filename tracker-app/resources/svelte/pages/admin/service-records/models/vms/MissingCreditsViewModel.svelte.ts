@@ -1,3 +1,4 @@
+import { t } from "$lib/i18n";
 import { ViewModel } from "$lib/domains/types.svelte";
 import toastStateSvelte from "$lib/states/toast-state.svelte";
 import { createPartialReloadOptions, getRoute } from "$lib/utils";
@@ -92,7 +93,7 @@ export class MissingCreditsViewModel extends ViewModel {
         const organization_ids = this.selected[row.event_trooper_id] ?? [];
 
         if (organization_ids.length === 0) {
-            toastStateSvelte.danger("Select at least one organization first.");
+            toastStateSvelte.danger(t("Select at least one organization first."));
             return;
         }
 
@@ -151,7 +152,7 @@ export class MissingCreditsViewModel extends ViewModel {
                 this.has_more = props.has_more;
             },
             onError: () => {
-                toastStateSvelte.danger("Couldn't load more — please try again.");
+                toastStateSvelte.danger(t("Couldn't load more — please try again."));
             },
             onFinish: () => {
                 this.loading_more = false;

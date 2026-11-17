@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import SlimView from "$lib/components/ui/SlimView.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
@@ -8,11 +9,11 @@
 
     const page = usePage<CreateItemPageData>();
 
-    pageState.title = "Create FAQ Item";
+    pageState.title = t("Create FAQ Item");
 
     let vm = new CreateItemViewModel(page.props);
 </script>
 
 <SlimView>
-    <ItemForm {vm} label="Create" section_options={vm.section_options} />
+    <ItemForm {vm} label={t("Create")} section_options={vm.section_options} />
 </SlimView>

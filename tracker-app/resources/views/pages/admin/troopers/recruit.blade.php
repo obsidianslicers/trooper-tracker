@@ -15,7 +15,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Trooper
+                        {{ __('admin.Trooper') }}
                     </x-label>
                     <x-input-picker :property="'trooper_id'"
                                     :route="'pickers.trooper'"
@@ -51,12 +51,12 @@
                 }">
 
                     <x-input-container>
-                        <x-label>Assign to Unit:</x-label>
+                        <x-label>{{ __('admin.Assign to Unit:') }}</x-label>
                         <select name="organization_id"
                                 id="organization_id"
                                 x-model="selectedId"
                                 class="form-select @error('organization_id') is-invalid @enderror">
-                            <option value="">— Select a Unit —</option>
+                            <option value="">{{ __('admin.— Select a Unit —') }}</option>
                             <template x-for="org in filteredOrgs" :key="org.id">
                                 <option :value="org.id"
                                         x-text="'— '.repeat(org.depth) + org.name"
@@ -70,7 +70,7 @@
                     <div x-show="selectedId && selectedOrg" x-cloak>
                         <x-input-container>
                             <x-label>
-                                <span x-text="selectedOrg?.identifier_display ?? 'Member ID'">Member ID</span><span class="text-muted" x-show="!isIdentifierRequired"> (optional)</span>:
+                                <span x-text="selectedOrg?.identifier_display ?? 'Member ID'">{{ __('admin.Member ID') }}</span><span class="text-muted" x-show="!isIdentifierRequired"> {{ __('admin.(optional)') }}</span>:
                             </x-label>
                             <input type="text"
                                    name="identifier"
@@ -85,10 +85,10 @@
 
                 </div>
 
-                <x-modal-picker :label="'Find a Trooper'" />
+                <x-modal-picker :label="__('admin.Find a Trooper')" />
 
                 <x-submit-container>
-                    <x-submit-button>Add to Roster</x-submit-button>
+                    <x-submit-button>{{ __('admin.Add to Roster') }}</x-submit-button>
                     <x-link-button-cancel :url="route('admin.troopers.list')" />
                 </x-submit-container>
 

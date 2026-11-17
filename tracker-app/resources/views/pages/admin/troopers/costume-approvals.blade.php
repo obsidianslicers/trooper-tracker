@@ -9,17 +9,16 @@
         <x-card>
 
             <p class="text-muted">
-                Troopers added these costumes themselves. Approve a costume once and the
-                trooper can use it for that club from then on.
+                {{ __('admin.Troopers added these costumes themselves. Approve a costume once and the trooper can use it for that club from then on.') }}
             </p>
 
             <x-table>
                 <thead>
                     <tr>
-                        <th>Trooper</th>
-                        <th>Costume</th>
-                        <th>Club</th>
-                        <th>Requested</th>
+                        <th>{{ __('admin.Trooper') }}</th>
+                        <th>{{ __('admin.Costume') }}</th>
+                        <th>{{ __('admin.Club') }}</th>
+                        <th>{{ __('admin.Requested') }}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -39,7 +38,7 @@
                     </tr>
                 @empty
                     <x-table-empty :colspan="5">
-                        No costumes are waiting for review.
+                        {{ __('admin.No costumes are waiting for review.') }}
                     </x-table-empty>
                 @endforelse
             </x-table>

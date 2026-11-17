@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
     import Button from "$lib/components/ui/buttons/Button.svelte";
     import { untrack } from "svelte";
@@ -19,11 +20,11 @@
     <table class="table table-sm">
         <thead>
             <tr>
-                <th>Approved</th>
-                <th>Costume</th>
-                <th>Organization</th>
-                <th>Status</th>
-                <th>By</th>
+                <th>{t("Approved")}</th>
+                <th>{t("Costume")}</th>
+                <th>{t("Organization")}</th>
+                <th>{t("Status")}</th>
+                <th>{t("By")}</th>
                 <th></th>
             </tr>
         </thead>
@@ -43,26 +44,26 @@
                         {#if review.can_review}
                             {#if review.status === "pending"}
                                 <Button
-                                    label="Approve"
+                                    label={t("Approve")}
                                     btnclass="btn-success btn-sm"
                                     click={() =>
                                         vm.approve(review.id)}
                                 />
                                 <Button
-                                    label="Deny"
+                                    label={t("Deny")}
                                     btnclass="btn-danger btn-sm"
                                     click={() => vm.deny(review.id)}
                                 />
                             {:else if review.status === "revoked"}
                                 <Button
-                                    label="Undo"
+                                    label={t("Undo")}
                                     btnclass="btn-secondary btn-sm"
                                     click={() =>
                                         vm.undoRevoke(review.id)}
                                 />
                             {:else}
                                 <Button
-                                    label="Revoke"
+                                    label={t("Revoke")}
                                     btnclass="btn-warning btn-sm"
                                     click={() => vm.revoke(review.id)}
                                 />

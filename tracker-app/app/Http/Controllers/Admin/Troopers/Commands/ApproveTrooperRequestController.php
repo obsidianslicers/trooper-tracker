@@ -39,7 +39,7 @@ class ApproveTrooperRequestController extends Controller
     ): InertiaResponse|SymfonyResponse {
         ApproveTrooperRequest::call($trooper_request);
 
-        FlashType::success('Trooper request approved successfully.');
+        FlashType::success(__('admin.Trooper request approved successfully.'));
 
         return Inertia::render('admin/troopers/MembershipApprovals');
     }

@@ -15,7 +15,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Organization:
+                        {{ __('admin.Organization:') }}
                     </x-label>
                     <x-input-picker :property="'organization_id'"
                                     :route="'pickers.organization'"
@@ -26,7 +26,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Frequency:
+                        {{ __('admin.Frequency:') }}
                     </x-label>
                     <x-input-select :property="'frequency'"
                                     :value="$award->frequency->value"
@@ -35,7 +35,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Name:
+                        {{ __('admin.Name:') }}
                     </x-label>
                     <x-input-text :property="'name'"
                                   :value="$award->name" />
@@ -43,7 +43,7 @@
 
                 <x-submit-container>
                     <x-submit-button>
-                        Create
+                        {{ __('admin.Create') }}
                     </x-submit-button>
                     <x-link-button-cancel :url="route('admin.awards.list', ['organization_id' => $award->organization_id])" />
                 </x-submit-container>
@@ -53,6 +53,6 @@
 
     </x-slim-container>
 
-    <x-modal-picker :label="'Select an Organization'" />
+    <x-modal-picker :label="__('admin.Select an Organization')" />
 
 @endsection

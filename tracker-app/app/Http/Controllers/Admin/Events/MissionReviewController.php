@@ -19,8 +19,8 @@ class MissionReviewController extends PageController
 {
     protected function initialized(): void
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('Events', 'admin.events.list');
+        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
+        $this->crumbs->addRoute(__('admin.Events'), 'admin.events.list');
     }
 
     public function __invoke(Request $request, Event $event): View

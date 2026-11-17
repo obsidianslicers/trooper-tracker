@@ -17,7 +17,7 @@ class RevokeCostumeController extends Controller
     {
         RevokeTrooperCostume::call(trooper_costume: $trooper_costume);
 
-        FlashType::success('Costume approval revoked.');
+        FlashType::success(__('admin.Costume approval revoked.'));
 
         return redirect()->back();
     }

@@ -36,7 +36,7 @@ class RemoveEventTrooperController extends PageController
             $event_trooper->delete();
         });
 
-        FlashType::success("{$trooper_name} was removed from the roster.");
+        FlashType::success(__('admin.:name was removed from the roster.', ['name' => $trooper_name]));
 
         return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
     }

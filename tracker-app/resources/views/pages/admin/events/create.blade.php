@@ -15,18 +15,19 @@
                 @csrf
 
                 <x-message>
-                    By default when creating a new event, ALL clubs are defaulted to attend unless otherwise updated.
-                    See <b>Character Requests & Attendee Limits</b> section to make adjustments to which clubs can attend.
+                    {!! __('admin.By default when creating a new event, ALL clubs are defaulted to attend unless otherwise updated. See <b>Character Requests & Attendee Limits</b> section to make adjustments to which clubs can attend.') !!}
                     <br />
                     <br />
-                    All Events start is a {{ \App\Enums\EventStatus::DRAFT->name }} status, which means they
-                    are not visible for sign up until the status is changed to
-                    {{ \App\Enums\EventStatus::OPEN->name }} or {{ \App\Enums\EventStatus::SIGN_UP_LOCKED->name }}.
+                    {{ __('admin.All Events start is a :draft status, which means they are not visible for sign up until the status is changed to :open or :locked.', [
+                        'draft' => \App\Enums\EventStatus::DRAFT->label(),
+                        'open' => \App\Enums\EventStatus::OPEN->label(),
+                        'locked' => \App\Enums\EventStatus::SIGN_UP_LOCKED->label(),
+                    ]) }}
                 </x-message>
 
                 <x-input-container x-ref="organizationPicker">
                     <x-label>
-                        Hosting Organization:
+                        {{ __('admin.Hosting Organization:') }}
                     </x-label>
                     <x-input-picker :property="'organization_id'"
                                     :route="'pickers.organization'"
@@ -49,7 +50,7 @@
                                    value="email" />
                             <label class="btn btn-outline-primary"
                                    for="mode-email">
-                                Parse Message
+                                {{ __('admin.Parse Message') }}
                             </label>
                             <input type="radio"
                                    class="btn-check"
@@ -61,7 +62,7 @@
                                    value="manual" />
                             <label class="btn btn-outline-primary"
                                    for="mode-manual">
-                                Input Manually
+                                {{ __('admin.Input Manually') }}
                             </label>
                         </div>
                     </x-input-container>
@@ -70,21 +71,19 @@
                         <x-label>
                             <div x-show="form.organization_id > 0">
                                 <b x-text="form.club_name"></b>
-                                Message:
+                                {{ __('admin.Message:') }}
                             </div>
                             <div x-show="form.organization_id == 0">
-                                Message to Parse:
+                                {{ __('admin.Message to Parse:') }}
                             </div>
                         </x-label>
                         <x-input-text :property="'source'"
                                       :multiline="true"
-                                      :placeholder="'Event Name: Name of Event'"
+                                      :placeholder="__('admin.Event Name: Name of Event')"
                                       x-model.fill="sourceContent"
                                       x-on:change="parseSource()" />
                         <x-input-help>
-                            Paste the request for appearance message here, and the
-                            system will attempt to parse the relevant event details
-                            based on the selected organization.
+                            {{ __('admin.Paste the request for appearance message here, and the system will attempt to parse the relevant event details based on the selected organization.') }}
                         </x-input-help>
                     </x-input-container>
 
@@ -103,7 +102,7 @@
 
                 <x-submit-container>
                     <x-submit-button>
-                        Create
+                        {{ __('admin.Create') }}
                     </x-submit-button>
                     @if($event->organization_id > 0)
                         <x-link-button-cancel :url="route('admin.events.list', ['organization_id' => $event->organization_id])" />
@@ -117,7 +116,7 @@
 
     </x-slim-container>
 
-    <x-modal-picker :label="'Select an Organization'" />
+    <x-modal-picker :label="__('admin.Select an Organization')" />
 
 @endsection
 

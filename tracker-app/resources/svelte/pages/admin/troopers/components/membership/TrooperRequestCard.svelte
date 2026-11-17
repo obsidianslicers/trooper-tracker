@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { untrack } from "svelte";
     import type { TrooperRequest } from "../../models/vms";
     import { PendingTrooperRequestViewModel } from "../../models/vms";
@@ -23,18 +24,18 @@
     </div>
     <div class="card-body">
         <dl class="row mb-0">
-            <dt class="col-4">Legal Name:</dt>
+            <dt class="col-4">{t("Legal Name:")}</dt>
             <dd class="col-8">{vm.request.trooper.legal_name}</dd>
-            <dt class="col-4">Display Name:</dt>
+            <dt class="col-4">{t("Display Name:")}</dt>
             <dd class="col-8">{vm.request.trooper.display_name}</dd>
-            <dt class="col-4">Email:</dt>
+            <dt class="col-4">{t("Email:")}</dt>
             <dd class="col-8">{vm.request.trooper.email}</dd>
-            <dt class="col-4">Phone:</dt>
+            <dt class="col-4">{t("Phone:")}</dt>
             <dd class="col-8">{vm.request.trooper.phone ?? "n/a"}</dd>
-            <dt class="col-4">Primary Organization:</dt>
+            <dt class="col-4">{t("Primary Organization:")}</dt>
             <dd class="col-8">{vm.request.primary_organization.name}</dd>
             {#if vm.request.organization.id !== vm.request.primary_organization.id}
-                <dt class="col-4">Requested Unit:</dt>
+                <dt class="col-4">{t("Requested Unit:")}</dt>
                 <dd class="col-8">
                     {#if vm.request.organization.parent_name}
                         {vm.request.organization.parent_name} —
@@ -43,11 +44,11 @@
                 </dd>
             {/if}
             {#if vm.request.identifier}
-                <dt class="col-4">Identifier:</dt>
+                <dt class="col-4">{t("Identifier:")}</dt>
                 <dd class="col-8">{vm.request.identifier}</dd>
             {/if}
             {#if vm.request.denial_reason}
-                <dt class="col-4">Denial Reason:</dt>
+                <dt class="col-4">{t("Denial Reason:")}</dt>
                 <dd class="col-8">{vm.request.denial_reason}</dd>
             {/if}
         </dl>

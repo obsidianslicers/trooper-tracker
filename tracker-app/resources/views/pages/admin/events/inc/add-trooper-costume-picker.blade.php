@@ -1,7 +1,7 @@
 <div class="border rounded p-2 mt-2">
     <div class="small fw-semibold mb-2">
         <i class="fa fa-fw fa-user me-1"></i>{{ $trooper->display_name }}
-        &mdash; select costume:
+        {{ __('admin.— select costume:') }}
     </div>
     <input type="hidden"
            id="admin-add-trooper-{{ $event_shift->id }}"
@@ -17,17 +17,17 @@
         <input type="hidden"
                id="admin-add-costume-{{ $event_shift->id }}"
                value="{{ array_key_first($costumes) }}" />
-        <p class="small text-muted mb-2">Costume: <strong>{{ array_values($costumes)[0] }}</strong></p>
+        <p class="small text-muted mb-2">{!! __('admin.Costume: :costume', ['costume' => '<strong>'.e(array_values($costumes)[0]).'</strong>']) !!}</p>
     @else
         <input type="hidden"
                id="admin-add-costume-{{ $event_shift->id }}"
                value="" />
-        <p class="small text-muted mb-2">No approved costumes found — will add without costume.</p>
+        <p class="small text-muted mb-2">{{ __('admin.No approved costumes found — will add without costume.') }}</p>
     @endif
     @if($eligible_orgs->count() > 1)
         <select id="admin-add-org-{{ $event_shift->id }}"
                 class="form-select form-select-sm mb-2">
-            <option value="">-- Select Organization --</option>
+            <option value="">{{ __('admin.-- Select Organization --') }}</option>
             @foreach($eligible_orgs as $org)
                 <option value="{{ $org->id }}">{{ $org->name }}</option>
             @endforeach
@@ -36,7 +36,7 @@
         <input type="hidden"
                id="admin-add-org-{{ $event_shift->id }}"
                value="{{ $eligible_orgs->first()->id }}" />
-        <p class="small text-muted mb-2">Trooping as <strong>{{ $eligible_orgs->first()->name }}</strong></p>
+        <p class="small text-muted mb-2">{!! __('admin.Trooping as :organization', ['organization' => '<strong>'.e($eligible_orgs->first()->name).'</strong>']) !!}</p>
     @else
         <input type="hidden"
                id="admin-add-org-{{ $event_shift->id }}"
@@ -45,7 +45,7 @@
     @if($event_shift->usesStations())
         <select id="admin-add-station-{{ $event_shift->id }}"
                 class="form-select form-select-sm mb-2">
-            <option value="">-- Select Station --</option>
+            <option value="">{{ __('admin.-- Select Station --') }}</option>
             @foreach($event_shift->event_shift_stations as $station)
                 <option value="{{ $station->id }}">{{ $station->name }}</option>
             @endforeach
@@ -62,12 +62,12 @@
                 hx-vals="js:{trooper_id: document.getElementById('admin-add-trooper-{{ $event_shift->id }}').value, costume_id: document.getElementById('admin-add-costume-{{ $event_shift->id }}').value, organization_id: document.getElementById('admin-add-org-{{ $event_shift->id }}').value, event_shift_station_id: document.getElementById('admin-add-station-{{ $event_shift->id }}').value}"
                 hx-params="trooper_id,costume_id,organization_id,event_shift_station_id"
                 hx-trigger="click">
-            <i class="fa fa-fw fa-check me-1"></i>Confirm
+            <i class="fa fa-fw fa-check me-1"></i>{{ __('admin.Confirm') }}
         </button>
         <button type="button"
                 class="btn btn-sm btn-outline-secondary"
                 onclick="document.getElementById('admin-add-step2-{{ $event_shift->id }}').innerHTML=''">
-            Cancel
+            {{ __('admin.Cancel') }}
         </button>
     </div>
 </div>

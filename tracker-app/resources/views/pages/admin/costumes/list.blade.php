@@ -15,7 +15,7 @@
                 @endforeach
                 <input type="text"
                        name="search_term"
-                       placeholder="Search Name (at least 3 chars)"
+                       placeholder="{{ __('admin.Search Name (at least 3 chars)') }}"
                        class="form-control rounded-start"
                        value="{{ $search_term }}" />
                 <button type="submit"
@@ -30,11 +30,11 @@
         <thead>
             <tr>
                 <th>
-                    Name
+                    {{ __('admin.Name') }}
                 </th>
                 <th>
                     <x-link-button-create :url="route('admin.costumes.create')">
-                        Costume
+                        {{ __('admin.Costume') }}
                     </x-link-button-create>
                 </th>
             </tr>

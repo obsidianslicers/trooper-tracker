@@ -18,7 +18,7 @@ class ClearTrooperUntrustedController extends ProfileCommandController
 
         ClearTrooperUntrusted::call(trooper: $trooper);
 
-        FlashType::success("{$trooper->display_name} is no longer marked do not trust.");
+        FlashType::success(__('admin.:name is no longer marked do not trust.', ['name' => $trooper->display_name]));
 
         return $this->respondWithResults($request);
     }

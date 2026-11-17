@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <x-card label="Filters">
+    <x-card :label="__('admin.Filters')">
         <form method="GET"
               action="{{ route('admin.reports.donation-event-summary') }}"
               novalidate="novalidate">
@@ -22,7 +22,7 @@
                 </div>
                 <div class="col-sm-4 d-flex align-items-end pb-1">
                     <x-input-checkbox :property="'charity_only'"
-                                      :label="'Events with charity data only'"
+                                      :label="__('admin.Events with charity data only')"
                                       :checked="$charity_only" />
                 </div>
             </div>
@@ -71,10 +71,10 @@
             </div>
 
             <div class="mt-3 d-flex gap-2">
-                <x-submit-button>Run Report</x-submit-button>
+                <x-submit-button>{{ __('admin.Run Report') }}</x-submit-button>
                 <a href="{{ request()->fullUrlWithQuery(['format' => 'csv']) }}"
                    class="btn btn-outline-secondary">
-                    Download CSV
+                    {{ __('admin.Download CSV') }}
                 </a>
             </div>
 
@@ -86,9 +86,9 @@
             @if(!empty($selected_ids))
                 {{ $filter_orgs->whereIn('id', $selected_ids)->pluck('name')->join(', ') }}
             @endif
-            @if($date_start) &mdash; From {{ $date_start->localFormat('M d, Y') }} @endif
-            @if($date_end) to {{ $date_end->localFormat('M d, Y') }} @endif
-            @if($charity_only) &mdash; Charity data only @endif
+            @if($date_start) &mdash; {{ __('admin.From :date', ['date' => $date_start->localFormat('M d, Y')]) }} @endif
+            @if($date_end) {{ __('admin.to :date', ['date' => $date_end->localFormat('M d, Y')]) }} @endif
+            @if($charity_only) {{ __('admin.— Charity data only') }} @endif
         </p>
     @endif
 
@@ -119,14 +119,14 @@
                 <table class="table table-sm mb-0">
                     <thead>
                         <tr>
-                            <th>Shift</th>
-                            <th>Charity</th>
-                            <th class="text-end">Direct</th>
-                            <th class="text-end">Indirect</th>
-                            <th class="text-end">Total</th>
-                            <th class="text-end">Hours</th>
-                            <th class="text-end">Attendees</th>
-                            <th class="text-end">Trooper Hrs</th>
+                            <th>{{ __('admin.Shift') }}</th>
+                            <th>{{ __('admin.Charity') }}</th>
+                            <th class="text-end">{{ __('admin.Direct') }}</th>
+                            <th class="text-end">{{ __('admin.Indirect') }}</th>
+                            <th class="text-end">{{ __('admin.Total') }}</th>
+                            <th class="text-end">{{ __('admin.Hours') }}</th>
+                            <th class="text-end">{{ __('admin.Attendees') }}</th>
+                            <th class="text-end">{{ __('admin.Trooper Hrs') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -167,7 +167,7 @@
                         @empty
                             <tr>
                                 <td colspan="8" class="text-center text-muted fst-italic">
-                                    No shifts recorded.
+                                    {{ __('admin.No shifts recorded.') }}
                                 </td>
                             </tr>
                         @endforelse
@@ -175,7 +175,7 @@
                     @if($event->event_shifts->count() > 1)
                     <tfoot>
                         <tr class="fw-semibold table-light">
-                            <td colspan="2">Event total</td>
+                            <td colspan="2">{{ __('admin.Event total') }}</td>
                             <td class="text-end"><x-number-format :value="$event_direct" /></td>
                             <td class="text-end"><x-number-format :value="$event_indirect" /></td>
                             <td class="text-end"><x-number-format :value="$event_direct + $event_indirect" /></td>
@@ -189,7 +189,7 @@
             </div>
         </div>
     @empty
-        <div class="alert alert-info">No closed events found for the selected filters.</div>
+        <div class="alert alert-info">{{ __('admin.No closed events found for the selected filters.') }}</div>
     @endforelse
 
     @if($events->hasPages())
@@ -205,31 +205,31 @@
             $total_trooper_hours = $events->sum(fn($e) => $e->event_shifts->sum(fn($s) => $s->effective_charity_hours * $s->attendees_count));
         @endphp
         <div class="card">
-            <div class="card-header fw-semibold">Grand Total</div>
+            <div class="card-header fw-semibold">{{ __('admin.Grand Total') }}</div>
             <div class="card-body">
                 <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3 text-center">
                     <div class="col">
-                        <div class="text-muted small">Direct</div>
+                        <div class="text-muted small">{{ __('admin.Direct') }}</div>
                         <div class="fw-semibold"><x-number-format :value="$total_direct" decimals="cents" /></div>
                     </div>
                     <div class="col">
-                        <div class="text-muted small">Indirect</div>
+                        <div class="text-muted small">{{ __('admin.Indirect') }}</div>
                         <div class="fw-semibold"><x-number-format :value="$total_indirect" decimals="cents" /></div>
                     </div>
                     <div class="col">
-                        <div class="text-muted small">Total Funds</div>
+                        <div class="text-muted small">{{ __('admin.Total Funds') }}</div>
                         <div class="fw-semibold"><x-number-format :value="$total_direct + $total_indirect" decimals="cents" /></div>
                     </div>
                     <div class="col">
-                        <div class="text-muted small">Hours</div>
+                        <div class="text-muted small">{{ __('admin.Hours') }}</div>
                         <div class="fw-semibold"><x-number-format :value="$total_hours" /></div>
                     </div>
                     <div class="col">
-                        <div class="text-muted small">Attendees</div>
+                        <div class="text-muted small">{{ __('admin.Attendees') }}</div>
                         <div class="fw-semibold"><x-number-format :value="$total_attended" /></div>
                     </div>
                     <div class="col">
-                        <div class="text-muted small">Trooper Hrs</div>
+                        <div class="text-muted small">{{ __('admin.Trooper Hrs') }}</div>
                         <div class="fw-semibold"><x-number-format :value="$total_trooper_hours" /></div>
                     </div>
                 </div>

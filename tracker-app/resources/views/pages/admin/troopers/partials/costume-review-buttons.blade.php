@@ -6,7 +6,7 @@
         @csrf
         <button type="submit"
                 class="btn btn-sm btn-outline-secondary">
-            Undo
+            {{ __('admin.Undo') }}
         </button>
     </form>
 @elseif ($trooper_costume->isPending())
@@ -16,7 +16,7 @@
         @csrf
         <button type="submit"
                 class="btn btn-sm btn-success">
-            Approve
+            {{ __('admin.Approve') }}
         </button>
     </form>
     <form method="POST"
@@ -25,7 +25,7 @@
         @csrf
         <button type="submit"
                 class="btn btn-sm btn-outline-danger">
-            Deny
+            {{ __('admin.Deny') }}
         </button>
     </form>
 @else
@@ -36,7 +36,7 @@
         @csrf
         <button type="submit"
                 class="btn btn-sm btn-outline-danger">
-            Revoke
+            {{ __('admin.Revoke') }}
         </button>
     </form>
 @endif

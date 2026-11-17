@@ -16,9 +16,9 @@
     <x-table class="mt-3">
       <thead>
         <tr>
-          <th colspan="2">Organization</th>
+          <th colspan="2">{{ __('admin.Organization') }}</th>
           @if($event->has_organization_limits)
-          <th>Can Sign-Up</th>
+          <th>{{ __('admin.Can Sign-Up') }}</th>
           {{--
           <th>Trooper Limit</th>
           <th>Handler Limit</th>
@@ -38,7 +38,7 @@
           <x-input-checkbox :property="'event_name'"
                             :value="1"
                             :checked="!$event->has_organization_limits"
-                            :label="'Toggle All'"
+                            :label="__('admin.Toggle All')"
                             data-node-path="" />
         </td>
         {{--
@@ -114,7 +114,7 @@
 
     <x-submit-container>
       <x-submit-button>
-        Update
+        {{ __('admin.Update') }}
       </x-submit-button>
       <x-link-button-cancel :url="route('admin.events.update',compact('event'))" />
     </x-submit-container>

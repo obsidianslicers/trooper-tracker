@@ -15,7 +15,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Name:
+                        {{ __('admin.Name:') }}
                     </x-label>
                     <x-input-text :property="'name'"
                                   :value="$costume->name" />
@@ -23,7 +23,7 @@
 
                 <x-submit-container>
                     <x-submit-button>
-                        Create
+                        {{ __('admin.Create') }}
                     </x-submit-button>
                     <x-link-button-cancel :url="route('admin.costumes.list')" />
                 </x-submit-container>

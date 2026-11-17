@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <x-card label="Filters">
+    <x-card :label="__('admin.Filters')">
         <form method="GET"
               action="{{ route('admin.reports.trooper-event-summary') }}"
               novalidate="novalidate">
@@ -13,7 +13,7 @@
                 <div class="col-sm-4">
                     <x-label value="Club" />
                     <x-input-select :property="'organization_id'"
-                                    :placeholder="'All Clubs'"
+                                    :placeholder="__('admin.All Clubs')"
                                     :value="$organization_id"
                                     :options="$organizations->pluck('name', 'id')->toArray()" />
                 </div>
@@ -29,16 +29,16 @@
                 </div>
                 <div class="col-sm-4 d-flex align-items-end pb-1">
                     <x-input-checkbox :property="'active_only'"
-                                      :label="'Active Members Only'"
+                                      :label="__('admin.Active Members Only')"
                                       :checked="$active_only" />
                 </div>
             </div>
 
             <div class="mt-3 d-flex gap-2">
-                <x-submit-button>Run Report</x-submit-button>
+                <x-submit-button>{{ __('admin.Run Report') }}</x-submit-button>
                 <a href="{{ request()->fullUrlWithQuery(['format' => 'csv']) }}"
                    class="btn btn-outline-secondary">
-                    Download CSV
+                    {{ __('admin.Download CSV') }}
                 </a>
             </div>
 
@@ -50,16 +50,16 @@
             @if($organization_id)
                 {{ $organizations->firstWhere('id', $organization_id)?->name }}
             @else
-                All Clubs
+                {{ __('admin.All Clubs') }}
             @endif
             &mdash;
             @if($date_start || $date_end)
-                @if($date_start) from {{ $date_start->localFormat('M d, Y') }} @endif
-                @if($date_end) to {{ $date_end->localFormat('M d, Y') }} @endif
+                @if($date_start) {{ __('admin.from :date', ['date' => $date_start->localFormat('M d, Y')]) }} @endif
+                @if($date_end) {{ __('admin.to :date', ['date' => $date_end->localFormat('M d, Y')]) }} @endif
             @else
-                all time
+                {{ __('admin.all time') }}
             @endif
-            @if($active_only) &mdash; Active Members Only @endif
+            @if($active_only) {{ __('admin.— Active Members Only') }} @endif
         </caption>
         @php
             $sortLink = fn(string $col) => request()->fullUrlWithQuery([
@@ -75,17 +75,17 @@
             <tr>
                 <th>
                     <a href="{{ $sortLink('display_name') }}" class="text-reset text-decoration-none">
-                        Trooper{!! $sortIcon('display_name') !!}
+                        {{ __('admin.Trooper') }}{!! $sortIcon('display_name') !!}
                     </a>
                 </th>
                 <th scope="col" class="text-end">
                     <a href="{{ $sortLink('events_count') }}" class="text-reset text-decoration-none">
-                        Unique Events{!! $sortIcon('events_count') !!}
+                        {{ __('admin.Unique Events') }}{!! $sortIcon('events_count') !!}
                     </a>
                 </th>
                 <th scope="col" class="text-end">
                     <a href="{{ $sortLink('event_shifts_count') }}" class="text-reset text-decoration-none">
-                        Total Shifts{!! $sortIcon('event_shifts_count') !!}
+                        {{ __('admin.Total Shifts') }}{!! $sortIcon('event_shifts_count') !!}
                     </a>
                 </th>
             </tr>
@@ -107,7 +107,7 @@
                 </tr>
             @empty
                 <x-table-empty :colspan="3">
-                    No troopers found with attended events in the selected date range.
+                    {{ __('admin.No troopers found with attended events in the selected date range.') }}
                 </x-table-empty>
             @endforelse
         </tbody>

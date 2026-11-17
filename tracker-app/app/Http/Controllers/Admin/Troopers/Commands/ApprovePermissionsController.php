@@ -25,11 +25,11 @@ class ApprovePermissionsController extends Controller
         {
             ApproveTrooperPermissions::call(permission_request: $permission_request);
 
-            FlashType::success('Permission request approved.');
+            FlashType::success(__('admin.Permission request approved.'));
         }
         catch (PermissionApprovalException $e)
         {
-            FlashType::danger("Nothing was changed: {$e->getMessage()}");
+            FlashType::danger(__('admin.Nothing was changed: :error', ['error' => $e->getMessage()]));
         }
 
         return redirect()->route('admin.troopers.permissions.approvals');

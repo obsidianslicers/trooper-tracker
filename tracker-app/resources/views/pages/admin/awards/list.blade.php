@@ -16,7 +16,7 @@
             @endforeach
             <input type="text"
                    name="search_term"
-                   placeholder="Search Title (at least 3 chars)"
+                   placeholder="{{ __('admin.Search Title (at least 3 chars)') }}"
                    class="form-control rounded-start"
                    value="{{ $search_term }}" />
             <button type="submit"
@@ -38,17 +38,17 @@
         <tr>
             <th style="width: 36px;"></th>
             <th>
-                Title
+                {{ __('admin.Title') }}
             </th>
             <th>
-                Organization
+                {{ __('admin.Organization') }}
             </th>
             <th class="text-end">
-                Troopers
+                {{ __('admin.Troopers') }}
             </th>
             <th>
                 <x-link-button-create :url="route('admin.awards.create', ['organization_id' => $organization_id])">
-                    Award
+                    {{ __('admin.Award') }}
                 </x-link-button-create>
             </th>
         </tr>
@@ -67,7 +67,7 @@
                 </td>
                 <td>
                     @if($award->organization_id === null)
-                        Everyone
+                        {{ __('admin.Everyone') }}
                     @else
                         <a href="{{ route('admin.awards.list', qs(['organization_id' => $award->organization_id])) }}">
                             {{ $award->organization->name }}
@@ -83,7 +83,7 @@
                             <x-action-link-update :url="route('admin.awards.update', compact('award'))" />
                             <x-action-link-copy :url="route('admin.awards.create', ['copy_id' => $award->id])" />
                             <x-action-separator />
-                            <x-action-link :label="'Troopers Awarded'"
+                            <x-action-link :label="__('admin.Troopers Awarded')"
                                            :url="route('admin.awards.list-troopers', compact('award'))" />
                         @endif
                     </x-action-menu>

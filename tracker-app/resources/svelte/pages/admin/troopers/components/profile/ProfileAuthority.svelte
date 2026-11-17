@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputCheckbox from "$lib/components/form/InputCheckbox.svelte";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputSelect from "$lib/components/form/InputSelect.svelte";
@@ -24,7 +25,7 @@
     <form onsubmit={vm.submit}>
         <InputContainer>
             <InputSelect
-                label="Role"
+                label={t("Role")}
                 options={authority.role_options}
                 bind:value={vm.form.membership_role}
                 errors={vm.errors.membership_role}
@@ -34,7 +35,7 @@
         {#if vm.is_moderator_role}
             <table class="table table-sm">
                 <thead>
-                    <tr><th>Organization</th><th>Moderator</th><th>Notify</th><th>Member</th></tr>
+                    <tr><th>{t("Organization")}</th><th>{t("Moderator")}</th><th>{t("Notify")}</th><th>{t("Member")}</th></tr>
                 </thead>
                 <tbody>
                     {#each vm.organizations as organization (organization.id)}
@@ -69,7 +70,7 @@
         {/if}
 
         <SubmitButtonContainer>
-            <SubmitButton label="Update Authority" submitting={vm.submitting} />
+            <SubmitButton label={t("Update Authority")} submitting={vm.submitting} />
         </SubmitButtonContainer>
     </form>
 </SlimView>

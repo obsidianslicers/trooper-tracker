@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { untrack } from "svelte";
     import Badge from "$lib/components/Badge.svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
@@ -15,32 +16,33 @@
 {#if vm.performing_lookup}
     <p>
         <i class="fa-solid fa-spinner fa-spin me-3"></i>
-        Looking up membership ...
+        {t("Looking up membership ...")}
     </p>
 {:else}
     {#if vm.lookup}
         {#if vm.lookup.identifier == null}
             <Alert>
                 <p>
-                    No identifier provided. Unable to perform membership lookup.
+                    {t("No identifier provided. Unable to perform membership lookup.")}
                 </p>
             </Alert>
         {:else}
             {#if vm.lookup.service_name == null}
                 <Alert type="warning">
-                    <p>No service Lookup registered provided.</p>
+                    <p>{t("No service Lookup registered provided.")}</p>
                 </Alert>
             {/if}
             {#if vm.lookup.existing_trooper_membership}
                 <Alert type="danger">
-                    <b>Duplicate Identifier Found</b>
+                    <b>{t("Duplicate Identifier Found")}</b>
                     <p>
                         <a href={vm.existing_trooper_route} target="_blank">
                             {vm.lookup.existing_trooper_membership.legal_name}
                         </a>
-                        currently has <b>{vm.lookup.identifier}</b> registered
-                        with
-                        <b>{vm.lookup.primary_organization.name}</b>.
+                        {t("currently has :identifier registered with :organization.", {
+                            identifier: vm.lookup.identifier,
+                            organization: vm.lookup.primary_organization.name,
+                        })}
                     </p>
                 </Alert>
             {/if}
@@ -108,7 +110,7 @@
                                 rel="noopener noreferrer"
                                 class="small"
                             >
-                                View Profile
+                                {t("View Profile")}
                                 <i
                                     class="fa-solid fa-arrow-up-right-from-square fa-xs"
                                 ></i>
@@ -119,9 +121,11 @@
             {:else if vm.lookup.service_name && !vm.lookup.member && !vm.lookup.existing_trooper_membership}
                 <Alert type="warning">
                     <p>
-                        <b>Not found</b> &mdash; No member with identifier
-                        <b>{vm.lookup.identifier}</b> was found in
-                        {vm.lookup.primary_organization.name}.
+                        <b>{t("Not found")}</b> &mdash;
+                        {t("No member with identifier :identifier was found in :organization.", {
+                            identifier: vm.lookup.identifier,
+                            organization: vm.lookup.primary_organization.name,
+                        })}
                     </p>
                 </Alert>
             {/if}

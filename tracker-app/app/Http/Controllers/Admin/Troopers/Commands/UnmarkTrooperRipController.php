@@ -18,7 +18,7 @@ class UnmarkTrooperRipController extends ProfileCommandController
 
         UnmarkTrooperRip::call(trooper: $trooper);
 
-        FlashType::success("{$trooper->display_name} has been restored to pending status.");
+        FlashType::success(__('admin.:name has been restored to pending status.', ['name' => $trooper->display_name]));
 
         return $this->respondWithResults($request);
     }

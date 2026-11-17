@@ -18,7 +18,7 @@ class MarkTrooperRipController extends ProfileCommandController
 
         MarkTrooperRip::call(trooper: $trooper);
 
-        FlashType::success("{$trooper->display_name} has been marked R.I.P. — In Memoriam.");
+        FlashType::success(__('admin.:name has been marked R.I.P. — In Memoriam.', ['name' => $trooper->display_name]));
 
         return $this->respondWithResults($request);
     }

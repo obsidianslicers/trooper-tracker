@@ -19,7 +19,7 @@
                 <small class="text-muted d-block">{{ $event_upload->trooper->display_name }}</small>
                 @if($event_upload->troopers->isNotEmpty())
                     <small class="text-muted d-block">
-                        Tagged: {{ $event_upload->troopers->pluck('display_name')->join(', ') }}
+                        {{ __('admin.Tagged: :names', ['names' => $event_upload->troopers->pluck('display_name')->join(', ')]) }}
                     </small>
                 @endif
             </div>
@@ -43,11 +43,11 @@
                   hx-select="{{ $refresh_target }}"
                   hx-swap="outerHTML"
                   hx-indicator="{{ $indicator }}"
-                  hx-confirm="Permanently delete this photo?">
+                  hx-confirm="{{ __('admin.Permanently delete this photo?') }}">
                 @csrf
                 <button type="submit"
                         class="btn btn-sm btn-danger w-100">
-                    <i class="fa fa-trash me-1"></i> Delete
+                    <i class="fa fa-trash me-1"></i> {{ __('admin.Delete') }}
                 </button>
             </form>
         </div>

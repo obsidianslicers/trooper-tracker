@@ -17,7 +17,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Event:
+                        {{ __('admin.Event:') }}
                     </x-label>
                     <x-input-text :property="'event_name'"
                                   :disabled="true"
@@ -26,7 +26,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Event Status:
+                        {{ __('admin.Event Status:') }}
                     </x-label>
                     <x-input-text :property="'event_status'"
                                   :disabled="true"
@@ -41,18 +41,18 @@
                     <div class="mb-2 text-muted small fw-semibold">
                         {{ $shift->shift_starts_at->localFormat('D, M j, Y') }}
                         &mdash;
-                        {{ $shift->shift_starts_at->localFormat('g:i A') }} to {{ $shift->shift_ends_at->localFormat('g:i A') }}
+                        {{ __('admin.:start to :end', ['start' => $shift->shift_starts_at->localFormat('g:i A'), 'end' => $shift->shift_ends_at->localFormat('g:i A')]) }}
                     </div>
 
                     <div class="d-flex gap-2 align-items-start">
                         <div class="flex-grow-1">
-                            <label class="form-label small text-muted mb-1">Charity</label>
+                            <label class="form-label small text-muted mb-1">{{ __('admin.Charity') }}</label>
                             <x-input-text :property="'shifts.' . $shift->id . '.charity_name'"
                                           :value="$shift->charity_name"
                                           class="form-control-sm" />
                         </div>
                         <div style="width:75px">
-                            <label class="form-label small text-muted mb-1">Hours</label>
+                            <label class="form-label small text-muted mb-1">{{ __('admin.Hours') }}</label>
                             <input type="text"
                                    name="shifts[{{ $shift->id }}][charity_hours]"
                                    id="shifts.{{ $shift->id }}.charity_hours"
@@ -75,7 +75,7 @@
                                           class="form-control-sm" />
                         </div>
                         <div class="flex-grow-1">
-                            <label class="form-label small text-muted mb-1">Notes</label>
+                            <label class="form-label small text-muted mb-1">{{ __('admin.Notes') }}</label>
                             <x-input-text :property="'shifts.' . $shift->id . '.charity_notes'"
                                           :value="$shift->charity_notes"
                                           :multiline="true"
@@ -89,7 +89,7 @@
 
                 <div class="mt-3">
                 <x-submit-container>
-                    <x-submit-button>Update</x-submit-button>
+                    <x-submit-button>{{ __('admin.Update') }}</x-submit-button>
                     <x-link-button-cancel :url="route('admin.events.charity', compact('event'))" />
                 </x-submit-container>
                 </div>

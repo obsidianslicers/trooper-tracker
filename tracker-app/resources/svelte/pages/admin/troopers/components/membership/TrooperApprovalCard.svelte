@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { untrack } from "svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
     import type { TrooperApproval } from "../../models/vms";
@@ -19,7 +20,7 @@
     <div class="card-header text-uppercase d-flex justify-content-between">
         {vm.approval.legal_name}
         {#if vm.approval.is_visitor}
-            <span class="badge bg-info ms-2 float-end">Visitor</span>
+            <span class="badge bg-info ms-2 float-end">{t("Visitor")}</span>
         {:else}
             <span class="badge bg-secondary ms-2 float-end">
                 {vm.approval.membership_role}
@@ -28,26 +29,26 @@
     </div>
     <div class="card-body">
         <dl class="row mb-0">
-            <dt class="col-md-4">Legal Name:</dt>
+            <dt class="col-md-4">{t("Legal Name:")}</dt>
             <dd class="col-md-8">{vm.approval.legal_name}</dd>
-            <dt class="col-md-4">Display Name:</dt>
+            <dt class="col-md-4">{t("Display Name:")}</dt>
             <dd class="col-md-8">{vm.approval.display_name}</dd>
-            <dt class="col-md-4">Email:</dt>
+            <dt class="col-md-4">{t("Email:")}</dt>
             <dd class="col-md-8 text-wrap">{vm.approval.email}</dd>
-            <dt class="col-md-4">Phone:</dt>
+            <dt class="col-md-4">{t("Phone:")}</dt>
             <dd class="col-md-8">{vm.approval.phone ?? "n/a"}</dd>
-            <dt class="col-md-4">Role:</dt>
+            <dt class="col-md-4">{t("Role:")}</dt>
             <dd class="col-md-8">{vm.approval.membership_role}</dd>
             {#if vm.approval.is_minor && vm.approval.guardian}
-                <dt class="col-md-4 text-warning fw-bold">Parent/Guardian:</dt>
+                <dt class="col-md-4 text-warning fw-bold">{t("Parent/Guardian:")}</dt>
                 <dd class="col-md-8 text-warning">
                     {vm.approval.guardian.email}
                 </dd>
-                <dt class="col-md-4 text-warning fw-bold">Legal Name:</dt>
+                <dt class="col-md-4 text-warning fw-bold">{t("Legal Name:")}</dt>
                 <dd class="col-md-8 text-warning">
                     {vm.approval.guardian.legal_name}
                 </dd>
-                <dt class="col-md-4 text-warning fw-bold">Display Name:</dt>
+                <dt class="col-md-4 text-warning fw-bold">{t("Display Name:")}</dt>
                 <dd class="col-md-8 text-warning">
                     {vm.approval.guardian.display_name}
                 </dd>
@@ -56,16 +57,16 @@
         <hr />
         {#if vm.visitation_expired}
             <Alert type="warning" icon="fa-solid fa-clock-rotate-left">
-                Access renewal, previous access expired
+                {t("Access renewal, previous access expired")}
                 <b>{vm.approval.visitor_expires_diff_for_humans}</b>.
             </Alert>
         {/if}
         {#if vm.approval.trooper_requests.length > 0}
-            <h6 class="text-uppercase mb-2">Membership Requests</h6>
+            <h6 class="text-uppercase mb-2">{t("Membership Requests")}</h6>
             {#each vm.approval.trooper_requests as request}
                 <div class="border rounded p-2 mb-2">
                     <dl class="row mb-0 small">
-                        <dt class="col-4">Primary Organization:</dt>
+                        <dt class="col-4">{t("Primary Organization:")}</dt>
                         <dd class="col-8">
                             {#if request.primary_organization.requires_guardian}
                                 <i
@@ -74,14 +75,14 @@
                             {/if}
                             {request.primary_organization.name}
                         </dd>
-                        <dt class="col-4">Requested Unit:</dt>
+                        <dt class="col-4">{t("Requested Unit:")}</dt>
                         <dd class="col-8">
                             {#if request.organization.parent_name}
                                 {request.organization.parent_name} —
                             {/if}
                             {request.organization.name}
                         </dd>
-                        <dt class="col-4">Identifier:</dt>
+                        <dt class="col-4">{t("Identifier:")}</dt>
                         <dd class="col-8 mb-0">
                             {request.identifier || "n/a"}
                         </dd>
@@ -91,12 +92,11 @@
             {/each}
         {:else if vm.approval.membership_role === "handler"}
             <Alert type="warning" icon="fa-triangle-exclamation">
-                This trooper is registered as a Handler and not required to
-                select a unit.
+                {t("This trooper is registered as a Handler and not required to select a unit.")}
             </Alert>
         {:else}
             <Alert type="info" icon="fa-solid fa-circle-info">
-                This trooper has not requested membership in any organization.
+                {t("This trooper has not requested membership in any organization.")}
             </Alert>
         {/if}
     </div>

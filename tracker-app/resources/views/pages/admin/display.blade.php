@@ -38,9 +38,9 @@
         <strong>
             <i class="fa fa-fw fa-solid fa-circle-exclamation"></i>
             @if($not_approved === 1)
-                There is 1 trooper ready for action!
+                {{ __('admin.There is 1 trooper ready for action!') }}
             @else
-                There are {{ $not_approved }} troopers ready for action!
+                {{ __('admin.There are :count troopers ready for action!', ['count' => $not_approved]) }}
             @endif
         </strong>
         <button type="button"
@@ -53,9 +53,9 @@
         <strong>
             <i class="fa fa-fw fa-solid fa-circle-exclamation"></i>
             @if($pending_join_requests === 1)
-                1 trooper has a pending request!
+                {{ __('admin.1 trooper has a pending request!') }}
             @else
-                {{ $pending_join_requests }} troopers have a pending request!
+                {{ __('admin.:count troopers have a pending request!', ['count' => $pending_join_requests]) }}
             @endif
         </strong>
         <button type="button"
@@ -70,9 +70,9 @@
             <i class="fa fa-fw fa-solid fa-circle-exclamation"></i>
             <a href="{{ route('admin.troopers.permissions.approvals') }}" class="alert-link">
                 @if($pending_permission_requests === 1)
-                    1 permission request is waiting for review!
+                    {{ __('admin.1 permission request is waiting for review!') }}
                 @else
-                    {{ $pending_permission_requests }} permission requests are waiting for review!
+                    {{ __('admin.:count permission requests are waiting for review!', ['count' => $pending_permission_requests]) }}
                 @endif
             </a>
         </strong>
@@ -85,146 +85,145 @@
 
 <x-dashboard-cards x-data="Admin.cardNavigator()"
                    x-on:click="navigate">
-    <x-dashboard-card :label="'Trooper Approvals'"
+    <x-dashboard-card :label="__('admin.Trooper Approvals')"
                       :icon="'fa-user-check'"
                       :url="route('admin.troopers.approvals.index')">
         @if($not_approved > 0)
             <p class="text-warning">
-                {{ $not_approved }} awaiting approval
+                {{ __('admin.:count awaiting approval', ['count' => $not_approved]) }}
             </p>
         @else
-            <p class="text-success">All troopers approved</p>
+            <p class="text-success">{{ __('admin.All troopers approved') }}</p>
         @endif
 
         @if($pending_join_requests > 0)
             <p class="text-warning mb-0">
-                {{ $pending_join_requests }} pending request{{ $pending_join_requests === 1 ? '' : 's' }}
+                {{ trans_choice('admin.:count pending request|:count pending requests', $pending_join_requests) }}
             </p>
         @else
-            <p class="text-success mb-0">No pending requests</p>
+            <p class="text-success mb-0">{{ __('admin.No pending requests') }}</p>
         @endif
     </x-dashboard-card>
-    <x-dashboard-card :label="'Costume Approvals'"
+    <x-dashboard-card :label="__('admin.Costume Approvals')"
                       :icon="'fa-user-astronaut'"
                       :url="route('admin.troopers.costume-approvals')">
         @if($pending_costumes > 0)
             <p class="text-warning mb-0">
-                {{ $pending_costumes }} costume{{ $pending_costumes === 1 ? '' : 's' }} awaiting review
+                {{ trans_choice('admin.:count costume awaiting review|:count costumes awaiting review', $pending_costumes) }}
             </p>
         @else
-            <p class="text-success mb-0">No costumes waiting</p>
+            <p class="text-success mb-0">{{ __('admin.No costumes waiting') }}</p>
         @endif
     </x-dashboard-card>
-    <x-dashboard-card :label="'Troop Verifications'"
+    <x-dashboard-card :label="__('admin.Troop Verifications')"
                       :icon="'fa-user-clock'"
                       :url="route('admin.troopers.troop-verifications')">
         @if($troops_awaiting_verification > 0)
             <p class="text-warning mb-0">
-                {{ $troops_awaiting_verification }} troop{{ $troops_awaiting_verification === 1 ? '' : 's' }} awaiting verification
+                {{ trans_choice('admin.:count troop awaiting verification|:count troops awaiting verification', $troops_awaiting_verification) }}
             </p>
         @else
-            <p class="text-success mb-0">No troops waiting</p>
+            <p class="text-success mb-0">{{ __('admin.No troops waiting') }}</p>
         @endif
     </x-dashboard-card>
-    <x-dashboard-card :label="'Troopers'"
+    <x-dashboard-card :label="__('admin.Troopers')"
                       :icon="'fa-users-gear'"
                       :url="route('admin.troopers.list')">
-        Manage Trooper's profile, authority, and memberships.
+        {{ __('admin.Manage Trooper\'s profile, authority, and memberships.') }}
     </x-dashboard-card>
-    <x-dashboard-card :label="'Missing Credit'"
+    <x-dashboard-card :label="__('admin.Missing Credit')"
                       :icon="'fa-triangle-exclamation'"
                       :url="route('admin.service-records.missing-credits')">
-        Fix shifts missing a "Credited To" club
+        {{ __('admin.Fix shifts missing a "Credited To" club') }}
     </x-dashboard-card>
-    <x-dashboard-card :label="'Request Permissions'"
+    <x-dashboard-card :label="__('admin.Request Permissions')"
                       :icon="'fa-user-shield'"
                       :url="route('admin.troopers.permissions.request')">
-        Ask an administrator to change a trooper's role or forum groups.
+        {{ __('admin.Ask an administrator to change a trooper\'s role or forum groups.') }}
     </x-dashboard-card>
     @role(['system_owner', 'staff_officer'])
-    <x-dashboard-card :label="'Permission Approvals'"
+    <x-dashboard-card :label="__('admin.Permission Approvals')"
                       :icon="'fa-user-lock'"
                       :url="route('admin.troopers.permissions.approvals')">
         @if($pending_permission_requests > 0)
             <p class="text-warning mb-0">
-                {{ $pending_permission_requests }}
-                pending request{{ $pending_permission_requests === 1 ? '' : 's' }}
+                {{ trans_choice('admin.:count pending request|:count pending requests', $pending_permission_requests) }}
             </p>
         @else
-            <p class="text-success mb-0">No pending requests</p>
+            <p class="text-success mb-0">{{ __('admin.No pending requests') }}</p>
         @endif
     </x-dashboard-card>
     @endrole
     @role(['system_owner'])
-    <x-dashboard-card :label="'Merge Troopers'"
+    <x-dashboard-card :label="__('admin.Merge Troopers')"
                       :icon="'fa-user-group'"
                       :url="route('admin.troopers.merge')">
-        Merge existing troopers into a single profile.
+        {{ __('admin.Merge existing troopers into a single profile.') }}
     </x-dashboard-card>
     @endrole
-    <x-dashboard-card :label="'Notices to the Troops'"
+    <x-dashboard-card :label="__('admin.Notices to the Troops')"
                       :icon="'fa-message'"
                       :url="route('admin.notices.list')">
-        Manage Site Messages
+        {{ __('admin.Manage Site Messages') }}
     </x-dashboard-card>
-    <x-dashboard-card :label="'Events'"
+    <x-dashboard-card :label="__('admin.Events')"
                       :icon="'fa-calendar-days'"
                       :url="route('admin.events.list')">
-        Create, Update, and Manage Events
+        {{ __('admin.Create, Update, and Manage Events') }}
     </x-dashboard-card>
     @can('viewAny', \App\Models\EventType::class)
-        <x-dashboard-card :label="'Event Types'"
+        <x-dashboard-card :label="__('admin.Event Types')"
                           :icon="'fa-tags'"
                           :url="route('admin.event-types.index')">
-            Order event types, describe them, and choose which are non-troop-credit
+            {{ __('admin.Order event types, describe them, and choose which are non-troop-credit') }}
         </x-dashboard-card>
     @endcan
-    <x-dashboard-card :label="'Awards'"
+    <x-dashboard-card :label="__('admin.Awards')"
                       :icon="'fa-award'"
                       :url="route('admin.awards.list')">
-        Create, Update Awards, as well as assign them to troopers
+        {{ __('admin.Create, Update Awards, as well as assign them to troopers') }}
     </x-dashboard-card>
     @can('create', \App\Models\Costume::class)
-        <x-dashboard-card :label="'Costumes'"
+        <x-dashboard-card :label="__('admin.Costumes')"
                           :icon="'fa-wrench'"
                           :url="route('admin.costumes.list')">
-            Create, Update, and Manage Costumes
+            {{ __('admin.Create, Update, and Manage Costumes') }}
         </x-dashboard-card>
     @endcan
     @role(['system_owner'])
-    <x-dashboard-card :label="'Merge Costumes'"
+    <x-dashboard-card :label="__('admin.Merge Costumes')"
                       :icon="'fa-object-group'"
                       :url="route('admin.costumes.merge')">
-        Merge a duplicate costume into the one you want to keep.
+        {{ __('admin.Merge a duplicate costume into the one you want to keep.') }}
     </x-dashboard-card>
     @endrole
-    <x-dashboard-card :label="'Organizations'"
+    <x-dashboard-card :label="__('admin.Organizations')"
                       :icon="'fa-wrench'"
                       :url="route('admin.organizations.list')">
-        Create, Update, and Manage Organizations, Regions, Units
+        {{ __('admin.Create, Update, and Manage Organizations, Regions, Units') }}
     </x-dashboard-card>
-    <x-dashboard-card :label="'Reports & Stats'"
+    <x-dashboard-card :label="__('admin.Reports & Stats')"
                       :icon="'fa-file-lines'"
                       :url="route('admin.reports.display')">
-        View Reports &amp; Statistics
+        {{ __('admin.View Reports & Statistics') }}
     </x-dashboard-card>
     @role(['system_owner', 'staff_officer'])
-    <x-dashboard-card :label="'FAQ & Help'"
+    <x-dashboard-card :label="__('admin.FAQ & Help')"
                       :icon="'fa-question'"
                       :url="route('admin.faq.index')">
-        View Frequently Asked Questions and Help
+        {{ __('admin.View Frequently Asked Questions and Help') }}
     </x-dashboard-card>
     @endrole
     @role(['system_owner'])
-    <x-dashboard-card :label="'System Check'"
+    <x-dashboard-card :label="__('admin.System Check')"
                       :icon="'fa-heart-pulse'"
                       :url="route('admin.system-check')">
-        Verify PHP, server, and integration settings
+        {{ __('admin.Verify PHP, server, and integration settings') }}
     </x-dashboard-card>
-    <x-dashboard-card :label="'Plugins'"
+    <x-dashboard-card :label="__('admin.Plugins')"
                       :icon="'fa-puzzle-piece'"
                       :url="route('admin.plugins.list')">
-        Enable, Disable, and Configure Plugins
+        {{ __('admin.Enable, Disable, and Configure Plugins') }}
     </x-dashboard-card>
     @endrole
     @pluginSlot('admin.dashboard.cards')

@@ -28,7 +28,7 @@ class UninstallSubmitController extends Controller
             return redirect()->route('admin.plugins.list');
         }
 
-        FlashType::success("Plugin \"{$manifest->name}\" was uninstalled and its data removed.");
+        FlashType::success(__('admin.Plugin ":plugin" was uninstalled and its data removed.', ['plugin' => $manifest->name]));
 
         return redirect()->route('admin.plugins.list');
     }

@@ -14,10 +14,10 @@
             <thead>
                 <tr>
                     <th>
-                        Name
+                        {{ __('admin.Name') }}
                     </th>
                     <th>
-                        Synchronized
+                        {{ __('admin.Synchronized') }}
                     </th>
                 </tr>
             </thead>

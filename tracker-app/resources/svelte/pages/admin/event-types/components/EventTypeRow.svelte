@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import ActionMenu from "$lib/components/ui/actionmenus/ActionMenu.svelte";
     import ActionMenuDelete from "$lib/components/ui/actionmenus/ActionMenuDelete.svelte";
     import ActionMenuUpdate from "$lib/components/ui/actionmenus/ActionMenuUpdate.svelte";
@@ -19,7 +20,7 @@
     <td>
         <a href={event_type.update_route} class="text-reset">{event_type.name}</a>
         {#if !event_type.is_active}
-            <span class="badge text-bg-secondary ms-1">Hidden</span>
+            <span class="badge text-bg-secondary ms-1">{t("Hidden")}</span>
         {/if}
         {#if event_type.description}
             <div class="small text-muted">{event_type.description}</div>
@@ -28,10 +29,10 @@
     <td>
         {#if event_type.is_counted}
             <i class="fa fa-fw fa-check text-success" aria-hidden="true"></i>
-            <span class="visually-hidden">Counts</span>
+            <span class="visually-hidden">{t("Counts")}</span>
         {:else}
             <!-- the same label as EventType::NOT_COUNTED_LABEL -->
-            <span class="badge text-bg-warning">Non-troop-credit</span>
+            <span class="badge text-bg-warning">{t("Non-troop-credit")}</span>
         {/if}
     </td>
     <td class="text-muted small">{event_type.events_count}</td>

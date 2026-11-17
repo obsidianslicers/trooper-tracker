@@ -15,7 +15,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Parent:
+                        {{ __('admin.Parent:') }}
                     </x-label>
                     <x-input-text :property="'parent_name'"
                                   :disabled="true"
@@ -24,7 +24,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Name:
+                        {{ __('admin.Name:') }}
                     </x-label>
                     <x-input-text :property="'name'"
                                   :value="$organization->name" />
@@ -32,7 +32,7 @@
 
                 <x-submit-container>
                     <x-submit-button>
-                        Create
+                        {{ __('admin.Create') }}
                     </x-submit-button>
                     <x-link-button-cancel :url="route('admin.organizations.list')" />
                 </x-submit-container>

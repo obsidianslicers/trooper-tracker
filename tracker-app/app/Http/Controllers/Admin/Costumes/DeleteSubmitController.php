@@ -74,7 +74,7 @@ class DeleteSubmitController extends PageController
             $costume->delete();
         });
 
-        FlashType::success("Deleted costume '{$costume_name}'");
+        FlashType::success(__("admin.Deleted costume ':name'", ['name' => $costume_name]));
 
         return redirect()->route('admin.costumes.list');
     }

@@ -8,16 +8,16 @@
     <thead>
         <tr>
             <th>
-                Plugin
+                {{ __('admin.Plugin') }}
             </th>
             <th>
-                Version
+                {{ __('admin.Version') }}
             </th>
             <th>
-                Source
+                {{ __('admin.Source') }}
             </th>
             <th>
-                Status
+                {{ __('admin.Status') }}
             </th>
             <th></th>
         </tr>
@@ -35,11 +35,11 @@
                         <div class="small text-muted">{{ $manifest->description }}</div>
                     @endif
                     @if($manifest->author !== '')
-                        <div class="small text-muted">By {{ $manifest->author }}</div>
+                        <div class="small text-muted">{{ __('admin.By :author', ['author' => $manifest->author]) }}</div>
                     @endif
                     @if($manifest->capabilities !== [])
                         <div class="small text-muted">
-                            It {{ $plugin['capability_summary'] }}.
+                            {{ __('admin.It :capabilities.', ['capabilities' => $plugin['capability_summary']]) }}
                         </div>
                     @endif
                 </td>
@@ -47,8 +47,8 @@
                     {{ $manifest->version }}
                     @if($plugin['has_pending_upgrade'])
                         <div class="small text-warning"
-                             title="Run php artisan plugins:reconcile to finish updating it.">
-                            Update pending from {{ $plugin['installed_version'] }}
+                             title="{{ __('admin.Run php artisan plugins:reconcile to finish updating it.') }}">
+                            {{ __('admin.Update pending from :version', ['version' => $plugin['installed_version']]) }}
                         </div>
                     @endif
                 </td>
@@ -58,37 +58,36 @@
                 <td>
                     @if($plugin['is_enabled'] && $plugin['status'] === 'failed')
                         <span class="badge text-bg-warning"
-                              title="Enabled, but the last deploy could not finish setting it up.">
-                            Needs attention
+                              title="{{ __('admin.Enabled, but the last deploy could not finish setting it up.') }}">
+                            {{ __('admin.Needs attention') }}
                         </span>
                     @elseif($plugin['is_enabled'] && $plugin['is_loaded'])
-                        <span class="badge text-bg-success">Enabled</span>
+                        <span class="badge text-bg-success">{{ __('admin.Enabled') }}</span>
                     @elseif($plugin['is_enabled'])
                         <span class="badge text-bg-danger"
-                              title="Enabled, but it failed to load. Check the logs.">
-                            Failed to load
+                              title="{{ __('admin.Enabled, but it failed to load. Check the logs.') }}">
+                            {{ __('admin.Failed to load') }}
                         </span>
                     @elseif($plugin['is_enable_pending'])
                         <span class="badge text-bg-info"
-                              title="The next deploy installs its packages and turns it on.">
-                            Turns on at next deploy
+                              title="{{ __('admin.The next deploy installs its packages and turns it on.') }}">
+                            {{ __('admin.Turns on at next deploy') }}
                         </span>
                     @else
-                        <span class="badge text-bg-secondary">Disabled</span>
+                        <span class="badge text-bg-secondary">{{ __('admin.Disabled') }}</span>
                     @endif
                     @if($plugin['can_install_on_deploy'] && !$plugin['is_enable_pending'])
                         <div class="small text-muted">
-                            Its packages ({{ implode('; ', $plugin['unmet_requirements']) }})
-                            are installed by the next deploy after you enable it.
+                            {{ __('admin.Its packages (:packages) are installed by the next deploy after you enable it.', ['packages' => implode('; ', $plugin['unmet_requirements'])]) }}
                         </div>
                     @elseif($plugin['unmet_requirements'] !== [] && !$plugin['is_enable_pending'])
                         <div class="small text-danger">
-                            Needs {{ implode('; ', $plugin['unmet_requirements']) }}.
+                            {{ __('admin.Needs :requirements.', ['requirements' => implode('; ', $plugin['unmet_requirements'])]) }}
                         </div>
                     @endif
                     @if($plugin['last_error'] !== null && $plugin['last_error'] !== '')
                         <div class="small text-danger">
-                            Last deploy: {{ $plugin['last_error'] }}
+                            {{ __('admin.Last deploy: :error', ['error' => $plugin['last_error']]) }}
                         </div>
                     @endif
                 </td>
@@ -97,7 +96,7 @@
                         <a href="{{ route('admin.plugins.settings', ['slug' => $manifest->slug]) }}"
                            class="btn btn-sm btn-outline-secondary">
                             <i class="fa fa-fw fa-gear"></i>
-                            Settings
+                            {{ __('admin.Settings') }}
                         </a>
                     @endif
                     @php
@@ -109,26 +108,26 @@
                           class="d-inline"
                           action="{{ route($toggle_route, ['slug' => $manifest->slug]) }}"
                           @if($toggle_route === 'admin.plugins.enable' && $manifest->capabilities !== [])
-                              data-confirm="Turn on {{ $manifest->name }}? It {{ $plugin['capability_summary'] }}."
+                              data-confirm="Turn on {{ $manifest->name }}? {{ __('admin.It :capabilities.', ['capabilities' => $plugin['capability_summary']]) }}"
                               onsubmit="return confirm(this.dataset.confirm);"
                           @endif>
                         @csrf
                         @if($plugin['is_enabled'])
                             <button type="submit"
                                     class="btn btn-sm btn-outline-danger">
-                                Disable
+                                {{ __('admin.Disable') }}
                             </button>
                         @elseif($plugin['is_enable_pending'])
                             <button type="submit"
                                     class="btn btn-sm btn-outline-secondary">
-                                Cancel
+                                {{ __('admin.Cancel') }}
                             </button>
                         @else
                             <button type="submit"
                                     class="btn btn-sm btn-outline-success"
                                     @disabled($plugin['unmet_requirements'] !== []
                                         && !$plugin['can_install_on_deploy'])>
-                                Enable
+                                {{ __('admin.Enable') }}
                             </button>
                         @endif
                     </form>
@@ -141,7 +140,7 @@
                             @csrf
                             <button type="submit"
                                     class="btn btn-sm btn-danger">
-                                Uninstall
+                                {{ __('admin.Uninstall') }}
                             </button>
                         </form>
                     @endif
@@ -149,18 +148,16 @@
             </tr>
         @empty
             <x-table-empty :colspan="5">
-                No plugins found. Upload one below or add it to the plugins folder.
+                {{ __('admin.No plugins found. Upload one below or add it to the plugins folder.') }}
             </x-table-empty>
         @endforelse
     </tbody>
 </x-table>
 
 @if($missing->isNotEmpty())
-    <x-card :label="'Missing plugins'">
+    <x-card :label="__('admin.Missing plugins')">
         <p class="text-muted small">
-            These plugins were set up before, but their files are gone from the server.
-            Their settings and data are kept. Put the files back
-            and the next deploy restores them as they were.
+            {{ __('admin.These plugins were set up before, but their files are gone from the server. Their settings and data are kept. Put the files back and the next deploy restores them as they were.') }}
         </p>
         <ul class="list-group">
             @foreach($missing as $record)
@@ -171,7 +168,7 @@
                         @if($record->source !== null)
                             · {{ ucfirst($record->source) }}
                         @endif
-                        · was {{ $record->is_enabled ? 'enabled' : 'disabled' }}
+                        · {{ $record->is_enabled ? __('admin.was enabled') : __('admin.was disabled') }}
                     </span>
                     @if($record->last_error !== null && $record->last_error !== '')
                         <div class="small text-danger">{{ $record->last_error }}</div>
@@ -182,17 +179,14 @@
     </x-card>
 @endif
 
-<x-card :label="'Install a plugin'">
+<x-card :label="__('admin.Install a plugin')">
     @if($uploads['is_enabled'])
         <form method="POST"
               action="{{ route('admin.plugins.install') }}"
               enctype="multipart/form-data">
             @csrf
             <p class="text-muted small">
-                Upload a plugin as a .zip file (up to {{ format_number($uploads['max_kilobytes'] / 1024, 1) }} MB)
-                with its plugin.json at the top. It is installed disabled. Composer packages it
-                needs are installed by the next deploy.
-                A plugin runs code on the server once enabled, so only install plugins you trust.
+                {{ __('admin.Upload a plugin as a .zip file (up to :size MB) with its plugin.json at the top. It is installed disabled. Composer packages it needs are installed by the next deploy. A plugin runs code on the server once enabled, so only install plugins you trust.', ['size' => format_number($uploads['max_kilobytes'] / 1024, 1)]) }}
             </p>
             <div class="input-group">
                 <input type="file"
@@ -202,16 +196,14 @@
                        required>
                 <button type="submit"
                         class="btn btn-primary">
-                    Install
+                    {{ __('admin.Install') }}
                 </button>
             </div>
             <x-input-error :property="'archive'" />
         </form>
     @else
         <p class="text-muted small mb-0">
-            Installing plugins from here is turned off.
-            The server sets TRACKER_PLUGINS_ALLOW_UPLOADS=false. Remove that to allow it,
-            or copy plugins into storage/app/plugins on the server.
+            {{ __('admin.Installing plugins from here is turned off. The server sets TRACKER_PLUGINS_ALLOW_UPLOADS=false. Remove that to allow it, or copy plugins into storage/app/plugins on the server.') }}
         </p>
     @endif
 </x-card>

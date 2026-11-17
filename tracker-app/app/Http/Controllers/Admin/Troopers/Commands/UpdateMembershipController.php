@@ -41,7 +41,7 @@ class UpdateMembershipController extends ProfileCommandController
 
         UpdateTrooperMemberships::call(trooper: $trooper, valid_data: $valid_data);
 
-        FlashType::success("Updated {$organization->name} membership.");
+        FlashType::success(__('admin.Updated :organization membership.', ['organization' => $organization->name]));
 
         return $this->respondWithResults($request);
     }

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputCheckbox from "$lib/components/form/InputCheckbox.svelte";
     import Button from "$lib/components/ui/buttons/Button.svelte";
     import type { MissingCreditRow as Row, MissingCreditsViewModel } from "../models";
@@ -33,17 +34,16 @@
     <td>
         {#if options.length === 0 && row.trooper_has_no_club_membership}
             <span class="text-muted small">
-                Not a member of any club — add them to a club first.
+                {t("Not a member of any club — add them to a club first.")}
             </span>
         {:else if options.length === 0}
             <span class="text-muted small">
-                No eligible club found &mdash; contact a system administrator.
+                {t("No eligible club found — contact a system administrator.")}
             </span>
         {:else}
             {#if isFallback}
                 <span class="badge bg-warning text-dark mb-1 d-block">
-                    No club matched automatically — showing {row.trooper_name}'s current club
-                    membership(s) instead.
+                    {t("No club matched automatically — showing :name's current club membership(s) instead.", { name: row.trooper_name })}
                 </span>
             {/if}
             {#each options as option (option.id)}

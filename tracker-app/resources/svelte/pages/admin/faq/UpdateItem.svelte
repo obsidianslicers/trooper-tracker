@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import TrooperStamps from "$lib/components/TrooperStamps.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
     import pageState from "$lib/states/page-state.svelte";
@@ -8,12 +9,12 @@
 
     const page = usePage<UpdateItemPageData>();
 
-    pageState.title = "Update FAQ Item";
+    pageState.title = t("Update FAQ Item");
 
     let vm = new UpdateItemViewModel(page.props);
 </script>
 
 <SlimView>
-    <ItemForm {vm} label="Update" section_options={vm.section_options} />
+    <ItemForm {vm} label={t("Update")} section_options={vm.section_options} />
     <TrooperStamps trooper_stamps={vm.trooper_stamps} />
 </SlimView>

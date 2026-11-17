@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import type { ProfileEvent } from "../../models";
 
     interface Props {
@@ -9,7 +10,7 @@
 
 <table class="table table-sm">
     <thead>
-        <tr><th>Organization</th><th>Last Event</th><th>Date</th></tr>
+        <tr><th>{t("Organization")}</th><th>{t("Last Event")}</th><th>{t("Date")}</th></tr>
     </thead>
     <tbody>
         {#each events as event (event.organization)}
@@ -19,7 +20,7 @@
                     {#if event.event_id}
                         <a href={`/events/${event.event_id}`}>{event.event_name}</a>
                     {:else}
-                        <span class="text-muted">No events</span>
+                        <span class="text-muted">{t("No events")}</span>
                     {/if}
                 </td>
                 <td>{event.shift_date ?? ""}</td>

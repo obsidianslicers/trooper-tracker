@@ -17,14 +17,14 @@
                 @csrf
                 <x-input-container>
                     <x-label>
-                        Name:
+                        {{ __('admin.Name:') }}
                     </x-label>
                     <x-input-text :property="'name'"
                                   :value="$costume->name" />
                 </x-input-container>
 
                 <x-label>
-                    Assigned Organizations:
+                    {{ __('admin.Assigned Organizations:') }}
                 </x-label>
                 @foreach ($organizations as $organization)
                     <div class="row mb-0 ps-3">
@@ -43,7 +43,7 @@
 
                 <x-submit-container>
                     <x-submit-button>
-                        Update
+                        {{ __('admin.Update') }}
                     </x-submit-button>
                     <x-link-button-cancel :url="route('admin.costumes.list')" />
                 </x-submit-container>
