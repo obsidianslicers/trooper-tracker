@@ -43,7 +43,7 @@ class UpdateController extends PageController
 
         if ($event->is_draft)
         {
-            $msg = 'This event is currently in Draft status and not visible to troopers.';
+            $msg = __('admin.This event is currently in Draft status and not visible to troopers.');
 
             FlashType::warning($msg);
         }

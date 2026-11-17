@@ -38,7 +38,7 @@ class RegistrationMiddleware
         {
             return redirect()
                 ->route('auth.signup')
-                ->with('error', 'Please sign up again.');
+                ->with('error', __('auth.Please sign up again.'));
         }
 
         if (now()->greaterThan($registration_auth['expires_at']))
@@ -47,7 +47,7 @@ class RegistrationMiddleware
 
             return redirect()
                 ->route('auth.signup')
-                ->with('error', 'Your registration session expired.');
+                ->with('error', __('auth.Your registration session expired.'));
         }
 
         $required = app(TroopTracker::class)->requiredLoginProvider();

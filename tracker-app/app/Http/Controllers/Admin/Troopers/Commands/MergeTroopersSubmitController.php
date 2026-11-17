@@ -34,6 +34,6 @@ class MergeTroopersSubmitController extends Controller
 
         dispatch(new MergeTroopersJob($source_trooper, $target_trooper));
 
-        return redirect()->route('admin.troopers.merge')->withSuccess('Troopers are currently being merged.');
+        return redirect()->route('admin.troopers.merge')->withSuccess(__('admin.Troopers are currently being merged.'));
     }
 }

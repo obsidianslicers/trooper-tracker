@@ -30,16 +30,16 @@ class ExpiredVisitorMembership implements ValidationRule
         {
             if (!$trooper->is_visitor)
             {
-                $fail('The trooper must have a visitor membership.');
+                $fail(__('account.The trooper must have a visitor membership.'));
             }
             if ($trooper->visitor_expires_at == null || $trooper->visitor_expires_at->isFuture())
             {
-                $fail('The trooper must have an expired visitor membership.');
+                $fail(__('account.The trooper must have an expired visitor membership.'));
             }
         }
         else
         {
-            $fail('The specified trooper could not be found.');
+            $fail(__('account.The specified trooper could not be found.'));
         }
     }
 }

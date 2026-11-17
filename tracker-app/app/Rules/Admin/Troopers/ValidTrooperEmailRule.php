@@ -44,7 +44,7 @@ class ValidTrooperEmailRule implements ValidationRule
 
         if (!filter_var($value, FILTER_VALIDATE_EMAIL))
         {
-            $fail("The {$attribute} field must be a valid email address.");
+            $fail(__('admin.The :attribute field must be a valid email address.'));
         }
     }
 }

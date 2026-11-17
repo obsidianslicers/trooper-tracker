@@ -33,7 +33,7 @@ class DeleteSectionRequest extends FormRequest
                 {
                     $validator->errors()->add(
                         'section',
-                        'An FAQ section with FAQs cannot be deleted.'
+                        __('admin.An FAQ section with FAQs cannot be deleted.')
                     );
                 }
             },

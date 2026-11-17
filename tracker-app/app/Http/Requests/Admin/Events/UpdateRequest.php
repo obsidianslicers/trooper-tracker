@@ -69,8 +69,8 @@ class UpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            Event::TROOPERS_ALLOWED.'.required_if' => 'The troopers allowed field is required when limit organizations is set to Yes.',
-            Event::HANDLERS_ALLOWED.'.required_if' => 'The handlers allowed field is required when limit organizations is set to Yes.',
+            Event::TROOPERS_ALLOWED.'.required_if' => __('admin.The troopers allowed field is required when limit organizations is set to Yes.'),
+            Event::HANDLERS_ALLOWED.'.required_if' => __('admin.The handlers allowed field is required when limit organizations is set to Yes.'),
         ];
     }
 

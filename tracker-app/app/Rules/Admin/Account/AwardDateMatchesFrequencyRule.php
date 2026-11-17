@@ -64,7 +64,7 @@ class AwardDateMatchesFrequencyRule implements ValidationRule
     {
         if (!$date->isSameDay($date->copy()->startOfMonth()))
         {
-            $fail('Monthly awards must use the first day of the month.');
+            $fail(__('admin.Monthly awards must use the first day of the month.'));
         }
     }
 
@@ -78,7 +78,7 @@ class AwardDateMatchesFrequencyRule implements ValidationRule
     {
         if (!$date->isSameDay($date->copy()->firstOfQuarter()))
         {
-            $fail('Quarterly awards must use the first day of the quarter.');
+            $fail(__('admin.Quarterly awards must use the first day of the quarter.'));
         }
     }
 
@@ -92,7 +92,7 @@ class AwardDateMatchesFrequencyRule implements ValidationRule
     {
         if (!$date->isSameDay($date->copy()->startOfYear()))
         {
-            $fail('Annual awards must use January 1st.');
+            $fail(__('admin.Annual awards must use January 1st.'));
         }
     }
 }

@@ -44,7 +44,7 @@ class TrooperNotAlreadyAwardedRule implements ValidationRule
 
         if ($exists)
         {
-            $fail('This trooper already has this award for the selected date.');
+            $fail(__('admin.This trooper already has this award for the selected date.'));
         }
     }
 }

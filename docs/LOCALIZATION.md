@@ -124,6 +124,7 @@ Locally (`APP_ENV=local`), a key that no language defines is also logged as a wa
 ## Adding a language
 
 1. Copy `lang/en` to `lang/<locale>` and translate the values (leave out lines you haven't translated yet; they fall back to English).
-2. Add the language to `locales` in `config/tracker.php`.
-3. Validation messages: run `php artisan lang:publish` once to get `lang/en/validation.php`, then add `lang/<locale>/validation.php`. The [laravel-lang](https://github.com/Laravel-Lang/lang) project has ready-made translations of it for most languages.
-4. Run `php artisan tracker:report-translations` to see what's left.
+2. Do the same for each plugin's `plugins/<slug>/lang/en`, and copy the emails you want translated from `resources/views/emails/en` to `resources/views/emails/<locale>`.
+3. Add the language to `locales` in `config/tracker.php`.
+4. Validation messages: run `php artisan lang:publish` once to get `lang/en/validation.php`, then add `lang/<locale>/validation.php`. The [laravel-lang](https://github.com/Laravel-Lang/lang) project has ready-made translations of it for most languages.
+5. Run `php artisan tracker:report-translations` to see what's left.

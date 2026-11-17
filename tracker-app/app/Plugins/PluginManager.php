@@ -291,7 +291,7 @@ class PluginManager
 
         return $this->requirements->unmet($packages) === []
             ? null
-            : 'The next deploy installs missing Composer packages once the plugin is enabled';
+            : __('admin.The next deploy installs missing Composer packages once the plugin is enabled');
     }
 
     /**

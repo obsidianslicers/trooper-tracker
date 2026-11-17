@@ -1,5 +1,5 @@
 import { t } from '$lib/i18n';
-import { YES_NO_OPTIONS } from "$lib/constants";
+import { yesNoOptions } from "$lib/constants";
 import { ViewModel, type Option } from "$lib/domains/types.svelte";
 import toastStateSvelte from "$lib/states/toast-state.svelte";
 import { createPartialReloadOptions, getRoute } from "$lib/utils";
@@ -43,7 +43,7 @@ export class EventNotificationsViewModel extends ViewModel {
 
     constructor(pageData?: EventNotificationsPageData) {
         super();
-        this.push_notification_options = YES_NO_OPTIONS;
+        this.push_notification_options = yesNoOptions();
         this.push_notifications_enabled = pageData?.push_notifications_enabled || false;
         this.notification_frequency = pageData?.notification_frequency || "never";
         this.notification_frequency_enums = pageData?.notification_frequency_enums || [];

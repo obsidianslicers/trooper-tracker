@@ -1,3 +1,4 @@
+import { t } from '../i18n.js';
 // Initialize editor on a textarea
 document.addEventListener("DOMContentLoaded", () => {
     function bindSimpleMDE() {
@@ -16,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     const btn = document.createElement('button');
                     btn.type = 'button';
-                    btn.title = 'Smilies';
+                    btn.title = t('Smilies');
                     btn.innerHTML = '<i class="far fa-smile"></i>';
                     btn.addEventListener('click', () =>
                         window.dispatchEvent(new CustomEvent('smilies-toggle-' + textarea.id))

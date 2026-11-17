@@ -55,7 +55,7 @@ class PermissionRequestsCollection extends ResourceCollection
         return match ($role)
         {
             null => null,
-            MembershipRole::MEMBER => 'Regular Trooper',
+            MembershipRole::MEMBER => __('admin.Regular Trooper'),
             default => $role->label(),
         };
     }
@@ -104,8 +104,8 @@ class PermissionRequestsCollection extends ResourceCollection
 
         $lines = collect([
             'Role' => (string) self::roleLabel($request->membership_role),
-            'Now moderates' => $names($request->moderated_organization_ids_to_add),
-            'No longer moderates' => $names($request->moderated_organization_ids_to_remove),
+            __('admin.Now moderates') => $names($request->moderated_organization_ids_to_add),
+            __('admin.No longer moderates') => $names($request->moderated_organization_ids_to_remove),
         ])
             ->filter(fn (string $value): bool => $value !== '')
             ->map(fn (string $value, string $label): string => "{$label}: {$value}")

@@ -72,7 +72,9 @@ class UniqueNameRule implements ValidationRule
 
             if ($exists)
             {
-                $fail("{$this->organization->name} Name already exists.");
+                $fail(__('admin.:organization Name already exists.', [
+                    'organization' => $this->organization->name,
+                ]));
             }
         }
     }

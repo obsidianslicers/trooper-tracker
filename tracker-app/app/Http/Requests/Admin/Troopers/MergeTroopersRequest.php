@@ -47,11 +47,11 @@ class MergeTroopersRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'source_trooper_id.required' => 'Source trooper is required.',
-            'source_trooper_id.exists' => 'The selected source trooper does not exist (or is not active).',
-            'target_trooper_id.required' => 'Target trooper is required.',
-            'target_trooper_id.different' => 'Target trooper must be different from the source trooper.',
-            'target_trooper_id.exists' => 'The selected target trooper does not exist (or is not active).',
+            'source_trooper_id.required' => __('admin.Source trooper is required.'),
+            'source_trooper_id.exists' => __('admin.The selected source trooper does not exist (or is not active).'),
+            'target_trooper_id.required' => __('admin.Target trooper is required.'),
+            'target_trooper_id.different' => __('admin.Target trooper must be different from the source trooper.'),
+            'target_trooper_id.exists' => __('admin.The selected target trooper does not exist (or is not active).'),
         ];
     }
 }

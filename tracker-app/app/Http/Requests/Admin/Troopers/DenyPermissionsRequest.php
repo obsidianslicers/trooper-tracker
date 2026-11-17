@@ -30,7 +30,7 @@ class DenyPermissionsRequest extends FormRequest
                 {
                     if (!$value instanceof PermissionRequest || !$value->isPending())
                     {
-                        $fail('This permission request has already been reviewed.');
+                        $fail(__('admin.This permission request has already been reviewed.'));
                     }
                 },
             ],

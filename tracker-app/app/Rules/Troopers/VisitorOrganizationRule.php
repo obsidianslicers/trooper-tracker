@@ -33,7 +33,7 @@ class VisitorOrganizationRule implements ValidationRule
 
         if ($org && $org->depth > 1)
         {
-            $fail('Visitors can only join top-level organizations.');
+            $fail(__('account.Visitors can only join top-level organizations.'));
         }
     }
 }

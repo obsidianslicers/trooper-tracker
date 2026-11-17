@@ -1,3 +1,4 @@
+import { t } from '../i18n.js';
 /** FLASH AFTER SWAP / ERROR **/
 function resolveFlashContainer(event) {
     const targetSelector = event.detail.elt?.dataset?.flashTarget;
@@ -84,7 +85,7 @@ function showHtmxErrorFallback(event) {
 
     if (event.detail.xhr.status === 413) {
         appendFlashMessage({
-            message: 'That upload is too large for the server. Please upload JPG, PNG, or WEBP images that are 50MB or smaller.',
+            message: t('That upload is too large for the server. Please upload JPG, PNG, or WEBP images that are 50MB or smaller.'),
             type: 'danger',
             fadeOut: 5000,
         }, resolveFlashContainer(event));

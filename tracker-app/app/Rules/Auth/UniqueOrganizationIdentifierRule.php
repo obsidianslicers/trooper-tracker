@@ -49,7 +49,10 @@ class UniqueOrganizationIdentifierRule implements ValidationRule
 
             if (!$available)
             {
-                $fail("{$this->organization->name} {$this->organization->identifier_display} already exists.");
+                $fail(__('auth.:organization :identifier already exists.', [
+                    'organization' => $this->organization->name,
+                    'identifier' => $this->organization->identifier_display,
+                ]));
             }
         }
     }

@@ -1,3 +1,4 @@
+import { t } from '../i18n.js';
 /** HTMX CSRF TOKEN **/
 document.addEventListener('htmx:configRequest', function (event) {
     const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -6,7 +7,7 @@ document.addEventListener('htmx:configRequest', function (event) {
 document.body.addEventListener('htmx:responseError', function (event) {
     if (event.detail.xhr.status === 419) {
         // Flash a message (Bootstrap example)
-        alert('Your session has expired. Reloading ...');
+        alert(t('Your session has expired. Reloading ...'));
 
         // Force a full reload so CSRF + session reset
         window.location.reload();
