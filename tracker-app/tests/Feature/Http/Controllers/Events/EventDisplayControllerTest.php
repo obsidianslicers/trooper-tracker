@@ -65,6 +65,25 @@ class EventDisplayControllerTest extends TestCase
         $response->assertSee(route('service-records.trooper', ['trooper' => $coordinator->id]), false);
     }
 
+    public function test_invoke_shows_the_picked_coordinator_instead_of_the_creator(): void
+    {
+        $member = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $creator = Trooper::factory()->withDisplayName('TK-421 Creator')->create();
+        $picked = Trooper::factory()->withDisplayName('TK-422 Picked')->create();
+        $event = Event::factory()->withCreatedByTrooper($creator)->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($picked)->create([
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+        $event->update([Event::COORDINATOR_TROOPER_ID => $picked->id]);
+
+        $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['Event Coordinator', 'TK-422 Picked']);
+        $response->assertDontSee('TK-421 Creator');
+    }
+
     public function test_invoke_leaves_out_the_coordinator_when_the_event_has_none(): void
     {
         $member = Trooper::factory()->asActive()->withVerifiedEmail()->create();

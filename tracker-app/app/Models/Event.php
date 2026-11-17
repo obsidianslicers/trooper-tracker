@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Enums\MembershipRole;
 use App\Models\Base\Event as BaseEvent;
 use App\Models\Casts\SanitizeHtmlCast;
 use App\Models\Casts\EnforceZeroCast;
@@ -159,6 +160,72 @@ class Event extends BaseEvent
     public function troopCreditNotice(): ?string
     {
         return $this->notCountedNotice() ?? ($this->hasSameDayShifts() ? OneTroopPerDay::NOTICE : null);
+    }
+
+    /**
+     * Sign-up statuses that let a trooper be picked as the event's coordinator: going, or
+     * attended (including attendance a moderator hasn't verified yet).
+     */
+    public const COORDINATOR_STATUSES = [
+        EventTrooperStatus::GOING,
+        EventTrooperStatus::ATTENDED,
+        EventTrooperStatus::AWAITING_VERIFICATION,
+    ];
+
+    /**
+     * Who coordinates the event: the attendee picked for it, otherwise whoever created it.
+     */
+    public function eventCoordinator(): ?Trooper
+    {
+        return $this->coordinator_trooper ?? $this->created_by;
+    }
+
+    /**
+     * Troopers who can be picked as coordinator: active event coordinators and up (command
+     * staff's rule) who are going or attended on a shift of this event.
+     *
+     * @return Collection<int, Trooper>
+     */
+    public function coordinatorCandidates(): Collection
+    {
+        $roles = collect(MembershipRole::cases())
+            ->filter(fn (MembershipRole $role): bool => $role->managesEvents())
+            ->map(fn (MembershipRole $role): string => $role->value)
+            ->values()
+            ->all();
+
+        return Trooper::active()
+            ->whereIn(Trooper::MEMBERSHIP_ROLE, $roles)
+            ->whereHas('event_troopers', fn ($query) => $query
+                ->whereIn(EventTrooper::STATUS, self::COORDINATOR_STATUSES)
+                ->whereHas('event_shift', fn ($shift) => $shift->where(EventShift::EVENT_ID, $this->id)))
+            ->orderBy(Trooper::DISPLAY_NAME)
+            ->get();
+    }
+
+    /**
+     * Clears the picked coordinator on these events when that trooper is no longer going or
+     * attended on any of the event's shifts, so the creator coordinates again. A bulk update:
+     * no observers, notifications or forum updates.
+     *
+     * @param  iterable<int>  $event_ids
+     */
+    public static function releaseIneligibleCoordinators(iterable $event_ids): void
+    {
+        $event_ids = collect($event_ids)->filter()->unique()->values();
+
+        if ($event_ids->isEmpty())
+        {
+            return;
+        }
+
+        static::query()
+            ->whereIn(self::ID, $event_ids)
+            ->whereNotNull(self::COORDINATOR_TROOPER_ID)
+            ->whereDoesntHave('event_shifts.event_troopers', fn ($query) => $query
+                ->whereColumn('tt_event_troopers.'.EventTrooper::TROOPER_ID, 'tt_events.'.self::COORDINATOR_TROOPER_ID)
+                ->whereIn(EventTrooper::STATUS, self::COORDINATOR_STATUSES))
+            ->update([self::COORDINATOR_TROOPER_ID => null]);
     }
 
     /**

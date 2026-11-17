@@ -16,14 +16,20 @@
 
                 <x-input-container>
                     <x-label>{{ __('admin.Hosting Organization:') }}</x-label>
-                    <x-input-picker :property="'organization_id'"
-                                    :route="'pickers.organization'"
-                                    :params="['event_host_only' => true]"
-                                    :text="$event->organization->name ?? 'Select a Host'"
-                                    :value="$event->organization_id" />
+                    @if($can_change_host)
+                        <x-input-picker :property="'organization_id'"
+                                        :route="'pickers.organization'"
+                                        :params="['event_host_only' => true]"
+                                        :text="$event->organization->name ?? 'Select a Host'"
+                                        :value="$event->organization_id" />
+                    @else
+                        <div class="form-control-plaintext">{{ $event->organization->name ?? '' }}</div>
+                        <input type="hidden" name="organization_id" value="{{ $event->organization_id }}">
+                    @endif
                 </x-input-container>
 
                 @include('pages.admin.events.inc.header')
+                @include('pages.admin.events.inc.coordinator')
                 @include('pages.admin.events.inc.schedule')
                 @include('pages.admin.events.inc.location')
                 @include('pages.admin.events.inc.contact-information')
