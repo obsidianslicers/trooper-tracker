@@ -39,6 +39,7 @@ export class ListEventsViewModel extends ViewModel {
     show_hosting_picker: boolean = $state(false);
 
     private parents: Record<string, string> = {};
+    private children: Record<string, string[]> = {};
 
     constructor(page_data: Partial<ListEventsPageData>) {
         super();
@@ -51,7 +52,10 @@ export class ListEventsViewModel extends ViewModel {
 
         for (const organization of this.hosting_organizations) {
             if (organization.parent_id !== null) {
-                this.parents[String(organization.id)] = String(organization.parent_id);
+                const parent = String(organization.parent_id);
+
+                this.parents[String(organization.id)] = parent;
+                (this.children[parent] ??= []).push(String(organization.id));
             }
         }
 
@@ -142,7 +146,8 @@ export class ListEventsViewModel extends ViewModel {
         return true;
     }
 
-    //  Events flow upward: picking a unit also shows events hosted by its region and club.
+    //  Picking a squad also shows events its garrison and club host; picking a club or
+    //  garrison also shows events hosted by everything beneath it.
     matchingHostIds(): Set<string> {
         const ids = new Set<string>();
 
@@ -153,9 +158,21 @@ export class ListEventsViewModel extends ViewModel {
                 ids.add(id);
                 id = this.parents[id];
             }
+
+            this.addDescendants(selected, ids);
         }
 
         return ids;
+    }
+
+    private addDescendants(id: string, ids: Set<string>): void {
+        for (const child of this.children[id] ?? []) {
+            if (!ids.has(child)) {
+                ids.add(child);
+            }
+
+            this.addDescendants(child, ids);
+        }
     }
 
     isMine(event: EventSummary): boolean {

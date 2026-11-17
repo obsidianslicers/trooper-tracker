@@ -117,6 +117,19 @@ describe('ListEventsViewModel', () => {
         expect(cookies.get('hosting_organization_ids')).toBe('3');
     });
 
+    it('shows events hosted anywhere beneath a picked club or garrison', () => {
+        const vm = new ListEventsViewModel(pageData([
+            event({ id: 1, organization_id: 3 }),
+            event({ id: 2, organization_id: 4 }),
+            event({ id: 3, organization_id: 1 }),
+            event({ id: 4, organization_id: 99 }),
+        ]));
+
+        vm.toggleHosting('2', true);
+
+        expect(vm.filtered.map((e) => e.id)).toEqual([1, 2, 3]);
+    });
+
     it('treats every host picked as no host filter', () => {
         const vm = new ListEventsViewModel(pageData([event()]));
 

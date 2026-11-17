@@ -10,7 +10,7 @@
 
 <Modal bind:show={vm.show_hosting_picker} title={t("Filter by squad")} canClose={close}>
     <p class="small text-muted">
-        {t("Pick the squads you troop with. Picking a squad also shows events its region and club host.")}
+        {t("Pick the squads you troop with. Picking a club or garrison shows all its squads too, and picking a squad also shows events its garrison and club host.")}
     </p>
     <div class="border rounded p-2 mb-3 hosting-picker">
         {#each vm.hosting_organizations as organization (organization.id)}

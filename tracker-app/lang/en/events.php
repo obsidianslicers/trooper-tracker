@@ -163,7 +163,7 @@ return [
     'or' => 'or',
     'Organization' => 'Organization',
     'Parking Available' => 'Parking Available',
-    'Pick the squads you troop with. Picking a squad also shows events its region and club host.' => 'Pick the squads you troop with. Picking a squad also shows events its region and club host.',
+    'Pick the squads you troop with. Picking a club or garrison shows all its squads too, and picking a squad also shows events its garrison and club host.' => 'Pick the squads you troop with. Picking a club or garrison shows all its squads too, and picking a squad also shows events its garrison and club host.',
     'Please choose at least one image to upload.' => 'Please choose at least one image to upload.',
     'Please select at least one club to receive credit for this troop.' => 'Please select at least one club to receive credit for this troop.',
     'Please upload JPG, PNG, WEBP, or HEIC images that are :size or smaller.' => 'Please upload JPG, PNG, WEBP, or HEIC images that are :size or smaller.',
