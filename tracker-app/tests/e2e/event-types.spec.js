@@ -114,7 +114,7 @@ test.describe('as an administrator', () => {
             .getByRole('link', { name: seeded.uncountedType.name })
             .click();
 
-        const warning = page.getByText('This also applies to the 2 event(s) already using this type');
+        const warning = page.getByText('This also applies to the 2 events already using this type');
         await expect(warning).toBeHidden();
 
         await page.getByLabel('Counts toward troop totals').check();
