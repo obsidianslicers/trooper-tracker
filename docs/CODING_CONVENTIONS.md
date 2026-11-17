@@ -526,11 +526,16 @@ $options = MembershipRole::toArray();
 // Get comma-delimited string for validation
 $rule = 'in:' . EventStatus::toValidator();
 // 'in:draft,open,closed,cancelled'
+
+// One case's label in the current language (from lang/<locale>/enums.php)
+EventStatus::OPEN->label();
 ```
+
+Show enums with `->label()`, never `to_title($enum->name)`, so they follow the trooper's language.
 
 ### 11.7. Mail Classes
 
-Mailable classes for email notifications.
+Mailable classes for email notifications. Subjects use the `emails` translation group, and the body view is picked with `email_view('<name>')`, which uses `resources/views/emails/<locale>/` when a translated copy exists and `emails/en/` otherwise. See [LOCALIZATION.md](LOCALIZATION.md#emails-and-notifications).
 
 **Event Notifications:**
 - **InstantEventNotification:** Single event notification email

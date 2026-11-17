@@ -13,6 +13,7 @@ This document provides instructions and context for AI coding agents to enhance 
 * Use model constants for column names.
 * Use domain vocabulary: Trooper, Event/Troop, Costume, Organization, Notice.
 * Tests must be behavior‑driven, not implementation‑driven.
+* Never hardcode user-facing text: use `__('<feature>.English text')` in PHP/Blade and `t('English text')` in Svelte/JS, and add the line to `lang/en/<feature>.php` (see Translations below).
 
 ## Code Generation Rules
 
@@ -355,6 +356,21 @@ tracker-app/
     └── Unit/                # Service, helper tests
 ```
 
+## Translations
+
+The app supports multiple languages. Full guide: `docs/LOCALIZATION.md`.
+
+* Keys are the English text, grouped per feature: `lang/<locale>/<feature>.php` (`common.php` is shared). Every key must exist in `lang/en`.
+* PHP/Blade: `__('events.Sign up')`, `__('common.Hello, :name', ['name' => $name])`. Counts: `trans_choice('events.:count troop|:count troops', $n)`.
+* Svelte: `import { t } from '$lib/i18n'`, then `t('Sign up')`. Plain JS on Blade pages: `import { t } from '../i18n.js'`.
+* Write whole sentences with `:placeholders`; never concatenate pieces of a sentence.
+* HTML inside a line goes in a placeholder with an escaped value: `{!! __('admin.Delete :name?', ['name' => '<strong>'.e($name).'</strong>']) !!}`.
+* Dates and numbers: `->localFormat('M j, Y')` and `format_number()`. Enums: `->label()`.
+* Emails: subjects in the `emails` group; bodies are per-language views under `resources/views/emails/<locale>/`, rendered with `email_view('name')` (falls back to `en`). Notification text uses the `notifications` group.
+* Plugins: `plugins/<slug>/lang/<locale>/<group>.php`, used as `__('<slug>::<group>.Text')`; plugin.json text goes in `lang/en/plugin.php`.
+* Leave logs, exceptions, Artisan output, CSV headers and System Check diagnostics in English.
+* Check with `php artisan tracker:report-translations --strict`.
+
 ## Enums with Helper Trait
 
 All enums use `HasEnumHelpers` trait for common operations:
@@ -382,3 +398,4 @@ MembershipStatus::toValidator();  // 'pending,active,retired'
 4. **Keep controllers thin** - business logic belongs in Services
 5. **Use factory states** - add helper methods to factories instead of inline state
 6. **Test behavior, not structure** - avoid brittle assertions on markup/DOM
+7. **Don't hardcode user-facing text** - wrap it in `__()` / `t()` and add the English line to `lang/en`

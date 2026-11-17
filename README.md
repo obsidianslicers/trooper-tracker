@@ -90,6 +90,7 @@ Key references:
 *   **Awards & Recognition**: Organization-based awards with frequency controls (once/monthly/yearly), multi-recipient support
 *   **Notice System**: Organization-scoped announcements with read tracking and type-based styling (info/warning/alert)
 *   **Event Photo Gallery**: Photo uploads with trooper tagging, large/thumbnail variants, administrative photo flags
+*   **Multiple Languages**: Every page, email and notification can be translated; each trooper picks their language and the site has a default ([docs/LOCALIZATION.md](docs/LOCALIZATION.md))
 
 ### Developer Experience
 
@@ -201,6 +202,9 @@ php artisan fabricator:generate-factories
 php artisan tracker:send-daily-event-notifications
 php artisan tracker:close-events
 php artisan tracker:calculate-trooper-achievements
+
+# Check translations (missing English lines, untranslated lines per language)
+php artisan tracker:report-translations --strict
 
 # Clear caches during development
 php artisan config:clear

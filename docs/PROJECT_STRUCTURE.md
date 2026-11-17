@@ -35,11 +35,14 @@ tracker-app/
 │   ├── migrations/             # Database migrations
 │   └── seeders/                # Database seeders
 ├── docs/                       # Project documentation
+├── lang/
+│   └── <locale>/               # Translations, one file per feature (events.php, admin.php,
+│                               # common.php, ...), keyed by the English text; see LOCALIZATION.md
 ├── public/                     # Public web assets
 ├── resources/
 │   ├── css/                    # Stylesheets
 │   ├── js/                     # JavaScript
-│   └── views/                  # Blade templates
+│   └── views/                  # Blade templates (emails/<locale>/ holds per-language email views)
 ├── routes/
 │   ├── console.php             # Artisan command routes
 │   └── web/                    # Web routes (organized by feature)

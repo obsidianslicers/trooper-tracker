@@ -33,6 +33,8 @@ For all code submissions, follow this structured process precisely:
     * **Example:** If you are fixing bug `#42`, your branch should be named **`fix-42`**.
 
 3.  **Make Changes:** Write your code, adhering to existing styling and conventions.
+    * **Text people read must be translatable.** Use `__('<feature>.English text')` in PHP/Blade and `t('English text')` in Svelte, add the line to `tracker-app/lang/en/<feature>.php`, and run `php artisan tracker:report-translations --strict`. See [docs/LOCALIZATION.md](docs/LOCALIZATION.md).
+    * **Adding a language?** Copy `lang/en` to `lang/<locale>` and translate it; [docs/LOCALIZATION.md](docs/LOCALIZATION.md#adding-a-language) has the steps.
 
 4.  **Test:** Validate your changes thoroughly in your local development environment.
 
