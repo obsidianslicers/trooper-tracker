@@ -11,7 +11,7 @@
 
         <x-table class="caption-top">
             <caption>
-                Summary of Cancelled Events over the last {{ $lookback }} days.
+                {{ __('events.Summary of Cancelled Events over the last :days days.', ['days' => $lookback]) }}
             </caption>
             <thead>
                 <tr>
@@ -21,24 +21,24 @@
                     <th scope="col"
                         class="text-nowrap text-center"
                         colspan="2">
-                        -- Donations --
+                        {{ __('events.-- Donations --') }}
                     </th>
                 </tr>
                 <tr>
                     <th style="width: 36px;"></th>
                     <th>
-                        Name
+                        {{ __('events.Name') }}
                     </th>
                     <th>
-                        Shifts
+                        {{ __('events.Shifts') }}
                     </th>
                     <th scope="col"
                         class="text-center">
-                        Direct
+                        {{ __('events.Direct') }}
                     </th>
                     <th scope="col"
                         class="text-center">
-                        Indirect
+                        {{ __('events.Indirect') }}
                     </th>
                 </tr>
             </thead>
@@ -82,7 +82,7 @@
                     </tr>
                 @empty
                     <x-table-empty :colspan="7">
-                        There are not any events that have been cancelled in the last {{ $lookback }} days.
+                        {{ __('events.There are not any events that have been cancelled in the last :days days.', ['days' => $lookback]) }}
                     </x-table-empty>
                 @endforelse
             </tbody>
@@ -92,11 +92,11 @@
                         <th colspan="2">
                             <x-number-format :value="$events->count()" />
                             <span class="text-muted">
-                                Events in Total
+                                {{ __('events.Events in Total') }}
                             </span>
                             <br />
                             <span class="small text-muted">
-                                * Totals only all include events that have been closed within the lookback period (not filtered).
+                                {{ __('events.* Totals only all include events that have been closed within the lookback period (not filtered).') }}
                             </span>
                         </th>
                         <th class="text-end">

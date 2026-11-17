@@ -1,4 +1,4 @@
-<x-section-title>Trooper Quotas</x-section-title>
+<x-section-title>{{ __('events.Trooper Quotas') }}</x-section-title>
 @php
     $open_clubs = $event->organizations->filter(fn ($organization) => $organization->pivot->can_attend ?? false);
     $closed_clubs = $event->organizations->reject(fn ($organization) => $organization->pivot->can_attend ?? false);
@@ -7,22 +7,22 @@
 @endphp
 @if($unlimited)
     {{-- the per-club list would only repeat "a lot / a lot" --}}
-    <p class="mb-1">No limits</p>
+    <p class="mb-1">{{ __('events.No limits') }}</p>
     @if($closed_clubs->isNotEmpty())
         <p class="small text-muted">
-            Not open to {{ $closed_clubs->pluck('name')->join(', ', ' or ') }}
+            {{ __('events.Not open to :clubs', ['clubs' => $closed_clubs->pluck('name')->join(', ', ' '.__('events.or').' ')]) }}
         </p>
     @endif
 @else
     <ul class="list-group list-group-flush">
         <li class="list-group-item fw-bold">
-            Organization
+            {{ __('events.Organization') }}
             <span class="float-end">
                 <span class="d-none d-md-inline">
-                    Troopers / Handlers
+                    {{ __('events.Troopers / Handlers') }}
                 </span>
                 <span class="d-inline d-md-none">
-                    Trp / Hnd
+                    {{ __('events.Trp / Hnd') }}
                 </span>
             </span>
         </li>

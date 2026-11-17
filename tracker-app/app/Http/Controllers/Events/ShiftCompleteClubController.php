@@ -28,7 +28,7 @@ class ShiftCompleteClubController extends PageController
 {
     protected function initialized(): void
     {
-        $this->crumbs->addRoute('Events', 'events.list');
+        $this->crumbs->addRoute(__('events.Events'), 'events.list');
     }
 
     public function __invoke(Request $request, EventTrooper $event_trooper): View
@@ -55,7 +55,7 @@ class ShiftCompleteClubController extends PageController
                 'event_trooper' => $event_trooper,
                 'organizations' => $event_trooper->getEligibleCreditParentOrganizations(),
                 'encrypted_status' => $request->input('encrypted_status', ''),
-                'error' => 'Please select at least one club to receive credit for this troop.',
+                'error' => __('events.Please select at least one club to receive credit for this troop.'),
             ]);
         }
 
@@ -71,7 +71,7 @@ class ShiftCompleteClubController extends PageController
 
         if (!$event_trooper->event_shift->event->can_update_trooper_status)
         {
-            FlashType::danger('Status updates for this event are no longer permitted. Please reach out to your administrator for further help.');
+            FlashType::danger(__('events.Status updates for this event are no longer permitted. Please reach out to your administrator for further help.'));
 
             $message = '';
 
@@ -93,7 +93,7 @@ class ShiftCompleteClubController extends PageController
 
         UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
 
-        $message = 'Excellent work trooper! Imperial records now reflect your heroic presence.';
+        $message = __('events.Excellent work trooper! Imperial records now reflect your heroic presence.');
 
         return view('pages.events.shift-complete', compact('event_trooper', 'message'));
     }
@@ -108,7 +108,7 @@ class ShiftCompleteClubController extends PageController
             RequestTroopVerification::call(event_trooper: $event_trooper, organization_ids: $organization_ids);
         }
 
-        $message = ShiftCompleteController::VERIFICATION_MESSAGE;
+        $message = __('events.'.ShiftCompleteController::VERIFICATION_MESSAGE);
 
         return view('pages.events.shift-complete', compact('event_trooper', 'message'));
     }

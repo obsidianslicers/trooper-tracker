@@ -28,39 +28,51 @@ class ShiftCompleteController extends PageController
     public const VERIFICATION_MESSAGE = 'Thanks, trooper! A moderator will confirm this troop '
         .'before it shows on your service record.';
 
-    private array $attended_messages = [
-        'Excellent work trooper! Imperial records now reflect your heroic presence.',
-        'Your dedication has been logged in the Imperial archives.',
-        'Another successful mission completed. The Empire salutes you.',
-        'Your presence was felt across the sector. Well done.',
-        'Your armor shines brighter in the records today.',
-        'The Emperor himself acknowledges your contribution.',
-        "Your actions strengthen the Empire's grip on the galaxy.",
-        'Your service brings stability to the Outer Rim.',
-        'Your discipline is noted and appreciated.',
-        'Your efforts echo through the Imperial halls.',
-        'Your loyalty has been recorded with precision.',
-        'Your mission performance has exceeded expectations.',
-    ];
+    /**
+     * @return array<int, string>
+     */
+    private function attendedMessages(): array
+    {
+        return [
+            __('events.Excellent work trooper! Imperial records now reflect your heroic presence.'),
+            __('events.Your dedication has been logged in the Imperial archives.'),
+            __('events.Another successful mission completed. The Empire salutes you.'),
+            __('events.Your presence was felt across the sector. Well done.'),
+            __('events.Your armor shines brighter in the records today.'),
+            __('events.The Emperor himself acknowledges your contribution.'),
+            __("events.Your actions strengthen the Empire's grip on the galaxy."),
+            __('events.Your service brings stability to the Outer Rim.'),
+            __('events.Your discipline is noted and appreciated.'),
+            __('events.Your efforts echo through the Imperial halls.'),
+            __('events.Your loyalty has been recorded with precision.'),
+            __('events.Your mission performance has exceeded expectations.'),
+        ];
+    }
 
-    private array $absent_messages = [
-        'The dark side sensed your effort.',
-        'Your signal was faint, trooper. The Empire noticed.',
-        'Your armor remained cold this time. Perhaps next mission.',
-        'The Emperor felt a disturbance... your absence.',
-        'Your squad marched on without you.',
-        'Imperial scanners reported no movement from your position.',
-        'Your presence was missed on the battlefield.',
-        'The mission proceeded, though your post was empty.',
-        'Your absence has been logged in the archives.',
-        'The Empire awaits your return.',
-        'Your squadmates carried the banner without you.',
-        'The mission concluded, but your armor remained untouched.',
-    ];
+    /**
+     * @return array<int, string>
+     */
+    private function absentMessages(): array
+    {
+        return [
+            __('events.The dark side sensed your effort.'),
+            __('events.Your signal was faint, trooper. The Empire noticed.'),
+            __('events.Your armor remained cold this time. Perhaps next mission.'),
+            __('events.The Emperor felt a disturbance... your absence.'),
+            __('events.Your squad marched on without you.'),
+            __('events.Imperial scanners reported no movement from your position.'),
+            __('events.Your presence was missed on the battlefield.'),
+            __('events.The mission proceeded, though your post was empty.'),
+            __('events.Your absence has been logged in the archives.'),
+            __('events.The Empire awaits your return.'),
+            __('events.Your squadmates carried the banner without you.'),
+            __('events.The mission concluded, but your armor remained untouched.'),
+        ];
+    }
 
     protected function initialized(): void
     {
-        $this->crumbs->addRoute('Events', 'events.list');
+        $this->crumbs->addRoute(__('events.Events'), 'events.list');
     }
 
     /**
@@ -87,7 +99,7 @@ class ShiftCompleteController extends PageController
 
         if ($event_trooper->isAwaitingVerification())
         {
-            $message = self::VERIFICATION_MESSAGE;
+            $message = __('events.'.self::VERIFICATION_MESSAGE);
 
             return view('pages.events.shift-complete', compact('event_trooper', 'message'));
         }
@@ -126,7 +138,7 @@ class ShiftCompleteController extends PageController
             if ($trooper_status === EventTrooperStatus::ATTENDED && $event_trooper->trooper->is_untrusted)
             {
                 $this->requestVerification($event_trooper, $valid_data);
-                $message = self::VERIFICATION_MESSAGE;
+                $message = __('events.'.self::VERIFICATION_MESSAGE);
 
                 return view('pages.events.shift-complete', compact('event_trooper', 'message'));
             }
@@ -137,7 +149,7 @@ class ShiftCompleteController extends PageController
         }
         else
         {
-            FlashType::danger('Status updates for this event are no longer permitted. Please reach out to your administrator for further help.');
+            FlashType::danger(__('events.Status updates for this event are no longer permitted. Please reach out to your administrator for further help.'));
         }
 
         return view('pages.events.shift-complete', compact('event_trooper', 'message'));
@@ -166,9 +178,9 @@ class ShiftCompleteController extends PageController
 
         if ($status == EventTrooperStatus::ATTENDED)
         {
-            return $this->attended_messages[$index];
+            return $this->attendedMessages()[$index];
         }
 
-        return $this->absent_messages[$index];
+        return $this->absentMessages()[$index];
     }
 }

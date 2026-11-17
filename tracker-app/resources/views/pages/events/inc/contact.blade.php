@@ -1,4 +1,4 @@
-<x-section-title>Point of Contact</x-section-title>
+<x-section-title>{{ __('events.Point of Contact') }}</x-section-title>
 @if(!empty($event->contact_name))
     <div class="mt-3 ps-3">
         <p class="mb-1">
@@ -25,7 +25,7 @@
 @else
     <div class="mt-3 ps-3">
         <p class="mb-1 text-muted">
-            Unavailable
+            {{ __('events.Unavailable') }}
         </p>
     </div>
 @endif

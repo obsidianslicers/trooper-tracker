@@ -2,9 +2,9 @@
     <div class="small fw-semibold mb-2">
         <i class="fa fa-fw fa-user me-1"></i>{{ $trooper->display_name }}
         @if($eligible_orgs->count() > 1)
-            &mdash; select their organization:
+            {{ __('events.— select their organization:') }}
         @elseif($eligible_orgs->count() === 1)
-            &mdash; trooping as <strong>{{ $eligible_orgs->first()->name }}</strong>
+            {!! __('events.— trooping as :organization', ['organization' => '<strong>'.e($eligible_orgs->first()->name).'</strong>']) !!}
         @endif
     </div>
     @if($eligible_orgs->count() > 1)
@@ -27,12 +27,12 @@
                 hx-target="#shift-container-{{ $event_shift->id }}"
                 hx-swap="outerHTML"
                 hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}">
-            <i class="fa fa-fw fa-check me-1"></i>Confirm
+            <i class="fa fa-fw fa-check me-1"></i>{{ __('events.Confirm') }}
         </button>
         <button class="btn btn-sm btn-outline-secondary"
                 type="button"
                 onclick="document.getElementById('add-trooper-step2-{{ $event_shift->id }}').innerHTML=''; document.getElementById('friend-signup-action-{{ $event_shift->id }}').classList.remove('shift-signup-secondary--confirming'); document.querySelector('#friend-signup-action-{{ $event_shift->id }} .shift-friend-trigger').classList.remove('d-none')">
-            Cancel
+            {{ __('events.Cancel') }}
         </button>
     </div>
 </div>

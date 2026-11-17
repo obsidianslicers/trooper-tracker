@@ -39,9 +39,9 @@ enum EventGuestStatus: string
     public static function toSelectArray(): array
     {
         return [
-            self::GOING->value => to_title(self::GOING->name),
-            self::TENTATIVE->value => to_title(self::TENTATIVE->name),
-            self::CANCELLED->value => to_title(self::CANCELLED->name),
+            self::GOING->value => self::GOING->label(),
+            self::TENTATIVE->value => self::TENTATIVE->label(),
+            self::CANCELLED->value => self::CANCELLED->label(),
         ];
     }
 

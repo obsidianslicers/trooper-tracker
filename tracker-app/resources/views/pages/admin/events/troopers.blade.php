@@ -36,7 +36,7 @@
                     </x-label>
                     <x-input-text :property="'event_status'"
                                   :disabled="true"
-                                  :value="to_title($event->status->name)" />
+                                  :value="$event->status->label()" />
                 </x-input-container>
 
                 @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)

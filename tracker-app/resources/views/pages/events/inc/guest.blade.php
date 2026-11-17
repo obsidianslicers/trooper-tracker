@@ -34,7 +34,7 @@
                             <button type="submit"
                                     class="btn btn-sm btn-success">
                                 <i class="fa fa-fw fa-check me-1"></i>
-                                Approve
+                                {{ __('events.Approve') }}
                             </button>
                         </form>
                     @endif
@@ -51,7 +51,7 @@
                             <button type="submit"
                                     class="btn btn-sm btn-outline-danger">
                                 <i class="fa fa-fw fa-ban me-1"></i>
-                                Reject
+                                {{ __('events.Reject') }}
                             </button>
                         </form>
                     @endif
@@ -68,7 +68,7 @@
                                 class="form-select-sm" />
             @else
                 <span class="{{ $event_guest->status->color() }}">
-                    {{ to_title($event_guest->status->name) }}
+                    {{ $event_guest->status->label() }}
                     {!! $event_guest->status->iconTag() !!}
                 </span>
             @endif
@@ -80,9 +80,10 @@
                 )
                 <br />
                 <i class="small text-muted">
-                    Approved by {{ $event_guest->updated_by->display_name }}
                     @if($event_guest->updated_at)
-                        on {{ $event_guest->updated_at->localFormat('M j, Y g:ia') }}
+                        {{ __('events.Approved by :name on :date', ['name' => $event_guest->updated_by->display_name, 'date' => $event_guest->updated_at->localFormat('M j, Y g:ia')]) }}
+                    @else
+                        {{ __('events.Approved by :name', ['name' => $event_guest->updated_by->display_name]) }}
                     @endif
                 </i>
             @endif

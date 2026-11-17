@@ -10,7 +10,7 @@
 
         <x-table class="caption-top">
             <caption>
-                Closed event history, newest first.
+                {{ __('events.Closed event history, newest first.') }}
             </caption>
             <thead>
                 <tr>
@@ -20,37 +20,37 @@
                     <th scope="col"
                         class="text-nowrap text-center"
                         colspan="2">
-                        -- Troopers --
+                        {{ __('events.-- Troopers --') }}
                     </th>
                     <th scope="col"
                         class="text-nowrap text-center"
                         colspan="2">
-                        -- Donations --
+                        {{ __('events.-- Donations --') }}
                     </th>
                 </tr>
                 <tr>
                     <th style="width: 36px;"></th>
                     <th>
-                        Name
+                        {{ __('events.Name') }}
                     </th>
                     <th>
-                        Shifts
+                        {{ __('events.Shifts') }}
                     </th>
                     <th scope="col"
                         class="text-center">
-                        Unique
+                        {{ __('events.Unique') }}
                     </th>
                     <th scope="col"
                         class="text-center">
-                        Total
+                        {{ __('events.Total') }}
                     </th>
                     <th scope="col"
                         class="text-center">
-                        Direct
+                        {{ __('events.Direct') }}
                     </th>
                     <th scope="col"
                         class="text-center">
-                        Indirect
+                        {{ __('events.Indirect') }}
                     </th>
                 </tr>
             </thead>
@@ -100,7 +100,7 @@
                     </tr>
                 @empty
                     <x-table-empty :colspan="7">
-                        No closed events found.
+                        {{ __('events.No closed events found.') }}
                     </x-table-empty>
                 @endforelse
             </tbody>
@@ -109,11 +109,11 @@
                     <th colspan="2">
                         <x-number-format :value="$events->total()" />
                         <span class="text-muted">
-                            Closed Events
+                            {{ __('events.Closed Events') }}
                         </span>
                         <br />
                         <span class="small text-muted">
-                            * Summary totals are for the events shown on this page (not filtered).
+                            {{ __('events.* Summary totals are for the events shown on this page (not filtered).') }}
                         </span>
                     </th>
                     <th class="text-end">

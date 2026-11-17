@@ -15,7 +15,7 @@
                 class="btn btn-outline-secondary w-100"
                 data-bs-toggle="modal"
                 data-bs-target="#event-filter-modal">
-            Filter Options
+            {{ __('events.Filter Options') }}
         </button>
     </div>
 
@@ -31,7 +31,7 @@
                           x-text="getCostumeOrganizationLabel()"></span>
                     <button type="button"
                             class="border-0 bg-transparent text-white p-0 ms-1 lh-1"
-                            aria-label="Remove requested character type filter"
+                            aria-label="{{ __('events.Remove requested character type filter') }}"
                             x-on:click="clearCostumeOrganization()">
                         <i class="fa fa-times"></i>
                     </button>
@@ -46,7 +46,7 @@
                               x-text="getHostingOrganizationLabel(hostingOrganizationId)"></span>
                         <button type="button"
                                 class="border-0 bg-transparent text-white p-0 ms-1 lh-1"
-                                aria-label="Remove hosting organization filter"
+                                aria-label="{{ __('events.Remove hosting organization filter') }}"
                                 x-on:click="removeHostingOrganization(hostingOrganizationId)">
                             <i class="fa fa-times"></i>
                         </button>
@@ -61,11 +61,11 @@
                     class="btn btn-sm btn-outline-secondary w-100"
                     x-on:click="toggleAllowedOrgs()">
                 <span x-show="!display_allowed_orgs">
-                    Hide Allowed Orgs
+                    {{ __('events.Hide Allowed Orgs') }}
                     <i class="fa fa-fw fa-eye-slash ms-2"></i>
                 </span>
                 <span x-show="display_allowed_orgs">
-                    Show Allowed Orgs
+                    {{ __('events.Show Allowed Orgs') }}
                     <i class="fa fa-fw fa-eye ms-2"></i>
                 </span>
             </button>
@@ -83,17 +83,17 @@
             <div class="modal-header">
                 <h5 class="modal-title"
                     id="event-filter-modal-label">
-                    Event Filters
+                    {{ __('events.Event Filters') }}
                 </h5>
                 <button type="button"
                         class="btn-close"
                         data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                        aria-label="{{ __('events.Close') }}"></button>
             </div>
             <div class="modal-body">
                 <x-input-container>
                     <x-label>
-                        Search Events:
+                        {{ __('events.Search Events:') }}
                     </x-label>
                     <x-input-text :property="'search_term_modal'"
                                   :placeholder="'Search Event Name ...'"
@@ -103,7 +103,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Requested Character Types:
+                        {{ __('events.Requested Character Types:') }}
                     </x-label>
                     <x-input-select :property="'costume_organization_id'"
                                     :options="$costume_organizations->pluck('name', 'id')->toArray()"
@@ -117,7 +117,7 @@
 
                 <x-input-container>
                     <x-label>
-                        Hosting Organization:
+                        {{ __('events.Hosting Organization:') }}
                     </x-label>
                     <div class="d-flex gap-2 mb-2">
                         <button type="button"
@@ -129,7 +129,7 @@
                         <button type="button"
                                 class="btn btn-sm btn-outline-secondary"
                                 x-on:click="clearHostingOrganizations()">
-                            Clear All
+                            {{ __('events.Clear All') }}
                         </button>
                     </div>
                     <div class="small text-muted mb-2"
@@ -200,12 +200,12 @@
                 <button type="button"
                         class="btn btn-outline-secondary"
                         x-on:click="clearAllFilters()">
-                    Clear Filters
+                    {{ __('events.Clear Filters') }}
                 </button>
                 <button type="button"
                         class="btn btn-primary"
                         data-bs-dismiss="modal">
-                    Done
+                    {{ __('events.Done') }}
                 </button>
             </div>
         </div>

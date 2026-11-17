@@ -33,7 +33,7 @@
                 </x-label>
                 <x-input-text :property="'frequency'"
                               :disabled="true"
-                              :value="to_title($award->frequency->name)" />
+                              :value="$award->frequency->label()" />
             </x-input-container>
 
             <x-input-container class="text-end">

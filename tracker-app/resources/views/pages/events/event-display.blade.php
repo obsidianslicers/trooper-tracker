@@ -30,14 +30,14 @@
                                 <a href="{{ route('admin.events.update', compact('event')) }}"
                                    class="btn border-white">
                                     <i class="fa fa-fw fa-edit"></i>
-                                    Edit
+                                    {{ __('events.Edit') }}
                                 </a>
                             @endcan
                             @can('copy', $event)
                                 <a href="{{ route('admin.events.copy', compact('event')) }}"
                                    class="btn border-white">
                                     <i class="fa fa-fw fa-copy"></i>
-                                    Copy
+                                    {{ __('events.Copy') }}
                                 </a>
                             @endcan
                         </div>
@@ -52,14 +52,14 @@
                                         <a href="{{ route('admin.events.update', compact('event')) }}"
                                            class="btn border-white">
                                             <i class="fa fa-fw fa-edit"></i>
-                                            Edit
+                                            {{ __('events.Edit') }}
                                         </a>
                                     @endcan
                                     @can('copy', $event)
                                         <a href="{{ route('admin.events.copy', compact('event')) }}"
                                            class="btn border-white">
                                             <i class="fa fa-fw fa-copy"></i>
-                                            Copy
+                                            {{ __('events.Copy') }}
                                         </a>
                                     @endcan
                                 </div>
@@ -74,7 +74,7 @@
                         <div class="col-12 col-md-6 small text-muted pb-3">
                             <div class="row">
                                 <div class="col-4 col-md-5 col-lg-4 text-nowrap">
-                                    Hosted By:
+                                    {{ __('events.Hosted By:') }}
                                 </div>
                                 <div class="col-8 col-md-7 col-lg-8">
                                     {{ $event->organization->name }}
@@ -82,10 +82,10 @@
                             </div>
                             <div class="row">
                                 <div class="col-4 col-md-5 col-lg-4 text-nowrap">
-                                    Status:
+                                    {{ __('events.Status:') }}
                                 </div>
                                 <div class="col-8 col-md-7 col-lg-8">
-                                    {{ to_title($event->status->name) }}
+                                    {{ $event->status->label() }}
                                 </div>
                             </div>
                         </div>
@@ -101,7 +101,7 @@
                             @else
                                 {{ $event->full_date_display }}
                                 <span class="text-muted d-block d-md-inline ps-0 ps-md-3 pt-1 pt-md-0">
-                                    ** {{ $event->event_shifts->count() }} shifts available **
+                                    ** {{ trans_choice('events.:count shift available|:count shifts available', $event->event_shifts->count()) }} **
                                 </span>
                             @endif
                         </div>
@@ -139,7 +139,7 @@
                              }"
                              x-on:resize.window.debounce.200ms="measure()">
 
-                            <x-section-title>Mission Brief</x-section-title>
+                            <x-section-title>{{ __('events.Mission Brief') }}</x-section-title>
 
                             <div class="mission-brief-container position-relative overflow-hidden rounded"
                                  x-on:click="toggle()"
@@ -169,13 +169,13 @@
                                 <div class="mt-3">
                                     @if($has_mission_brief_ack)
                                         <x-message type="success">
-                                            You have acknowledged this mission brief. You may sign up for available shifts below.
+                                            {{ __('events.You have acknowledged this mission brief. You may sign up for available shifts below.') }}
                                         </x-message>
                                     @else
                                         <x-message type="warning">
-                                            You must review and acknowledge the mission brief before you can sign up for this deployment.
+                                            {{ __('events.You must review and acknowledge the mission brief before you can sign up for this deployment.') }}
                                             <span x-show="!fits"
-                                                  x-cloak>(Click 'Decrypt mission brief')</span>
+                                                  x-cloak>{{ __('events.(Click \'Decrypt mission brief\')') }}</span>
                                         </x-message>
 
                                         <div class="mt-2"
@@ -187,7 +187,7 @@
                                                 <button type="submit"
                                                         class="btn btn-sm btn-outline-success">
                                                     <i class="fa fa-fw fa-check me-1"></i>
-                                                    I have read and understand the mission brief
+                                                    {{ __('events.I have read and understand the mission brief') }}
                                                 </button>
                                             </form>
                                         </div>
@@ -231,13 +231,13 @@
 
                     @if ($event->event_uploads->where('is_administrative', true)->isNotEmpty())
                         <div class="mt-5">
-                            <x-section-title>Instructional Uploads</x-section-title>
+                            <x-section-title>{{ __('events.Instructional Uploads') }}</x-section-title>
                             @include('pages.events.inc.upload-display', ['event' => $event, 'is_administrative' => true])
                         </div>
                     @endif
 
                     <div class="mt-5">
-                        <x-section-title>Mission Review</x-section-title>
+                        <x-section-title>{{ __('events.Mission Review') }}</x-section-title>
                         @include('pages.events.inc.upload-display', ['event' => $event, 'is_administrative' => false])
                         <hr />
 
@@ -261,7 +261,7 @@
                                    accept=".jpg,.jpeg,.png,.webp,.heic,.heif" />
                             <div id="upload-label"
                                  class="text-muted">
-                                Drag & drop JPG, PNG, WEBP, or HEIC images here, or click to upload
+                                {{ __('events.Drag & drop JPG, PNG, WEBP, or HEIC images here, or click to upload') }}
                             </div>
                         </div>
                     </div>
@@ -306,11 +306,11 @@
                     <button type="button"
                             class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
                             data-bs-dismiss="modal"
-                            aria-label="Close"></button>
+                            aria-label="{{ __('events.Close') }}"></button>
 
                     <img id="eventUploadPhotoModalImage"
                          src=""
-                         alt="Event photo"
+                         alt="{{ __('events.Event photo') }}"
                          class="img-fluid w-100" />
                 </div>
             </div>

@@ -6,8 +6,8 @@
 
 @if($event_trooper?->is_same_day_repeat)
     <span {{ $attributes->class(['badge rounded-pill not-counted-pill']) }}
-          title="{{ \App\Support\OneTroopPerDay::REPEAT_HINT }}">
+          title="{{ __('events.'.\App\Support\OneTroopPerDay::REPEAT_HINT) }}">
         <i class="fa fa-fw fa-calendar-day"></i>
-        {{ \App\Support\OneTroopPerDay::REPEAT_LABEL }}
+        {{ __('events.'.\App\Support\OneTroopPerDay::REPEAT_LABEL) }}
     </span>
 @endif

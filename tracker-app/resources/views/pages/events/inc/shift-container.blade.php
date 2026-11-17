@@ -10,7 +10,7 @@
         @if($event->guests_allowed === null || $event->guests_allowed > 0)
             @if($event_shift->event_guests->count() > 0)
                 <hr />
-                <h5 class="mb-3">Guests</h5>
+                <h5 class="mb-3">{{ __('events.Guests') }}</h5>
                 @foreach($event_shift->event_guests as $event_guest)
                     @include('pages.events.inc.guest', compact('event_guest'))
                 @endforeach
