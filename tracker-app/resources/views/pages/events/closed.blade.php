@@ -4,6 +4,8 @@
 
 @section('content')
 
+    @include('pages.events.inc.event-views', ['active' => 'closed'])
+
     <div x-data="Events.Search.eventSelector()">
 
         @include('pages.events.inc.event-filters', compact('costume_organizations'))

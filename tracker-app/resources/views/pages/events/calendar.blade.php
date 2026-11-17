@@ -4,6 +4,8 @@
 
 @section('content')
 
+    @include('pages.events.inc.event-views', ['active' => 'calendar'])
+
     <div class="row p-3"
          hx-get="{{ route('widgets.notices-htmx') }}"
          hx-trigger="load"
