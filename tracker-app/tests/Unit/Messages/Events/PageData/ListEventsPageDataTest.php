@@ -81,6 +81,23 @@ class ListEventsPageDataTest extends TestCase
         $this->assertNull($result['notices']['notice']);
     }
 
+    public function test_handle_lists_every_club_with_whether_it_may_troop(): void
+    {
+        $trooper = Trooper::factory()->asActive()->create();
+        $allowed = Organization::factory()->asOrganization()->create();
+        $not_allowed = Organization::factory()->asOrganization()->create();
+        $event = $this->upcomingEvent();
+        $this->shift($event, 1);
+        $event->organizations()->attach($allowed->id, ['can_attend' => true]);
+
+        $result = $this->resolve((new ListEventsPageData($trooper))->handle());
+
+        $clubs = collect($result['events'][0]['organizations'])->keyBy('id');
+        $this->assertTrue($clubs[$allowed->id]['can_attend']);
+        $this->assertFalse($clubs[$not_allowed->id]['can_attend']);
+        $this->assertSame($not_allowed->name, $clubs[$not_allowed->id]['name']);
+    }
+
     public function test_handle_lists_costume_organizations(): void
     {
         $trooper = Trooper::factory()->asActive()->create();

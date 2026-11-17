@@ -41,9 +41,9 @@
             >
                 <i class="fa fa-fw fa-sitemap me-1"></i>
                 {#if vm.has_hosting_filter}
-                    {t("Hosted by :count selected", { count: vm.hosting_organization_ids.length })}
+                    {t("Squads: :count selected", { count: vm.hosting_organization_ids.length })}
                 {:else}
-                    {t("Hosted by anyone")}
+                    {t("Squads: All")}
                 {/if}
             </button>
         </div>

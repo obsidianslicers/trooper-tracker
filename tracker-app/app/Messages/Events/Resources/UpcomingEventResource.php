@@ -62,13 +62,25 @@ class UpcomingEventResource extends JsonResource
                     $this->my_statuses->get($shift->id),
                 ))
                 ->values(),
-            'organizations' => $this->organizations
-                ->map(fn (Organization $organization) => [
-                    'id' => $organization->id,
-                    'name' => $organization->name,
-                    'can_attend' => (bool) ($organization->pivot->can_attend ?? false),
-                ])
-                ->values(),
+            'organizations' => $this->getOrganizations(),
         ];
+    }
+
+    /**
+     * Each club once, marked whether it may troop. An event can list a club more than once
+     * (for example once per region), so a club counts as allowed if any of its rows allow it.
+     *
+     * @return Collection<int, array{id: int, name: string, can_attend: bool}>
+     */
+    private function getOrganizations(): Collection
+    {
+        return $this->organizations
+            ->groupBy(Organization::ID)
+            ->map(fn (Collection $rows) => [
+                'id' => $rows->first()->id,
+                'name' => $rows->first()->name,
+                'can_attend' => $rows->contains(fn (Organization $row) => (bool) ($row->pivot->can_attend ?? false)),
+            ])
+            ->values();
     }
 }

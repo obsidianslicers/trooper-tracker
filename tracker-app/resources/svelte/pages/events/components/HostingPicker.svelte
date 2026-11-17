@@ -8,9 +8,9 @@
     const close = () => (vm.show_hosting_picker = false);
 </script>
 
-<Modal bind:show={vm.show_hosting_picker} title={t("Hosting Organization:")} canClose={close}>
+<Modal bind:show={vm.show_hosting_picker} title={t("Filter by squad")} canClose={close}>
     <p class="small text-muted">
-        {t("Pick the clubs, regions or units you troop with. Picking a unit also shows events its region and club host.")}
+        {t("Pick the squads you troop with. Picking a squad also shows events its region and club host.")}
     </p>
     <div class="border rounded p-2 mb-3 hosting-picker">
         {#each vm.hosting_organizations as organization (organization.id)}
