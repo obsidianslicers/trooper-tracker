@@ -25,7 +25,7 @@ class UpdateCharitySubmitControllerTest extends TestCase
             ]],
         ]);
 
-        $response->assertRedirect(route('admin.events.charity', compact('event')));
+        $response->assertOk();
         $response->assertSessionHasNoErrors();
         $shift->refresh();
         $this->assertSame(12.5, $shift->charity_direct_funds);
@@ -74,10 +74,11 @@ class UpdateCharitySubmitControllerTest extends TestCase
             EventShift::CHARITY_INDIRECT_FUNDS => 300,
         ]);
 
-        $this->actingAs($trooper)->get(route('admin.events.charity', compact('event')))
+        $this->actingAs($trooper)->get(route('admin.events.update', compact('event')))
             ->assertOk()
-            ->assertSee('value="1234.50"', false)
-            ->assertSee('value="300"', false);
+            ->assertInertia(fn ($page) => $page
+                ->where('charity.0.charity_direct_funds', '1234.50')
+                ->where('charity.0.charity_indirect_funds', '300'));
 
         $this->actingAs($trooper)->get(route('events.display', compact('event')))
             ->assertOk()

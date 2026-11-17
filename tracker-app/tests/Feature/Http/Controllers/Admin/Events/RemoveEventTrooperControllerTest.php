@@ -37,8 +37,7 @@ class RemoveEventTrooperControllerTest extends TestCase
             route('admin.events.troopers.remove', compact('event', 'event_trooper'))
         );
 
-        $response->assertNoContent();
-        $response->assertHeader('HX-Redirect');
+        $response->assertOk();
         $this->assertSoftDeleted('tt_event_troopers', ['id' => $event_trooper->id]);
     }
 

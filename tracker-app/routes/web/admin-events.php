@@ -11,21 +11,17 @@ use App\Http\Controllers\Admin\Events\CreateSubmitController;
 use App\Http\Controllers\Admin\Events\DeleteUploadController;
 use App\Http\Controllers\Admin\Events\GetEventTrooperOrgOptionsController;
 use App\Http\Controllers\Admin\Events\ListController;
-use App\Http\Controllers\Admin\Events\MissionReviewController;
+use App\Http\Controllers\Admin\Events\OpenTabController;
 use App\Http\Controllers\Admin\Events\RemoveEventTrooperController;
 use App\Http\Controllers\Admin\Events\RemoveShiftStationController;
 use App\Http\Controllers\Admin\Events\ReorderShiftStationsSubmitController;
 use App\Http\Controllers\Admin\Events\ToggleUploadTypeController;
-use App\Http\Controllers\Admin\Events\UpdateCharityController;
 use App\Http\Controllers\Admin\Events\UpdateCharitySubmitController;
 use App\Http\Controllers\Admin\Events\UpdateController;
-use App\Http\Controllers\Admin\Events\UpdateShiftsController;
 use App\Http\Controllers\Admin\Events\UpdateShiftsSubmitController;
 use App\Http\Controllers\Admin\Events\UpdateSubmitController;
-use App\Http\Controllers\Admin\Events\UpdateTroopersController;
 use App\Http\Controllers\Admin\Events\UpdateTroopersSubmitController;
 use App\Http\Controllers\Admin\Events\UploadImageController;
-use App\Http\Controllers\Admin\Events\UploadsController;
 use Illuminate\Support\Facades\Route;
 
 //  ADMIN/EVENTS
@@ -41,21 +37,23 @@ Route::prefix('admin/events')
         Route::post('/{event}/copy', CopySubmitController::class);
         Route::get('/{event}/update', UpdateController::class)->name('update');
         Route::post('/{event}/update', UpdateSubmitController::class);
-        Route::get('/{event}/shifts', UpdateShiftsController::class)->name('shifts');
+        Route::get('/{event}/shifts', OpenTabController::class)->defaults('tab', 'shifts')->name('shifts');
         Route::post('/{event}/shifts', UpdateShiftsSubmitController::class);
         Route::post('/{event}/shifts/{event_shift}/stations/reorder', ReorderShiftStationsSubmitController::class)->name('shifts.stations.reorder');
         Route::post('/{event}/shifts/{event_shift}/stations/{event_shift_station}/remove', RemoveShiftStationController::class)->name('shifts.stations.remove');
-        Route::get('/{event}/charity', UpdateCharityController::class)->name('charity');
+        Route::get('/{event}/charity', OpenTabController::class)->defaults('tab', 'charity')->name('charity');
         Route::post('/{event}/charity', UpdateCharitySubmitController::class);
-        Route::get('/{event}/troopers', UpdateTroopersController::class)->name('troopers');
+        Route::get('/{event}/troopers', OpenTabController::class)->defaults('tab', 'roster')->name('troopers');
         Route::post('/{event}/troopers', UpdateTroopersSubmitController::class);
         Route::get('/{event}/troopers/{event_trooper}/org-options', GetEventTrooperOrgOptionsController::class)->name('troopers.org-options');
         Route::get('/{event}/shifts/{event_shift}/troopers/costume-picker', AddEventTrooperCostumePickerController::class)->name('troopers.costume-picker');
         Route::post('/{event}/shifts/{event_shift}/troopers/add', AddEventTrooperController::class)->name('troopers.add');
         Route::post('/{event}/troopers/{event_trooper}/remove', RemoveEventTrooperController::class)->name('troopers.remove');
-        Route::get('/{event}/uploads', UploadsController::class)->name('uploads');
+        Route::get('/{event}/uploads', OpenTabController::class)->defaults('tab', 'uploads')->name('uploads');
         Route::post('/{event}/upload', UploadImageController::class)->name('upload-image');
-        Route::get('/{event}/mission-review', MissionReviewController::class)->name('mission-review');
+        Route::get('/{event}/mission-review', OpenTabController::class)
+            ->defaults('tab', 'mission-review')
+            ->name('mission-review');
         Route::post('/{event}/uploads/{event_upload}/toggle-type', ToggleUploadTypeController::class)->name('uploads.toggle-type');
         Route::post('/{event}/uploads/{event_upload}/delete', DeleteUploadController::class)->name('uploads.delete');
     });

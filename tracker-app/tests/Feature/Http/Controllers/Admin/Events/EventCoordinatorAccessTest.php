@@ -149,9 +149,7 @@ class EventCoordinatorAccessTest extends TestCase
         $this->actingAs($this->event_coordinator)->get(route('admin.events.update', ['event' => $own]))
             ->assertOk()
             ->assertDontSee('href="'.route('admin.display').'"', false);
-        $this->actingAs($this->event_coordinator)->get(route('admin.events.troopers', ['event' => $own]))->assertOk();
         $this->actingAs($this->event_coordinator)->get(route('admin.events.update', ['event' => $others]))->assertForbidden();
-        $this->actingAs($this->event_coordinator)->get(route('admin.events.troopers', ['event' => $others]))->assertForbidden();
     }
 
     public function test_event_coordinator_cannot_move_their_event_to_another_organization(): void

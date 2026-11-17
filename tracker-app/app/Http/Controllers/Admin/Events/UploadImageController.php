@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\Events\Concerns\HandlesEventImageUploadResponses;
-use App\Http\Controllers\PageController;
 use App\Models\Event;
 use App\Services\EventImageUploadService;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\ValidationException;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Handles administrative event image uploads.
@@ -19,7 +19,7 @@ use Illuminate\Validation\ValidationException;
  * creating both original and thumbnail versions. Images are marked as administrative
  * uploads.
  */
-class UploadImageController extends PageController
+class UploadImageController extends EventCommandController
 {
     use HandlesEventImageUploadResponses;
 
@@ -34,13 +34,11 @@ class UploadImageController extends PageController
      *
      * @param  Request  $request  The incoming HTTP request with 'images' file array
      * @param  Event  $event  The event to attach uploads to
-     * @return Response Response with uploads page view and flash message header
+     * @return InertiaResponse The refreshed event page data as results
      */
-    public function __invoke(Request $request, Event $event)
+    public function __invoke(Request $request, Event $event): InertiaResponse
     {
         $this->authorize('update', $event);
-
-        $trooper_id = $request->user()->id;
 
         try
         {
@@ -48,29 +46,21 @@ class UploadImageController extends PageController
         }
         catch (ValidationException $e)
         {
-            return $this->response($event, $this->eventImageUploadValidationMessage($e), 'danger', HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
+            FlashType::danger($this->eventImageUploadValidationMessage($e));
+
+            return $this->respondWithResults($request);
         }
 
-        $result = $this->uploads->upload($event, $trooper_id, $request->file('images', []), true);
+        $result = $this->uploads->upload($event, $request->user()->id, $request->file('images', []), true);
+        $message = $this->eventImageUploadSuccessMessage($result);
 
-        return $this->response(
-            $event,
-            $this->eventImageUploadSuccessMessage($result),
-            $result->hasFailures() ? 'warning' : 'success',
-            $result->hasUploads() ? HttpResponse::HTTP_OK : HttpResponse::HTTP_UNPROCESSABLE_ENTITY
-        );
-    }
+        match (true)
+        {
+            !$result->hasUploads() => FlashType::danger($message),
+            $result->hasFailures() => FlashType::warning($message),
+            default => FlashType::success($message),
+        };
 
-    private function response(Event $event, string $message, string $type, int $status = HttpResponse::HTTP_OK)
-    {
-        $is_administrative = true;
-        $event->load(['event_uploads.troopers']);
-        $data = compact('event', 'is_administrative');
-        $flash = json_encode($this->eventImageUploadFlash($message, $type));
-
-        return response()
-            ->view('pages.admin.events.uploads', $data)
-            ->setStatusCode($status)
-            ->header('X-Flash-Message', $flash);
+        return $this->respondWithResults($request);
     }
 }

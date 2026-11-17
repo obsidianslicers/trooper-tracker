@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\PageController;
+use App\Http\Controllers\Controller;
+use App\Messages\Events\Resources\AdminEventRoster;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
-use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
-class GetEventTrooperOrgOptionsController extends PageController
+/**
+ * The clubs a roster row can credit for a chosen costume, and which of them to tick.
+ */
+class GetEventTrooperOrgOptionsController extends Controller
 {
-    public function __invoke(Request $request, Event $event, EventTrooper $event_trooper): View
+    public function __invoke(Request $request, Event $event, EventTrooper $event_trooper): JsonResponse
     {
         $this->authorize('update', $event);
         abort_if($event_trooper->event_shift->event_id !== $event->id, 404);
@@ -30,11 +34,10 @@ class GetEventTrooperOrgOptionsController extends PageController
             ? $this->resolveWithCostume($event_trooper, $costume_id, $allowed_org_ids)
             : $this->resolveWithoutCostume($event_trooper, $allowed_org_ids);
 
-        return view('pages.admin.events.inc.trooper-org-options', compact(
-            'event_trooper',
-            'org_options',
-            'credited_ids'
-        ));
+        return response()->json([
+            'org_options' => AdminEventRoster::orgOptions($org_options),
+            'organization_ids' => array_values($credited_ids),
+        ]);
     }
 
     private function resolveWithCostume(EventTrooper $event_trooper, int $costume_id, ?array $allowed_org_ids): array

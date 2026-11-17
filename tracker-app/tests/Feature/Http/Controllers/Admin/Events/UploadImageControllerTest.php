@@ -18,7 +18,7 @@ class UploadImageControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_upload_stores_administrative_image_and_returns_flash_header(): void
+    public function test_admin_upload_stores_administrative_image_and_answers_with_the_page(): void
     {
         Storage::fake('public');
 
@@ -28,15 +28,16 @@ class UploadImageControllerTest extends TestCase
 
         $response = $this->actingAs($admin)
             ->withSession(['_token' => 'test-token'])
-            ->withHeader('HX-Request', 'true')
             ->withHeader('X-CSRF-TOKEN', 'test-token')
             ->post(route('admin.events.upload-image', $event), [
                 'images' => [$file],
             ]);
 
         $response->assertOk();
-        $response->assertHeader('X-Flash-Message');
-        $response->assertSee('event-uploads', false);
+        $response->assertInertia(fn ($page) => $page
+            ->component('admin/events/Update')
+            ->has('flash.success')
+            ->has('results.uploads', 1));
 
         $upload = EventUpload::query()->firstOrFail();
 

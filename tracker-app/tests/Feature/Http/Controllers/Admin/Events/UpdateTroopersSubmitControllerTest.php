@@ -34,7 +34,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
             'troopers' => [],
         ]);
 
-        $response->assertRedirect(route('admin.events.troopers', ['event' => $event->id]));
+        $response->assertOk();
     }
 
     public function test_invoke_rejects_truncated_submission_without_saving(): void

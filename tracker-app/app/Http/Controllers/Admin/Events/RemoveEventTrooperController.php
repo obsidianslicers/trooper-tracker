@@ -5,17 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\PromoteNextInLineEventTrooper;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Inertia\Response as InertiaResponse;
 
-class RemoveEventTrooperController extends PageController
+class RemoveEventTrooperController extends EventCommandController
 {
-    public function __invoke(Request $request, Event $event, EventTrooper $event_trooper): Response
+    public function __invoke(Request $request, Event $event, EventTrooper $event_trooper): InertiaResponse
     {
         $this->authorize('update', $event);
 
@@ -38,6 +37,6 @@ class RemoveEventTrooperController extends PageController
 
         FlashType::success(__('admin.:name was removed from the roster.', ['name' => $trooper_name]));
 
-        return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
+        return $this->respondWithResults($request);
     }
 }

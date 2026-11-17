@@ -10,6 +10,8 @@
         placeholder?: string | null;
         errors?: string | string[];
         disabled?: boolean;
+        /** Pick a time as well as a date. */
+        with_time?: boolean;
         change?: (() => void) | null;
     }
 
@@ -23,6 +25,7 @@
         placeholder = "YYYY-MM-DD",
         errors = [],
         disabled = false,
+        with_time = false,
         change = null,
     }: Props = $props();
 
@@ -35,6 +38,7 @@
         }
 
         picker = attachDatePicker(input_element, {
+            withTime: with_time,
             onChange: (next_value: string) => {
                 value = next_value;
             },
@@ -61,7 +65,7 @@
         ]}
         {id}
         bind:this={input_element}
-        type={native ? "date" : "text"}
+        type={native ? (with_time ? "datetime-local" : "date") : "text"}
         {disabled}
         placeholder={native ? null : placeholder}
         onchange={change}

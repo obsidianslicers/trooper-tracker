@@ -70,7 +70,7 @@ class UpdateSubmitControllerTest extends TestCase
             'accessible' => false,
         ]);
 
-        $response->assertRedirect();
+        $response->assertOk();
         $this->assertDatabaseHas('tt_event_shifts', [
             'id' => $shift->id,
             'status' => EventStatus::OPEN->value,
@@ -105,7 +105,7 @@ class UpdateSubmitControllerTest extends TestCase
             'accessible' => false,
         ]);
 
-        $response->assertRedirect();
+        $response->assertOk();
     }
 
     public function test_invoke_cancels_active_event_troopers_when_event_is_cancelled(): void
@@ -137,7 +137,7 @@ class UpdateSubmitControllerTest extends TestCase
             'accessible' => false,
         ]);
 
-        $response->assertRedirect();
+        $response->assertOk();
     }
 
     public function test_invoke_reassigns_hosting_organization(): void
@@ -166,7 +166,7 @@ class UpdateSubmitControllerTest extends TestCase
             'accessible' => false,
         ]);
 
-        $response->assertRedirect();
+        $response->assertOk();
         $response->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('tt_events', [

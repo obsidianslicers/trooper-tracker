@@ -5,17 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\RemoveEventShiftStation;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Inertia\Response as InertiaResponse;
 
-class RemoveShiftStationController extends PageController
+class RemoveShiftStationController extends EventCommandController
 {
-    public function __invoke(Request $request, Event $event, EventShift $event_shift, EventShiftStation $event_shift_station): Response
+    public function __invoke(Request $request, Event $event, EventShift $event_shift, EventShiftStation $event_shift_station): InertiaResponse
     {
         $this->authorize('update', $event);
 
@@ -28,11 +27,11 @@ class RemoveShiftStationController extends PageController
         {
             FlashType::danger(__('admin.Cannot remove a station with roster signups.'));
 
-            return response()->noContent()->header('HX-Redirect', route('admin.events.shifts', compact('event')));
+            return $this->respondWithResults($request);
         }
 
         FlashType::success(__('admin.Station removed.'));
 
-        return response()->noContent()->header('HX-Redirect', route('admin.events.shifts', compact('event')));
+        return $this->respondWithResults($request);
     }
 }

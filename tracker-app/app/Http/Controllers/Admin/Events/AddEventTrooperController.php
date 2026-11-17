@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\SignUpEventTrooper;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\Trooper;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Inertia\Response as InertiaResponse;
 
-class AddEventTrooperController extends PageController
+class AddEventTrooperController extends EventCommandController
 {
-    public function __invoke(Request $request, Event $event, EventShift $event_shift): Response
+    public function __invoke(Request $request, Event $event, EventShift $event_shift): InertiaResponse
     {
         $this->authorize('update', $event);
 
@@ -33,7 +32,7 @@ class AddEventTrooperController extends PageController
         {
             FlashType::danger(__('admin.:name is already signed up for this shift.', ['name' => $trooper->display_name]));
 
-            return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
+            return $this->respondWithResults($request);
         }
 
         $costume_id = $request->input('costume_id') ? (int) $request->input('costume_id') : null;
@@ -63,7 +62,7 @@ class AddEventTrooperController extends PageController
         {
             FlashType::danger(__('admin.Select a station before adding a trooper.'));
 
-            return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
+            return $this->respondWithResults($request);
         }
 
         SignUpEventTrooper::call(
@@ -77,6 +76,6 @@ class AddEventTrooperController extends PageController
 
         FlashType::success(__('admin.:name was added to the shift.', ['name' => $trooper->display_name]));
 
-        return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
+        return $this->respondWithResults($request);
     }
 }

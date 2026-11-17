@@ -27,7 +27,7 @@ class ToggleUploadTypeControllerTest extends TestCase
             ->post(route('admin.events.uploads.toggle-type', compact('event') + ['event_upload' => $upload]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.events.mission-review');
+        $response->assertInertia(fn ($page) => $page->component('admin/events/Update'));
         $this->assertTrue($upload->refresh()->is_administrative);
     }
 
@@ -43,7 +43,7 @@ class ToggleUploadTypeControllerTest extends TestCase
             ->post(route('admin.events.uploads.toggle-type', compact('event') + ['event_upload' => $upload]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.events.uploads');
+        $response->assertInertia(fn ($page) => $page->component('admin/events/Update'));
         $this->assertFalse($upload->refresh()->is_administrative);
     }
 
