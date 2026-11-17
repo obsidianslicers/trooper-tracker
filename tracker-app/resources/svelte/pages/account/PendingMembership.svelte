@@ -5,7 +5,7 @@
     import SlimView from "$lib/components/ui/SlimView.svelte";
     import pageState from "$lib/states/page-state.svelte";
 
-    pageState.title = "Pending Membership";
+    pageState.title = t("Pending Membership");
 </script>
 
 <SlimView>

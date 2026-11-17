@@ -22,7 +22,7 @@
 
     const page = usePage<IndexPageData>();
 
-    pageState.title = "Trooper Account";
+    pageState.title = t("Trooper Account");
 
     let vm = new IndexViewModel(page.props);
 

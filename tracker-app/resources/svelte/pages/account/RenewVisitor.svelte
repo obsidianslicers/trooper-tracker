@@ -10,7 +10,7 @@
 
     const page = usePage<RenewVisitorPageData>();
 
-    pageState.title = "Renew Visitor Status";
+    pageState.title = t("Renew Visitor Status");
 
     let vm = new RenewVisitorViewModel(page.props);
 
