@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputError from "$lib/components/form/InputError.svelte";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import {
@@ -89,7 +90,7 @@
                 disabled={vm.options.disabled}
                 onclick={() => (selected = vm.clearSelection())}
             >
-                Clear
+                {t("Clear")}
             </button>
         {/if}
     </div>
@@ -103,12 +104,12 @@
     canClose={() => vm.closeModal()}
 >
     <div class="mb-3">
-        <label class="form-label" for={search_id}>Search</label>
+        <label class="form-label" for={search_id}>{t("Search")}</label>
         <input
             id={search_id}
             type="text"
             class="form-control"
-            placeholder="Search costumes by name"
+            placeholder={t("Search costumes by name")}
             bind:value={vm.term}
             autocomplete="off"
         />
@@ -117,7 +118,7 @@
     {#if vm.is_loading}
         <p class="text-muted mb-3">
             <i class="fa fa-fw fa-spinner fa-spin"></i>
-            Searching costumes...
+            {t("Searching costumes...")}
         </p>
     {/if}
 
@@ -126,7 +127,7 @@
     {/if}
 
     {#if !vm.is_loading && vm.term.trim().length >= 2 && vm.costumes.length === 0}
-        <p class="text-danger mb-0">No costumes matched your search.</p>
+        <p class="text-danger mb-0">{t("No costumes matched your search.")}</p>
     {/if}
 
     {#if vm.costumes.length > 0}

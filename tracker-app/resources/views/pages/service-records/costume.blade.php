@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', $costume->name . ' — Costume Leaderboard')
+@section('page-title', __('service-records.:costume — Costume Leaderboard', ['costume' => $costume->name]))
 
 @section('content')
 <div class="container-fluid py-4">

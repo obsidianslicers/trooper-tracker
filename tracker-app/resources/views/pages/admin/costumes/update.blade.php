@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Update Costume')
+@section('page-title', __('admin.Update Costume'))
 
 @section('content')
 

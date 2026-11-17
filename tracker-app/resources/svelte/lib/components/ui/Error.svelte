@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { Exception } from '$lib/exceptions';
     import Alert from './Alert.svelte';
     import SlimCard from './SlimCard.svelte';
@@ -13,7 +14,7 @@
 {#if exception instanceof Exception}
     <SlimCard>
         {#snippet header()}
-            Unexpected Error
+            {t("Unexpected Error")}
         {/snippet}
         <Alert type="danger">
             {exception.message}

@@ -9,5 +9,6 @@ return [
     'Resend Verification Email' => 'Resend Verification Email',
     'Thank you for verifying your email!' => 'Thank you for verifying your email!',
     'The verification link has expired or is invalid. Please request a new one below.' => 'The verification link has expired or is invalid. Please request a new one below.',
+    'Verify Your Email Address' => 'Verify Your Email Address',
     'Welcome to the :app! We\'ve sent a verification link to your email address. Please click that link to finalize your registration, as you await approval.' => 'Welcome to the :app! We\'ve sent a verification link to your email address. Please click that link to finalize your registration, as you await approval.',
 ];

@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Verify Your Email Address')
+@section('page-title', __('verifications.Verify Your Email Address'))
 
 @section('content')
     <div class="row justify-content-center mt-5">

@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Troopers Awards')
+@section('page-title', __('admin.Troopers Awards'))
 
 @section('content')
 @php($organization_id = $organization->id ?? null)

@@ -25,7 +25,7 @@
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show mt-2">
             <strong>
-                Please check the form below for errors
+                {{ __('layout.Please check the form below for errors') }}
             </strong>
             <ul class="p-0 m-0"
                 style="list-style: none;">

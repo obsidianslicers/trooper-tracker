@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Select Clubs for Credit')
+@section('page-title', __('events.Select Clubs for Credit'))
 
 @section('content')
 

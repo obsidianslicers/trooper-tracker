@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Update Notice')
+@section('page-title', __('admin.Update Notice'))
 
 @section('content')
 

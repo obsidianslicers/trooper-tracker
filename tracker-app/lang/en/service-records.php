@@ -4,6 +4,7 @@
 
 return [
     '"The Force will be with you, always."' => '"The Force will be with you, always."',
+    ':costume — Costume Leaderboard' => ':costume — Costume Leaderboard',
     ':count shift needs confirmation|:count shifts need confirmation' => ':count shift needs confirmation|:count shifts need confirmation',
     ':name has become one with the Force. Their service, dedication, and the light they brought to those they served will be honored here, always.' => ':name has become one with the Force. Their service, dedication, and the light they brought to those they served will be honored here, always.',
     'Achievement' => 'Achievement',
@@ -75,6 +76,7 @@ return [
     'Recent Shifts' => 'Recent Shifts',
     'Recipient' => 'Recipient',
     'Role' => 'Role',
+    'Service Record' => 'Service Record',
     'Service record photo' => 'Service record photo',
     'Service Summary' => 'Service Summary',
     'Support' => 'Support',

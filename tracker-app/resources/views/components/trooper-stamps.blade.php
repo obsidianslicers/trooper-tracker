@@ -8,9 +8,9 @@
         <div class="col-12 text-end">
             @if (isset($model->deleted_at))
                 <span class="text-muted">
-                    soft deleted
+                    {{ __('components.soft deleted') }}
                     @isset($model->deleted_id)
-                        by
+                        {{ __('components.by') }}
                         <a href="{{ route('admin.troopers.profile', ['trooper' => $model->deleted_id]) }}">
                             {{ $model->deleted_by->legal_name }}
                         </a>
@@ -19,9 +19,9 @@
                 </span>
             @elseif ($model->created_at == $model->updated_at)
                 <span class="text-muted">
-                    created {{ $model->created_id }}
+                    {{ __('components.created') }} {{ $model->created_id }}
                     @isset($model->created_id)
-                        by
+                        {{ __('components.by') }}
                         <a href="{{ route('admin.troopers.profile', ['trooper' => $model->created_id]) }}">
                             {{ $model->created_by->legal_name }}
                         </a>
@@ -30,9 +30,9 @@
                 </span>
             @else
                 <span class="text-muted">
-                    updated
+                    {{ __('components.updated') }}
                     @isset($model->updated_id)
-                        by
+                        {{ __('components.by') }}
                         <a href="{{ route('admin.troopers.profile', ['trooper' => $model->updated_id]) }}">
                             {{ $model->updated_by->legal_name }}
                         </a>

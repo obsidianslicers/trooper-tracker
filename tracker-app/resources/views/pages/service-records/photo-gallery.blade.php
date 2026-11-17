@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Photo Gallery')
+@section('page-title', __('service-records.Photo Gallery'))
 
 @section('content')
 <div class="container-fluid py-4">

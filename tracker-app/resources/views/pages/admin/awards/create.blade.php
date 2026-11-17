@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-name', 'Create Award')
+@section('page-name', __('admin.Create Award'))
 
 @section('content')
 

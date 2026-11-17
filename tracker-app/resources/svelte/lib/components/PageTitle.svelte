@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import pageState from "$lib/states/page-state.svelte";
 </script>
 
@@ -18,7 +19,7 @@
             {pageState.appName}
             {#if pageState.appName != "Troop Tracker"}
                 <br />
-                Troop Tracker
+                {t("Troop Tracker")}
             {/if}
         </h1>
     </div>

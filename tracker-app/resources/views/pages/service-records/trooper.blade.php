@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Service Record')
+@section('page-title', __('service-records.Service Record'))
 
 @section('content')
 

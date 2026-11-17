@@ -5,33 +5,33 @@
            href="#"
            role="button"
            data-bs-toggle="dropdown">
-            Service Records
+            {{ __('layout.Service Records') }}
         </a>
 
         <ul class="dropdown-menu">
             <x-nav-link :url="route('service-records.trooper', ['trooper' => auth()->user()->id])"
                         :active="request()->routeIs('service-records.trooper')">
-                My Service
+                {{ __('layout.My Service') }}
             </x-nav-link>
             <x-nav-link :url="route('service-records.leaderboard')"
                         :active="request()->routeIs('service-records.leaderboard')">
-                Leaderboard
+                {{ __('layout.Leaderboard') }}
             </x-nav-link>
             <x-nav-link :url="route('service-records.awards')"
                         :active="request()->routeIs('service-records.awards')">
-                Awards
+                {{ __('layout.Awards') }}
             </x-nav-link>
             <x-nav-link :url="route('service-records.achievements')"
                         :active="request()->routeIs('service-records.achievements')">
-                Achievements
+                {{ __('layout.Achievements') }}
             </x-nav-link>
             <x-nav-link :url="route('service-records.photo-gallery')"
                         :active="request()->routeIs('service-records.photo-gallery')">
-                Photo Gallery
+                {{ __('layout.Photo Gallery') }}
             </x-nav-link>
             <x-nav-link :url="route('service-records.command-staff')"
                         :active="request()->routeIs('service-records.command-staff')">
-                Command Staff
+                {{ __('layout.Command Staff') }}
             </x-nav-link>
         </ul>
     </li>

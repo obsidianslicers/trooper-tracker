@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Event Type Counts')
+@section('page-title', __('admin.Event Type Counts'))
 
 @section('content')
 

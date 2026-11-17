@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Event Uploads')
+@section('page-title', __('admin.Event Uploads'))
 
 @section('content')
 

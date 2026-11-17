@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Command Staff')
+@section('page-title', __('admin.Command Staff'))
 
 @section('content')
 

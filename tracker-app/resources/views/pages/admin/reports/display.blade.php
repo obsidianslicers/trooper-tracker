@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Reports Dashboard')
+@section('page-title', __('admin.Reports Dashboard'))
 
 @section('content')
 

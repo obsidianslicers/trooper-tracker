@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Plugins')
+@section('page-title', __('admin.Plugins'))
 
 @section('content')
 

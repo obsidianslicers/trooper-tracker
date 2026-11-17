@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', $manifest->name.' Settings')
+@section('page-title', __('admin.:plugin Settings', ['plugin' => $manifest->name]))
 
 @section('content')
 

@@ -99,6 +99,7 @@ return [
     'To attach a costume to your armory, find your costume, then select your organization/club, and click "Add to Armory".' => 'To attach a costume to your armory, find your costume, then select your organization/club, and click "Add to Armory".',
     'To continue using :app, submit a renewal request below. Command Staff will review your request and restore your access if approved.' => 'To continue using :app, submit a renewal request below. Command Staff will review your request and restore your access if approved.',
     'Trooper Account' => 'Trooper Account',
+    'Trooper Notices' => 'Trooper Notices',
     'Trooper Profile' => 'Trooper Profile',
     'Trooper request created successfully.' => 'Trooper request created successfully.',
     'Type DELETE to confirm' => 'Type DELETE to confirm',

@@ -18,7 +18,7 @@
             @else
                 {{ config('app.name') }}
                 <br />
-                Troop Tracker
+                {{ __('layout.Troop Tracker') }}
             @endif
         </h1>
     </div>

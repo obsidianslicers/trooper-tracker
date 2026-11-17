@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Event Details')
+@section('page-title', __('events.Event Details'))
 
 @section('content')
     <x-slim-container>

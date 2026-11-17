@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'System Check')
+@section('page-title', __('admin.System Check'))
 
 @section('content')
 

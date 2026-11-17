@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Upcoming Events')
+@section('page-title', __('events.Upcoming Events'))
 
 @section('content')
 

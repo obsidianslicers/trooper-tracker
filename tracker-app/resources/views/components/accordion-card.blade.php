@@ -11,7 +11,7 @@
                 <button type="button"
                         class="btn btn-link p-0 text-muted border-0 bg-transparent faq-copy-link"
                         data-copy-id="{{ $id }}"
-                        title="Copy link to this item">
+                        title="{{ __('components.Copy link to this item') }}">
                     <i class="fa fa-fw fa-copy"></i>
                 </button>
             @endif

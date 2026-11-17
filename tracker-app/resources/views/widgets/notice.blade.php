@@ -7,7 +7,7 @@
                 <i class="fa fa-fw fa-solid fa-circle-info"></i>
             </b>
             <a href="{{ route('account.notices') }}">
-                You have {{ $count }} unread notices.
+                {{ __('components.You have :count unread notices.', ['count' => $count]) }}
             </a>
         </p>
     </div>

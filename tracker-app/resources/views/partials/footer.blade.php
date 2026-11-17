@@ -4,7 +4,7 @@
 
         <!-- Clubs -->
         <div class="col-md-4 mb-3">
-            <h5 class="mb-4 text-muted">Star Wars Clubs</h5>
+            <h5 class="mb-4 text-muted">{{ __('layout.Star Wars Clubs') }}</h5>
             <ul class="list-unstyled">
                 <li class="my-2">
                     <a href="https://www.501st.com"
@@ -88,14 +88,14 @@
 
         <!-- Code Contribution -->
         <div class="col-md-4 mb-3">
-            <h5 class="mb-3 text-muted">Contribute</h5>
+            <h5 class="mb-3 text-muted">{{ __('layout.Contribute') }}</h5>
             <ul class="list-unstyled">
                 <li class="my-2">
                     <a href="https://github.com/obsidianslicers/trooper-tracker"
                        target="_blank"
                        rel="noopener">
                         <i class="fa-brands fa-github me-2"></i>
-                        GitHub Repository
+                        {{ __('layout.GitHub Repository') }}
                     </a>
                 </li>
                 <li class="my-2">
@@ -103,13 +103,13 @@
                        target="_blank"
                        rel="noopener">
                         <i class="fa-solid fa-code-branch me-2"></i>
-                        How to Contribute
+                        {{ __('layout.How to Contribute') }}
                     </a>
                 </li>
                 <li class="my-2">
                     <a href="{{ route('faq') }}">
                         <i class="fa-solid fa-circle-question me-2"></i>
-                        FAQ & Help
+                        {{ __('layout.FAQ & Help') }}
                     </a>
                 </li>
                 <li class="my-2">
@@ -117,7 +117,7 @@
                        target="_blank"
                        rel="noopener">
                         <i class="fa-solid fa-bug me-2"></i>
-                        Report Issues
+                        {{ __('layout.Report Issues') }}
                     </a>
                 </li>
             </ul>
@@ -125,7 +125,7 @@
 
         <!-- Credits / Branding -->
         <div class="col-md-4 mb-3 text-center text-md-start">
-            <h5 class="mb-3 text-muted">The Obsidian Slicers</h5>
+            <h5 class="mb-3 text-muted">{{ __('layout.The Obsidian Slicers') }}</h5>
             <ul class="list-unstyled">
                 <li class="my-2">
                     <a href="https://mattdrennan.com">
@@ -148,11 +148,10 @@
                            target="_blank"
                            rel="noopener">
                             <img src="{{ url('img/icons/obsidian-slicers-64x64.png') }}"
-                                 alt="Obsidian Slicers logo"
+                                 alt="{{ __('layout.Obsidian Slicers logo') }}"
                                  class="img-fluid rounded mb-2 me-2 float-start">
                         </a>
-                        The <strong>Obsidian Slicers</strong> maintain the code of the tracker, ensuring it stays lean,
-                        reliable, and future-proof for contributors.
+                        {!! __('layout.The <strong>Obsidian Slicers</strong> maintain the code of the tracker, ensuring it stays lean, reliable, and future-proof for contributors.') !!}
                     </p>
                 </li>
             </ul>
@@ -165,18 +164,18 @@
     <div class="container-fluid border-top mt-3">
         <div class="row align-items-end small text-muted py-2">
             <div class="col-12 text-md-end">
-                Logged in as:
+                {{ __('layout.Logged in as:') }}
                 <a href="{{ route('account.index') }}">
                     <strong>{{ Auth::user()->display_name }}</strong>
                 </a>
                 <span class="text-black-50 d-none d-sm-inline">|</span>
-                Theme:
+                {{ __('layout.Theme:') }}
                 <a href="{{ route('account.index') }}">
                     <strong>{{ (Auth::user()->theme ?? \App\Enums\TrooperTheme::STORMTROOPER)->label() }}</strong>
                 </a>
                 @if(config('app.version'))
                     <span class="text-black-50 d-none d-sm-inline">|</span>
-                    Version:
+                    {{ __('layout.Version:') }}
                     <a href="https://github.com/obsidianslicers/trooper-tracker">
                         <strong>{{ config('app.version') ?? 'N/A' }}</strong>
                     </a>

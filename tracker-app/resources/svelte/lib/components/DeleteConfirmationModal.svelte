@@ -17,7 +17,7 @@
 </script>
 
 <Modal bind:show title={t("This cannot be undone")} canClose={onCancel}>
-    <p>Are you sure you want to delete "{label}"?</p>
+    <p>{t('Are you sure you want to delete ":label"?', { label: label ?? "" })}</p>
     <form onsubmit={onDelete}>
         <SubmitButtonContainer>
             <SubmitButton label={t("Delete")} danger={true} submitting={deleting} />

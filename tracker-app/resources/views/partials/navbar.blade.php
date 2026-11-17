@@ -19,10 +19,10 @@
                             <input type="search"
                                    name="q"
                                    value="{{ request()->query('q') }}"
-                                   placeholder="Search troopers, events, IDs..."
+                                   placeholder="{{ __('layout.Search troopers, events, IDs...') }}"
                                    class="form-control form-control-sm"
                                    style="min-width: 180px;"
-                                   aria-label="Search" />
+                                   aria-label="{{ __('layout.Search') }}" />
                             <button type="submit"
                                     class="btn btn-outline-secondary btn-sm">
                                 <i class="fa fa-fw fa-search"></i>
@@ -43,7 +43,7 @@
                     <x-nav-link :url="route('admin.display')"
                                 :active="request()->routeIs('admin.*')">
                         <span class="text-warning">
-                            Command Staff
+                            {{ __('layout.Command Staff') }}
                         </span>
                     </x-nav-link>
                     @endrole
@@ -54,7 +54,7 @@
                 @pluginSlot('navbar.links')
                 <x-nav-link :url="route('faq')"
                             :active="request()->routeIs('faq')">
-                    Help
+                    {{ __('layout.Help') }}
                 </x-nav-link>
             </ul>
         </div>
