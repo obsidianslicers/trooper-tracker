@@ -10,6 +10,8 @@
         errors?: string | string[];
         disabled?: boolean;
         multiline?: boolean;
+        rows?: number | null;
+        style?: string | null;
         onchange?: (() => void) | null;
         oninput?: (() => void) | null;
         onfocus?: (() => void) | null;
@@ -27,6 +29,8 @@
         errors = [],
         disabled = false,
         multiline = false,
+        rows = null,
+        style = null,
         onchange = null,
         oninput = null,
         onfocus = null,
@@ -48,9 +52,10 @@
             {oninput}
             {onfocus}
             {onblur}
+            {rows}
+            {style}
             bind:value
-            autocomplete="off"
-        ></textarea>
+            autocomplete="off"></textarea>
     {:else}
         <input
             class={[
