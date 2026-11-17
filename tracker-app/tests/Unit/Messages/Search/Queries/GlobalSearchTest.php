@@ -72,7 +72,11 @@ class GlobalSearchTest extends TestCase
     public function test_handle_falls_back_to_any_token_match_when_full_search_finds_nothing(): void
     {
         Trooper::factory()->withDisplayName('Matthew Drennan')->create();
-        Trooper::factory()->withDisplayName('Other Trooper')->create();
+        //  a fixed legal name and email, so a random one can't contain "Matthew" or "Smith"
+        Trooper::factory()->withDisplayName('Other Trooper')->create([
+            Trooper::LEGAL_NAME => 'Other Trooper',
+            Trooper::EMAIL => 'other.trooper@example.test',
+        ]);
 
         $result = (new GlobalSearch('Matthew Smith', 'troopers'))->handle();
 
