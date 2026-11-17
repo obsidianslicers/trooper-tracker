@@ -49,7 +49,7 @@ final class AdminProfilePageData extends Message
             'trooper_id' => $this->trooper->id,
             'display_name' => $this->trooper->display_name,
             'membership_role' => $this->trooper->membership_role->value,
-            'membership_role_label' => to_title($this->trooper->membership_role->name)->toString(),
+            'membership_role_label' => $this->trooper->membership_role->label(),
             'details' => new AdminTrooperDetails($this->trooper, $this->actor),
             'authority' => $this->getAuthority(),
             'memberships' => $this->getMemberships(),
@@ -88,7 +88,7 @@ final class AdminProfilePageData extends Message
             ->reject(fn (MembershipRole $role): bool => $role === MembershipRole::SYSTEM_OWNER
                 && !$this->actor->has_system_owner)
             ->mapWithKeys(fn (MembershipRole $role): array => [
-                $role->value => to_title($role->name)->toString(),
+                $role->value => $role->label(),
             ])
             ->all();
     }

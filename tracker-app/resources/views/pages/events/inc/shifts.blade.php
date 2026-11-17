@@ -1,5 +1,5 @@
 <div class="d-flex justify-content-between align-items-center mb-2">
-    <x-section-title class="mb-0">Mission Roster</x-section-title>
+    <x-section-title class="mb-0">{{ __('events.Mission Roster') }}</x-section-title>
     <div class="d-flex gap-2">
         @auth
             {{-- replays the sign-up tour (pages/events/inc/signup-tour.blade.php) --}}
@@ -9,14 +9,14 @@
                     x-data
                     x-on:click="$dispatch('signup-tour:start')">
                 <i class="fa fa-fw fa-circle-question me-1"></i>
-                How sign-up works
+                {{ __('events.How sign-up works') }}
             </button>
         @endauth
         @if($can_moderate)
             <a class="btn btn-sm btn-outline-secondary d-none d-md-inline"
                href="{{ route('events.download-roster-csv', compact('event')) }}">
                 <i class="fa fa-fw fa-download me-1"></i>
-                Download CSV (All Shifts)
+                {{ __('events.Download CSV (All Shifts)') }}
             </a>
         @endif
     </div>
@@ -32,7 +32,7 @@
 @if($count_of_shifts > 1)
     <div class="row mb-3">
         <div class="col-12">
-            {{ $count_of_shifts }} Shifts Available
+            {{ trans_choice('events.:count Shift Available|:count Shifts Available', $count_of_shifts) }}
         </div>
     </div>
 @endif

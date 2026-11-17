@@ -172,7 +172,7 @@
                 <span class="text-black-50 d-none d-sm-inline">|</span>
                 Theme:
                 <a href="{{ route('account.index') }}">
-                    <strong>{{ to_title(Auth::user()->theme->name ?? \App\Enums\TrooperTheme::STORMTROOPER->name) }}</strong>
+                    <strong>{{ (Auth::user()->theme ?? \App\Enums\TrooperTheme::STORMTROOPER)->label() }}</strong>
                 </a>
                 @if(config('app.version'))
                     <span class="text-black-50 d-none d-sm-inline">|</span>

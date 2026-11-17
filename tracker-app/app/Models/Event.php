@@ -249,7 +249,7 @@ class Event extends BaseEvent
 
         if ($current !== null && !array_key_exists($current->value, $options))
         {
-            $options = [$current->value => to_title($current->name)] + $options;
+            $options = [$current->value => $current->label()] + $options;
         }
 
         return $options;

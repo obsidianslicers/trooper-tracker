@@ -64,8 +64,8 @@ class ToggleEventUploadTagController
 
         $flashMessage = json_encode([
             'message' => $isTagged
-                ? 'You are no longer tagged in this photo.'
-                : 'You are now tagged in this photo.',
+                ? __('events.You are no longer tagged in this photo.')
+                : __('events.You are now tagged in this photo.'),
             'type' => 'success',
         ]);
 

@@ -5,7 +5,7 @@
         <span class="text-muted">
             Shift Status:
         </span>
-        {{ to_title($event_shift->status->name) }}
+        {{ $event_shift->status->label() }}
     </div>
     <div class="col-6 text-end">
         @php($count_of_troopers = $event_shift->event_troopers->filter(fn($et) => $et->intendsToGo())->count())

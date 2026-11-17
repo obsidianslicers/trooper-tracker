@@ -58,15 +58,15 @@ class ShareRosterHtmxController extends PageController
                 shared_by_trooper: $request->user(),
             );
 
-            $message = 'Roster successfully sent.';
+            $message = __('events.Roster successfully sent.');
         }
         catch (ValidationException $x)
         {
             $err = $x->errors();
 
-            $display = implode(', ', $err['recipient_email'] ?? ['Unknown error']);
+            $display = implode(', ', $err['recipient_email'] ?? [__('events.Unknown error')]);
 
-            $message = 'Failed to share roster: '.$display;
+            $message = __('events.Failed to share roster: :error', ['error' => $display]);
 
             $errors->put('default', $x->validator->errors());
         }

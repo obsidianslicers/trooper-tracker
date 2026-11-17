@@ -4,14 +4,12 @@
 
         <div class="card my-4 mb-4 border-secondary">
             <div class="card-header bg-secondary text-white d-flex align-items-center">
-                <b class="mb-0">Broadcast an Instant Message</b>
+                <b class="mb-0">{{ __('events.Broadcast an Instant Message') }}</b>
             </div>
             <div class="card-body">
                 <p class="small text-muted">
                     <i class="fa fa-fw fa-triangle-exclamation text-warning"></i>
-                    Send an instant notification to all troopers with a "{{ App\Enums\EventTrooperStatus::GOING->value }}"
-                    status across all shifts. Messages are delivered through each subscriber's preferred notification
-                    methods, such as mobile alerts and email.
+                    {{ __('events.Send an instant notification to all troopers with a ":status" status across all shifts. Messages are delivered through each subscriber\'s preferred notification methods, such as mobile alerts and email.', ['status' => App\Enums\EventTrooperStatus::GOING->label()]) }}
                 </p>
 
                 <form hx-post="{{ route('events.broadcast-message-htmx', compact('event')) }}"
@@ -27,7 +25,7 @@
                         <div class="col-sm-12">
                             <x-submit-button class="w-100">
                                 <i class="fa fa-fw fa-tower-broadcast me-1"></i>
-                                Send Message
+                                {{ __('events.Send Message') }}
                             </x-submit-button>
                         </div>
                     </div>

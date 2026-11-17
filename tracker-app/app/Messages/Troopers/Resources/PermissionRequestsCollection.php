@@ -56,7 +56,7 @@ class PermissionRequestsCollection extends ResourceCollection
         {
             null => null,
             MembershipRole::MEMBER => 'Regular Trooper',
-            default => (string) to_title($role->name),
+            default => $role->label(),
         };
     }
 

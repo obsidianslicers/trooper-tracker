@@ -33,13 +33,13 @@
             <x-table class="event-calendar">
                 <thead>
                     <tr>
-                        <th class="text-center">Sun</th>
-                        <th class="text-center">Mon</th>
-                        <th class="text-center">Tue</th>
-                        <th class="text-center">Wed</th>
-                        <th class="text-center">Thu</th>
-                        <th class="text-center">Fri</th>
-                        <th class="text-center">Sat</th>
+                        <th class="text-center">{{ __('events.Sun') }}</th>
+                        <th class="text-center">{{ __('events.Mon') }}</th>
+                        <th class="text-center">{{ __('events.Tue') }}</th>
+                        <th class="text-center">{{ __('events.Wed') }}</th>
+                        <th class="text-center">{{ __('events.Thu') }}</th>
+                        <th class="text-center">{{ __('events.Fri') }}</th>
+                        <th class="text-center">{{ __('events.Sat') }}</th>
                     </tr>
                 </thead>
                 <tbody>

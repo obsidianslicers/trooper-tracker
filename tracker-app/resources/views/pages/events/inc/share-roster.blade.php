@@ -4,7 +4,7 @@
 
         <div class="card my-4 mb-4 border-secondary">
             <div class="card-header bg-secondary text-white d-flex align-items-center">
-                <b class="mb-0">Share Mission Roster</b>
+                <b class="mb-0">{{ __('events.Share Mission Roster') }}</b>
             </div>
             <div class="card-body">
                 @isset($message)
@@ -14,9 +14,7 @@
                 @endisset
                 <p class="small text-muted">
                     <i class="fa fa-fw fa-circle-info text-primary"></i>
-                    To provide event coordinators with a <strong>read-only</strong> view of the current troop deployment
-                    across all shifts, enter the recipient's email address below. The recipient will receive a unique
-                    secure link that expires after the mission concludes.
+                    {!! __('events.To provide event coordinators with a <strong>read-only</strong> view of the current troop deployment across all shifts, enter the recipient\'s email address below. The recipient will receive a unique secure link that expires after the mission concludes.') !!}
                 </p>
 
                 <form hx-post="{{ route('events.share-roster-htmx', compact('event')) }}"
@@ -37,7 +35,7 @@
                         <div class="col-sm-12 col-md-4">
                             <x-submit-button class="w-100">
                                 <i class="fa fa-fw fa-envelope me-1"></i>
-                                Send Roster Link
+                                {{ __('events.Send Roster Link') }}
                             </x-submit-button>
                         </div>
                     </div>

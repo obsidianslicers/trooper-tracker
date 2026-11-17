@@ -71,13 +71,13 @@ enum EventTrooperStatus: string
     public static function toSignUpArray(bool $tentative_signups_allowed, bool $is_limited = false): array
     {
         $options = [
-            self::GOING->value => to_title(self::GOING->name),
-            self::CANCELLED->value => to_title(self::CANCELLED->name),
+            self::GOING->value => self::GOING->label(),
+            self::CANCELLED->value => self::CANCELLED->label(),
         ];
 
         if ($tentative_signups_allowed && !$is_limited)
         {
-            $options[self::TENTATIVE->value] = to_title(self::TENTATIVE->name);
+            $options[self::TENTATIVE->value] = self::TENTATIVE->label();
         }
 
         return $options;

@@ -4,7 +4,7 @@
 
 @if($charity_shifts->isNotEmpty())
     <div class="mt-3">
-        <x-section-title>Charity</x-section-title>
+        <x-section-title>{{ __('events.Charity') }}</x-section-title>
         @foreach($charity_shifts as $shift)
             <div @if(!$loop->first) class="mt-2" @endif>
                 @if($charity_shifts->count() > 1)
@@ -13,10 +13,10 @@
                 @if($shift->charity_name)
                     <p class="mb-1"><strong>{{ $shift->charity_name }}</strong></p>
                 @endif
-                <p class="mb-1">Direct Funds: ${{ format_funds($shift->charity_direct_funds) }}</p>
-                <p class="mb-1">Indirect Funds: ${{ format_funds($shift->charity_indirect_funds) }}</p>
+                <p class="mb-1">{{ __('events.Direct Funds: $:amount', ['amount' => format_funds($shift->charity_direct_funds)]) }}</p>
+                <p class="mb-1">{{ __('events.Indirect Funds: $:amount', ['amount' => format_funds($shift->charity_indirect_funds)]) }}</p>
                 @if($shift->charity_hours)
-                    <p class="mb-1">Hours: {{ $shift->charity_hours }}</p>
+                    <p class="mb-1">{{ __('events.Hours: :hours', ['hours' => $shift->charity_hours]) }}</p>
                 @endif
                 @if($shift->charity_notes)
                     <p class="mb-1">{{ $shift->charity_notes }}</p>
