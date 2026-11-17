@@ -5,7 +5,7 @@
 return [
     'Failed to post reply.' => 'Failed to post reply.',
     'Forum Comments' => 'Forum Comments',
-    'Notify command staff' => 'Notify command staff',
+    'Notify command staff and the event coordinator' => 'Notify command staff and the event coordinator',
     'Post Reply' => 'Post Reply',
     'Reply posted!' => 'Reply posted!',
     'Unable to update your forum thread subscription. Please try again.' => 'Unable to update your forum thread subscription. Please try again.',

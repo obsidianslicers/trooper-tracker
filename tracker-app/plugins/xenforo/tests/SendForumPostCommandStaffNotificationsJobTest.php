@@ -12,6 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 use TroopTracker\Plugins\Xenforo\Jobs\SendForumPostCommandStaffNotificationsJob;
+use TroopTracker\Plugins\Xenforo\Mail\ForumPostCommandStaffMail;
 use TroopTracker\Plugins\Xenforo\Notifications\ForumPostCommandStaffNotification;
 
 /**
@@ -113,6 +114,81 @@ class SendForumPostCommandStaffNotificationsJobTest extends TestCase
 
         $sent_count = Notification::sent($admin_and_moderator, ForumPostCommandStaffNotification::class)->count();
         $this->assertSame(1, $sent_count);
+    }
+
+    public function test_handle_notifies_the_picked_coordinator_worded_for_them(): void
+    {
+        Notification::fake();
+
+        $creator = Trooper::factory()->asEventCoordinator()->create();
+        $coordinator = Trooper::factory()->asMember()->create();
+        $event = Event::factory()->withCreatedByTrooper($creator)->create([Event::COORDINATOR_TROOPER_ID => $coordinator->id]);
+        $poster = Trooper::factory()->asMember()->create();
+
+        (new SendForumPostCommandStaffNotificationsJob($event, $poster))->handle();
+
+        Notification::assertSentTo($coordinator, ForumPostCommandStaffNotification::class,
+            fn (ForumPostCommandStaffNotification $notification) => str_contains(
+                $notification->toArray($coordinator)['body'], "You're getting this as the event's coordinator."));
+        Notification::assertNotSentTo($creator, ForumPostCommandStaffNotification::class);
+    }
+
+    public function test_handle_notifies_the_creator_when_nobody_is_picked(): void
+    {
+        Notification::fake();
+
+        $creator = Trooper::factory()->asEventCoordinator()->create();
+        $event = Event::factory()->withCreatedByTrooper($creator)->create();
+        $poster = Trooper::factory()->asMember()->create();
+
+        (new SendForumPostCommandStaffNotificationsJob($event, $poster))->handle();
+
+        Notification::assertSentTo($creator, ForumPostCommandStaffNotification::class);
+    }
+
+    public function test_handle_skips_the_coordinator_who_posted_or_is_not_active(): void
+    {
+        Notification::fake();
+
+        $coordinator = Trooper::factory()->asMember()->create();
+        $event = Event::factory()->create([Event::COORDINATOR_TROOPER_ID => $coordinator->id]);
+
+        (new SendForumPostCommandStaffNotificationsJob($event, $coordinator))->handle();
+
+        Notification::assertNothingSentTo($coordinator);
+
+        $retired = Trooper::factory()->asMember()->asRetired()->create();
+        $event->update([Event::COORDINATOR_TROOPER_ID => $retired->id]);
+
+        (new SendForumPostCommandStaffNotificationsJob($event->fresh(), Trooper::factory()->asMember()->create()))->handle();
+
+        Notification::assertNothingSentTo($retired);
+    }
+
+    public function test_handle_sends_a_coordinator_on_command_staff_only_the_command_staff_alert(): void
+    {
+        Notification::fake();
+
+        $admin = Trooper::factory()->asSystemOwner()->create();
+        $event = Event::factory()->withCreatedByTrooper($admin)->create();
+        $poster = Trooper::factory()->asMember()->create();
+
+        (new SendForumPostCommandStaffNotificationsJob($event, $poster))->handle();
+
+        $sent = Notification::sent($admin, ForumPostCommandStaffNotification::class);
+        $this->assertCount(1, $sent);
+        $this->assertStringNotContainsString('coordinator', $sent->first()->toArray($admin)['body']);
+    }
+
+    public function test_the_email_greets_the_coordinator(): void
+    {
+        $event = Event::factory()->create();
+        $poster = Trooper::factory()->asMember()->create();
+
+        $this->assertStringContainsString('Esteemed Event Coordinator',
+            (new ForumPostCommandStaffMail($event, $poster, true))->render());
+        $this->assertStringContainsString('Esteemed Command Staff',
+            (new ForumPostCommandStaffMail($event, $poster))->render());
     }
 
     public function test_handle_respects_notification_preference_opt_out(): void

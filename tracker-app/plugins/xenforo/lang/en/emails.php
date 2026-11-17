@@ -7,9 +7,11 @@ return [
     ':name posted:' => ':name posted:',
     'A new reply has been posted in the forum thread for a deployment you are monitoring.' => 'A new reply has been posted in the forum thread for a deployment you are monitoring.',
     'Esteemed Command Staff,' => 'Esteemed Command Staff,',
+    'Esteemed Event Coordinator,' => 'Esteemed Event Coordinator,',
     'Forum Post — Command Staff Alert' => 'Forum Post — Command Staff Alert',
     'New Forum Reply' => 'New Forum Reply',
     'Trooper,' => 'Trooper,',
     'View event details' => 'View event details',
     'View the reply on the forum' => 'View the reply on the forum',
+    'You\'re getting this as the event\'s coordinator.' => 'You\'re getting this as the event\'s coordinator.',
 ];

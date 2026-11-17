@@ -12,6 +12,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use TroopTracker\Plugins\Xenforo\Notifications\ForumPostCommandStaffNotification;
 
+/**
+ * Notifies command staff (the hosting organization's moderators, staff officers and system
+ * owners) and the event's coordinator when a comment asks for their attention. The poster
+ * isn't notified.
+ */
 class SendForumPostCommandStaffNotificationsJob implements ShouldQueue
 {
     use Queueable;
@@ -36,11 +41,23 @@ class SendForumPostCommandStaffNotificationsJob implements ShouldQueue
             ])
             ->get();
 
+        $command_staff = $moderators->merge($admins)
+            ->unique('id')
+            ->reject(fn ($trooper) => $trooper->id === $this->poster->id);
+
         $notification = new ForumPostCommandStaffNotification($this->event, $this->poster);
 
-        $moderators->merge($admins)
-            ->unique('id')
-            ->reject(fn ($trooper) => $trooper->id === $this->poster->id)
-            ->each(fn ($trooper) => $trooper->notify($notification));
+        $command_staff->each(fn ($trooper) => $trooper->notify($notification));
+
+        //  the picked coordinator, else the creator; command staff already have the alert
+        $coordinator = $this->event->eventCoordinator();
+
+        if ($coordinator !== null
+            && $coordinator->is_active
+            && $coordinator->id !== $this->poster->id
+            && !$command_staff->contains('id', $coordinator->id))
+        {
+            $coordinator->notify(new ForumPostCommandStaffNotification($this->event, $this->poster, to_coordinator: true));
+        }
     }
 }
