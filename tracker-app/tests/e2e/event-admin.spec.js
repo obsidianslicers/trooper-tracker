@@ -20,6 +20,15 @@ async function openAdmin(page, name, tab = 'overview') {
     await page.goto(`${href}?tab=${tab}`);
 }
 
+// With more than one shift the roster starts folded; open every shift.
+async function expandShifts(page) {
+    const folded = page.locator('.roster-shift-toggle[aria-expanded="false"]');
+
+    while (await folded.count() > 0) {
+        await folded.first().click();
+    }
+}
+
 // Runs an action that saves (the Update button, or a change on a tab that saves as you go) and
 // waits for the save to finish.
 async function saved(page, action) {
@@ -240,6 +249,7 @@ test.describe('reaching the troopers', () => {
 test.describe('the roster', () => {
     test('a moderator adds a trooper to a shift, and removes them again', async ({ page }) => {
         await openAdmin(page, seeded.commandEvent, 'roster');
+        await expandShifts(page);
 
         await page.getByLabel('Add Trooper').first().click();
         const picker = page.getByRole('dialog');
@@ -259,11 +269,13 @@ test.describe('the roster', () => {
 
     test('a moderator changes a rostered trooper\'s status, which saves right away', async ({ page }) => {
         await openAdmin(page, seeded.commandEvent, 'roster');
+        await expandShifts(page);
 
         const status = page.locator('select[name^="troopers["][name$="[status]"]').first();
         await saved(page, () => status.selectOption('standby'));
 
         await page.reload();
+        await expandShifts(page);
         await expect(page.locator('select[name^="troopers["][name$="[status]"]').first()).toHaveValue('standby');
     });
 

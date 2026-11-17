@@ -76,14 +76,21 @@
             <tbody>
                 <tr class="table-active">
                     {#if has_multiple_shifts}
-                        <td {colspan} class="cursor-pointer" onclick={() => toggleShift(shift.id)}>
-                            <i
-                                class={[
-                                    "fa fa-fw",
-                                    expanded_shifts[shift.id] ? "fa-chevron-down" : "fa-chevron-right",
-                                ]}
-                            ></i>
-                            {shift.time_display}
+                        <td {colspan}>
+                            <button
+                                type="button"
+                                class="roster-shift-toggle btn btn-link p-0 text-reset text-decoration-none"
+                                aria-expanded={expanded_shifts[shift.id] ?? false}
+                                onclick={() => toggleShift(shift.id)}
+                            >
+                                <i
+                                    class={[
+                                        "fa fa-fw",
+                                        expanded_shifts[shift.id] ? "fa-chevron-down" : "fa-chevron-right",
+                                    ]}
+                                ></i>
+                                {shift.time_display}
+                            </button>
                         </td>
                     {:else}
                         <td {colspan}>{shift.time_display}</td>
@@ -135,9 +142,3 @@
     onConfirm={confirmRemoval}
     onCancel={() => (pending_removal = null)}
 />
-
-<style>
-    :global(.cursor-pointer) {
-        cursor: pointer;
-    }
-</style>
