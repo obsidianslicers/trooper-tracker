@@ -184,6 +184,25 @@ class SignUpEventTrooperTest extends TestCase
         Bus::assertNotDispatched(CreateTrooperFriendshipJob::class);
     }
 
+    public function test_handle_does_not_befriend_when_the_picked_event_coordinator_fills_the_roster(): void
+    {
+        Bus::fake();
+        Notification::fake();
+
+        $picked = Trooper::factory()->asEventCoordinator()->create();
+        $event = Event::factory()->create([Event::COORDINATOR_TROOPER_ID => $picked->id]);
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $trooper = Trooper::factory()->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $picked
+        ))->handle(new EventRosterCapacityService);
+
+        Bus::assertNotDispatched(CreateTrooperFriendshipJob::class);
+    }
+
     public function test_handle_befriends_when_an_event_coordinator_adds_someone_to_another_event(): void
     {
         Bus::fake();

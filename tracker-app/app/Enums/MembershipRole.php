@@ -84,16 +84,4 @@ enum MembershipRole: string
     {
         return $this === self::VISITOR;
     }
-
-    /**
-     * Whether the role creates and manages events on its own: event coordinator and up.
-     */
-    public function managesEvents(): bool
-    {
-        return match ($this)
-        {
-            self::EVENT_COORDINATOR, self::MODERATOR, self::STAFF_OFFICER, self::SYSTEM_OWNER => true,
-            default => false,
-        };
-    }
 }
