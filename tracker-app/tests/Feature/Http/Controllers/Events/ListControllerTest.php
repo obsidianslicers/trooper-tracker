@@ -12,20 +12,31 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ListControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_displays_events_list_for_authenticated_trooper(): void
+    public function test_invoke_renders_the_svelte_events_list(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = $this->upcomingEvent('Hospital visit', EventType::idNamed('Regular'));
 
         $response = $this->actingAs($trooper)->get(route('events.list'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.events.list');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('events/List')
+            ->has('events', 1)
+            ->where('events.0.id', $event->id)
+            ->where('events.0.name', 'Hospital visit')
+            ->where('events.0.url', route('events.display', ['event' => $event]))
+            ->has('events.0.shifts', 1)
+            ->has('costume_organizations')
+            ->has('hosting_organizations')
+            ->has('notices'));
     }
 
     public function test_invoke_marks_only_the_events_that_do_not_count(): void
@@ -33,17 +44,15 @@ class ListControllerTest extends TestCase
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $uncounted = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party Plus']);
         $this->upcomingEvent('Armor build night', $uncounted->id);
-        $this->upcomingEvent('Hospital visit', EventType::idNamed('Regular'));
+        $this->upcomingEvent('Hospital visit', EventType::idNamed('Regular'), 8);
 
         $response = $this->actingAs($trooper)->get(route('events.list'));
 
-        $response->assertOk();
-        //  the info icon in place of the unit logo, then the sentence in the body; no pill
-        $response->assertSeeInOrder(['not-counted-logo', 'Armor build night', 'not-counted-notice'], false);
-        $response->assertSee('Non-troop-credit event: Does not count toward troop totals.');
-        $this->assertSame(1, substr_count($response->getContent(), 'not-counted-logo'));
-        $this->assertSame(1, substr_count($response->getContent(), 'not-counted-notice'));
-        $response->assertDontSee('not-counted-pill', false);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('events.0.name', 'Armor build night')
+            ->where('events.0.not_counted_notice', EventType::NOT_COUNTED_NOTICE)
+            ->where('events.1.name', 'Hospital visit')
+            ->where('events.1.not_counted_notice', null));
     }
 
     public function test_invoke_loads_event_types_with_the_events(): void
@@ -63,9 +72,53 @@ class ListControllerTest extends TestCase
         $this->assertCount(1, $type_queries);
     }
 
-    private function upcomingEvent(string $name, int $type): Event
+    public function test_invoke_sends_hosting_organization_parents_for_upward_filtering(): void
     {
-        $start = now()->addWeek();
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $club = Organization::factory()->asOrganization()->create();
+        $region = Organization::factory()->asRegion()->withParent($club)->create();
+        $unit = Organization::factory()->asUnit()->withParent($region)->create();
+
+        $response = $this->actingAs($trooper)->get(route('events.list'));
+
+        $response->assertInertia(function (Assert $page) use ($club, $region, $unit)
+        {
+            $hosts = collect($page->toArray()['props']['hosting_organizations'])->keyBy('id');
+
+            $this->assertNull($hosts[$club->id]['parent_id']);
+            $this->assertSame($club->id, $hosts[$region->id]['parent_id']);
+            $this->assertSame($region->id, $hosts[$unit->id]['parent_id']);
+            $this->assertSame(2, $hosts[$unit->id]['depth']);
+        });
+    }
+
+    public function test_invoke_defers_the_support_goal_only_when_a_goal_is_set(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+
+        config(['tracker.support.goal' => '300']);
+        $this->actingAs($trooper)->get(route('events.list'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->missing('support')
+                ->loadDeferredProps(fn (Assert $reload) => $reload
+                    ->where('support.goal', 300)
+                    ->has('support.message')));
+
+        config(['tracker.support.goal' => null]);
+        $this->actingAs($trooper)->get(route('events.list'))
+            ->assertInertia(fn (Assert $page) => $page->where('support', null));
+    }
+
+    public function test_invoke_requires_authentication(): void
+    {
+        $response = $this->get(route('events.list'));
+
+        $response->assertRedirect(route('auth.login'));
+    }
+
+    private function upcomingEvent(string $name, int $type, int $days = 7): Event
+    {
+        $start = now()->addDays($days);
         $event = Event::factory()->create([
             Event::NAME => $name,
             Event::EVENT_TYPE_ID => $type,
@@ -79,40 +132,5 @@ class ListControllerTest extends TestCase
         ]);
 
         return $event;
-    }
-
-    public function test_invoke_renders_hosting_organization_parents_for_upward_filtering(): void
-    {
-        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
-        $club = Organization::factory()->asOrganization()->create();
-        $region = Organization::factory()->asRegion()->withParent($club)->create();
-        $unit = Organization::factory()->asUnit()->withParent($region)->create();
-
-        $response = $this->actingAs($trooper)->get(route('events.list'));
-
-        $response->assertOk();
-        $response->assertSee("data-hosting-organization-parents='", false);
-        $response->assertSee("\"{$region->id}\":\"{$club->id}\"", false);
-        $response->assertSee("\"{$unit->id}\":\"{$region->id}\"", false);
-    }
-
-    public function test_invoke_shows_support_widget_only_when_a_goal_is_set(): void
-    {
-        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
-
-        config(['tracker.support.goal' => '300']);
-        $this->actingAs($trooper)->get(route('events.list'))
-            ->assertSee(route('widgets.support-htmx'), false);
-
-        config(['tracker.support.goal' => null]);
-        $this->actingAs($trooper)->get(route('events.list'))
-            ->assertDontSee(route('widgets.support-htmx'), false);
-    }
-
-    public function test_invoke_requires_authentication(): void
-    {
-        $response = $this->get(route('events.list'));
-
-        $response->assertRedirect(route('auth.login'));
     }
 }

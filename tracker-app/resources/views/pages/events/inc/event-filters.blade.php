@@ -1,4 +1,4 @@
-@props(['costume_organizations', 'show_allowed_orgs' => false])
+@props(['costume_organizations'])
 
 <div class="row mb-0">
 
@@ -56,20 +56,6 @@
         </div>
     </div>
     <div class="col-sm-12 col-md-4 mt-3 mt-md-0">
-        @if($show_allowed_orgs)
-            <button type="button"
-                    class="btn btn-sm btn-outline-secondary w-100"
-                    x-on:click="toggleAllowedOrgs()">
-                <span x-show="!display_allowed_orgs">
-                    {{ __('events.Hide Allowed Orgs') }}
-                    <i class="fa fa-fw fa-eye-slash ms-2"></i>
-                </span>
-                <span x-show="display_allowed_orgs">
-                    {{ __('events.Show Allowed Orgs') }}
-                    <i class="fa fa-fw fa-eye ms-2"></i>
-                </span>
-            </button>
-        @endif
     </div>
 </div>
 
