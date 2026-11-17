@@ -35,7 +35,7 @@
                             </a>
                             <br />
                             <span class="text-muted small">
-                                {{ $event_trooper->event_shift?->shift_starts_at?->format('M j, Y') }}
+                                {{ $event_trooper->event_shift?->shift_starts_at?->localFormat('M j, Y') }}
                             </span>
                         </td>
                         <td>

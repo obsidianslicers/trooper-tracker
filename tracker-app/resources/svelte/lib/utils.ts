@@ -1,6 +1,7 @@
 import type { VisitOptions } from '@inertiajs/core';
 import type { Config, RouteName, RouteParams } from 'ziggy-js';
 import { route as ziggyRoute } from 'ziggy-js';
+import { locale } from './i18n';
 
 /**
  * A type-safe wrapper around Laravel's Ziggy route helper.
@@ -39,13 +40,15 @@ export function createPartialReloadOptions(overrides: Partial<VisitOptions> = {}
 export function formatDate(date: Date | string | null): string | null {
     if (!date) return null;
     const dt = new Date(date);
-    return dt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    return dt.toLocaleDateString(locale(), { month: "short", day: "numeric", year: "numeric" });
 }
 
 export function formatDateTime(date: Date | string | null): string | null {
     if (!date) return null;
     const dt = new Date(date);
-    return dt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "numeric" });
+    return dt.toLocaleDateString(locale(), {
+        month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "numeric",
+    });
 }
 
 // import { page } from '$app/state';

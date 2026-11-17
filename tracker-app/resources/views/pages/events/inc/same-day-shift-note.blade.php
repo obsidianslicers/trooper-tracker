@@ -5,7 +5,7 @@
 @php($same_day_shifts = $event->sameDayShiftsFor($event_shift, Auth::user()))
 @if($same_day_shifts->isNotEmpty())
     @php($other_times = $same_day_shifts->map(fn ($shift) => $shift->compact_time_display)->join(', ', ' and '))
-    @php($day = $event_shift->shift_starts_at->format('l, M j'))
+    @php($day = $event_shift->shift_starts_at->localFormat('l, M j'))
     @if($event->isOnShift($event_shift, Auth::user()))
         <div class="same-day-notice d-flex align-items-baseline gap-2 mt-3"
              role="note">

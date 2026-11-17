@@ -46,7 +46,7 @@
                                         {{ $award_trooper->trooper->display_name }}
                                     </a>
                                 </td>
-                                <td class="text-nowrap">{{ $award_trooper->award_date->format('M j, Y') }}</td>
+                                <td class="text-nowrap">{{ $award_trooper->award_date->localFormat('M j, Y') }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -94,7 +94,7 @@
                                                 Awarded
                                             </small>
                                             <span class="badge bg-secondary text-nowrap">
-                                                {{ $award_trooper->award_date->format('M j, Y') }}
+                                                {{ $award_trooper->award_date->localFormat('M j, Y') }}
                                             </span>
                                         </div>
                                     </div>

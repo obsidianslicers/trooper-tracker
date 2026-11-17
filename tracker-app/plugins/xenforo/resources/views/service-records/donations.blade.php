@@ -21,14 +21,14 @@
                         <td>{{ $upgrade['upgrade_title'] }}</td>
                         <td>
                             @if($upgrade['start_date'])
-                                {{ \Carbon\Carbon::createFromTimestamp($upgrade['start_date'])->format('M j, Y') }}
+                                {{ \Carbon\Carbon::createFromTimestamp($upgrade['start_date'])->localFormat('M j, Y') }}
                             @else
                                 —
                             @endif
                         </td>
                         <td>
                             @if($upgrade['end_date'])
-                                {{ \Carbon\Carbon::createFromTimestamp($upgrade['end_date'])->format('M j, Y') }}
+                                {{ \Carbon\Carbon::createFromTimestamp($upgrade['end_date'])->localFormat('M j, Y') }}
                             @else
                                 Lifetime
                             @endif

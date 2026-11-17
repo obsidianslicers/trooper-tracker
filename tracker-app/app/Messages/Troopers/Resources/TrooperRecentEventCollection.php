@@ -24,7 +24,7 @@ class TrooperRecentEventCollection extends ResourceCollection
                     'organization' => $organization->name,
                     'event_id' => $shift?->event->id,
                     'event_name' => $shift?->event->name,
-                    'shift_date' => $shift?->shift_starts_at->format('M d, Y'),
+                    'shift_date' => $shift?->shift_starts_at->localFormat('M d, Y'),
                     'is_old' => $shift !== null && $shift->shift_starts_at->lt(now()->subYear()),
                 ];
             })->values()->all();

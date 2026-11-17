@@ -92,6 +92,14 @@ class GetTranslationReportTest extends TestCase
         ], $this->relative($result['undefined']));
     }
 
+    public function test_handle_checks_local_format_patterns_against_the_formats_group(): void
+    {
+        $this->writeGroup('lang/en/formats.php', ['M j, Y' => 'M j, Y']);
+        $this->write('code/view.blade.php', '{{ $a->localFormat("M j, Y") }} {{ $b?->localFormat("g:ia") }}');
+
+        $this->assertSame(['formats.g:ia'], array_keys($this->report()['undefined']));
+    }
+
     public function test_handle_reads_escaped_quotes_in_keys(): void
     {
         $this->writeGroup('lang/en/common.php', ["Don't panic" => "Don't panic"]);

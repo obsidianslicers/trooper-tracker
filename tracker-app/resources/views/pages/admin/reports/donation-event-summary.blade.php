@@ -86,8 +86,8 @@
             @if(!empty($selected_ids))
                 {{ $filter_orgs->whereIn('id', $selected_ids)->pluck('name')->join(', ') }}
             @endif
-            @if($date_start) &mdash; From {{ $date_start->format('M d, Y') }} @endif
-            @if($date_end) to {{ $date_end->format('M d, Y') }} @endif
+            @if($date_start) &mdash; From {{ $date_start->localFormat('M d, Y') }} @endif
+            @if($date_end) to {{ $date_end->localFormat('M d, Y') }} @endif
             @if($charity_only) &mdash; Charity data only @endif
         </p>
     @endif
@@ -112,7 +112,7 @@
                     @endif
                 </div>
                 <div class="text-muted text-nowrap ms-3 small">
-                    {{ $event->event_start?->format('M d, Y') }}
+                    {{ $event->event_start?->localFormat('M d, Y') }}
                 </div>
             </div>
             <div class="table-responsive">

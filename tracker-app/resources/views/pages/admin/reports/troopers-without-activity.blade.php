@@ -7,7 +7,7 @@
     <x-table class="caption-top">
         <caption>
             Active Troopers who have not {{ \App\Enums\EventTrooperStatus::ATTENDED->name }}
-            an event since {{ $lookback->format('M d, Y') }}.
+            an event since {{ $lookback->localFormat('M d, Y') }}.
         </caption>
         <thead>
             <tr>
@@ -24,7 +24,7 @@
                         </a>
                     </td>
                     <td>
-                        {{ $trooper->last_active_at?->format('M d, Y') ?? 'Never' }}
+                        {{ $trooper->last_active_at?->localFormat('M d, Y') ?? 'Never' }}
                     </td>
                 </tr>
             @empty
