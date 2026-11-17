@@ -321,6 +321,9 @@ php artisan test --testsuite=Plugins      # Plugin tests only
 npm test                                  # Front-end unit tests (Vitest)
 npm run test:e2e                          # Browser tests (Playwright, needs npm run build)
 
+# Translations
+php artisan tracker:report-translations --strict  # Missing English lines / untranslated per language
+
 # Code quality
 ./vendor/bin/pint                         # Format code
 ./vendor/bin/phpstan                      # Static analysis
@@ -361,14 +364,25 @@ EventStatus::toValidator();    // 'draft,open,closed,cancelled'
 
 ## Translations
 
-User-facing text goes through Laravel's translator, keyed by the English text, in one PHP file per feature: `lang/<locale>/<feature>.php` (`common.php` is shared by every page).
+The app is multi-language. **Never hardcode text people read**: every new string in a view, Svelte page, flash message, validation message, notification or email subject goes through the translator, and its English line goes in `lang/en` in the same change.
 
-- Blade/PHP: `__('events.Sign up')`, `__('common.Hello, :name', ['name' => $name])`. Every key must be in `lang/en`.
-- Svelte: `import { t } from '$lib/i18n'` then `t('Sign up')`. `common` is shared on every page; PageData adds more groups as a `lang` prop via `TranslationService::groups()`.
-- Plugins: `plugins/<slug>/lang/<locale>/<group>.php`, used as `__('<slug>::<group>.Text')`.
-- `TranslationFilesTest` fails on keys missing from English; `php artisan tracker:report-translations` reports untranslated lines per language.
+Strings are keyed by the English text, in one PHP file per feature: `lang/<locale>/<feature>.php` (`events.php`, `admin.php`, ...; `common.php` is shared by every page). A locale missing a line falls back to English.
 
-See `docs/LOCALIZATION.md`.
+- **Blade/PHP:** `__('events.Sign up')`, `__('common.Hello, :name', ['name' => $name])`. Every key must be in `lang/en/<feature>.php`.
+- **Svelte:** `import { t } from '$lib/i18n'` then `t('Sign up')`. `common` is on every page, plus the group named after the route (`events.*` routes get `events`); PageData can add groups as a `lang` prop via `TranslationService::groups()`.
+- **Plain JS on Blade pages:** `import { t } from '../i18n.js'` (reads `common`).
+- **Whole sentences:** never build a sentence by joining pieces (`'Hello '.$name`, `$a.' has '.$verb`). Use one line with `:placeholders`, so translators can reorder words.
+- **Counts:** `trans_choice('events.:count troop|:count troops', $n)`; Svelte `t(key, replace, count)`.
+- **HTML inside a line:** put the markup in a placeholder and escape the value: `{!! __('admin.Delete :name?', ['name' => '<strong>'.e($name).'</strong>']) !!}`.
+- **Dates and numbers:** `$date->localFormat('M j, Y')` (patterns in `lang/<locale>/formats.php`) and `format_number()`, not `->format()` / `number_format()`, for anything people read.
+- **Enums:** show `$enum->label()`, not `to_title($enum->name)`; labels live in `lang/<locale>/enums.php`.
+- **Emails:** subjects use the `emails` group, in-app notification text the `notifications` group. Email bodies are whole views per language in `resources/views/emails/<locale>/`; render them with `email_view('events.trooper-signup')`, which falls back to `emails/en`. Mail and notifications render in the recipient's language.
+- **Plugins:** `plugins/<slug>/lang/<locale>/<group>.php`, used as `__('<slug>::<group>.Text')`. plugin.json text (description, setting labels and help) goes in the plugin's `lang/en/plugin.php`; labels passed to `addSystemCheck`, `addNotificationCategory` or `addClubSynchronizer` are keys (`'<slug>::plugin.Forum Reply'`), translated when shown.
+- **Keep in English:** log lines, exception messages, Artisan output, CSV export headers, System Check diagnostics, and stored data.
+- **Checks:** `TranslationFilesTest` fails on keys missing from English. Run `php artisan tracker:report-translations --strict` before a PR: it fails on keys used in code but missing from `lang/en`. CI posts the report in each run's summary.
+- **New features:** plan the text with translation in mind (whole sentences, plurals, per-locale email views).
+
+See `docs/LOCALIZATION.md` for adding a language and the full details.
 
 ---
 
@@ -397,4 +411,4 @@ Available policies: `AwardPolicy`, `EventPolicy`, `NoticePolicy`, `OrganizationP
 | Deployment | `docs/DEPLOY.md` |
 | Plugins (hooks, slots, settings) | `docs/PLUGINS.md` |
 | Browser tests & coverage plan | `docs/E2E_TESTING.md` |
-| Translations & languages | `docs/LOCALIZATION.md` |
+| Translations & languages (start here for any user-facing text) | `docs/LOCALIZATION.md` |
