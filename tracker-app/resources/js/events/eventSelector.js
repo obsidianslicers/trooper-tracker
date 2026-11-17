@@ -128,16 +128,32 @@ export default function eventSelector() {
             return this.form.hosting_organization_ids;
         },
 
-        // Events flow upward: selecting a unit also shows events hosted by its region and club
+        // Selecting a unit also shows events hosted by its region and club
         getMatchingHostingOrganizationIds() {
             const matchingIds = new Set();
 
-            for (const selectedId of this.getActiveHostingOrganizationIds()) {
+            const selectedIds = this.getActiveHostingOrganizationIds();
+
+            for (const selectedId of selectedIds) {
                 let organizationId = selectedId;
 
                 while (organizationId && !matchingIds.has(organizationId)) {
                     matchingIds.add(organizationId);
                     organizationId = this.hosting_organization_parents[organizationId];
+                }
+            }
+
+            // And downward: a club or garrison also shows events hosted beneath it
+            for (const [childId] of Object.entries(this.hosting_organization_parents)) {
+                let ancestorId = this.hosting_organization_parents[childId];
+
+                while (ancestorId) {
+                    if (selectedIds.includes(ancestorId)) {
+                        matchingIds.add(childId);
+                        break;
+                    }
+
+                    ancestorId = this.hosting_organization_parents[ancestorId];
                 }
             }
 
