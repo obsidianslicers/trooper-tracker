@@ -202,6 +202,11 @@
                         bind:value={vm.form.shifts_allowed}
                         errors={vm.errors.shifts_allowed}
                     />
+                    {#if !vm.form.shifts_allowed}
+                        <InputHelp>
+                            {t("blank=unlimited")}
+                        </InputHelp>
+                    {/if}
                 </div>
                 <div class="col-12 col-md-6 mb-3">
                     <YesNo
@@ -216,6 +221,11 @@
                         bind:value={vm.form.troopers_allowed}
                         errors={vm.errors.troopers_allowed}
                     />
+                    {#if !vm.form.troopers_allowed}
+                        <InputHelp>
+                            {t("blank=unlimited")}
+                        </InputHelp>
+                    {/if}
                 </div>
                 <div class="col-12 col-md-6 mb-3">
                     <InputText
@@ -224,6 +234,11 @@
                         bind:value={vm.form.handlers_allowed}
                         errors={vm.errors.handlers_allowed}
                     />
+                    {#if !vm.form.handlers_allowed}
+                        <InputHelp>
+                            {t("blank=unlimited, zero=none")}
+                        </InputHelp>
+                    {/if}
                 </div>
                 <div class="col-12 col-md-6 mb-3">
                     <InputText
@@ -232,6 +247,11 @@
                         bind:value={vm.form.friends_allowed}
                         errors={vm.errors.friends_allowed}
                     />
+                    {#if !vm.form.friends_allowed}
+                        <InputHelp>
+                            {t("blank=unlimited, zero=none")}
+                        </InputHelp>
+                    {/if}
                 </div>
                 <div class="col-12 col-md-6 mb-3">
                     <InputText
@@ -240,6 +260,11 @@
                         bind:value={vm.form.guests_allowed}
                         errors={vm.errors.guests_allowed}
                     />
+                    {#if !vm.form.guests_allowed}
+                        <InputHelp>
+                            {t("blank=unlimited, zero=none")}
+                        </InputHelp>
+                    {/if}
                 </div>
             </div>
             <OrganizationLimits {vm} />
