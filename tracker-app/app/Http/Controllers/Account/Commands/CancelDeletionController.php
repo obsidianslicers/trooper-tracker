@@ -25,7 +25,9 @@ class CancelDeletionController extends Controller
 
         $url = route('account.index');
 
-        FlashType::success('Your account deletion request has been canceled. Your account will remain active.');
+        FlashType::success(
+            __('account.Your account deletion request has been canceled. Your account will remain active.')
+        );
 
         return Inertia::location($url);
     }

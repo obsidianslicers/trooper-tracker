@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import Alert from "../Alert.svelte";
 
     interface Props {
@@ -19,7 +20,7 @@
         href = null,
         icon = null,
         click = null,
-        label = "Create",
+        label = t("Create"),
         type = "button",
     }: Props = $props();
 </script>

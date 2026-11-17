@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { untrack } from "svelte";
     import type { AdministrativeNotificationsPageData } from "../models";
     import { AdministrativeNotificationsViewModel } from "../models";
@@ -12,6 +13,6 @@
     let vm = new AdministrativeNotificationsViewModel(untrack(() => notifications));
 </script>
 
-<p>Control which channels you receive administrative notifications on.</p>
+<p>{t("Control which channels you receive administrative notifications on.")}</p>
 
 <NotificationPreferences {vm} />

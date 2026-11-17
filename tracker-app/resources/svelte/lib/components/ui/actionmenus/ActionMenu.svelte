@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import type { Snippet } from "svelte";
 
     interface Props {
@@ -13,7 +14,7 @@
         class="btn btn-outline-secondary dropdown-toggle"
         type="button"
         data-bs-toggle="dropdown"
-        aria-label="Actions"
+        aria-label={t("Actions")}
     >
         <i class="fa fa-fw fa-gear pe-3" aria-hidden="true"></i>
     </button>

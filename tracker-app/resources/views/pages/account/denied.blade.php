@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Application Status')
+@section('page-title', __('account.Application Status'))
 
 @section('content')
 
@@ -12,7 +12,7 @@
     <x-message type="danger"
                icon="fa-solid fa-circle-xmark"
                class="w-100">
-        <strong>Your registration was not approved.</strong>
+        <strong>{{ __('account.Your registration was not approved.') }}</strong>
         @if($denial_reason)
             <div class="mt-2">{{ $denial_reason }}</div>
         @endif
@@ -21,10 +21,10 @@
     @if($denied_requests->isNotEmpty())
         <x-card>
             <h6 class="mb-3">
-                <i class="fa fa-fw fa-circle-xmark text-danger"></i> Denied Club Requests
+                <i class="fa fa-fw fa-circle-xmark text-danger"></i> {{ __('account.Denied Club Requests') }}
             </h6>
             <p class="text-muted small mb-3">
-                The following club requests were part of your original application.
+                {{ __('account.The following club requests were part of your original application.') }}
             </p>
             <ul class="list-group list-group-flush">
                 @foreach($denied_requests as $request)
@@ -40,11 +40,10 @@
     @endif
 
     <x-card>
-        <h6 class="mb-3">Resubmit Your Application</h6>
+        <h6 class="mb-3">{{ __('account.Resubmit Your Application') }}</h6>
 
         <p class="text-muted mb-3">
-            Update your organization selections below and resubmit for reconsideration.
-            A moderator will review your application and you will be notified of the decision.
+            {{ __('account.Update your organization selections below and resubmit for reconsideration. A moderator will review your application and you will be notified of the decision.') }}
         </p>
 
         <form action="{{ route('account.denied.resubmit') }}"
@@ -91,7 +90,7 @@
                                     x-on:change="updateUnits"
                                     x-bind:disabled="isVisitor"
                                     class="form-select @error('organizations.' . $organization->id . '.region_id') is-invalid @enderror">
-                                    <option value="">-- Select your Region/Garrison --</option>
+                                    <option value="">-- {{ __('account.Select your Region/Garrison') }} --</option>
                                     <template x-for="region in regions" x-bind:key="region.id">
                                         <option x-bind:value="region.id" x-text="region.name"></option>
                                     </template>
@@ -104,7 +103,7 @@
                                         x-model="unitId"
                                         x-bind:disabled="!regionId || isVisitor"
                                         class="form-select @error('organizations.' . $organization->id . '.unit_id') is-invalid @enderror">
-                                    <option value="">-- Select your Unit/Squad --</option>
+                                    <option value="">-- {{ __('account.Select your Unit/Squad') }} --</option>
                                     <template x-for="unit in units" x-bind:key="unit.id">
                                         <option x-bind:value="unit.id" x-text="unit.name"></option>
                                     </template>
@@ -116,7 +115,7 @@
                         <x-input-container x-show="isVisitor">
                             <x-message type="info"
                                        icon="fa-solid fa-circle-info">
-                                Visitors are assigned to the top-level organization only. No region or unit selection is required.
+                                {{ __('account.Visitors are assigned to the top-level organization only. No region or unit selection is required.') }}
                             </x-message>
                         </x-input-container>
                     </div>
@@ -130,7 +129,7 @@
             <x-submit-container>
                 <x-submit-button>
                     <i class="fa fa-fw fa-paper-plane"></i>
-                    Resubmit Application
+                    {{ __('account.Resubmit Application') }}
                 </x-submit-button>
             </x-submit-container>
 

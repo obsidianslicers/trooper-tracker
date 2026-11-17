@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { untrack } from "svelte";
     import InputCheckbox from "$lib/components/form/InputCheckbox.svelte";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
@@ -17,31 +18,28 @@
 
 <InputContainer>
     <InputSelect
-        label="Notification Frequency"
+        label={t("Notification Frequency")}
         bind:value={vm.notification_frequency}
         options={vm.notification_frequency_enums}
         onchange={() => vm.updateNotificationFrequency()}
     />
     <InputHelp>
-        How often you want to receive notifications about events added to the
-        Trooper Tracker system.
+        {t("How often you want to receive notifications about events added to the Trooper Tracker system.")}
     </InputHelp>
 </InputContainer>
 <InputContainer>
     <InputSelect
-        label="Allow Push Notifications"
+        label={t("Allow Push Notifications")}
         bind:value={vm.push_notifications_enabled}
         options={vm.push_notification_options}
         onchange={() => vm.updatePushNotifications()}
     />
     <InputHelp>
-        If you have installed the tracker app on your mobile device, do you wish
-        to receive push alerts? This does not affect emails.
+        {t("If you have installed the tracker app on your mobile device, do you wish to receive push alerts? This does not affect emails.")}
     </InputHelp>
 </InputContainer>
 <InputHelp>
-    Below, you can select the organization/club, region/garrison, and unit/squad
-    you want to receive notifications for when events are created.
+    {t("Below, you can select the organization/club, region/garrison, and unit/squad you want to receive notifications for when events are created.")}
 </InputHelp>
 {#each vm.organization_notifications as organization_notification}
     <InputContainer>

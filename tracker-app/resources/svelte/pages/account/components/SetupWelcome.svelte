@@ -1,5 +1,6 @@
 <!-- Shown once, on the account page that follows account setup -->
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { getRoute } from "$lib/utils";
 </script>
 
@@ -8,15 +9,16 @@
         <div class="flex-grow-1">
             <h2 id="setup-welcome-title" class="h4 mb-2">
                 <i class="fa fa-fw fa-circle-check text-success"></i>
-                Your account is set up
+                {t("Your account is set up")}
             </h2>
             <p class="mb-0">
-                Now that your account is set up, you can check your profile information below, or go
-                straight to the upcoming events.
+                {t(
+                    "Now that your account is set up, you can check your profile information below, or go straight to the upcoming events."
+                )}
             </p>
         </div>
         <a class="btn btn-primary btn-lg text-nowrap" href={getRoute("events.list")}>
-            See Upcoming Events
+            {t("See Upcoming Events")}
             <i class="fa fa-fw fa-arrow-right"></i>
         </a>
     </div>

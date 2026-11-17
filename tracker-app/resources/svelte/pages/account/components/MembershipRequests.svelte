@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { MembershipsViewModel } from "../models";
 
     interface Props {
@@ -8,7 +9,7 @@
 </script>
 
 {#if vm.organization_requests.length !== 0}
-    <h6 class="mb-3">Organization Requests</h6>
+    <h6 class="mb-3">{t("Organization Requests")}</h6>
 
     <table class="table table-striped">
         <tbody>
@@ -34,7 +35,7 @@
                         {/if}
                         <br />
                         <i class="text-muted small">
-                            updated {request.updated}
+                            {t("updated :when", { when: request.updated })}
                         </i>
                     </td>
                     <td class="text-end text-nowrap">

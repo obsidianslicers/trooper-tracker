@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { untrack } from "svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
@@ -14,10 +15,10 @@
 </script>
 
 <SlimView>
-    <h6 class="mb-3">Friend Accounts Linked to You</h6>
+    <h6 class="mb-3">{t("Friend Accounts Linked to You")}</h6>
 
     {#if vm.friends.length === 0}
-        <Alert>No friend accounts are currently linked to you.</Alert>
+        <Alert>{t("No friend accounts are currently linked to you.")}</Alert>
     {:else}
         <table class="table table-striped">
             <tbody>

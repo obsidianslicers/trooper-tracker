@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import Button from "./Button.svelte";
 
     interface Props {
@@ -19,7 +20,7 @@
         submitting = false,
         disabled = false,
         icon = "fa-plus",
-        label = "Create",
+        label = t("Create"),
     }: Props = $props();
 
     let button_classes = $derived(() => {

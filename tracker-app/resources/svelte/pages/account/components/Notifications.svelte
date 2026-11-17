@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { untrack } from "svelte";
     import AccordionPanel from "$lib/components/AccordionPanel.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
@@ -17,14 +18,14 @@
 </script>
 
 <SlimView>
-    <AccordionPanel label="Organization Event Notifications">
+    <AccordionPanel label={t("Organization Event Notifications")}>
         <EventNotifications notifications={vm.page_data} />
     </AccordionPanel>
-    <AccordionPanel label="Notification Preferences">
+    <AccordionPanel label={t("Notification Preferences")}>
         <TrooperNotifications notifications={vm.page_data} />
     </AccordionPanel>
     {#if vm.page_data.administrative_notification_enums?.length > 0}
-        <AccordionPanel label="Administrative Preferences">
+        <AccordionPanel label={t("Administrative Preferences")}>
             <AdministrativeNotifications notifications={vm.page_data} />
         </AccordionPanel>
     {/if}

@@ -55,71 +55,66 @@
     <form onsubmit={vm.submit}>
         <InputContainer>
             <InputText
-                label="Legal Name"
+                label={t("Legal Name")}
                 bind:value={vm.form.legal_name}
                 errors={vm.errors.legal_name}
             />
             <InputHelp>
-                Used for official records or communications with event staff and
-                coordinators for safety and accountability reasons. This will
-                not be displayed publicly (anonymous viewers).
+                {t("Used for official records or communications with event staff and coordinators for safety and accountability reasons. This will not be displayed publicly (anonymous viewers).")}
                 <br />
-                <i> (i.e. Emperor Palpatine) </i>
+                <i>{t("(i.e. Emperor Palpatine)")}</i>
             </InputHelp>
         </InputContainer>
         <InputContainer>
             <InputText
-                label="Display Name"
+                label={t("Display Name")}
                 bind:value={vm.form.display_name}
                 errors={vm.errors.display_name}
             />
             <InputHelp>
-                The name that will be shown publicly (anonymous viewers).
+                {t("The name that will be shown publicly (anonymous viewers).")}
                 <br />
-                <i> (i.e. Darth Sidious) </i>
+                <i>{t("(i.e. Darth Sidious)")}</i>
             </InputHelp>
         </InputContainer>
         <InputContainer>
             <InputText
-                label="Phone (optional)"
+                label={t("Phone (optional)")}
                 bind:value={vm.form.phone}
                 errors={vm.errors.phone}
             />
             <InputHelp>
-                Your contact phone number. Visible to command staff only.
+                {t("Your contact phone number. Visible to command staff only.")}
                 <br />
-                <i> (i.e. 555-555-5555) </i>
+                <i>{t("(i.e. 555-555-5555)")}</i>
             </InputHelp>
         </InputContainer>
         {#if vm.display_costumes && vm.display_costumes.length > 0}
             <InputContainer>
                 <InputSelect
-                    label="Preferred 501st Display Format"
+                    label={t("Preferred 501st Display Format")}
                     bind:value={vm.form.display_costume_id}
                     options={vm.display_costumes}
                     errors={vm.errors.display_costume_id}
                 />
                 <InputHelp>
-                    Choose which prefix and ID to display on the forum (e.g.
-                    TK52233 or SL52233). Leave blank to use the first costume
-                    automatically.
+                    {t("Choose which prefix and ID to display on the forum (e.g. TK52233 or SL52233). Leave blank to use the first costume automatically.")}
                 </InputHelp>
             </InputContainer>
         {/if}
         <InputContainer>
             <InputSelect
-                label="Theme"
+                label={t("Theme")}
                 bind:value={vm.form.theme}
                 options={vm.theme_enums}
                 errors={vm.errors.theme}
             />
             <InputHelp>
-                Customize the look and feel of the Tracker. This will change the
-                color scheme and fonts of the interface.
+                {t("Customize the look and feel of the Tracker. This will change the color scheme and fonts of the interface.")}
             </InputHelp>
             {#if previewingTheme}
                 <InputHelp>
-                    <h4>Previewing Theme</h4>
+                    <h4>{t("Previewing Theme")}</h4>
                 </InputHelp>
             {/if}
         </InputContainer>
@@ -138,7 +133,7 @@
         {/if}
         <SubmitButtonContainer>
             <SubmitButton
-                label="Save"
+                label={t("Save")}
                 submitting={vm.submitting}
                 disabled={!vm.dirty}
             />

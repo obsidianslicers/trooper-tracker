@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     let { title, canClose = null } = $props();
 </script>
 
@@ -8,7 +9,7 @@
         <button
             type="button"
             class="close"
-            aria-label="Close"
+            aria-label={t("Close")}
             onclick={canClose}
         >
             <span aria-hidden="true">&times;</span>

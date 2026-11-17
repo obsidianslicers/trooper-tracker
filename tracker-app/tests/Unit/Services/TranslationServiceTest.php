@@ -35,4 +35,19 @@ class TranslationServiceTest extends TestCase
     {
         $this->assertSame([], (new TranslationService)->groups('no-such-group'));
     }
+
+    public function test_for_route_returns_the_group_named_by_the_first_route_segment(): void
+    {
+        $result = (new TranslationService)->forRoute('account.details');
+
+        $this->assertSame(__('account.Delete Account'), $result['Delete Account'] ?? null);
+    }
+
+    public function test_for_route_returns_empty_without_a_matching_group(): void
+    {
+        $subject = new TranslationService;
+
+        $this->assertSame([], $subject->forRoute('no-such-group.index'));
+        $this->assertSame([], $subject->forRoute(null));
+    }
 }

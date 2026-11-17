@@ -1,3 +1,4 @@
+import { t } from '$lib/i18n';
 import { SubmitableViewModel, type Option } from "$lib/domains/types.svelte";
 import toastStateSvelte from "$lib/states/toast-state.svelte";
 import { getRoute } from "$lib/utils";
@@ -122,7 +123,7 @@ export class MembershipsViewModel extends SubmitableViewModel<MembershipsViewMod
 
                 this.form.defaults();
 
-                toastStateSvelte.success('Trooper request created successfully.');
+                toastStateSvelte.success(t('Trooper request created successfully.'));
 
                 if (results) {
                     this.organization_requests = results.organization_requests || [];

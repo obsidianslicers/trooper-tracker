@@ -1,3 +1,4 @@
+import { t } from '$lib/i18n';
 import { SubmitableViewModel } from "$lib/domains/types.svelte";
 import toastStateSvelte from "$lib/states/toast-state.svelte";
 import { getRoute } from "$lib/utils";
@@ -43,7 +44,7 @@ export class LoginViewModel extends SubmitableViewModel<LoginViewModel, Login> {
 
         const url = getRoute('auth.login');
 
-        const toast = toastStateSvelte.info('Logging in...', { delay: 4000 });
+        const toast = toastStateSvelte.info(t('Logging in...'), { delay: 4000 });
 
         this.form.post(url, {
             preserveScroll: true,

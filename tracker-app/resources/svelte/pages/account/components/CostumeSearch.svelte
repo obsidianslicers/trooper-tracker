@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputText from "$lib/components/form/InputText.svelte";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
@@ -15,8 +16,8 @@
     <!-- Server-Searched Input -->
     <div class="mb-4 position-relative">
         <InputText
-            label="Find Your Costume"
-            placeholder="Search ... (i.e. Shadow Scout)"
+            label={t("Find Your Costume")}
+            placeholder={t("Search ... (i.e. Shadow Scout)")}
             bind:value={vm.search_term}
             oninput={vm.searchCostumes}
             onfocus={vm.showSearchResults}
@@ -44,11 +45,11 @@
 
     {#if vm.selected_costume}
         <div class="mb-4">
-            <p>Select Approved Organizations</p>
+            <p>{t("Select Approved Organizations")}</p>
 
             {#if vm.selected_costume.organizations?.length === 0}
                 <div class="text-danger small">
-                    No organizations found for this costume type.
+                    {t("No organizations found for this costume type.")}
                 </div>
             {:else}
                 <div class="list-group">
@@ -69,7 +70,7 @@
                 </div>
                 <SubmitButtonContainer>
                     <SubmitButton
-                        label="Add to Armory"
+                        label={t("Add to Armory")}
                         submitting={vm.submitting}
                         disabled={!vm.canAddCostume()}
                         click={vm.addCostume}

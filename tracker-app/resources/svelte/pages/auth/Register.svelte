@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
@@ -13,7 +14,7 @@
 
     const page = usePage<RegisterPageData>();
 
-    pageState.title = "Register";
+    pageState.title = t("Register");
 
     const appName = $derived(page.props.config.branding.name as string);
 
@@ -23,13 +24,11 @@
 <SlimCard>
     <form onsubmit={vm.submit}>
         <Alert>
-            <b>New to the 501st and/or {appName}?</b> Or are you solely a member
-            of another organization? Use this form below to start signing up for
-            troops.
+            <b>{t("New to the 501st and/or :app?", { app: appName })}</b>
+            {t("Or are you solely a member of another organization? Use this form below to start signing up for troops.")}
             <p class="mt-3 mb-0">
                 <i>
-                    Command Staff will need to approve your account prior to
-                    use.
+                    {t("Command Staff will need to approve your account prior to use.")}
                 </i>
             </p>
         </Alert>
@@ -44,7 +43,7 @@
 
         <SubmitButtonContainer>
             <SubmitButton
-                label="Register"
+                label={t("Register")}
                 submitting={vm.submitting}
                 disabled={!vm.dirty}
             />

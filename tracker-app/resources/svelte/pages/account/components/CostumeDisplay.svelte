@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import Alert from "$lib/components/ui/Alert.svelte";
     import DeleteButton from "$lib/components/ui/buttons/DeleteButton.svelte";
     import { CostumesViewModel } from "../models";
@@ -11,11 +12,10 @@
 
 {#if vm.trooper_costumes.length === 0}
     <Alert>
-        <b class="mb-3"> No Attached Costumes ... Yet! </b>
+        <b class="mb-3">{t("No Attached Costumes ... Yet!")}</b>
         <br />
         <i>
-            To attach a costume to your armory, find your costume, then select
-            your organization/club, and click "Add to Armory".
+            {t('To attach a costume to your armory, find your costume, then select your organization/club, and click "Add to Armory".')}
         </i>
     </Alert>
 {:else}
@@ -32,7 +32,9 @@
                         {#if trooper_costume.pending_organizations?.length > 0}
                             <br />
                             <span class="badge text-bg-warning">
-                                Pending officer review: {trooper_costume.pending_organizations.join(", ")}
+                                {t("Pending officer review: :organizations", {
+                                    organizations: trooper_costume.pending_organizations.join(", "),
+                                })}
                             </span>
                         {/if}
                     </td>

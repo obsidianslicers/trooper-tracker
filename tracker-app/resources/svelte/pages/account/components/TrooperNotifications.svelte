@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { untrack } from "svelte";
     import type { TrooperNotificationsPageData } from "../models";
     import { TrooperNotificationsViewModel } from "../models";
@@ -12,8 +13,7 @@
 </script>
 
 <p>
-    Control which channels you receive notifications on. Website notifications
-    appear in your notification inbox.
+    {t("Control which channels you receive notifications on. Website notifications appear in your notification inbox.")}
 </p>
 
 <NotificationPreferences {vm} />

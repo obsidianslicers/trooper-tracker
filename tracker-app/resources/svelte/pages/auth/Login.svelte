@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import Alert from "$lib/components/ui/Alert.svelte";
     import SlimCard from "$lib/components/ui/SlimCard.svelte";
     import pageState from "$lib/states/page-state.svelte";
@@ -10,7 +11,7 @@
 
     const page = usePage<LoginPageData>();
 
-    pageState.title = "Login";
+    pageState.title = t("Login");
 
     let vm = new LoginViewModel(page.props);
 </script>
@@ -18,9 +19,9 @@
 <SlimCard>
     {#if vm.oauth?.required}
         <Alert>
-            You must use {vm.oauth.required.name} to login.
+            {t("You must use :provider to login.", { provider: vm.oauth.required.name })}
         </Alert>
-        <OAuthLinks oauth={vm.oauth} prefix="Login" />
+        <OAuthLinks oauth={vm.oauth} action="login" />
     {:else}
         <FormPanel {vm} />
         <OAuthPanel {vm} />

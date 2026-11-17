@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputCheckbox from "$lib/components/form/InputCheckbox.svelte";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputPassword from "$lib/components/form/InputPassword.svelte";
@@ -20,7 +21,7 @@
             <InputText
                 bind:value={vm.form.email}
                 errors={vm.errors.email}
-                label="Email"
+                label={t("Email")}
             />
         </InputContainer>
 
@@ -28,21 +29,21 @@
             <InputPassword
                 bind:value={vm.form.password}
                 errors={vm.errors.password}
-                label="Password"
+                label={t("Password")}
             />
         </InputContainer>
 
         <InputContainer>
             <InputCheckbox
                 bind:checked={vm.form.remember_me}
-                label="Keep me logged in"
+                label={t("Keep me logged in")}
                 value="Y"
             />
         </InputContainer>
 
         <SubmitButtonContainer>
             <SubmitButton
-                label="Login"
+                label={t("Login")}
                 submitting={vm.submitting}
                 disabled={!vm.dirty}
             />

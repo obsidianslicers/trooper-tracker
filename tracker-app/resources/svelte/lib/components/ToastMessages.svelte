@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import { fade, fly } from "svelte/transition";
     import Alert from "../components/ui/Alert.svelte";
     import type { ToastType } from "../states/toast-state.svelte";
@@ -37,7 +38,7 @@
                     <button
                         type="button"
                         class="btn-close ms-auto"
-                        aria-label="Dismiss"
+                        aria-label={t("Dismiss")}
                         onclick={() => toastState.dismiss(message.id)}
                     ></button>
                 {/if}
@@ -71,7 +72,7 @@
                     <button
                         type="button"
                         class="btn-close ms-auto"
-                        aria-label="Dismiss"
+                        aria-label={t("Dismiss")}
                         onclick={() => toastState.dismiss(message.id)}
                     ></button>
                 {/if}

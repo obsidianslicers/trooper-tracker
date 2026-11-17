@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputHelp from "$lib/components/form/InputHelp.svelte";
     import InputSelect from "$lib/components/form/InputSelect.svelte";
@@ -13,30 +14,24 @@
     let { vm }: Props = $props();
 </script>
 
-<h6 class="mb-3">Organization Join Requests</h6>
+<h6 class="mb-3">{t("Organization Join Requests")}</h6>
 
 <div>
     <form onsubmit={(e) => vm.addTrooperRequest(e)}>
         <p class="text-muted mb-3">
-            Select an organization in which you are already a member of. A
-            moderator will verify your membership before it is added to your
-            profile.
+            {t("Select an organization in which you are already a member of. A moderator will verify your membership before it is added to your profile.")}
 
             {#if vm.is_visitor}
-                Choose the organization you are visiting.
+                {t("Choose the organization you are visiting.")}
             {:else}
-                Choose the most specific unit you belong to, typically based on
-                your geographic location.
+                {t("Choose the most specific unit you belong to, typically based on your geographic location.")}
             {/if}
 
-            You can view any organization's events without being assigned. Each
-            organization allows only one membership assignment. If you select a
-            different unit within the same organization, your previous
-            assignment or pending request will be updated.
+            {t("You can view any organization's events without being assigned. Each organization allows only one membership assignment. If you select a different unit within the same organization, your previous assignment or pending request will be updated.")}
         </p>
         <InputContainer>
             <InputSelect
-                label="Organization to Join"
+                label={t("Organization to Join")}
                 options={vm.organization_options}
                 errors={vm.errors.organization_id}
                 bind:value={vm.form.organization_id}
@@ -52,8 +47,7 @@
                             bind:value={vm.form.identifier}
                         />
                         <InputHelp>
-                            Enter your member ID for this organization if you
-                            have one. Leave blank if unknown.
+                            {t("Enter your member ID for this organization if you have one. Leave blank if unknown.")}
                         </InputHelp>
                     </InputContainer>
                 {/if}
@@ -114,7 +108,7 @@
 
             <SubmitButtonContainer>
                 <SubmitButton
-                    label="Request Access"
+                    label={t("Request Access")}
                     submitting={vm.form.processing}
                     disabled={!vm.dirty}
                 />

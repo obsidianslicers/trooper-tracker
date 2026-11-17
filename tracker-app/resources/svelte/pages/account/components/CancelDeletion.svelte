@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "$lib/i18n";
     import Alert from "$lib/components/ui/Alert.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import { getRoute } from "$lib/utils";
@@ -28,9 +29,9 @@
     classes="d-flex align-items-center justify-content-between gap-3 mb-4"
 >
     <div>
-        <strong>Account deletion scheduled.</strong>
-        Your account will be permanently deleted on
+        <strong>{t("Account deletion scheduled.")}</strong>
+        {t("Your account will be permanently deleted on")}
         <strong>{deletionDate}</strong>.
     </div>
-    <SubmitButton label="Cancel Deletion" {submitting} click={cancel} />
+    <SubmitButton label={t("Cancel Deletion")} {submitting} click={cancel} />
 </Alert>

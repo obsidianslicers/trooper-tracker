@@ -34,6 +34,25 @@ class TranslationService
     }
 
     /**
+     * The groups an Inertia page gets as its `lang` prop: the group named after the
+     * first segment of its route name ("account.update-profile" gets lang/<locale>/account.php),
+     * when English has that group.
+     *
+     * @return array<string, string>
+     */
+    public function forRoute(?string $route_name): array
+    {
+        $group = $route_name === null ? null : strtok($route_name, '.');
+
+        if (!$group || !is_file(lang_path("en/{$group}.php")))
+        {
+            return [];
+        }
+
+        return $this->groups($group);
+    }
+
+    /**
      * Merges translation groups into one flat key => line map for Svelte and JS.
      *
      * Each group is laid over its fallback (English) version, because trans('group')
