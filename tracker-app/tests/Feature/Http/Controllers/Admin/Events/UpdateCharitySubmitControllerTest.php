@@ -27,6 +27,10 @@ class UpdateCharitySubmitControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSessionHasNoErrors();
+        $response->assertInertia(fn ($page) => $page
+            ->where('results.charity.0.charity_direct_funds', '12.50')
+            ->missing('results.roster')
+            ->missing('results.overview'));
         $shift->refresh();
         $this->assertSame(12.5, $shift->charity_direct_funds);
         $this->assertSame(1234.05, $shift->charity_indirect_funds);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Messages\Events\Commands\ReorderEventShiftStations;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
 use App\Models\EventShift;
 use Illuminate\Http\Request;
@@ -28,6 +29,10 @@ class ReorderShiftStationsSubmitController extends EventCommandController
             ordered_ids: $validated['ids'] ?? [],
         );
 
-        return $this->respondWithResults($request);
+        return $this->respondWithResults(
+            $request,
+            AdminEventPageData::SHIFTS,
+            AdminEventPageData::ROSTER,
+        );
     }
 }

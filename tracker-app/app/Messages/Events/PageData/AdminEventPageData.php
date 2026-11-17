@@ -19,20 +19,36 @@ use Hyperdrive\Message;
 use Illuminate\Support\Collection;
 
 /**
- * Data for the Command Staff event page and all of its tabs (overview, shifts, charity,
- * roster, uploads and mission review).
+ * Data for the Command Staff event page and its tabs (overview, shifts, charity, roster,
+ * uploads and mission review).
+ *
+ * A save asks only for the sections it changed, so its answer carries just those.
  *
  * @method static array<string, mixed> call()
  */
 final class AdminEventPageData extends Message
 {
+    public const OVERVIEW = 'overview';
+
+    public const SHIFTS = 'shifts';
+
+    public const CHARITY = 'charity';
+
+    public const ROSTER = 'roster';
+
+    public const UPLOADS = 'uploads';
+
+    public const MISSION_REVIEW = 'mission_review';
+
     /**
      * @param  Actor&Trooper  $actor  The Command Staff member viewing the page
      * @param  Event  $event  The event being managed
+     * @param  array<int, string>|null  $sections  The sections to send; null sends them all
      */
     public function __construct(
         private readonly Actor $actor,
         private readonly Event $event,
+        private readonly ?array $sections = null,
     ) {}
 
     /**
@@ -42,21 +58,49 @@ final class AdminEventPageData extends Message
     {
         $this->event->refresh();
 
-        $shifts = $this->getShifts();
+        $builders = [
+            self::OVERVIEW => fn (): array => $this->overview(),
+            self::SHIFTS => fn (): array => [
+                self::SHIFTS => new AdminEventShiftCollection($this->getShifts()),
+            ],
+            self::CHARITY => fn (): array => [
+                self::CHARITY => new AdminEventCharityCollection($this->getShifts()),
+            ],
+            self::ROSTER => fn (): array => [
+                self::ROSTER => new AdminEventRoster(
+                    $this->event,
+                    $this->actor,
+                    $this->getRosterShifts()
+                ),
+            ],
+            self::UPLOADS => fn (): array => [
+                self::UPLOADS => new AdminEventUploadCollection($this->getUploads(true)),
+            ],
+            self::MISSION_REVIEW => fn (): array => [
+                self::MISSION_REVIEW => new AdminEventUploadCollection($this->getUploads(false)),
+            ],
+        ];
 
+        return collect($builders)
+            ->only($this->sections ?? array_keys($builders))
+            ->flatMap(fn (callable $build): array => $build())
+            ->all();
+    }
+
+    /**
+     * The page header and the Overview tab.
+     *
+     * @return array<string, mixed>
+     */
+    private function overview(): array
+    {
         return [
             'event_id' => $this->event->id,
             'name' => $this->event->name,
-            'status' => $this->event->status->value,
             'status_label' => $this->event->status->label(),
             'is_active' => $this->event->is_active,
             'is_draft' => $this->event->is_draft,
-            'overview' => new AdminEventOverview($this->event, $this->actor),
-            'shifts' => new AdminEventShiftCollection($shifts),
-            'charity' => new AdminEventCharityCollection($shifts),
-            'roster' => new AdminEventRoster($this->event, $this->actor, $this->getRosterShifts()),
-            'uploads' => new AdminEventUploadCollection($this->getUploads(true)),
-            'mission_review' => new AdminEventUploadCollection($this->getUploads(false)),
+            self::OVERVIEW => new AdminEventOverview($this->event, $this->actor),
         ];
     }
 

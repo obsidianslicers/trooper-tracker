@@ -17,8 +17,18 @@
 
     const page = usePage<UpdateEventPageData>();
 
-    // Commands answer with the refreshed page data as `results` (partial reload).
-    let data = $derived<UpdateEventPageData>(page.props.results ?? page.props);
+    // The page loads every section once. Each save answers with only the sections it
+    // changed, as `results`, and those replace the matching sections here.
+    const { results: _results, ...initial } = page.props;
+    let data = $state<UpdateEventPageData>(initial);
+
+    $effect(() => {
+        const results = page.props.results;
+
+        if (results) {
+            Object.assign(data, results);
+        }
+    });
 
     pageState.title = t("Update Event");
 

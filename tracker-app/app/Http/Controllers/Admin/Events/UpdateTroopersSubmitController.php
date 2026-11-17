@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
 use App\Messages\Events\Commands\UpdateEventRoster;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
 use Inertia\Response as InertiaResponse;
 
@@ -23,6 +24,6 @@ class UpdateTroopersSubmitController extends EventCommandController
             allowed_org_ids: $request->user()->resolveModeratorOrgIds(),
         );
 
-        return $this->respondWithResults($request);
+        return $this->respondWithResults($request, AdminEventPageData::ROSTER);
     }
 }

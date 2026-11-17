@@ -1,6 +1,6 @@
 import { AutosaveViewModel } from "$lib/domains/autosave.svelte";
 import { getRoute } from "$lib/utils";
-import type { CreditOption, RosterTrooper, UpdateEventPageData } from "../types";
+import type { CreditOption, RosterTrooper, EventPageResults } from "../types";
 
 export type RosterTrooperForm = {
     costume_id: number | null;
@@ -23,7 +23,7 @@ function toForm(row: RosterTrooper): RosterTrooperForm {
  * as they change. The server can move a Going trooper to Stand By when the shift or
  * station is full, so each save reloads the row from the fresh roster.
  */
-export class RosterTrooperViewModel extends AutosaveViewModel<RosterTrooperForm, UpdateEventPageData> {
+export class RosterTrooperViewModel extends AutosaveViewModel<RosterTrooperForm, EventPageResults> {
     org_options: CreditOption[] = $state([]);
 
     constructor(
@@ -77,8 +77,8 @@ export class RosterTrooperViewModel extends AutosaveViewModel<RosterTrooperForm,
         };
     }
 
-    protected synced(results: UpdateEventPageData | undefined): void {
-        const row = results?.roster.shifts
+    protected synced(results: EventPageResults | undefined): void {
+        const row = results?.roster?.shifts
             .flatMap((shift) => shift.troopers)
             .find((trooper) => trooper.id === this.row.id);
 

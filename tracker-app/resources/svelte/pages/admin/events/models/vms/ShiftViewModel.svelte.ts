@@ -2,7 +2,7 @@ import { t } from "$lib/i18n";
 import { AutosaveViewModel } from "$lib/domains/autosave.svelte";
 import { createPartialReloadOptions, getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
-import type { EventShift, EventStation, UpdateEventPageData } from "../types";
+import type { EventShift, EventStation, EventPageResults } from "../types";
 
 export type StationForm = {
     /** The station's id, or a negative number for one not saved yet. */
@@ -42,7 +42,7 @@ function isComplete(station: StationForm): boolean {
  * One shift on the Shifts tab: its date, times, status and stations, saved as they change.
  * A station added here is saved once it has both a name and a capacity.
  */
-export class ShiftViewModel extends AutosaveViewModel<ShiftForm, UpdateEventPageData> {
+export class ShiftViewModel extends AutosaveViewModel<ShiftForm, EventPageResults> {
     pending_removal: StationForm | null = $state(null);
 
     constructor(
@@ -124,7 +124,7 @@ export class ShiftViewModel extends AutosaveViewModel<ShiftForm, UpdateEventPage
             {},
             createPartialReloadOptions({
                 async: true,
-                onSuccess: (page) => this.synced(page.props.results as UpdateEventPageData),
+                onSuccess: (page) => this.synced(page.props.results as EventPageResults),
             }),
         );
     };
@@ -171,13 +171,13 @@ export class ShiftViewModel extends AutosaveViewModel<ShiftForm, UpdateEventPage
     }
 
     /** Saved stations get their ids from the server; unfinished new ones stay. */
-    protected synced(results: UpdateEventPageData | undefined): void {
+    protected synced(results: EventPageResults | undefined): void {
         if (this.shift_id < 0) {
             this.onsaved?.();
             return;
         }
 
-        const shift = results?.shifts.find((s) => s.id === this.shift_id);
+        const shift = results?.shifts?.find((s) => s.id === this.shift_id);
 
         if (!shift) {
             return;

@@ -8,6 +8,7 @@ use App\Enums\EventStatus;
 use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
 use App\Jobs\ReconcileEventRosterJob;
 use App\Messages\Events\Commands\UpdateEventShiftStations;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
 use App\Models\EventShift;
 use Carbon\Carbon;
@@ -93,6 +94,11 @@ class UpdateShiftsSubmitController extends EventCommandController
             }
         }
 
-        return $this->respondWithResults($request);
+        return $this->respondWithResults(
+            $request,
+            AdminEventPageData::SHIFTS,
+            AdminEventPageData::CHARITY,
+            AdminEventPageData::ROSTER,
+        );
     }
 }

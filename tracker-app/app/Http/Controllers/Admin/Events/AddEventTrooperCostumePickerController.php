@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Controllers\Controller;
-use App\Models\Costume;
+use App\Messages\Events\Resources\AddEventTrooperChoices;
 use App\Models\Event;
 use App\Models\EventShift;
-use App\Models\EventShiftStation;
-use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,19 +26,6 @@ class AddEventTrooperCostumePickerController extends Controller
         $trooper = Trooper::active()->findOrFail((int) $request->input('trooper_id'));
         $event_shift->loadMissing('event_shift_stations');
 
-        return response()->json([
-            'trooper_id' => $trooper->id,
-            'display_name' => $trooper->display_name,
-            'costume_options' => Costume::forTrooper($trooper->id)
-                ->pluck(Costume::NAME, Costume::ID)
-                ->map(fn (string $name, int $id): array => ['value' => $id, 'label' => $name])
-                ->values(),
-            'organization_options' => $trooper->eligibleOrgsForEvent($event)
-                ->map(fn (Organization $org): array => ['value' => $org->id, 'label' => $org->name])
-                ->values(),
-            'station_options' => $event_shift->event_shift_stations
-                ->map(fn (EventShiftStation $s): array => ['value' => $s->id, 'label' => $s->name])
-                ->values(),
-        ]);
+        return (new AddEventTrooperChoices($trooper, $event, $event_shift))->response($request);
     }
 }

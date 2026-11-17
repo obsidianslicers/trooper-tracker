@@ -12,7 +12,6 @@ use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
-use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -90,7 +89,7 @@ class AdminEventRoster extends JsonResource
             'backup_costume' => $event_trooper->backup_costume?->name,
             'status' => $event_trooper->status->value,
             'event_shift_station_id' => $event_trooper->event_shift_station_id,
-            'org_options' => self::orgOptions($event_trooper->org_options ?? collect()),
+            'org_options' => EventTrooperCreditOptions::options($event_trooper->org_options ?? collect()),
             'organization_ids' => array_values($event_trooper->credited_checked_ids ?? []),
             ...$this->approval(
                 $event_trooper->status === EventTrooperStatus::GOING,
@@ -129,18 +128,6 @@ class AdminEventRoster extends JsonResource
             'approved_by' => $is_going ? $updated_by?->display_name : null,
             'approved_at' => $is_going ? $updated_at?->localFormat('M j, Y g:ia') : null,
         ];
-    }
-
-    /**
-     * @param  Collection<int, Organization>  $organizations
-     * @return array<int, array{id:int,name:string}>
-     */
-    public static function orgOptions(Collection $organizations): array
-    {
-        return $organizations
-            ->map(fn (Organization $org): array => ['id' => $org->id, 'name' => $org->name])
-            ->values()
-            ->all();
     }
 
     /**

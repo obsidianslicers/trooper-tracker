@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
 use App\Messages\Events\Commands\SignUpEventTrooper;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
@@ -32,7 +33,7 @@ class AddEventTrooperController extends EventCommandController
         {
             FlashType::danger(__('admin.:name is already signed up for this shift.', ['name' => $trooper->display_name]));
 
-            return $this->respondWithResults($request);
+            return $this->respondWithResults($request, AdminEventPageData::ROSTER);
         }
 
         $costume_id = $request->input('costume_id') ? (int) $request->input('costume_id') : null;
@@ -62,7 +63,7 @@ class AddEventTrooperController extends EventCommandController
         {
             FlashType::danger(__('admin.Select a station before adding a trooper.'));
 
-            return $this->respondWithResults($request);
+            return $this->respondWithResults($request, AdminEventPageData::ROSTER);
         }
 
         SignUpEventTrooper::call(
@@ -76,6 +77,6 @@ class AddEventTrooperController extends EventCommandController
 
         FlashType::success(__('admin.:name was added to the shift.', ['name' => $trooper->display_name]));
 
-        return $this->respondWithResults($request);
+        return $this->respondWithResults($request, AdminEventPageData::ROSTER);
     }
 }

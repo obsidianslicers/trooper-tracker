@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Controllers\Controller;
-use App\Messages\Events\Resources\AdminEventRoster;
+use App\Messages\Events\Resources\EventTrooperCreditOptions;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
@@ -34,10 +34,7 @@ class GetEventTrooperOrgOptionsController extends Controller
             ? $this->resolveWithCostume($event_trooper, $costume_id, $allowed_org_ids)
             : $this->resolveWithoutCostume($event_trooper, $allowed_org_ids);
 
-        return response()->json([
-            'org_options' => AdminEventRoster::orgOptions($org_options),
-            'organization_ids' => array_values($credited_ids),
-        ]);
+        return (new EventTrooperCreditOptions($org_options, $credited_ids))->response($request);
     }
 
     private function resolveWithCostume(EventTrooper $event_trooper, int $costume_id, ?array $allowed_org_ids): array

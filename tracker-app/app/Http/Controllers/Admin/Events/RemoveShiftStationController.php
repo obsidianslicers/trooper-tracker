@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
 use App\Messages\Events\Commands\RemoveEventShiftStation;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
@@ -27,11 +28,19 @@ class RemoveShiftStationController extends EventCommandController
         {
             FlashType::danger(__('admin.Cannot remove a station with roster signups.'));
 
-            return $this->respondWithResults($request);
+            return $this->respondWithResults(
+                $request,
+                AdminEventPageData::SHIFTS,
+                AdminEventPageData::ROSTER,
+            );
         }
 
         FlashType::success(__('admin.Station removed.'));
 
-        return $this->respondWithResults($request);
+        return $this->respondWithResults(
+            $request,
+            AdminEventPageData::SHIFTS,
+            AdminEventPageData::ROSTER,
+        );
     }
 }

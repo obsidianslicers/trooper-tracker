@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Events\Concerns\HandlesEventImageUploadResponses;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
 use App\Services\EventImageUploadService;
 use Illuminate\Http\Request;
@@ -48,7 +49,11 @@ class UploadImageController extends EventCommandController
         {
             FlashType::danger($this->eventImageUploadValidationMessage($e));
 
-            return $this->respondWithResults($request);
+            return $this->respondWithResults(
+                $request,
+                AdminEventPageData::UPLOADS,
+                AdminEventPageData::MISSION_REVIEW,
+            );
         }
 
         $result = $this->uploads->upload($event, $request->user()->id, $request->file('images', []), true);
@@ -61,6 +66,10 @@ class UploadImageController extends EventCommandController
             default => FlashType::success($message),
         };
 
-        return $this->respondWithResults($request);
+        return $this->respondWithResults(
+            $request,
+            AdminEventPageData::UPLOADS,
+            AdminEventPageData::MISSION_REVIEW,
+        );
     }
 }

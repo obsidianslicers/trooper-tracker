@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Messages\Events\Commands\ToggleEventUploadType;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
 use App\Models\EventUpload;
 use Illuminate\Http\Request;
@@ -20,6 +21,10 @@ class ToggleUploadTypeController extends EventCommandController
 
         ToggleEventUploadType::call(event_upload: $event_upload);
 
-        return $this->respondWithResults($request);
+        return $this->respondWithResults(
+            $request,
+            AdminEventPageData::UPLOADS,
+            AdminEventPageData::MISSION_REVIEW,
+        );
     }
 }

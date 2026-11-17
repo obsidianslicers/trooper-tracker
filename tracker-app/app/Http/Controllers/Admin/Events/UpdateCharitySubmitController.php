@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Requests\Admin\Events\UpdateCharityRequest;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
 use Inertia\Response as InertiaResponse;
 
@@ -32,6 +33,6 @@ class UpdateCharitySubmitController extends EventCommandController
             $shift->save();
         }
 
-        return $this->respondWithResults($request);
+        return $this->respondWithResults($request, AdminEventPageData::CHARITY);
     }
 }

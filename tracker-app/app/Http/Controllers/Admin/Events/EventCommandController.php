@@ -13,15 +13,18 @@ use Inertia\Response as InertiaResponse;
 /**
  * Base for the Command Staff event page's postbacks.
  *
- * Answers with the refreshed page data as `results` so the Svelte page reacts to it
- * without a redirect.
+ * Answers with the refreshed sections a save changed as `results`, so the Svelte page
+ * updates just those, without a redirect.
  */
 abstract class EventCommandController extends Controller
 {
-    protected function respondWithResults(Request $request): InertiaResponse
+    /**
+     * @param  string  ...$sections  AdminEventPageData sections to send; none sends them all
+     */
+    protected function respondWithResults(Request $request, string ...$sections): InertiaResponse
     {
         return Inertia::render('admin/events/Update', [
-            'results' => AdminEventPageData::call($request),
+            'results' => AdminEventPageData::call($request, ['sections' => $sections ?: null]),
         ]);
     }
 }

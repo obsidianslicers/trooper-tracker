@@ -5,7 +5,7 @@ import type {
     EventOrganizationLimit,
     EventOverview,
     EventOverviewForm,
-    UpdateEventPageData,
+    EventPageResults,
 } from "../types";
 
 export type OverviewForm = EventOverviewForm & {
@@ -76,7 +76,7 @@ export class OverviewViewModel extends SubmitableViewModel<OverviewViewModel, Ov
             .post(
                 getRoute("admin.events.update", { event: this.event_id }),
                 createPartialReloadOptions({
-                    onSuccess: (page) => this.sync(page.props.results as UpdateEventPageData),
+                    onSuccess: (page) => this.sync(page.props.results as EventPageResults),
                 }),
             );
     };
@@ -110,7 +110,7 @@ export class OverviewViewModel extends SubmitableViewModel<OverviewViewModel, Ov
         return values;
     }
 
-    private sync(results: UpdateEventPageData | undefined) {
+    private sync(results: EventPageResults | undefined) {
         if (results?.overview) {
             this.form.defaults(toForm(results.overview)).reset();
         }

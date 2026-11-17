@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\FlashType;
 use App\Messages\Events\Commands\PromoteNextInLineEventTrooper;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use Illuminate\Http\Request;
@@ -37,6 +38,6 @@ class RemoveEventTrooperController extends EventCommandController
 
         FlashType::success(__('admin.:name was removed from the roster.', ['name' => $trooper_name]));
 
-        return $this->respondWithResults($request);
+        return $this->respondWithResults($request, AdminEventPageData::ROSTER);
     }
 }

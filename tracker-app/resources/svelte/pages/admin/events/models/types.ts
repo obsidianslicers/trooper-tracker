@@ -144,7 +144,6 @@ export type EventUpload = {
 export type UpdateEventPageData = {
     event_id: number;
     name: string;
-    status: string;
     status_label: string;
     is_active: boolean;
     is_draft: boolean;
@@ -154,8 +153,11 @@ export type UpdateEventPageData = {
     roster: EventRoster;
     uploads: EventUpload[];
     mission_review: EventUpload[];
-    results?: UpdateEventPageData;
+    results?: EventPageResults;
 };
+
+/** A save answers with only the sections it changed. */
+export type EventPageResults = Partial<Omit<UpdateEventPageData, "results">>;
 
 export type AddTrooperChoices = {
     trooper_id: number;
