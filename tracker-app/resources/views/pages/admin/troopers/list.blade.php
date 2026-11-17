@@ -117,10 +117,10 @@
                     </td>
                     <td>
                         <a href="{{ route('admin.troopers.list', qs(['membership_role' => $trooper->membership_role->value])) }}">
-                            {{ to_title($trooper->membership_role->name) }}
+                            {{ $trooper->membership_role->label() }}
                         </a>
                     </td>
-                    <td>{{ to_title($trooper->membership_status->name) }}</td>
+                    <td>{{ $trooper->membership_status->label() }}</td>
                     <td>
                     @if($trooper->last_active_at)
                         @php

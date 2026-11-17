@@ -98,7 +98,7 @@
                 </td>
                 <td>
                     <a href="{{ route('admin.events.list', qs(['status' => $event->status->value])) }}">
-                        {{ to_title($event->status->name) }}
+                        {{ $event->status->label() }}
                     </a>
                 </td>
                 <td>

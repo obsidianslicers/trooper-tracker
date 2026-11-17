@@ -37,6 +37,6 @@ class MissionBriefAcknowledgeController extends PageController
         );
 
         return redirect()->route('events.display', compact('event'))
-            ->with('success', 'Mission brief acknowledged. You may now sign up for this event.');
+            ->with('success', __('events.Mission brief acknowledged. You may now sign up for this event.'));
     }
 }

@@ -85,7 +85,7 @@ class SignUpUpdateHtmxController extends PageController
             {
                 return $this->shiftContainerView($event_shift, $authTrooper)
                     ->header('X-Flash-Message', json_encode([
-                        'message' => 'That status is not available for this event.',
+                        'message' => __('events.That status is not available for this event.'),
                         'type' => 'danger',
                         'focus' => true,
                         'fadeOut' => 5000,
@@ -97,7 +97,7 @@ class SignUpUpdateHtmxController extends PageController
                 && $event_trooper->event_shift_station_id !== null
                 && $event_shift->stationMaxed($event_trooper->event_shift_station_id, $event_trooper->id)
             ) {
-                return response('Station is full', 409);
+                return response(__('events.Station is full'), 409);
             }
 
             $isCancelFromStandBy = $requestedStatus === EventTrooperStatus::CANCELLED
@@ -110,7 +110,7 @@ class SignUpUpdateHtmxController extends PageController
 
             if ($isManualApproval && $event_trooper->needsCostumeBeforeGoing())
             {
-                return response('Trooper must select a costume before being approved', 409);
+                return response(__('events.Trooper must select a costume before being approved'), 409);
             }
 
             if ($requestedStatus === EventTrooperStatus::GOING && $event_trooper->needsCostumeBeforeGoing())
@@ -185,7 +185,7 @@ class SignUpUpdateHtmxController extends PageController
                 && $event_shift->orgTroopersMaxed($new_org_id, $event_trooper->is_handler)
             ) {
                 $message = json_encode([
-                    'message' => 'That organization is already at capacity.',
+                    'message' => __('events.That organization is already at capacity.'),
                     'type' => 'danger',
                     'focus' => true,
                     'fadeOut' => 5000,

@@ -26,7 +26,7 @@ class EventDisplayController extends PageController
      */
     protected function initialized(): void
     {
-        $this->crumbs->addRoute('Events', 'events.list');
+        $this->crumbs->addRoute(__('events.Events'), 'events.list');
     }
 
     /**

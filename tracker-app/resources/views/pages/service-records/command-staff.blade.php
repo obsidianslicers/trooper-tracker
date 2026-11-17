@@ -32,7 +32,7 @@
                                         {{ $trooper->display_name }}
                                     </a>
                                 </td>
-                                <td>{{ to_title($trooper->membership_role->name) }}</td>
+                                <td>{{ $trooper->membership_role->label() }}</td>
                                 <td>
                                     @if($trooper->cs_organizations?->isNotEmpty())
                                         <span class="text-break">
@@ -62,7 +62,7 @@
                                             {{ $trooper->display_name }}
                                         </a>
                                         <span class="badge bg-secondary text-uppercase text-xs tracking-wider">
-                                            {{ to_title($trooper->membership_role->name) }}
+                                            {{ $trooper->membership_role->label() }}
                                         </span>
                                     </div>
 

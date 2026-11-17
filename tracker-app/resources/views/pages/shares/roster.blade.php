@@ -47,7 +47,7 @@
                             </td>
                             <td>
                                 <span class="{{ $event_trooper->status->color() }}">
-                                    {{ to_title($event_trooper->status->name) }}
+                                    {{ $event_trooper->status->label() }}
                                     <span class="d-none d-md-inline">
                                         {!! $event_trooper->status->iconTag() !!}
                                     </span>
@@ -77,7 +77,7 @@
                                 </td>
                                 <td>
                                     <span class="{{ $event_guest->status->color() }}">
-                                        {{ to_title($event_guest->status->name) }}
+                                        {{ $event_guest->status->label() }}
                                         <span class="d-none d-md-inline">
                                             {!! $event_guest->status->iconTag() !!}
                                         </span>

@@ -10,7 +10,7 @@
          role="note">
         <i class="fa fa-fw fa-calendar-day flex-shrink-0"></i>
         <span>
-            <strong>{{ \App\Support\OneTroopPerDay::NOTICE }}</strong>
+            <strong>{{ __('events.'.\App\Support\OneTroopPerDay::NOTICE) }}</strong>
             Two shifts on the same day add one troop to your total, not two.
             Your hours and charity still count for every shift.
         </span>

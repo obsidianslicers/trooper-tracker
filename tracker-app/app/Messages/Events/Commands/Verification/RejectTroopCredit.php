@@ -33,7 +33,7 @@ final class RejectTroopCredit extends Message
 
         if (!in_array($this->organization_id, $requested, true))
         {
-            throw new RuntimeException('That club is not waiting for verification on this troop.');
+            throw new RuntimeException(__('events.That club is not waiting for verification on this troop.'));
         }
     }
 }

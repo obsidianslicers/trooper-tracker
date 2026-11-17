@@ -137,8 +137,8 @@ class SignupUpdateHtmxRequest extends FormRequest
     public function messages(): array
     {
         return [
-            EventTrooper::EVENT_SHIFT_STATION_ID.'.required' => 'A station is required for this shift.',
-            EventTrooper::EVENT_SHIFT_STATION_ID.'.in' => 'Select a valid station for this shift.',
+            EventTrooper::EVENT_SHIFT_STATION_ID.'.required' => __('events.A station is required for this shift.'),
+            EventTrooper::EVENT_SHIFT_STATION_ID.'.in' => __('events.Select a valid station for this shift.'),
         ];
     }
 }

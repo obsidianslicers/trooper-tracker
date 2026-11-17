@@ -1,14 +1,14 @@
 @if($event_shift->canSignUp(Auth::user()) && $has_required_mission_brief_ack)
     <div class="shift-signup-primary {{ $shift_uses_stations ? 'shift-signup-primary--station' : '' }}">
         @if($shift_uses_stations)
-            <span class="shift-signup-primary__label">Choose your station</span>
+            <span class="shift-signup-primary__label">{{ __('events.Choose your station') }}</span>
         @endif
         @if($event_has_org_limits)
             @if($eligible_orgs->count() > 1)
                 <select id="org-picker-{{ $event_shift->id }}"
                         name="organization_id"
                         class="form-select form-select-sm">
-                    <option value="">-- Select Organization --</option>
+                    <option value="">{{ __('events.-- Select Organization --') }}</option>
                     @foreach($eligible_orgs as $org)
                         <option value="{{ $org->id }}">{{ $org->name }}</option>
                     @endforeach
@@ -20,7 +20,7 @@
                        value="{{ $eligible_orgs->first()->id }}" />
                 <div class="small text-muted">
                     <i class="fa fa-fw fa-building me-1"></i>
-                    Trooping as {{ $eligible_orgs->first()->name }}
+                    {{ __('events.Trooping as :organization', ['organization' => $eligible_orgs->first()->name]) }}
                 </div>
             @endif
         @endif
@@ -28,7 +28,7 @@
             <select id="station-picker-{{ $event_shift->id }}"
                     name="event_shift_station_id"
                     class="form-select form-select-sm">
-                <option value="">-- Select Station --</option>
+                <option value="">{{ __('events.-- Select Station --') }}</option>
                 @foreach($station_options as $station_id => $station_name)
                     <option value="{{ $station_id }}">{{ $station_name }}</option>
                 @endforeach
@@ -43,13 +43,13 @@
                 hx-include="#org-picker-{{ $event_shift->id }}, #station-picker-{{ $event_shift->id }}"
                 hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}, closest .btn">
             <i class="fa fa-fw fa-plus-circle me-2"></i>
-            Sign Up
+            {{ __('events.Sign Up') }}
         </button>
     </div>
 @elseif($requires_mission_brief_ack && !$has_required_mission_brief_ack)
     <span class="d-block small text-warning mb-2">
         <i class="fa fa-fw fa-triangle-exclamation me-1"></i>
-        Review and acknowledge the mission brief above to enable sign-ups.
+        {{ __('events.Review and acknowledge the mission brief above to enable sign-ups.') }}
     </span>
 @endif
 {{-- only adults can signup others; requires mission brief acknowledgement when enabled --}}
@@ -62,11 +62,11 @@
                  class="shift-signup-secondary {{ $shift_uses_stations ? 'shift-signup-secondary--station' : '' }}">
                 <div class="shift-friend-trigger">
                     @if($shift_uses_stations)
-                        <span class="shift-signup-secondary__label">Choose friend's station</span>
+                        <span class="shift-signup-secondary__label">{{ __('events.Choose friend\'s station') }}</span>
                         <select id="friend-station-picker-{{ $event_shift->id }}"
                                 name="event_shift_station_id"
                                 class="form-select form-select-sm">
-                            <option value="">-- Select Friend's Station --</option>
+                            <option value="">{{ __('events.-- Select Friend\'s Station --') }}</option>
                             @foreach($station_options as $station_id => $station_name)
                                 <option value="{{ $station_id }}">{{ $station_name }}</option>
                             @endforeach
@@ -79,7 +79,7 @@
                             data-bs-toggle="modal"
                             data-bs-target="#modal-trooper">
                         <i class="fa fa-fw fa-plus-circle me-2"></i>
-                        Add a Friend
+                        {{ __('events.Add a Friend') }}
                     </button>
                 </div>
                 @if($limited_orgs_for_add->isNotEmpty())
@@ -119,7 +119,7 @@
                     data-bs-toggle="modal"
                     data-bs-target="#modal-guest-{{ $event_shift->id }}">
                 <i class="fa fa-fw fa-plus-circle me-2"></i>
-                Add a Guest
+                {{ __('events.Add a Guest') }}
             </button>
 
             <div class="modal fade"
@@ -130,7 +130,7 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <b class="modal-title">
-                                Add a Guest(s)
+                                {{ __('events.Add a Guest(s)') }}
                             </b>
                             <button type="button"
                                     class="btn-close"
@@ -141,9 +141,9 @@
                                 <div class="col-12 text-start">
                                     <x-input-text :property="'guest_names'"
                                                   :multiline="true"
-                                                  placeholder="Guest Names (one per line)" />
+                                                  :placeholder="__('events.Guest Names (one per line)')" />
                                     <x-input-help>
-                                        Enter the name of your guest(s). One per line.
+                                        {{ __('events.Enter the name of your guest(s). One per line.') }}
                                     </x-input-help>
                                 </div>
                             </div>
@@ -158,11 +158,11 @@
                                     hx-target="#shift-container-{{ $event_shift->id }}"
                                     hx-swap="outerHTML"
                                     hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}">
-                                Save Guests
+                                {{ __('events.Save Guests') }}
                             </button>
                             <button type="button"
                                     class="btn btn-secondary"
-                                    data-bs-dismiss="modal">Cancel</button>
+                                    data-bs-dismiss="modal">{{ __('events.Cancel') }}</button>
                         </div>
                     </div>
                 </div>

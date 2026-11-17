@@ -32,7 +32,7 @@
                     x-bind:disabled="locating">
                 <i class="fa fa-fw fa-location-crosshairs"
                    x-bind:class="locating && 'fa-beat-fade'"></i>
-                Use Current Location
+                {{ __('events.Use Current Location') }}
             </button>
             <span class="small text-warning"
                   x-show="locationError"

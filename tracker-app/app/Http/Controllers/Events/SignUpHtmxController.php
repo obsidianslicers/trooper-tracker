@@ -72,7 +72,7 @@ class SignUpHtmxController extends PageController
             {
                 return $this->shiftContainerResponse($event_shift, $auth_trooper, $trooper, $can_moderate)
                     ->header('X-Flash-Message', json_encode([
-                        'message' => 'Select a station before signing up.',
+                        'message' => __('events.Select a station before signing up.'),
                         'type' => 'danger',
                         'focus' => true,
                         'fadeOut' => 5000,
@@ -122,7 +122,10 @@ class SignUpHtmxController extends PageController
             $count = $same_day_shifts->count() + 1;
 
             $response = $response->header('X-Flash-Message', json_encode([
-                'message' => "You're signed up. This troop counts as one troop for the day. You're currently signed up for {$count} shifts that day.",
+                'message' => __(
+                    "events.You're signed up. This troop counts as one troop for the day. You're currently signed up for :count shifts that day.",
+                    ['count' => $count]
+                ),
                 'type' => 'info',
                 'focus' => true,
                 'fadeOut' => 8000,
@@ -138,7 +141,7 @@ class SignUpHtmxController extends PageController
                 //  handle the case where the trooper has maxed out their allowed shifts
 
                 $message = json_encode([
-                    'message' => 'You have reached the maximum number of shift sign-ups allowed.',
+                    'message' => __('events.You have reached the maximum number of shift sign-ups allowed.'),
                     'type' => 'danger',
                     'focus' => true,
                     'fadeOut' => 5000,

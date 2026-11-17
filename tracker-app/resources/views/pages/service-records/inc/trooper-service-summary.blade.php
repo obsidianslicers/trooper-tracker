@@ -32,7 +32,7 @@
                         </span>
                     </td>
                     <td class="text-end fw-bold border-0">
-                        {{  to_title($trooper->theme->value) }}
+                        {{ $trooper->theme->label() }}
                     </td>
                 </tr>
                 @foreach($club_troop_counts as $org)

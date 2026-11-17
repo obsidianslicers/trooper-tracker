@@ -38,12 +38,12 @@ trait HandlesEventImageUploadResponses
     private function eventImageUploadMessages(): array
     {
         return [
-            'images.required' => 'Please choose at least one image to upload.',
-            'images.array' => 'Please choose at least one image to upload.',
-            'images.min' => 'Please choose at least one image to upload.',
-            'images.*.mimes' => 'Only JPG, PNG, WEBP, and HEIC images can be uploaded.',
-            'images.*.max' => "Each image must be {$this->eventImageMaxUploadLabel()} or smaller.",
-            'images.*.uploaded' => 'That image failed to upload. Please try a smaller photo or check your connection.',
+            'images.required' => __('events.Please choose at least one image to upload.'),
+            'images.array' => __('events.Please choose at least one image to upload.'),
+            'images.min' => __('events.Please choose at least one image to upload.'),
+            'images.*.mimes' => __('events.Only JPG, PNG, WEBP, and HEIC images can be uploaded.'),
+            'images.*.max' => __('events.Each image must be :size or smaller.', ['size' => $this->eventImageMaxUploadLabel()]),
+            'images.*.uploaded' => __('events.That image failed to upload. Please try a smaller photo or check your connection.'),
         ];
     }
 
@@ -52,27 +52,32 @@ trait HandlesEventImageUploadResponses
         $messages = $e->validator->errors()->all();
 
         return $messages[0]
-            ?? "Please upload JPG, PNG, WEBP, or HEIC images that are {$this->eventImageMaxUploadLabel()} or smaller.";
+            ?? __(
+                'events.Please upload JPG, PNG, WEBP, or HEIC images that are :size or smaller.',
+                ['size' => $this->eventImageMaxUploadLabel()]
+            );
     }
 
     private function eventImageUploadSuccessMessage(EventImageUploadResult $result): string
     {
         if (! $result->hasUploads())
         {
-            return 'No images were uploaded. Please try JPG, PNG, WEBP, or HEIC images that are '
-                ."{$this->eventImageMaxUploadLabel()} or smaller.";
+            return __(
+                'events.No images were uploaded. Please try JPG, PNG, WEBP, or HEIC images that are :size or smaller.',
+                ['size' => $this->eventImageMaxUploadLabel()]
+            );
         }
 
-        $uploaded = $result->uploads === 1 ? '1 image uploaded' : "{$result->uploads} images uploaded";
+        $uploaded = trans_choice('events.:count image uploaded|:count images uploaded', $result->uploads);
 
         if ($result->hasFailures())
         {
-            $failed = $result->failures === 1 ? '1 image failed' : "{$result->failures} images failed";
+            $failed = trans_choice('events.:count image failed|:count images failed', $result->failures);
 
-            return "{$uploaded}; {$failed}.";
+            return __('events.:uploaded; :failed.', ['uploaded' => $uploaded, 'failed' => $failed]);
         }
 
-        return $result->uploads === 1 ? 'Image Uploaded!' : "{$result->uploads} Images Uploaded!";
+        return trans_choice('events.Image Uploaded!|:count Images Uploaded!', $result->uploads);
     }
 
     /**

@@ -9,7 +9,7 @@
 
     <div class="alert {{ $bg }} my-4">
         <h4 class="alert-heading">
-            Shift Completed for <b>{{ $event_trooper->event_shift->event->name }}</b>
+            {!! __('events.Shift Completed for :event', ['event' => '<b>'.e($event_trooper->event_shift->event->name).'</b>']) !!}
             <br />
             <span class="text-muted">
                 {{ $event_trooper->event_shift->time_display }}
@@ -21,13 +21,13 @@
             </p>
         @else
             <p>
-                The event has been closed for some time now, please contact your Imperial Records Officer.
+                {{ __('events.The event has been closed for some time now, please contact your Imperial Records Officer.') }}
             </p>
         @endif
         @php($credited = $event_trooper->getCreditedRootOrgNames())
         @if($event_trooper->attended && !empty($credited))
             <div class="mt-2">
-                <small class="d-block">Credit recorded for:</small>
+                <small class="d-block">{{ __('events.Credit recorded for:') }}</small>
                 @foreach($credited as $name)
                     <span class="badge bg-light text-dark me-1">{{ $name }}</span>
                 @endforeach

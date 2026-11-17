@@ -86,6 +86,14 @@ trait HasEnumHelpers
     }
 
     /**
+     * This case's label in the current language.
+     */
+    public function label(): string
+    {
+        return self::caseLabel($this);
+    }
+
+    /**
      * @param  array<int, BackedEnum|string>|null  $filters
      * @return array<int, string>|null
      */

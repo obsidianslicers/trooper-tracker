@@ -1,28 +1,28 @@
-<x-section-title>Deployment Limits</x-section-title>
+<x-section-title>{{ __('events.Deployment Limits') }}</x-section-title>
 <ul class="list-group list-group-flush">
     <li class="list-group-item bg-transparent border-bottom">
-        Expected Attendees
+        {{ __('events.Expected Attendees') }}
         <span class="float-end">
             <x-number-format :value="$event->expected_attendees"
                              :nulldisplay="'a lot'" />
         </span>
     </li>
     <li class="list-group-item bg-transparent border-bottom">
-        Maximum Shifts Allowed
+        {{ __('events.Maximum Shifts Allowed') }}
         <span class="float-end">
             <x-number-format :value="$event->shifts_allowed"
                              :nulldisplay="'all'" />
         </span>
     </li>
     <li class="list-group-item bg-transparent border-bottom">
-        Troopers Allowed
+        {{ __('events.Troopers Allowed') }}
         <span class="float-end">
             <x-number-format :value="$event->troopers_allowed"
                              :nulldisplay="'a lot'" />
         </span>
     </li>
     <li class="list-group-item bg-transparent border-bottom">
-        Handlers Allowed
+        {{ __('events.Handlers Allowed') }}
         <span class="float-end">
             <x-number-format :value="$event->handlers_allowed"
                              :nulldisplay="'a lot'" />
