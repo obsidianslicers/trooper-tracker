@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { t } from "$lib/i18n";
     import SaveStatus from "$lib/components/form/SaveStatus.svelte";
+    import { t } from "$lib/i18n";
     import { untrack } from "svelte";
     import {
         RosterTrooperViewModel,
@@ -26,14 +26,14 @@
 </script>
 
 <tr>
-    <td class="ps-4">
+    <td class="ps-4 align-top">
         <a href={row.profile_url}>{row.display_name}</a>
         {#if row.legal_name}
             <br />
             <i class="small text-muted">{row.legal_name}</i>
         {/if}
     </td>
-    <td>
+    <td class="align-top">
         <select
             class="form-select form-select-sm"
             aria-label={t("Costume")}
@@ -69,7 +69,7 @@
         </select>
     </td>
     {#if roster.has_station_shifts}
-        <td>
+        <td class="align-top">
             {#if shift.uses_stations}
                 <select
                     class="form-select form-select-sm"
@@ -100,7 +100,10 @@
                     checked={vm.isCredited(org.id)}
                     onchange={() => vm.toggleCredit(org.id)}
                 />
-                <label class="form-check-label small" for="org-{row.id}-{org.id}">{org.name}</label>
+                <label
+                    class="form-check-label small"
+                    for="org-{row.id}-{org.id}">{org.name}</label
+                >
             </div>
         {:else}
             <span class="text-muted small">{t("(Unattached)")}</span>
@@ -117,7 +120,9 @@
                 type="button"
                 class="btn btn-sm btn-link text-danger p-1"
                 title={t("Remove from roster")}
-                aria-label={t("Remove :name from the roster", { name: row.display_name })}
+                aria-label={t("Remove :name from the roster", {
+                    name: row.display_name,
+                })}
                 onclick={() => onremove(row)}
             >
                 <i class="fa fa-fw fa-times"></i>
