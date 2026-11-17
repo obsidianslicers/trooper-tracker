@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { t } from "$lib/i18n";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
     import InputError from "$lib/components/form/InputError.svelte";
     import SaveStatus from "$lib/components/form/SaveStatus.svelte";
     import type { Option } from "$lib/domains/types.svelte";
+    import { t } from "$lib/i18n";
     import Sortable from "sortablejs";
     import { untrack } from "svelte";
     import { ShiftViewModel, type EventShift } from "../models";
@@ -33,7 +33,11 @@
             draggable: ".draggable",
             animation: 150,
             onEnd: ({ item, from, oldIndex, newIndex }) => {
-                if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) {
+                if (
+                    oldIndex === undefined ||
+                    newIndex === undefined ||
+                    oldIndex === newIndex
+                ) {
                     return;
                 }
 
@@ -56,8 +60,8 @@
 </script>
 
 <tr>
-    <td>{shift.day}</td>
-    <td>
+    <td class="align-top">{shift.day}</td>
+    <td class="align-top">
         <DateCell
             name={name("date")}
             label={t("Date")}
@@ -68,10 +72,13 @@
         />
         <InputError errors={vm.error("date")} />
     </td>
-    <td>
+    <td class="align-top">
         <input
             type="time"
-            class={["form-control form-control-sm", vm.error("starts_at") ? "is-invalid" : ""]}
+            class={[
+                "form-control form-control-sm",
+                vm.error("starts_at") ? "is-invalid" : "",
+            ]}
             aria-label={t("Starts At")}
             name={name("starts_at")}
             disabled={!is_active}
@@ -80,10 +87,13 @@
         />
         <InputError errors={vm.error("starts_at")} />
     </td>
-    <td>
+    <td class="align-top">
         <input
             type="time"
-            class={["form-control form-control-sm", vm.error("ends_at") ? "is-invalid" : ""]}
+            class={[
+                "form-control form-control-sm",
+                vm.error("ends_at") ? "is-invalid" : "",
+            ]}
             aria-label={t("Ends At")}
             name={name("ends_at")}
             disabled={!is_active}
@@ -92,9 +102,12 @@
         />
         <InputError errors={vm.error("ends_at")} />
     </td>
-    <td>
+    <td class="align-top">
         <select
-            class={["form-select form-select-sm", vm.error("status") ? "is-invalid" : ""]}
+            class={[
+                "form-select form-select-sm",
+                vm.error("status") ? "is-invalid" : "",
+            ]}
             aria-label={t("Status")}
             name={name("status")}
             disabled={!is_active}
@@ -107,13 +120,17 @@
         </select>
         <InputError errors={vm.error("status")} />
         {#if is_active && !show_stations}
-            <button type="button" class="btn btn-sm btn-link text-muted px-0 mt-1" onclick={openStations}>
+            <button
+                type="button"
+                class="btn btn-sm btn-link text-muted px-0 mt-1"
+                onclick={openStations}
+            >
                 <i class="fa fa-fw fa-plus me-1"></i>
                 {t("Stations")}
             </button>
         {/if}
     </td>
-    <td>
+    <td class="align-top">
         <SaveStatus state={vm.save_state} />
         <ConfirmationModal
             show={vm.pending_removal !== null}
@@ -139,12 +156,18 @@
                             <div class="fw-semibold">{t("Stations")}</div>
                             <div class="text-muted small mt-1">
                                 <i class="fa fa-fw fa-grip-vertical me-1"></i>
-                                {t("Drag stations to change their display order.")}
+                                {t(
+                                    "Drag stations to change their display order.",
+                                )}
                             </div>
                         </div>
                     </div>
                     {#if is_active}
-                        <button type="button" class="btn btn-sm btn-outline-success flex-shrink-0" onclick={vm.addStation}>
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-success flex-shrink-0"
+                            onclick={vm.addStation}
+                        >
                             <i class="fa fa-fw fa-plus me-1"></i>
                             {t("Add Station")}
                         </button>
@@ -152,34 +175,56 @@
                 </div>
                 <div class="station-list" {@attach sortStations}>
                     {#each vm.form.stations as station (station.key)}
-                        <div class={["station-item", station.key > 0 ? "draggable" : ""]}>
+                        <div
+                            class={[
+                                "station-item",
+                                station.key > 0 ? "draggable" : "",
+                            ]}
+                        >
                             {#if station.key > 0}
-                                <button type="button" class="station-drag-handle" title={t("Drag to reorder")} aria-label={t("Drag to reorder")}>
+                                <button
+                                    type="button"
+                                    class="station-drag-handle"
+                                    title={t("Drag to reorder")}
+                                    aria-label={t("Drag to reorder")}
+                                >
                                     <i class="fa fa-fw fa-grip-vertical"></i>
                                 </button>
                             {:else}
                                 <span class="station-drag-placeholder"></span>
                             {/if}
                             <div class="station-field station-field--name">
-                                <label class="form-label small mb-1" for="station-{shift.id}-{station.key}-name">{t("Station name")}</label>
+                                <label
+                                    class="form-label small mb-1"
+                                    for="station-{shift.id}-{station.key}-name"
+                                    >{t("Station name")}</label
+                                >
                                 <input
                                     id="station-{shift.id}-{station.key}-name"
                                     type="text"
                                     class="form-control form-control-sm"
-                                    name={name(`stations][${station.key}][name`)}
+                                    name={name(
+                                        `stations][${station.key}][name`,
+                                    )}
                                     disabled={!is_active}
                                     bind:value={station.name}
                                     onchange={() => vm.changeStation(station)}
                                 />
                             </div>
                             <div class="station-field station-field--capacity">
-                                <label class="form-label small mb-1" for="station-{shift.id}-{station.key}-capacity">{t("Capacity")}</label>
+                                <label
+                                    class="form-label small mb-1"
+                                    for="station-{shift.id}-{station.key}-capacity"
+                                    >{t("Capacity")}</label
+                                >
                                 <input
                                     id="station-{shift.id}-{station.key}-capacity"
                                     type="text"
                                     inputmode="numeric"
                                     class="form-control form-control-sm"
-                                    name={name(`stations][${station.key}][troopers_allowed`)}
+                                    name={name(
+                                        `stations][${station.key}][troopers_allowed`,
+                                    )}
                                     disabled={!is_active}
                                     bind:value={station.troopers_allowed}
                                     onchange={() => vm.changeStation(station)}
@@ -191,10 +236,15 @@
                                         type="button"
                                         class="btn btn-sm btn-outline-danger station-remove"
                                         title={t("Remove station")}
-                                        onclick={() => vm.removeStation(station)}
+                                        onclick={() =>
+                                            vm.removeStation(station)}
                                     >
                                         <i class="fa fa-fw fa-trash"></i>
-                                        <span class="visually-hidden">{t("Remove :station", { station: station.name })}</span>
+                                        <span class="visually-hidden"
+                                            >{t("Remove :station", {
+                                                station: station.name,
+                                            })}</span
+                                        >
                                     </button>
                                 {/if}
                             </div>
@@ -206,4 +256,3 @@
         </td>
     </tr>
 {/if}
-

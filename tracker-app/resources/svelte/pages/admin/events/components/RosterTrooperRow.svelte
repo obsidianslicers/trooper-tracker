@@ -54,7 +54,7 @@
             </i>
         {/if}
     </td>
-    <td>
+    <td class="align-top">
         <select
             class="form-select form-select-sm"
             aria-label={t("Status")}
@@ -89,7 +89,7 @@
             {/if}
         </td>
     {/if}
-    <td>
+    <td class="align-top">
         {#each vm.org_options as org (org.id)}
             <div class="form-check mb-0">
                 <input

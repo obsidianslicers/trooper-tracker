@@ -16,6 +16,7 @@
     let { event_id, roster }: Props = $props();
 
     let pending_removal: RosterTrooper | null = $state(null);
+    let expanded_shifts = $state<Record<number, boolean>>({});
 
     const confirmRemoval = () => {
         const row = pending_removal;
@@ -33,6 +34,12 @@
     const colspan = $derived(
         (roster.is_manual_selection ? 7 : 5) + (roster.has_station_shifts ? 1 : 0),
     );
+
+    const has_multiple_shifts = $derived(roster.shifts.length > 1);
+
+    const toggleShift = (shift_id: number) => {
+        expanded_shifts[shift_id] = !expanded_shifts[shift_id];
+    };
 </script>
 
 {#if roster.is_manual_selection}
@@ -53,11 +60,11 @@
             <tr>
                 <th>{t("Trooper Name")}</th>
                 <th>{t("Costume")}</th>
-                <th>{t("Status")}</th>
+                <th class="align-top">{t("Status")}</th>
                 {#if roster.has_station_shifts}
                     <th>{t("Station")}</th>
                 {/if}
-                <th>{t("Credited Org")}</th>
+                <th class="align-top">{t("Credited Org")}</th>
                 {#if roster.is_manual_selection}
                     <th>{t("Approved By")}</th>
                     <th>{t("Approved At")}</th>
@@ -68,37 +75,51 @@
         {#each roster.shifts as shift (shift.id)}
             <tbody>
                 <tr class="table-active">
-                    <td {colspan}>{shift.time_display}</td>
+                    {#if has_multiple_shifts}
+                        <td {colspan} class="cursor-pointer" onclick={() => toggleShift(shift.id)}>
+                            <i
+                                class={[
+                                    "fa fa-fw",
+                                    expanded_shifts[shift.id] ? "fa-chevron-down" : "fa-chevron-right",
+                                ]}
+                            ></i>
+                            {shift.time_display}
+                        </td>
+                    {:else}
+                        <td {colspan}>{shift.time_display}</td>
+                    {/if}
                 </tr>
-                {#each shift.troopers as row (row.id)}
-                    <RosterTrooperRow
-                        {event_id}
-                        {roster}
-                        {shift}
-                        {row}
-                        onremove={(trooper) => (pending_removal = trooper)}
-                    />
-                {:else}
-                    <tr>
-                        <td {colspan} class="text-muted ps-4">
-                            {t("No troopers assigned to this shift.")}
-                        </td>
-                    </tr>
-                {/each}
-                {#if shift.guests.length > 0}
-                    <tr>
-                        <td {colspan} class="ps-4 text-muted small">{t("Guests")}</td>
-                    </tr>
-                {/if}
-                {#each shift.guests as guest (guest.id)}
-                    <RosterGuestRow {event_id} {roster} {guest} />
-                {/each}
-                {#if roster.can_manage}
-                    <tr>
-                        <td {colspan} class="ps-4 py-2">
-                            <RosterAddTrooper {event_id} {shift} />
-                        </td>
-                    </tr>
+                {#if !has_multiple_shifts || expanded_shifts[shift.id]}
+                    {#each shift.troopers as row (row.id)}
+                        <RosterTrooperRow
+                            {event_id}
+                            {roster}
+                            {shift}
+                            {row}
+                            onremove={(trooper) => (pending_removal = trooper)}
+                        />
+                    {:else}
+                        <tr>
+                            <td {colspan} class="text-muted ps-4">
+                                {t("No troopers assigned to this shift.")}
+                            </td>
+                        </tr>
+                    {/each}
+                    {#if shift.guests.length > 0}
+                        <tr>
+                            <td {colspan} class="ps-4 text-muted small">{t("Guests")}</td>
+                        </tr>
+                    {/if}
+                    {#each shift.guests as guest (guest.id)}
+                        <RosterGuestRow {event_id} {roster} {guest} />
+                    {/each}
+                    {#if roster.can_manage}
+                        <tr>
+                            <td {colspan} class="ps-4 py-2">
+                                <RosterAddTrooper {event_id} {shift} />
+                            </td>
+                        </tr>
+                    {/if}
                 {/if}
             </tbody>
         {/each}
@@ -114,3 +135,9 @@
     onConfirm={confirmRemoval}
     onCancel={() => (pending_removal = null)}
 />
+
+<style>
+    :global(.cursor-pointer) {
+        cursor: pointer;
+    }
+</style>
