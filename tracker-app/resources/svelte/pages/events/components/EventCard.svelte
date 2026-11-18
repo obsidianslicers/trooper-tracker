@@ -102,12 +102,12 @@
                 <span class="text-muted me-1">{t("Who can troop:")}</span>
                 {#each event.organizations as organization (organization.id)}
                     {#if organization.can_attend}
-                        <span class="badge rounded-pill border border-success text-success me-1" data-can-attend="1">
+                        <span class="badge rounded-pill text-bg-success me-1" data-can-attend="1">
                             <i class="fa fa-fw fa-check"></i>{organization.name}
                             <span class="visually-hidden">{t("can attend")}</span>
                         </span>
                     {:else}
-                        <span class="badge rounded-pill text-bg-danger me-1" data-can-attend="0">
+                        <span class="badge rounded-pill border border-danger text-danger me-1" data-can-attend="0">
                             <i class="fa fa-fw fa-xmark"></i>{organization.name}
                             <span class="visually-hidden">{t("can't attend")}</span>
                         </span>
