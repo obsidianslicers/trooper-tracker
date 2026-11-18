@@ -12,6 +12,7 @@ use App\Http\Controllers\Account\Commands\RemoveCostumeController;
 use App\Http\Controllers\Account\Commands\RenewVisitorMembershipController;
 use App\Http\Controllers\Account\Commands\RequestDeletionController;
 use App\Http\Controllers\Account\Commands\SetupSubmitController;
+use App\Http\Controllers\Account\Commands\UpdateNoticeAsReadController;
 use App\Http\Controllers\Account\Commands\UpdateNoticeAsReadHtmxController;
 use App\Http\Controllers\Account\Commands\UpdateNotificationFrequencyController;
 use App\Http\Controllers\Account\Commands\UpdateNotificationPreferenceController;
@@ -62,6 +63,7 @@ Route::prefix('account')
         Route::post('/visitor/renew', RenewVisitorMembershipController::class)->name('renew-visitor-membership');
 
         Route::get('/notices', NoticesController::class)->name('notices');
+        Route::post('/notices/{notice}/read', UpdateNoticeAsReadController::class)->name('update-notice-as-read');
         Route::post('/notices-htmx/{notice}', UpdateNoticeAsReadHtmxController::class)->name('notices-htmx');
 
         //  needed a post name to get the middleware to work properly

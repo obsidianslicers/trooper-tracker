@@ -118,7 +118,8 @@ trait HasEventDisplayAssembler
 
         foreach ($missing_orgs as $id => $name)
         {
-            $org_clone = new Organization([
+            //  forceFill: the ID isn't mass assignable, and the list keys on it
+            $org_clone = (new Organization)->forceFill([
                 Organization::ID => $id,
                 Organization::NAME => $name,
             ]);

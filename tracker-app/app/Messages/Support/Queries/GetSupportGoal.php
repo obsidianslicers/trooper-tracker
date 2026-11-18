@@ -1,0 +1,49 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Messages\Support\Queries;
+
+use App\Services\Support\SupportStatusService;
+use Hyperdrive\Message;
+
+/**
+ * This month's support goal as shown to troopers: the goal, how far along it is, and the
+ * day's appeal (which may hold simple markup, such as <b>), and where to give.
+ *
+ * @method static array{goal: float, current: float, progress: float, message: string, url: ?string} call()
+ */
+final class GetSupportGoal extends Message
+{
+    /**
+     * @return array{goal: float, current: float, progress: float, message: string, url: ?string}
+     */
+    public function handle(SupportStatusService $support_status_service): array
+    {
+        $status = $support_status_service->calculate();
+
+        return [
+            'goal' => (float) $status['goal'],
+            'current' => (float) $status['current'],
+            'progress' => (float) $status['progress'],
+            'message' => $this->getMessage(),
+            'url' => config('tracker.support.url') ?: null,
+        ];
+    }
+
+    private function getMessage(): string
+    {
+        $name = config('app.name');
+
+        $messages = [
+            0 => __('layout.The :name is rallying support to maintain operations, reinforce mission logistics, and keep our digital gear inspection ready - including the tactical systems behind our website, event coordination, and member tools. Every credit counts toward keeping our settings battle-ready, our systems secure, and our deployments fully operational.', ['name' => $name]),
+            1 => __('layout.The :name is mobilizing resources to sustain operations, reinforce mission logistics, and hold the line with our digital infrastructure. Your support helps keep our systems sharp, our deployments smooth, and our settings mission-ready.', ['name' => $name]),
+            2 => __("layout.Troopers don't march alone. Every credit fuels the :name's operations, mission logistics, and the digital command center that powers our website and events. Stand with the Legion - help us stay battle-ready.", ['name' => $name]),
+            3 => __('layout.From clone barracks to command consoles, the :name runs on community support. Donations help us maintain operations, coordinate missions, and the tech behind our website - the real gear behind the gear.', ['name' => $name]),
+            4 => __('layout.Operational stability, mission logistics, and tactical system upgrades are underway. The :name requests your support to maintain full deployment capability. Your contribution ensures our digital arsenal stays sharp.', ['name' => $name]),
+            5 => __('layout.<b>Incoming transmission</b>: The :name is requesting support to maintain operations, reinforce mission logistics, and upgrade our tactical systems - including the website that keeps our ranks organized. Your credits keep the Legion strong.', ['name' => $name]),
+        ];
+
+        return $messages[now()->dayOfWeek] ?? $messages[0];
+    }
+}

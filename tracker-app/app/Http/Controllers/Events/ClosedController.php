@@ -4,45 +4,22 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Enums\EventStatus;
 use App\Http\Controllers\PageController;
-use App\Messages\Organizations\Queries\GetOrganizations;
-use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
-use App\Messages\Reports\Queries\GetEventSummary;
-use Illuminate\Contracts\View\View;
+use App\Messages\Events\PageData\ListPastEventsPageData;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
- * Displays the list of closed events.
- *
- * This controller renders the closed events listing page, showing events
- * from the complete event history with their organizations, shifts,
- * and attendance information.
+ * The completed events list, with each event's totals.
  */
 class ClosedController extends PageController
 {
-    /**
-     * Handle the incoming request to display the closed events list page
-     *
-     * @param  Request  $request  The incoming HTTP request
-     * @return View The rendered closed events list page
-     */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): InertiaResponse
     {
-        $trooper = $request->user();
+        $data = ListPastEventsPageData::call(actor: $request->user(), status: EventStatus::CLOSED);
 
-        $events = GetEventSummary::call(
-            moderator: $trooper,
-            lookback: null,
-            show_all: true,
-            page_size: 25,
-        );
-
-        $costume_organizations = GetOrganizations::call();
-
-        $hosting_organizations = GetOrganizationsForPicker::call(trooper: $trooper, data: []);
-
-        $data = compact('events', 'costume_organizations', 'hosting_organizations');
-
-        return view('pages.events.closed', $data);
+        return Inertia::render('events/PastEvents', $data);
     }
 }

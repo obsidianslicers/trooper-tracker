@@ -5,77 +5,20 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Http\Controllers\PageController;
-use App\Messages\Events\Queries\GetEventsForDisplay;
-use App\Messages\Events\Queries\GetHolidays;
-use App\Messages\Organizations\Queries\GetOrganizations;
-use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
-use Carbon\Carbon;
-use Illuminate\Contracts\View\View;
+use App\Messages\Events\PageData\CalendarPageData;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
- * Displays the calendar view of upcoming events.
- *
- * This controller renders a 12-month calendar grid view showing upcoming
- * events grouped by date. Each month displays weeks with events marked
- * on their corresponding dates.
+ * The next twelve months of upcoming events as month calendars.
  */
 class CalendarController extends PageController
 {
-    /**
-     * Handle the incoming request to display the calendar page
-     *
-     * Retrieves all upcoming events grouped by date and generates a 12-month
-     * calendar grid (weeks starting Sunday, ending Saturday) for displaying
-     * events in a calendar layout, with the holidays from GetHolidays.
-     *
-     * @param  Request  $request  The incoming HTTP request
-     * @return View The rendered events calendar page with upcoming events
-     */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): InertiaResponse
     {
-        $trooper = $request->user();
+        $data = CalendarPageData::call($request);
 
-        $events = GetEventsForDisplay::call()->groupBy(fn ($event) => $event->event_start->toDateString());
-
-        $costume_organizations = GetOrganizations::call();
-
-        $hosting_organizations = GetOrganizationsForPicker::call(trooper: $trooper, data: []);
-
-        $months = [];
-
-        $start_of_calendar = now()->startOfMonth();
-
-        for ($i = 0; $i < 12; $i++)
-        {
-            $month = $start_of_calendar->copy()->addMonths($i);
-            $start = $month->copy()->startOfMonth()->startOfWeek(Carbon::SUNDAY);
-            $end = $month->copy()->endOfMonth()->endOfWeek(Carbon::SATURDAY);
-
-            $weeks = [];
-            $week = [];
-
-            for ($date = $start->copy(); $date <= $end; $date->addDay())
-            {
-                $week[] = $date->copy();
-
-                if ($date->isSaturday())
-                {
-                    $weeks[] = ['days' => $week];
-                    $week = [];
-                }
-            }
-
-            $months[] = ['date' => $month, 'weeks' => $weeks];
-        }
-
-        $holidays = GetHolidays::call(
-            from: $start_of_calendar->copy()->startOfWeek(Carbon::SUNDAY),
-            to: $start_of_calendar->copy()->addMonths(11)->endOfMonth()->endOfWeek(Carbon::SATURDAY),
-        );
-
-        $data = compact('events', 'holidays', 'months', 'costume_organizations', 'hosting_organizations');
-
-        return view('pages.events.calendar', $data);
+        return Inertia::render('events/Calendar', $data);
     }
 }
