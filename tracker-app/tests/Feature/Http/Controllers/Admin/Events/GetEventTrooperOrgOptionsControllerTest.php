@@ -15,6 +15,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
+use Closure;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
@@ -65,7 +66,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', function ($org_options) use ($eligible_org, $ineligible_org)
+        $this->assertChoices($response, 'org_options', function ($org_options) use ($eligible_org, $ineligible_org)
         {
             return $org_options->contains('id', $eligible_org->id)
                 && ! $org_options->contains('id', $ineligible_org->id);
@@ -105,12 +106,12 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2)
+        $this->assertChoices($response, 'org_options', function ($org_options) use ($org1, $org2)
         {
             return $org_options->contains('id', $org1->id)
                 && $org_options->contains('id', $org2->id);
         });
-        $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
+        $this->assertChoices($response, 'credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
     }
 
     public function test_invoke_pre_checks_all_eligible_orgs_when_costume_is_new(): void
@@ -146,7 +147,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('credited_ids', fn ($ids) => in_array($org->id, $ids, true));
+        $this->assertChoices($response, 'credited_ids', fn ($ids) => in_array($org->id, $ids, true));
     }
 
     public function test_invoke_returns_all_member_clubs_for_handler_costume(): void
@@ -184,12 +185,12 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2)
+        $this->assertChoices($response, 'org_options', function ($org_options) use ($org1, $org2)
         {
             return $org_options->contains('id', $org1->id)
                 && $org_options->contains('id', $org2->id);
         });
-        $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
+        $this->assertChoices($response, 'credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
     }
 
     public function test_invoke_returns_all_member_clubs_when_changing_from_regular_costume_to_handler(): void
@@ -222,12 +223,12 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2)
+        $this->assertChoices($response, 'org_options', function ($org_options) use ($org1, $org2)
         {
             return $org_options->contains('id', $org1->id)
                 && $org_options->contains('id', $org2->id);
         });
-        $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
+        $this->assertChoices($response, 'credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
     }
 
     public function test_invoke_uses_stored_selection_when_costume_unchanged(): void
@@ -274,7 +275,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id]);
+        $this->assertChoices($response, 'credited_ids', fn ($ids) => $ids === [$org1->id]);
     }
 
     public function test_invoke_returns_all_member_clubs_when_no_costume(): void
@@ -299,7 +300,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', fn ($org_options) => $org_options->contains('id', $org->id));
+        $this->assertChoices($response, 'org_options', fn ($org_options) => $org_options->contains('id', $org->id));
     }
 
     public function test_invoke_returns_all_member_clubs_when_changing_from_regular_costume_to_no_costume(): void
@@ -331,12 +332,12 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2)
+        $this->assertChoices($response, 'org_options', function ($org_options) use ($org1, $org2)
         {
             return $org_options->contains('id', $org1->id)
                 && $org_options->contains('id', $org2->id);
         });
-        $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
+        $this->assertChoices($response, 'credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
     }
 
     public function test_invoke_keeps_former_club_credit_as_ticked_option_when_no_costume(): void
@@ -352,12 +353,13 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         $response = $this->getOrgOptions($admin, $event_trooper, '');
 
         $response->assertOk();
-        $response->assertViewHas(
+        $this->assertChoices(
+            $response,
             'org_options',
             fn ($org_options) => $org_options->contains('id', $former_club->id)
                 && $org_options->contains('id', $current_club->id)
         );
-        $response->assertViewHas('credited_ids', [$former_club->id]);
+        $this->assertChoices($response, 'credited_ids', [$former_club->id]);
     }
 
     public function test_invoke_keeps_former_club_credit_as_ticked_option_for_stored_costume(): void
@@ -372,11 +374,12 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         $response = $this->getOrgOptions($admin, $event_trooper, (string) $costume->id);
 
         $response->assertOk();
-        $response->assertViewHas(
+        $this->assertChoices(
+            $response,
             'org_options',
             fn ($org_options) => $org_options->contains('id', $former_club->id)
         );
-        $response->assertViewHas('credited_ids', [$former_club->id]);
+        $this->assertChoices($response, 'credited_ids', [$former_club->id]);
     }
 
     public function test_invoke_filters_org_options_for_moderator_scope(): void
@@ -405,7 +408,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', function ($org_options) use ($allowed_org, $blocked_org)
+        $this->assertChoices($response, 'org_options', function ($org_options) use ($allowed_org, $blocked_org)
         {
             return $org_options->contains('id', $allowed_org->id)
                 && ! $org_options->contains('id', $blocked_org->id);
@@ -473,5 +476,24 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
             route('admin.events.troopers.org-options', compact('event', 'event_trooper'))
                 .'?costume_id='.$costume_id
         );
+    }
+
+    /**
+     * Checks the JSON choices: "org_options" (as a collection) or "credited_ids".
+     */
+    private function assertChoices(TestResponse $response, string $key, mixed $expected): void
+    {
+        $value = $key === 'org_options'
+            ? collect($response->json('org_options'))
+            : $response->json('organization_ids');
+
+        if ($expected instanceof Closure)
+        {
+            $this->assertTrue($expected($value));
+
+            return;
+        }
+
+        $this->assertSame($expected, $value);
     }
 }

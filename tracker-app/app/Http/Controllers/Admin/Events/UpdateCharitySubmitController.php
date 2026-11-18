@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Events\UpdateCharityRequest;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
-use Illuminate\Http\RedirectResponse;
+use Inertia\Response as InertiaResponse;
 
-class UpdateCharitySubmitController extends PageController
+class UpdateCharitySubmitController extends EventCommandController
 {
-    public function __invoke(UpdateCharityRequest $request, Event $event): RedirectResponse
+    public function __invoke(UpdateCharityRequest $request, Event $event): InertiaResponse
     {
         $this->authorize('update', $event);
 
@@ -34,8 +33,6 @@ class UpdateCharitySubmitController extends PageController
             $shift->save();
         }
 
-        FlashType::updated($event);
-
-        return redirect()->route('admin.events.charity', compact('event'));
+        return $this->respondWithResults($request, AdminEventPageData::CHARITY);
     }
 }

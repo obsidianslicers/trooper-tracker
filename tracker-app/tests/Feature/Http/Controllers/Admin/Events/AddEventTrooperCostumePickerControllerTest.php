@@ -39,15 +39,11 @@ class AddEventTrooperCostumePickerControllerTest extends TestCase
         ]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.events.inc.add-trooper-costume-picker');
-        $response->assertSee(
-            'hx-params="trooper_id,costume_id,organization_id,event_shift_station_id"',
-            false,
-        );
-        $response->assertViewHas('costumes', function (array $costumes) use ($approved_costume, $unapproved_costume): bool {
-            return array_key_exists($approved_costume->id, $costumes)
-                && ! array_key_exists($unapproved_costume->id, $costumes);
-        });
+        $response->assertJsonPath('trooper_id', $trooper->id);
+
+        $costume_ids = collect($response->json('costume_options'))->pluck('value');
+        $this->assertTrue($costume_ids->contains($approved_costume->id));
+        $this->assertFalse($costume_ids->contains($unapproved_costume->id));
     }
 
     public function test_invoke_renders_eligible_organizations_for_trooper(): void
@@ -87,10 +83,9 @@ class AddEventTrooperCostumePickerControllerTest extends TestCase
         ]));
 
         $response->assertOk();
-        $response->assertViewHas('eligible_orgs', function ($eligible_orgs) use ($eligible_organization, $ineligible_organization): bool {
-            return $eligible_orgs->pluck('id')->contains($eligible_organization->id)
-                && !$eligible_orgs->pluck('id')->contains($ineligible_organization->id);
-        });
+        $organization_ids = collect($response->json('organization_options'))->pluck('value');
+        $this->assertTrue($organization_ids->contains($eligible_organization->id));
+        $this->assertFalse($organization_ids->contains($ineligible_organization->id));
     }
 
     public function test_invoke_returns_404_for_shift_from_different_event(): void

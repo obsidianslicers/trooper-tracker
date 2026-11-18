@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
 use App\Jobs\ReconcileEventRosterJob;
 use App\Messages\Events\Commands\UpdateEventShiftStations;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
 use App\Models\EventShift;
 use Carbon\Carbon;
-use Illuminate\Http\RedirectResponse;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Processes shift update form submissions.
@@ -21,20 +20,20 @@ use Illuminate\Http\RedirectResponse;
  * Handles creating new event shifts and updating existing shift start/end times.
  * Parses date and time inputs to create Carbon datetime objects for storage.
  */
-class UpdateShiftsSubmitController extends PageController
+class UpdateShiftsSubmitController extends EventCommandController
 {
     /**
      * Updates or creates event shifts from the validated form submission
      *
      * Processes the validated request to create new shifts or update existing ones.
      * Parses date and time strings into Carbon datetime objects for database storage.
-     * Redirects back to the shifts management page with a success message.
+     * The tab saves as changes are made, so it answers without a flash message.
      *
      * @param  UpdateShiftsRequest  $request  The validated shift update request
      * @param  Event  $event  The event whose shifts are being updated (route model binding)
-     * @return RedirectResponse Redirect to the event's shift management page
+     * @return InertiaResponse The refreshed event page data as results
      */
-    public function __invoke(UpdateShiftsRequest $request, Event $event): RedirectResponse
+    public function __invoke(UpdateShiftsRequest $request, Event $event): InertiaResponse
     {
         $this->authorize('update', $event);
 
@@ -95,8 +94,11 @@ class UpdateShiftsSubmitController extends PageController
             }
         }
 
-        FlashType::updated($event);
-
-        return redirect()->route('admin.events.shifts', compact('event'));
+        return $this->respondWithResults(
+            $request,
+            AdminEventPageData::SHIFTS,
+            AdminEventPageData::CHARITY,
+            AdminEventPageData::ROSTER,
+        );
     }
 }

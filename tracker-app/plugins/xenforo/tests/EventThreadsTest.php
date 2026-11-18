@@ -128,12 +128,24 @@ class EventThreadsTest extends TestCase
             'xenforo_create_thread' => 0,
             'xenforo_thread_id' => 321,
             'xenforo_post_id' => '',
-        ])->assertRedirect();
+        ])->assertOk();
 
         $thread = EventThread::forEvent($event->id);
         $this->assertFalse($thread->should_create_thread);
         $this->assertSame(321, $thread->thread_id);
         $this->assertNull($thread->post_id);
+    }
+
+    public function test_event_page_shows_the_thread_fields_on_its_overview(): void
+    {
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+        $event = $this->linkThread(Event::factory()->create(), 321, 654);
+
+        $response = $this->actingAs($trooper)->get(route('admin.events.update', $event));
+
+        $response->assertInertia(fn ($page) => $page
+            ->where('overview.plugin_fields', fn (string $html): bool => str_contains($html, 'name="xenforo_thread_id"')
+                && str_contains($html, 'value="321"')));
     }
 
     public function test_event_page_shows_forum_comments_and_post_button(): void

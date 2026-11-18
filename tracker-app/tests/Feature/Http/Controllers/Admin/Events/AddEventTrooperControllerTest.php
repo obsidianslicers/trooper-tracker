@@ -34,8 +34,7 @@ class AddEventTrooperControllerTest extends TestCase
             ['trooper_id' => $trooper->id]
         );
 
-        $response->assertNoContent();
-        $response->assertHeader('HX-Redirect');
+        $response->assertOk();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
@@ -58,7 +57,7 @@ class AddEventTrooperControllerTest extends TestCase
             ['trooper_id' => $trooper->id, 'costume_id' => $costume->id]
         );
 
-        $response->assertNoContent();
+        $response->assertOk();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
@@ -79,7 +78,7 @@ class AddEventTrooperControllerTest extends TestCase
             ['trooper_id' => $trooper->id, 'costume_id' => $costume->id]
         );
 
-        $response->assertNoContent();
+        $response->assertOk();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
@@ -114,7 +113,7 @@ class AddEventTrooperControllerTest extends TestCase
             ['trooper_id' => $trooper->id, 'organization_id' => $organization->id]
         );
 
-        $response->assertNoContent();
+        $response->assertOk();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
@@ -150,7 +149,7 @@ class AddEventTrooperControllerTest extends TestCase
             ['trooper_id' => $trooper->id, 'organization_id' => $ineligible_organization->id]
         );
 
-        $response->assertNoContent();
+        $response->assertOk();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
@@ -199,7 +198,7 @@ class AddEventTrooperControllerTest extends TestCase
             ['trooper_id' => $trooper->id, 'organization_id' => $organization->id]
         );
 
-        $response->assertNoContent();
+        $response->assertOk();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
@@ -254,8 +253,7 @@ class AddEventTrooperControllerTest extends TestCase
             ['trooper_id' => $trooper->id]
         );
 
-        $response->assertNoContent();
-        $response->assertHeader('HX-Redirect');
+        $response->assertOk();
         $this->assertDatabaseCount('tt_event_troopers', 1);
     }
 
@@ -276,7 +274,7 @@ class AddEventTrooperControllerTest extends TestCase
             ['trooper_id' => $trooper->id]
         );
 
-        $response->assertNoContent();
+        $response->assertOk();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $removed->id,
             EventTrooper::DELETED_AT => null,

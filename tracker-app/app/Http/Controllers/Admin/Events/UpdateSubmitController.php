@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Events\UpdateRequest;
 use App\Jobs\ReconcileEventRosterJob;
 use App\Jobs\SendEventCancelledNotificationsJob;
@@ -14,8 +13,8 @@ use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Messages\Events\Commands\UpdateEvent;
 use App\Messages\Events\Commands\UpdateEventOrganizations;
 use App\Models\Event;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Processes event update form submissions.
@@ -24,22 +23,21 @@ use Illuminate\Support\Facades\Auth;
  * event dates, amenities, and organization associations. Updates both the event record
  * and its related EventOrganization pivot records for access control.
  */
-class UpdateSubmitController extends PageController
+class UpdateSubmitController extends EventCommandController
 {
     /**
      * Updates an existing event from the validated form submission
      *
      * Processes the validated request to update the event's properties
-     * and organization access permissions. Redirects back to the update
-     * form with a success message.
+     * and organization access permissions, then answers with the refreshed page.
      *
      * @param  UpdateRequest  $request  The validated event update request
      * @param  Event  $event  The event to update (route model binding)
-     * @return RedirectResponse Redirect to the event's update page
+     * @return InertiaResponse The refreshed event page data as results
      */
     public function __invoke(
         UpdateRequest $request,
-        Event $event): RedirectResponse
+        Event $event): InertiaResponse
     {
         $current_status = $event->status;
         $updated_status = EventStatus::from($request->validated('status'));
@@ -82,7 +80,7 @@ class UpdateSubmitController extends PageController
 
         FlashType::updated($event);
 
-        return redirect()->route('admin.events.update', compact('event'));
+        return $this->respondWithResults($request);
     }
 
     // private function resetLimits(Event $event)

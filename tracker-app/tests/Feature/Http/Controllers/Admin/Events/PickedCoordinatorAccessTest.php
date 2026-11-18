@@ -76,8 +76,11 @@ class PickedCoordinatorAccessTest extends TestCase
         $this->actingAs($this->admin)
             ->get(route('admin.events.update', ['event' => $this->event]))
             ->assertOk()
-            ->assertViewHas('coordinator_options', fn (array $options) => array_key_exists($this->picked->id, $options)
-                && !array_key_exists($this->member->id, $options));
+            ->assertInertia(fn ($page) => $page->where(
+                'overview.coordinator_options',
+                fn ($options): bool => collect($options)->pluck('value')->contains($this->picked->id)
+                    && !collect($options)->pluck('value')->contains($this->member->id)
+            ));
     }
 
     public function test_a_member_cannot_be_picked(): void
@@ -100,11 +103,12 @@ class PickedCoordinatorAccessTest extends TestCase
 
         $this->pick($this->picked);
 
+        //  the old tab pages now open the matching tab of the one event page
         foreach (self::PAGES as $page)
         {
             $this->actingAs($this->picked)
                 ->get(route('admin.events.'.$page, ['event' => $this->event]))
-                ->assertOk();
+                ->assertStatus($page === 'update' ? 200 : 302);
         }
 
         //  and it's under My Events
@@ -121,12 +125,13 @@ class PickedCoordinatorAccessTest extends TestCase
         $this->actingAs($this->picked)
             ->get(route('admin.events.update', ['event' => $this->event]))
             ->assertOk()
-            ->assertSee('Home Region')
-            ->assertDontSee(route('pickers.organization'), false);
+            ->assertInertia(fn ($page) => $page
+                ->where('overview.host_name', 'Home Region')
+                ->where('overview.can_change_host', false));
 
         $this->actingAs($this->picked)
             ->post(route('admin.events.update', ['event' => $this->event]), $this->payload($this->region, $this->picked))
-            ->assertRedirect(route('admin.events.update', ['event' => $this->event]))
+            ->assertOk()
             ->assertSessionHasNoErrors();
 
         $this->assertSame('Renamed Troop', $this->event->fresh()->name);

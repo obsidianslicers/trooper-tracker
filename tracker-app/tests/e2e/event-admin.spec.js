@@ -1,5 +1,6 @@
 // Command Staff running an event: creating, copying and editing it, its shifts and stations,
-// charity numbers, the roster, uploads and the mission review, and cancelling it.
+// charity numbers, the roster, uploads and the mission review, and cancelling it. The event page
+// is one Svelte page with a tab for each; every tab but Overview saves as changes are made.
 import { test, expect } from '@playwright/test';
 import { personas, seeded } from './support/personas.js';
 import { signInAndLeaveLogin } from './support/auth.js';
@@ -12,11 +13,44 @@ function adminRow(page, name) {
     return page.locator('tbody tr').filter({ hasText: name });
 }
 
-async function openAdmin(page, name, tab = 'update') {
+async function openAdmin(page, name, tab = 'overview') {
     await page.goto(`/admin/events?search_term=${encodeURIComponent(name)}`);
     const href = await adminRow(page, name).first().locator('a[href$="/update"]').getAttribute('href');
 
-    await page.goto(href.replace(/update$/, tab));
+    await page.goto(`${href}?tab=${tab}`);
+}
+
+// With more than one shift the roster starts folded; open every shift.
+async function expandShifts(page) {
+    const folded = page.locator('.roster-shift-toggle[aria-expanded="false"]');
+
+    while (await folded.count() > 0) {
+        await folded.first().click();
+    }
+}
+
+// Runs an action that saves (the Update button, or a change on a tab that saves as you go) and
+// waits for the save to finish.
+async function saved(page, action) {
+    const response = page.waitForResponse((r) => r.url().includes('/admin/events/') && r.request().method() === 'POST');
+    await action();
+    await response;
+    await page.waitForLoadState('networkidle');
+}
+
+// Text fields save when you leave them, as a person tabbing through the form would.
+async function fillAndLeave(locator, value) {
+    await locator.fill(value);
+    await locator.press('Tab');
+}
+
+function field(page, label) {
+    return page.getByLabel(label, { exact: true });
+}
+
+async function confirmDialog(page, button) {
+    const dialog = page.getByRole('dialog');
+    await saved(page, () => dialog.getByRole('button', { name: button, exact: true }).click());
 }
 
 async function openSection(page, label) {
@@ -52,7 +86,7 @@ test.describe('event details', () => {
         await page.getByRole('button', { name: 'Create', exact: true }).click();
 
         await expect(page).toHaveURL(/\/admin\/events\/\d+\/update$/);
-        await expect(page.locator('#name')).toHaveValue('E2E Created Troop');
+        await expect(field(page, 'Name')).toHaveValue('E2E Created Troop');
 
         await page.goto(await page.getByRole('link', { name: 'View Event' }).getAttribute('href'));
         await expect(page.getByRole('heading', { name: 'E2E Created Troop' })).toBeVisible();
@@ -62,15 +96,16 @@ test.describe('event details', () => {
     test('a moderator renames an event', async ({ page }) => {
         await openAdmin(page, seeded.commandEvent);
 
-        await page.locator('#name').fill('E2E Command Troop Renamed');
-        await updateButton(page).click();
+        await field(page, 'Name').fill('E2E Command Troop Renamed');
+        await saved(page, () => updateButton(page).click());
 
-        await expect(page.locator('#name')).toHaveValue('E2E Command Troop Renamed');
+        await page.reload();
+        await expect(field(page, 'Name')).toHaveValue('E2E Command Troop Renamed');
 
         // Put it back for the rest of the spec.
-        await page.locator('#name').fill(seeded.commandEvent);
-        await updateButton(page).click();
-        await expect(page.locator('#name')).toHaveValue(seeded.commandEvent);
+        await field(page, 'Name').fill(seeded.commandEvent);
+        await saved(page, () => updateButton(page).click());
+        await expect(field(page, 'Name')).toHaveValue(seeded.commandEvent);
     });
 
     test('a moderator copies an event into a new one', async ({ page }) => {
@@ -84,7 +119,7 @@ test.describe('event details', () => {
         await page.getByRole('button', { name: /^(Copy|Create|Save)$/ }).click();
 
         await expect(page).toHaveURL(/\/admin\/events\/\d+\/update$/);
-        await expect(page.locator('#name')).toHaveValue('E2E Copied Troop');
+        await expect(field(page, 'Name')).toHaveValue('E2E Copied Troop');
 
         await page.goto('/admin/events?search_term=E2E+Cop');
         await expect(adminRow(page, seeded.copySourceEvent)).toHaveCount(1);
@@ -94,9 +129,11 @@ test.describe('event details', () => {
     test('a moderator cancels an event, and troopers see it under cancelled', async ({ page }) => {
         await openAdmin(page, seeded.cancelEvent);
 
-        await page.locator('#status').selectOption('cancelled');
-        await updateButton(page).click();
-        await expect(page.locator('#status')).toHaveValue('cancelled');
+        await field(page, 'Status').selectOption('cancelled');
+        await saved(page, () => updateButton(page).click());
+
+        await page.reload();
+        await expect(field(page, 'Status')).toHaveValue('cancelled');
 
         await page.goto('/events/cancelled');
         await expect(page.getByText(seeded.cancelEvent).first()).toBeVisible();
@@ -121,19 +158,17 @@ test.describe('event details', () => {
 });
 
 test.describe('shifts and charity', () => {
-    test('a moderator adds a shift', async ({ page }) => {
+    test('a moderator adds a shift, which saves once its times are in', async ({ page }) => {
         await openAdmin(page, seeded.commandEvent, 'shifts');
 
         const before = await page.locator('input[name$="[starts_at]"]').count();
         await page.getByRole('button', { name: 'Add Shift' }).click();
         await expect(page.locator('input[name$="[starts_at]"]')).toHaveCount(before + 1);
 
-        const added = page.locator('input[name$="[starts_at]"]').last();
-        await added.fill('15:00');
-        await page.locator('input[name$="[ends_at]"]').last().fill('18:00');
-        await updateButton(page).click();
+        await fillAndLeave(page.locator('input[name$="[starts_at]"]').last(), '15:00');
+        await saved(page, () => fillAndLeave(page.locator('input[name$="[ends_at]"]').last(), '18:00'));
 
-        await expect(page).toHaveURL(/\/shifts$/);
+        await page.reload();
         await expect(page.locator('input[name$="[starts_at]"]')).toHaveCount(before + 1);
     });
 
@@ -142,16 +177,15 @@ test.describe('shifts and charity', () => {
 
         const first = page.locator('tr').filter({ has: page.getByRole('button', { name: 'Stations' }) }).first();
         await first.getByRole('button', { name: 'Stations' }).click();
-        await page.getByRole('button', { name: 'Add Station' }).first().click();
 
-        await page.getByLabel('Station name').last().fill('E2E Photo Line');
-        await page.getByLabel('Capacity').last().fill('3');
-        await updateButton(page).click();
+        await fillAndLeave(page.getByLabel('Station name').last(), 'E2E Photo Line');
+        await saved(page, () => fillAndLeave(page.getByLabel('Capacity').last(), '3'));
 
+        await page.reload();
         await expect(page.getByLabel('Station name').first()).toHaveValue('E2E Photo Line');
 
-        page.once('dialog', (dialog) => dialog.accept());
         await page.getByRole('button', { name: 'Remove E2E Photo Line' }).click();
+        await confirmDialog(page, 'Remove');
 
         await page.reload();
         await expect(page.getByLabel('Station name')).toHaveCount(0);
@@ -160,12 +194,12 @@ test.describe('shifts and charity', () => {
     test('a moderator records charity raised on a shift', async ({ page }) => {
         await openAdmin(page, seeded.commandEvent, 'charity');
 
-        await page.locator('input[name$="[charity_name]"]').first().fill('E2E Children\'s Hospital');
-        await page.locator('input[name$="[charity_hours]"]').first().fill('4');
-        await page.locator('input[name$="[charity_direct_funds]"]').first().fill('250');
-        await updateButton(page).click();
+        await saved(page, () => fillAndLeave(page.locator('input[name$="[charity_name]"]').first(), 'E2E Children\'s Hospital'));
+        await saved(page, () => fillAndLeave(page.locator('input[name$="[charity_hours]"]').first(), '4'));
+        await saved(page, () => fillAndLeave(page.locator('input[name$="[charity_direct_funds]"]').first(), '250'));
+        await expect(page.getByText('Saved').first()).toBeVisible();
 
-        await expect(page).toHaveURL(/\/charity$/);
+        await page.reload();
         await expect(page.locator('input[name$="[charity_name]"]').first()).toHaveValue('E2E Children\'s Hospital');
         await expect(page.locator('input[name$="[charity_direct_funds]"]').first()).toHaveValue(/^250/);
     });
@@ -214,31 +248,34 @@ test.describe('reaching the troopers', () => {
 
 test.describe('the roster', () => {
     test('a moderator adds a trooper to a shift, and removes them again', async ({ page }) => {
-        await openAdmin(page, seeded.commandEvent, 'troopers');
+        await openAdmin(page, seeded.commandEvent, 'roster');
+        await expandShifts(page);
 
-        await page.getByRole('button', { name: 'Add Trooper' }).first().click();
+        await page.getByLabel('Add Trooper').first().click();
         const picker = page.getByRole('dialog');
         await picker.getByRole('textbox').fill(seeded.friend.name);
-        await picker.getByRole('listitem').filter({ hasText: seeded.friend.name }).click();
+        await picker.getByRole('button', { name: new RegExp(seeded.friend.name) }).first().click();
 
-        await page.getByRole('button', { name: 'Confirm' }).click();
+        await saved(page, () => page.getByRole('button', { name: 'Add to Roster' }).click());
 
         const row = page.getByRole('row').filter({ has: page.getByRole('link', { name: seeded.friend.name }) });
         await expect(row).toBeVisible();
 
-        page.once('dialog', (dialog) => dialog.accept());
-        await row.getByRole('button').click();
+        await row.getByRole('button', { name: `Remove ${seeded.friend.name} from the roster` }).click();
+        await confirmDialog(page, 'Remove');
         await expect(page.getByText(`${seeded.friend.name} was removed from the roster.`)).toBeVisible();
         await expect(row).toHaveCount(0);
     });
 
-    test('a moderator changes a rostered trooper\'s status', async ({ page }) => {
-        await openAdmin(page, seeded.commandEvent, 'troopers');
+    test('a moderator changes a rostered trooper\'s status, which saves right away', async ({ page }) => {
+        await openAdmin(page, seeded.commandEvent, 'roster');
+        await expandShifts(page);
 
         const status = page.locator('select[name^="troopers["][name$="[status]"]').first();
-        await status.selectOption('standby');
-        await updateButton(page).click();
+        await saved(page, () => status.selectOption('standby'));
 
+        await page.reload();
+        await expandShifts(page);
         await expect(page.locator('select[name^="troopers["][name$="[status]"]').first()).toHaveValue('standby');
     });
 
@@ -257,24 +294,24 @@ test.describe('uploads', () => {
     test('a moderator uploads an instructional photo, sends it to the mission review, then deletes it', async ({ page }) => {
         await openAdmin(page, seeded.commandEvent, 'uploads');
 
-        await page.locator('input[type="file"][name="images[]"]').setInputFiles({
+        await saved(page, () => page.locator('input[type="file"][name="images[]"]').setInputFiles({
             name: 'e2e-admin.png',
             mimeType: 'image/png',
             buffer: PNG,
-        });
+        }));
         const card = page.locator('.col[id^="upload-"]').first();
         await expect(card).toBeVisible();
 
-        page.once('dialog', (dialog) => dialog.accept());
         await card.getByRole('button', { name: 'Send to Mission Review' }).click();
+        await confirmDialog(page, 'Send to Mission Review');
         await expect(page.locator('.col[id^="upload-"]')).toHaveCount(0);
 
-        await page.goto(page.url().replace(/uploads$/, 'mission-review'));
+        await page.locator('#app button.nav-link').filter({ hasText: 'Mission Review' }).click();
         const photo = page.locator('.col[id^="upload-"]').first();
         await expect(photo).toBeVisible();
 
-        page.once('dialog', (dialog) => dialog.accept());
         await photo.getByRole('button', { name: 'Delete' }).click();
+        await confirmDialog(page, 'Delete');
         await expect(page.locator('.col[id^="upload-"]')).toHaveCount(0);
     });
 });

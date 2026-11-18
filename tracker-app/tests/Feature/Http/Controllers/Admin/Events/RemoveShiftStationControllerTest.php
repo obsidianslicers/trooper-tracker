@@ -31,8 +31,7 @@ class RemoveShiftStationControllerTest extends TestCase
             ])
         );
 
-        $response->assertNoContent();
-        $response->assertHeader('HX-Redirect', route('admin.events.shifts', compact('event')));
+        $response->assertOk();
         $this->assertSoftDeleted('tt_event_shift_stations', [
             EventShiftStation::ID => $station->id,
         ]);
@@ -52,7 +51,7 @@ class RemoveShiftStationControllerTest extends TestCase
                 'event_shift' => $shift,
                 'event_shift_station' => $station,
             ])
-        )->assertNoContent();
+        )->assertOk();
 
         $this->assertDatabaseHas('tt_event_shift_stations', [
             EventShiftStation::ID => $station->id,

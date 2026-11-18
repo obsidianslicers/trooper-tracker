@@ -16,37 +16,41 @@ use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
-class UpdateTroopersControllerTest extends TestCase
+class UpdateControllerRosterTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_displays_update_troopers_page_for_admin(): void
+    public function test_invoke_displays_the_roster_for_admin(): void
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         EventShift::factory()->forEvent($event)->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.events.troopers', ['event' => $event->id]));
+        $response = $this->actingAs($trooper)->get(route('admin.events.update', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.events.troopers');
+        $response->assertInertia(fn ($page) => $page
+            ->component('admin/events/Update')
+            ->has('roster.shifts', 1));
     }
 
-    public function test_add_trooper_picker_uses_an_event_scoped_to_each_shift(): void
+    public function test_invoke_lets_an_admin_manage_each_shift(): void
     {
         $admin = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
         $first_shift = EventShift::factory()->forEvent($event)->create();
         $second_shift = EventShift::factory()->forEvent($event)->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.events.troopers', compact('event')));
+        $response = $this->actingAs($admin)->get(route('admin.events.update', compact('event')));
 
         $response->assertOk();
-        $response->assertSee("admin-add-trooper-{$first_shift->id}", false);
-        $response->assertSee("admin-add-trooper-{$second_shift->id}", false);
-        $response->assertDontSee('trooper:selected[event.detail.property', false);
+        $response->assertInertia(fn ($page) => $page
+            ->where('roster.can_manage', true)
+            ->where('roster.shifts.0.id', $first_shift->id)
+            ->where('roster.shifts.1.id', $second_shift->id));
     }
 
     public function test_invoke_shows_all_member_clubs_for_handler_costume(): void
@@ -80,11 +84,11 @@ class UpdateTroopersControllerTest extends TestCase
             ->asGoing()
             ->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.events.troopers', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
 
         $response->assertOk();
 
-        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $event_trooper = $this->rosterRow($response);
         $this->assertTrue($event_trooper->org_options->contains('id', $event_org->id));
         $this->assertTrue($event_trooper->org_options->contains('id', $other_member_org->id));
     }
@@ -116,11 +120,11 @@ class UpdateTroopersControllerTest extends TestCase
             ->asGoing()
             ->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.events.troopers', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
 
         $response->assertOk();
 
-        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $event_trooper = $this->rosterRow($response);
         $this->assertTrue($event_trooper->org_options->contains('id', $org->id));
         $this->assertSame($costume->id, $event_trooper->costume_id);
     }
@@ -147,11 +151,11 @@ class UpdateTroopersControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($moderator)
-            ->get(route('admin.events.troopers', ['event' => $event->id]));
+            ->get(route('admin.events.update', ['event' => $event->id]));
 
         $response->assertOk();
 
-        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $event_trooper = $this->rosterRow($response);
         $this->assertSame([$parent_org->id], $event_trooper->org_options->pluck('id')->all());
         $this->assertSame([$parent_org->id], $event_trooper->credited_checked_ids);
     }
@@ -194,12 +198,11 @@ class UpdateTroopersControllerTest extends TestCase
             ->asGoing()
             ->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.events.troopers', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertDontSee('(Unattached)');
 
-        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $event_trooper = $this->rosterRow($response);
         $this->assertTrue($event_trooper->org_options->contains('id', $org1->id));
         $this->assertTrue($event_trooper->org_options->contains('id', $org2->id));
         $this->assertEqualsCanonicalizing([$org1->id, $org2->id], $event_trooper->credited_checked_ids);
@@ -225,11 +228,11 @@ class UpdateTroopersControllerTest extends TestCase
             ->asGoing()
             ->create([EventTrooper::COSTUME_ID => null]);
 
-        $response = $this->actingAs($admin)->get(route('admin.events.troopers', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
 
         $response->assertOk();
 
-        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $event_trooper = $this->rosterRow($response);
         $this->assertTrue($event_trooper->org_options->contains('id', $org1->id));
         $this->assertTrue($event_trooper->org_options->contains('id', $org2->id));
     }
@@ -312,11 +315,11 @@ class UpdateTroopersControllerTest extends TestCase
             ->asGoing()
             ->create([EventTrooper::ORGANIZATION_ID => null]);
 
-        $response = $this->actingAs($admin)->get(route('admin.events.troopers', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
 
         $response->assertOk();
 
-        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $event_trooper = $this->rosterRow($response);
         $this->assertTrue($event_trooper->org_options->contains('id', $parent_org->id));
         $this->assertEqualsCanonicalizing([$parent_org->id], $event_trooper->credited_checked_ids);
     }
@@ -342,11 +345,11 @@ class UpdateTroopersControllerTest extends TestCase
             ->asGoing()
             ->create([EventTrooper::COSTUME_ID => null]);
 
-        $response = $this->actingAs($moderator)->get(route('admin.events.troopers', ['event' => $event->id]));
+        $response = $this->actingAs($moderator)->get(route('admin.events.update', ['event' => $event->id]));
 
         $response->assertOk();
 
-        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $event_trooper = $this->rosterRow($response);
         $this->assertTrue($event_trooper->org_options->contains('id', $allowed_org->id));
         $this->assertFalse($event_trooper->org_options->contains('id', $blocked_org->id));
     }
@@ -368,11 +371,11 @@ class UpdateTroopersControllerTest extends TestCase
             ->asAttended()
             ->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.events.troopers', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
 
         $response->assertOk();
 
-        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $event_trooper = $this->rosterRow($response);
         $this->assertArrayHasKey($costume->id, $event_trooper->costume_options);
         $this->assertSame($costume->id, $event_trooper->costume_id);
     }
@@ -395,11 +398,11 @@ class UpdateTroopersControllerTest extends TestCase
             ->asAttended()
             ->create([EventTrooper::COSTUME_ID => null]);
 
-        $response = $this->actingAs($admin)->get(route('admin.events.troopers', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
 
         $response->assertOk();
 
-        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $event_trooper = $this->rosterRow($response);
         $this->assertTrue($event_trooper->org_options->contains('id', $org->id));
         $this->assertContains($org->id, $event_trooper->credited_checked_ids);
     }
@@ -408,8 +411,23 @@ class UpdateTroopersControllerTest extends TestCase
     {
         $event = Event::factory()->create();
 
-        $response = $this->get(route('admin.events.troopers', ['event' => $event->id]));
+        $response = $this->get(route('admin.events.update', ['event' => $event->id]));
 
         $response->assertRedirect(route('auth.login'));
+    }
+
+    /**
+     * The first shift's first roster row, shaped like the old view's EventTrooper.
+     */
+    private function rosterRow(TestResponse $response): object
+    {
+        $row = $response->viewData('page')['props']['roster']['shifts'][0]['troopers'][0];
+
+        return (object) [
+            'org_options' => collect($row['org_options']),
+            'credited_checked_ids' => $row['organization_ids'],
+            'costume_id' => $row['costume_id'],
+            'costume_options' => collect($row['costume_options'])->pluck('label', 'value')->all(),
+        ];
     }
 }

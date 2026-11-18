@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\ReorderEventShiftStations;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
 use App\Models\EventShift;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Inertia\Response as InertiaResponse;
 
-class ReorderShiftStationsSubmitController extends PageController
+class ReorderShiftStationsSubmitController extends EventCommandController
 {
-    public function __invoke(Request $request, Event $event, EventShift $event_shift): JsonResponse
+    public function __invoke(Request $request, Event $event, EventShift $event_shift): InertiaResponse
     {
         $this->authorize('update', $event);
 
@@ -29,6 +29,10 @@ class ReorderShiftStationsSubmitController extends PageController
             ordered_ids: $validated['ids'] ?? [],
         );
 
-        return response()->json(['success' => true]);
+        return $this->respondWithResults(
+            $request,
+            AdminEventPageData::SHIFTS,
+            AdminEventPageData::ROSTER,
+        );
     }
 }

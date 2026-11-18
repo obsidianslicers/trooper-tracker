@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
 use App\Messages\Events\Commands\UpdateEventRoster;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
-use Illuminate\Http\RedirectResponse;
+use Inertia\Response as InertiaResponse;
 
-class UpdateTroopersSubmitController extends PageController
+class UpdateTroopersSubmitController extends EventCommandController
 {
-    public function __invoke(UpdateTroopersRequest $request, Event $event): RedirectResponse
+    public function __invoke(UpdateTroopersRequest $request, Event $event): InertiaResponse
     {
         $this->authorize('update', $event);
 
@@ -25,8 +24,6 @@ class UpdateTroopersSubmitController extends PageController
             allowed_org_ids: $request->user()->resolveModeratorOrgIds(),
         );
 
-        FlashType::updated($event);
-
-        return redirect()->route('admin.events.troopers', compact('event'));
+        return $this->respondWithResults($request, AdminEventPageData::ROSTER);
     }
 }

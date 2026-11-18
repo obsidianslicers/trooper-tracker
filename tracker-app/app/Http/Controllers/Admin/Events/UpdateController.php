@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
+use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
-use App\Models\Organization;
-use App\Models\Trooper;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
- * Displays the event update form.
+ * Displays the Command Staff event page.
  *
- * Provides administrators and moderators with a form to update existing event details,
- * including venue information, contact details, and organization associations.
- * Shows a draft warning if the event is not yet published.
+ * A single page carries every tab (overview, shifts, charity, roster, uploads and
+ * mission review); each tab posts back to its own command controller.
  */
 class UpdateController extends PageController
 {
@@ -28,72 +26,13 @@ class UpdateController extends PageController
     }
 
     /**
-     * Displays the event update form
-     *
-     * Authorizes that the user can update the event via policy check.
-     * Loads all organizations for the organization selection interface.
-     * Sets up breadcrumbs and renders the update form view.
-     *
      * @param  Request  $request  The incoming HTTP request
-     * @param  Event  $event  The event to be updated (route model binding)
-     * @return View The event update form view
+     * @param  Event  $event  The event being managed
      */
-    public function __invoke(Request $request, Event $event): View
+    public function __invoke(Request $request, Event $event): InertiaResponse
     {
         $this->authorize('update', $event);
 
-        if ($event->is_draft)
-        {
-            $msg = __('admin.This event is currently in Draft status and not visible to troopers.');
-
-            FlashType::warning($msg);
-        }
-
-        $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
-
-        foreach ($organizations as $organization)
-        {
-            $event_organization = $event->organizations
-                ->filter(fn ($eo) => $eo->id == $organization->id)
-                ->filter(fn ($eo) => $eo->pivot->can_attend)
-                ->first();
-
-            $organization->pivot = $event_organization->pivot ?? null;
-        }
-
-        //  the creator is the empty choice, not an option of their own
-        $candidates = $event->coordinatorCandidates()
-            ->reject(fn (Trooper $trooper): bool => $trooper->id === $event->created_id)
-            ->sortBy(fn (Trooper $trooper): string => mb_strtolower($this->coordinatorLabel($trooper)));
-
-        $coordinator_options = $candidates
-            ->mapWithKeys(fn (Trooper $trooper): array => [$trooper->id => $this->coordinatorLabel($trooper)])
-            ->all();
-
-        $coordinator_creator = $event->created_by
-            ? $this->coordinatorLabel($event->created_by)
-            : __("admin.The event's creator");
-
-        //  a coordinator who can't host for the event's organization can't move it either
-        $can_change_host = Organization::eventHostableBy($request->user())
-            ->where(Organization::ID, $event->organization_id)
-            ->exists();
-
-        $data = compact('event', 'organizations', 'coordinator_options', 'coordinator_creator', 'can_change_host');
-
-        return view('pages.admin.events.update', $data);
-    }
-
-    /**
-     * The trooper's name with their username after it, as the Troopers tab shows both;
-     * just the username when no name is on file (or it's the same).
-     */
-    private function coordinatorLabel(Trooper $trooper): string
-    {
-        $name = trim((string) $trooper->legal_name);
-
-        return $name === '' || $name === $trooper->display_name
-            ? $trooper->display_name
-            : "{$name} ({$trooper->display_name})";
+        return Inertia::render('admin/events/Update', AdminEventPageData::call($request));
     }
 }

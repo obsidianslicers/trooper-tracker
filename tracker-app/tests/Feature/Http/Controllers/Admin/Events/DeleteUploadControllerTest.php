@@ -28,7 +28,7 @@ class DeleteUploadControllerTest extends TestCase
             ->post(route('admin.events.uploads.delete', ['event' => $event, 'event_upload' => $upload]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.events.mission-review');
+        $response->assertInertia(fn ($page) => $page->component('admin/events/Update'));
         $this->assertDatabaseMissing('tt_event_uploads', [EventUpload::ID => $upload->id]);
     }
 
@@ -44,11 +44,10 @@ class DeleteUploadControllerTest extends TestCase
             ->post(route('admin.events.uploads.delete', ['event' => $event, 'event_upload' => $upload]));
 
         $response->assertOk();
-        $uploads = $response->viewData('member_uploads');
-        $this->assertCount(0, $uploads);
+        $response->assertInertia(fn ($page) => $page->has('results.mission_review', 0));
     }
 
-    public function test_invoke_deletes_admin_upload_and_returns_uploads_view(): void
+    public function test_invoke_deletes_admin_upload_and_answers_with_the_page(): void
     {
         Storage::fake('public');
 
@@ -60,7 +59,7 @@ class DeleteUploadControllerTest extends TestCase
             ->post(route('admin.events.uploads.delete', ['event' => $event, 'event_upload' => $upload]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.events.uploads');
+        $response->assertInertia(fn ($page) => $page->component('admin/events/Update'));
         $this->assertDatabaseMissing('tt_event_uploads', [EventUpload::ID => $upload->id]);
     }
 

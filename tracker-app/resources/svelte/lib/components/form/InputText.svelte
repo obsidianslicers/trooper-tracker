@@ -10,6 +10,9 @@
         errors?: string | string[];
         disabled?: boolean;
         multiline?: boolean;
+        rows?: number | null;
+        style?: string | null;
+        bare?: boolean;
         onchange?: (() => void) | null;
         oninput?: (() => void) | null;
         onfocus?: (() => void) | null;
@@ -27,6 +30,9 @@
         errors = [],
         disabled = false,
         multiline = false,
+        rows = null,
+        style = null,
+        bare = false,
         onchange = null,
         oninput = null,
         onfocus = null,
@@ -34,7 +40,7 @@
     }: Props = $props();
 </script>
 
-<div class="form-floating">
+{#if bare}
     {#if multiline}
         <textarea
             class={[
@@ -48,9 +54,10 @@
             {oninput}
             {onfocus}
             {onblur}
+            {rows}
+            {style}
             bind:value
-            autocomplete="off"
-        ></textarea>
+            autocomplete="off"></textarea>
     {:else}
         <input
             class={[
@@ -70,6 +77,46 @@
             autocomplete="off"
         />
     {/if}
-    <InputLabel {id} {label} />
     <InputError {errors} />
-</div>
+{:else}
+    <div class="form-floating">
+        {#if multiline}
+            <textarea
+                class={[
+                    "form-control",
+                    errors && errors.length > 0 ? "is-invalid" : "",
+                ]}
+                {id}
+                {disabled}
+                {placeholder}
+                {onchange}
+                {oninput}
+                {onfocus}
+                {onblur}
+                {rows}
+                {style}
+                bind:value
+                autocomplete="off"></textarea>
+        {:else}
+            <input
+                class={[
+                    "form-control",
+                    errors && errors.length > 0 ? "is-invalid" : "",
+                    searching ? "searching" : "",
+                ]}
+                {id}
+                {type}
+                {disabled}
+                {placeholder}
+                {onchange}
+                {oninput}
+                {onfocus}
+                {onblur}
+                bind:value
+                autocomplete="off"
+            />
+        {/if}
+        <InputLabel {id} {label} />
+        <InputError {errors} />
+    </div>
+{/if}

@@ -10,9 +10,9 @@ use App\Models\EventShift;
 use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use Illuminate\Support\Facades\Notification;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class UpdateShiftsSubmitControllerTest extends TestCase
@@ -24,7 +24,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->create();
 
-        $response = $this->actingAs($trooper)->post('/admin/events/' . $event->id . '/shifts', [
+        $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/shifts', [
             'shifts' => [
                 0 => [
                     'date' => now()->toDateString(),
@@ -34,7 +34,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
             ],
         ]);
 
-        $response->assertRedirect(route('admin.events.shifts', ['event' => $event->id]));
+        $response->assertOk();
     }
 
     public function test_invoke_updates_parent_event_date_range_from_shifts(): void
@@ -47,7 +47,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
         $early_shift = EventShift::factory()->forEvent($event)->create();
         $late_shift = EventShift::factory()->forEvent($event)->create();
 
-        $response = $this->actingAs($trooper)->post('/admin/events/' . $event->id . '/shifts', [
+        $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/shifts', [
             'shifts' => [
                 $early_shift->id => [
                     'date' => '2026-06-03',
@@ -62,7 +62,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
             ],
         ]);
 
-        $response->assertRedirect(route('admin.events.shifts', ['event' => $event->id]));
+        $response->assertOk();
 
         $event->refresh();
 
@@ -81,7 +81,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
             ->withTroopersAllowed(2)
             ->create();
 
-        $response = $this->actingAs($trooper)->post('/admin/events/' . $event->id . '/shifts', [
+        $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/shifts', [
             'shifts' => [
                 $shift->id => [
                     'date' => '2026-06-03',
@@ -103,7 +103,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
             ],
         ]);
 
-        $response->assertRedirect(route('admin.events.shifts', ['event' => $event->id]));
+        $response->assertOk();
 
         $this->assertDatabaseHas('tt_event_shift_stations', [
             EventShiftStation::ID => $station->id,
@@ -125,7 +125,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
         $event = Event::factory()->create();
         $shift = EventShift::factory()->forEvent($event)->create();
 
-        $response = $this->actingAs($trooper)->post('/admin/events/' . $event->id . '/shifts', [
+        $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/shifts', [
             'shifts' => [
                 $shift->id => [
                     'date' => '2026-06-03',
@@ -149,7 +149,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
             ],
         ]);
 
-        $response->assertRedirect(route('admin.events.shifts', ['event' => $event->id]));
+        $response->assertOk();
 
         $this->assertDatabaseHas('tt_event_shift_stations', [
             EventShiftStation::EVENT_SHIFT_ID => $shift->id,
@@ -188,7 +188,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
             ->forEventShiftStation($station)
             ->create([EventTrooper::STATUS => EventTrooperStatus::STAND_BY]);
 
-        $response = $this->actingAs($trooper)->post('/admin/events/' . $event->id . '/shifts', [
+        $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/shifts', [
             'shifts' => [
                 $shift->id => [
                     'date' => '2026-06-03',
@@ -204,7 +204,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
             ],
         ]);
 
-        $response->assertRedirect(route('admin.events.shifts', ['event' => $event->id]));
+        $response->assertOk();
 
         $this->assertSame(EventTrooperStatus::GOING, $standby->fresh()->status);
     }
@@ -235,7 +235,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
             ->withSignedUpAt(Carbon::parse('2026-06-01 10:02:00'))
             ->create();
 
-        $response = $this->actingAs($trooper)->post('/admin/events/' . $event->id . '/shifts', [
+        $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/shifts', [
             'shifts' => [
                 $shift->id => [
                     'date' => '2026-06-03',
@@ -251,7 +251,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
             ],
         ]);
 
-        $response->assertRedirect(route('admin.events.shifts', ['event' => $event->id]));
+        $response->assertOk();
 
         $this->assertSame(EventTrooperStatus::GOING, $first->fresh()->status);
         $this->assertSame(EventTrooperStatus::GOING, $second->fresh()->status);
@@ -262,7 +262,7 @@ class UpdateShiftsSubmitControllerTest extends TestCase
     {
         $event = Event::factory()->create();
 
-        $response = $this->post('/admin/events/' . $event->id . '/shifts', []);
+        $response = $this->post('/admin/events/'.$event->id.'/shifts', []);
 
         $response->assertRedirect(route('auth.login'));
     }
