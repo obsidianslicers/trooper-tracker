@@ -1,3 +1,5 @@
+export type EventView = "list" | "calendar" | "map" | "closed" | "cancelled";
+
 export type EventShift = {
     id: number;
     url: string;

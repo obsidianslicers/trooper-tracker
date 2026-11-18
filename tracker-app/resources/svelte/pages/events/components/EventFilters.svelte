@@ -6,7 +6,7 @@
     let { vm }: { vm: ListEventsViewModel } = $props();
 </script>
 
-<FilterBar {vm} count={vm.filtered.length}>
+<FilterBar {vm} active="list" count={vm.filtered.length}>
     {#snippet quick()}
         <button
             type="button"

@@ -2,7 +2,6 @@
     import { locale, t } from "$lib/i18n";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
-    import EventViews from "./components/EventViews.svelte";
     import FilterBar from "./components/FilterBar.svelte";
     import { PastEventsViewModel, type PastEventsPageData } from "./models";
 
@@ -19,9 +18,7 @@
     const money = new Intl.NumberFormat(locale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 </script>
 
-<EventViews active={vm.is_cancelled ? "cancelled" : "closed"} has_map={vm.has_map} />
-
-<FilterBar {vm} count={vm.filtered.length} />
+<FilterBar {vm} active={vm.is_cancelled ? "cancelled" : "closed"} count={vm.filtered.length} />
 
 <p class="small text-muted mb-2">
     {#if vm.is_cancelled}
