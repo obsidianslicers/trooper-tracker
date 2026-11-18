@@ -7,8 +7,11 @@ namespace App\Http\Requests\Admin\Events;
 use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Event;
 use App\Models\EventOrganization;
+use App\Models\Organization;
+use App\Models\Trooper;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Handles validation and authorization for updating an existing Event.
@@ -58,7 +61,26 @@ class UpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->getCommonRules();
+        $event = $this->route('event');
+
+        return [
+            ...$this->getCommonRules(),
+            //  the event may stay with its host even when this trooper can't host for it (they
+            //  were picked as its coordinator), but only moves to an organization they can host for
+            Event::ORGANIZATION_ID => [
+                'required',
+                Rule::in([
+                    $event->organization_id,
+                    ...Organization::eventHostableBy($this->user())->pluck(Organization::ID)->all(),
+                ]),
+            ],
+            //  only someone going or attended can be picked; empty means the creator
+            Event::COORDINATOR_TROOPER_ID => [
+                'nullable',
+                'integer',
+                Rule::in($event->coordinatorCandidates()->pluck(Trooper::ID)->all()),
+            ],
+        ];
     }
 
     /**
@@ -71,6 +93,7 @@ class UpdateRequest extends FormRequest
         return [
             Event::TROOPERS_ALLOWED.'.required_if' => __('admin.The troopers allowed field is required when limit organizations is set to Yes.'),
             Event::HANDLERS_ALLOWED.'.required_if' => __('admin.The handlers allowed field is required when limit organizations is set to Yes.'),
+            Event::COORDINATOR_TROOPER_ID.'.in' => __('admin.The event coordinator must be an event coordinator or command staff member who is going to or attended the event.'),
         ];
     }
 

@@ -123,12 +123,12 @@ final class SignUpEventTrooper extends Message
             $moderator = $role === MembershipRole::MODERATOR ||
                 $role->hasAdministratorAccess() ||
                 ($role === MembershipRole::EVENT_COORDINATOR
-                    && $this->event_shift->event->created_id === $this->added_by_trooper->id);
+                    && Event::whereKey($this->event_shift->event_id)->managedBy($this->added_by_trooper)->exists());
 
             if (!$moderator)
             {
                 //  don't create a friendship if the added by trooper is a moderator or administrator,
-                //  or the event coordinator running this event
+                //  or an event coordinator running this event (its creator or the one picked to run it)
                 dispatch(new CreateTrooperFriendshipJob($event_trooper->added_by_trooper_id, $event_trooper->trooper_id));
             }
         }

@@ -82,7 +82,9 @@
                             :height="32" />
                 </td>
                 <td>
-                    {{ $event->name }}
+                    <a href="{{ route('events.display', compact('event')) }}">
+                        {{ $event->name }}
+                    </a>
                     <br />
                     <i class="text-muted small">
                         {{ $event->time_display }}

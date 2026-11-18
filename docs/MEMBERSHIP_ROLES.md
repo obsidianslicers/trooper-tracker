@@ -116,12 +116,12 @@ Cannot be self-assigned.
 - Everything a MEMBER can
 - Create events for organizations they belong to: any organization they are a member of, and
   every organization above it (a squad member can also host for the squad's garrison)
-- Edit and run the events they created (`tt_events.created_id`): details, shifts, roster,
-  charity, photos and mission review
+- Edit and run the events they created (`tt_events.created_id`) or were picked to coordinate
+  (`tt_events.coordinator_trooper_id`): details, shifts, roster, charity, photos and mission review
 - Copy any event hosted by an organization they belong to; the copy is their own event
 
 **Cannot:**
-- Manage events created by someone else
+- Manage events created by someone else, unless picked as that event's coordinator
 - Access the Command Staff dashboard or any other admin page
 - Approve troopers or manage notices, awards and costumes
 
@@ -196,13 +196,16 @@ Full unrestricted system access, shown as **System Owner**. Cannot be self-assig
 | Sign up for events | ✓ | ✓ (handler) | ✓ (top-level only) | ✓ | ✓ | ✓ | ✓ |
 | Manage own costumes | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Create events | — | — | — | ✓ (own orgs) | ✓ (scoped) | ✓ | ✓ |
-| Manage events | — | — | — | ✓ (own events) | ✓ (scoped) | ✓ | ✓ |
+| Manage events | — | — | — | ✓ (own events) ¹ | ✓ (scoped) ¹ | ✓ | ✓ |
 | Approve/deny troopers | — | — | — | — | ✓ (scoped) | ✓ | ✓ |
 | Manage notices/awards | — | — | — | — | ✓ (scoped) | ✓ | ✓ |
 | Command staff notifications | — | — | — | — | ✓ | ✓ | ✓ |
 | Change trooper roles | — | — | — | — | — | ✓ (not to/from admin) | ✓ |
 | Unrestricted org scope | — | — | — | — | — | ✓ | ✓ |
 | Plugins, System Check, Merge | — | — | — | — | — | — | ✓ |
+
+¹ Plus any event they're picked to coordinate (see "Event Coordinator" in `EVENTS.md`). Only
+event coordinators and up can be picked.
 
 ---
 

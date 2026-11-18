@@ -8,6 +8,7 @@ use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
 use App\Models\Event;
 use App\Models\Organization;
+use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -60,8 +61,39 @@ class UpdateController extends PageController
             $organization->pivot = $event_organization->pivot ?? null;
         }
 
-        $data = compact('event', 'organizations');
+        //  the creator is the empty choice, not an option of their own
+        $candidates = $event->coordinatorCandidates()
+            ->reject(fn (Trooper $trooper): bool => $trooper->id === $event->created_id)
+            ->sortBy(fn (Trooper $trooper): string => mb_strtolower($this->coordinatorLabel($trooper)));
+
+        $coordinator_options = $candidates
+            ->mapWithKeys(fn (Trooper $trooper): array => [$trooper->id => $this->coordinatorLabel($trooper)])
+            ->all();
+
+        $coordinator_creator = $event->created_by
+            ? $this->coordinatorLabel($event->created_by)
+            : __("admin.The event's creator");
+
+        //  a coordinator who can't host for the event's organization can't move it either
+        $can_change_host = Organization::eventHostableBy($request->user())
+            ->where(Organization::ID, $event->organization_id)
+            ->exists();
+
+        $data = compact('event', 'organizations', 'coordinator_options', 'coordinator_creator', 'can_change_host');
 
         return view('pages.admin.events.update', $data);
+    }
+
+    /**
+     * The trooper's name with their username after it, as the Troopers tab shows both;
+     * just the username when no name is on file (or it's the same).
+     */
+    private function coordinatorLabel(Trooper $trooper): string
+    {
+        $name = trim((string) $trooper->legal_name);
+
+        return $name === '' || $name === $trooper->display_name
+            ? $trooper->display_name
+            : "{$name} ({$trooper->display_name})";
     }
 }

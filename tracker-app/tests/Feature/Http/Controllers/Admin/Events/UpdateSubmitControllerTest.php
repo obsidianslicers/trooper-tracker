@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
+use App\Enums\MembershipRole;
 use App\Jobs\SendEventCancelledNotificationsJob;
 use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Event;
@@ -226,6 +228,83 @@ class UpdateSubmitControllerTest extends TestCase
             ->assertSessionHasErrors(Event::EVENT_TYPE_ID);
 
         $this->assertSame($hidden->id, $event->fresh()->event_type_id);
+    }
+
+    public function test_invoke_picks_an_attendee_as_coordinator_after_the_event(): void
+    {
+        $admin = Trooper::factory()->asSystemOwner()->create();
+        $event = $this->pastEvent();
+        $attendee = $this->signUp($event, EventTrooperStatus::ATTENDED);
+
+        $this->actingAs($admin)
+            ->post('/admin/events/'.$event->id.'/update', $this->coordinatorPayload($event, $attendee->id))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame($attendee->id, $event->fresh()->coordinator_trooper_id);
+
+        $this->actingAs($admin)
+            ->post('/admin/events/'.$event->id.'/update', $this->coordinatorPayload($event, null))
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull($event->fresh()->coordinator_trooper_id);
+    }
+
+    public function test_invoke_refuses_a_coordinator_who_isnt_going_or_attended_or_is_below_event_coordinator(): void
+    {
+        $admin = Trooper::factory()->asSystemOwner()->create();
+        $event = $this->pastEvent();
+        $no_show = $this->signUp($event, EventTrooperStatus::NO_SHOW);
+        $stranger = Trooper::factory()->asEventCoordinator()->create();
+        $member = $this->signUp($event, EventTrooperStatus::ATTENDED);
+        $member->update([Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER]);
+
+        foreach ([$no_show, $stranger, $member] as $trooper)
+        {
+            $this->actingAs($admin)
+                ->post('/admin/events/'.$event->id.'/update', $this->coordinatorPayload($event, $trooper->id))
+                ->assertSessionHasErrors(Event::COORDINATOR_TROOPER_ID);
+        }
+
+        $this->assertNull($event->fresh()->coordinator_trooper_id);
+    }
+
+    private function pastEvent(): Event
+    {
+        return Event::factory()->create([
+            Event::STATUS => EventStatus::CLOSED,
+            Event::EVENT_START => now()->subDays(3),
+            Event::EVENT_END => now()->subDays(3)->addHours(4),
+        ]);
+    }
+
+    private function signUp(Event $event, EventTrooperStatus $status): Trooper
+    {
+        $shift = $event->event_shifts()->first()
+            ?? EventShift::factory()->forEvent($event)->create([
+                EventShift::STATUS => EventStatus::CLOSED,
+                EventShift::SHIFT_STARTS_AT => $event->event_start,
+                EventShift::SHIFT_ENDS_AT => $event->event_end,
+            ]);
+        $trooper = Trooper::factory()->asEventCoordinator()->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->create([EventTrooper::STATUS => $status]);
+
+        return $trooper;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function coordinatorPayload(Event $event, ?int $coordinator_id): array
+    {
+        return [
+            'name' => $event->name,
+            Event::EVENT_TYPE_ID => $event->event_type_id,
+            'status' => $event->status->value,
+            'organization_id' => $event->organization_id,
+            'event_start' => $event->event_start->format('Y-m-d H:i:s'),
+            'event_end' => $event->event_end->format('Y-m-d H:i:s'),
+            Event::COORDINATOR_TROOPER_ID => $coordinator_id,
+        ];
     }
 
     /**
