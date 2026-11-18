@@ -6,6 +6,8 @@ namespace App\Models\Observers;
 
 use App\Enums\EventTrooperStatus;
 use App\Events\TrooperSignupStatusChanged;
+use App\Models\Event;
+use App\Models\EventShift;
 use App\Models\EventTrooper;
 
 /**
@@ -20,6 +22,36 @@ class EventTrooperObserver
     public function updated(EventTrooper $event_trooper): void
     {
         $this->dispatchStatusChange($event_trooper);
+
+        $still_eligible = in_array($event_trooper->status, Event::COORDINATOR_STATUSES, true)
+            && !$event_trooper->trashed()
+            && !$event_trooper->wasChanged([EventTrooper::EVENT_SHIFT_ID, EventTrooper::TROOPER_ID]);
+
+        if (!$still_eligible && $event_trooper->wasChanged([EventTrooper::STATUS, EventTrooper::EVENT_SHIFT_ID, EventTrooper::TROOPER_ID, EventTrooper::DELETED_AT]))
+        {
+            $this->releaseCoordinator($event_trooper);
+        }
+    }
+
+    public function deleted(EventTrooper $event_trooper): void
+    {
+        $this->releaseCoordinator($event_trooper);
+    }
+
+    /**
+     * A picked event coordinator who is no longer going or attended stops being it, and the
+     * event's creator coordinates again.
+     */
+    private function releaseCoordinator(EventTrooper $event_trooper): void
+    {
+        $shift_ids = array_filter([
+            $event_trooper->event_shift_id,
+            $event_trooper->getOriginal(EventTrooper::EVENT_SHIFT_ID),
+        ]);
+
+        Event::releaseIneligibleCoordinators(
+            EventShift::withTrashed()->whereIn(EventShift::ID, $shift_ids)->pluck(EventShift::EVENT_ID)
+        );
     }
 
     /**

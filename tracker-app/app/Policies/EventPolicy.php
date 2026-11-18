@@ -107,7 +107,8 @@ class EventPolicy
     /**
      * Check if a user can moderate a subject event.
      * An admin can moderate any event. A moderator can moderate events within their assigned
-     * scope. An event coordinator can moderate the events they created.
+     * scope. An event coordinator can moderate the events they created. Either can moderate
+     * an event they're picked to coordinate.
      *
      * @param  Trooper  $trooper  The user performing the action (moderator).
      * @param  Event  $subject  The event being moderated.

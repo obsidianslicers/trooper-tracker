@@ -62,6 +62,20 @@ Members hear about it before they sign up, not after:
 
 ---
 
+## Event Coordinator
+
+The event page shows an "Event Coordinator" under the Point of Contact box, linked to their service record. It's whoever created the event (`created_id`) unless someone else is picked, since the person who makes an event isn't always the one who runs it.
+
+Anyone who can edit the event picks the coordinator on its Overview tab (`coordinator_trooper_id`), before or after the event. The choices are active event coordinators and up (command staff's rule; members, handlers and visitors can't be picked) who are going to or attended on any of its shifts, including attendance waiting for a moderator to verify (`Event::COORDINATOR_STATUSES`). Each reads "Legal Name (username)". Leaving it empty means the creator. If the picked trooper's sign-ups stop qualifying (a status change, a removed sign-up or a removed shift), the field goes back to empty and the creator shows again (`Event::releaseIneligibleCoordinators()`, from the sign-up and shift observers). It's a quiet update: no notifications or forum edits.
+
+The picked coordinator can edit and run that event even when someone else created it or it's outside their moderator scope: details, shifts, charity, roster, photos and mission review (`Event::managedBy()`, so `EventPolicy::update`). It shows in their **My Events**. They can't move the event to an organization they can't host for, so the Overview shows its host as plain text. Losing the pick (someone else is picked, or their sign-up stops qualifying) or the role ends the access.
+
+Picking a coordinator doesn't change who created the event, so the forum thread stays under the creator's name.
+
+**Source:** `app/Models/Event.php` (`eventCoordinator()`, `coordinatorCandidates()`), `app/Models/Scopes/HasEventScopes.php` (`scopeManagedBy()`), `routes/web/admin-events.php`, `resources/views/pages/events/inc/coordinator.blade.php`, `resources/views/pages/admin/events/inc/coordinator.blade.php`
+
+---
+
 ## Holidays on the Calendar
 
 Events → Calendar shows holidays in their day cells, under the date and above that day's events, so coordinators and troopers can see at a glance when a request falls on a holiday weekend. They're labels only: not events, not filtered, not in the ICS feed.

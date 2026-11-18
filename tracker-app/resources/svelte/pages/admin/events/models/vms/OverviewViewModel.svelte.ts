@@ -38,6 +38,7 @@ function toForm(overview: EventOverview): OverviewForm {
 
     return {
         ...form,
+        coordinator_trooper_id: form.coordinator_trooper_id ?? "",
         organizations: overview.organizations.map((organization) => ({
             ...organization,
             troopers_allowed: text(organization.troopers_allowed),

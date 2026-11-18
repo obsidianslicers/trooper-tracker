@@ -39,6 +39,14 @@ class AdminEventOverview extends JsonResource
             'form' => $this->form($event),
             'organizations' => $this->organizations($event),
             'host_options' => $this->hostOptions($event),
+            'host_name' => $event->organization?->name,
+            'can_change_host' => $this->canChangeHost($event),
+            'coordinator_options' => $this->coordinatorOptions($event),
+            'coordinator_creator' => __('admin.:name (created the event)', [
+                'name' => $event->created_by
+                    ? $this->coordinatorLabel($event->created_by)
+                    : __("admin.The event's creator"),
+            ]),
             'event_types' => $this->eventTypes($event),
             'status_options' => $this->options(EventStatus::toArray()),
             'plugin_fields' => app(PluginSlots::class)
@@ -62,6 +70,7 @@ class AdminEventOverview extends JsonResource
                 Event::REQUESTED_CHARACTER_TYPES, Event::SHIFTS_ALLOWED, Event::TROOPERS_ALLOWED,
                 Event::HANDLERS_ALLOWED, Event::FRIENDS_ALLOWED, Event::GUESTS_ALLOWED,
                 Event::AMENITIES, Event::COMMENTS, Event::REFERRED_BY,
+                Event::COORDINATOR_TROOPER_ID,
             ]),
             Event::STATUS => $event->status->value,
             Event::EVENT_START => $event->event_start?->format('Y-m-d H:i'),
@@ -138,6 +147,47 @@ class AdminEventOverview extends JsonResource
                 'label' => str_repeat('— ', max(0, $organization->depth - 1)).$organization->name,
             ])
             ->all();
+    }
+
+    /**
+     * A coordinator who can't host for the event's organization can't move it either.
+     */
+    private function canChangeHost(Event $event): bool
+    {
+        return Organization::eventHostableBy($this->actor)
+            ->where(Organization::ID, $event->organization_id)
+            ->exists();
+    }
+
+    /**
+     * Who can be picked to run the event. The creator is the empty choice, not an option.
+     *
+     * @return array<int, array{value:int,label:string}>
+     */
+    private function coordinatorOptions(Event $event): array
+    {
+        return $event->coordinatorCandidates()
+            ->reject(fn (Trooper $trooper): bool => $trooper->id === $event->created_id)
+            ->map(fn (Trooper $trooper): array => [
+                'value' => $trooper->id,
+                'label' => $this->coordinatorLabel($trooper),
+            ])
+            ->sortBy(fn (array $option): string => mb_strtolower($option['label']))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * The trooper's name with their username after it, as the roster shows both; just the
+     * username when no name is on file (or it's the same).
+     */
+    private function coordinatorLabel(Trooper $trooper): string
+    {
+        $name = trim((string) $trooper->legal_name);
+
+        return $name === '' || $name === $trooper->display_name
+            ? $trooper->display_name
+            : "{$name} ({$trooper->display_name})";
     }
 
     /**

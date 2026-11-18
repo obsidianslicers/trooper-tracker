@@ -22,6 +22,7 @@ class ForumPostCommandStaffMail extends Mailable implements ShouldQueue
     public function __construct(
         private readonly Event $event,
         private readonly Trooper $poster,
+        private readonly bool $to_coordinator = false,
     ) {}
 
     public function envelope(): Envelope
@@ -38,6 +39,7 @@ class ForumPostCommandStaffMail extends Mailable implements ShouldQueue
             with: [
                 'event' => $this->event,
                 'poster' => $this->poster,
+                'to_coordinator' => $this->to_coordinator,
             ]
         );
     }

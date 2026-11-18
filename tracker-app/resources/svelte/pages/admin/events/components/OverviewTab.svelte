@@ -27,6 +27,12 @@
         untrack(() => overview),
     );
 
+    // Empty ("") means whoever created the event runs it.
+    let coordinator_options = $derived([
+        { value: "", label: overview.coordinator_creator },
+        ...overview.coordinator_options,
+    ]);
+
     let event_type = $derived(
         overview.event_types.find(
             (type) => type.value == vm.form.event_type_id,
@@ -37,12 +43,17 @@
 <SlimView wide={true}>
     <form onsubmit={vm.submit} novalidate>
         <InputContainer>
-            <InputSelect
-                label={t("Hosting Organization")}
-                options={overview.host_options}
-                bind:value={vm.form.organization_id}
-                errors={vm.errors.organization_id}
-            />
+            {#if overview.can_change_host}
+                <InputSelect
+                    label={t("Hosting Organization")}
+                    options={overview.host_options}
+                    bind:value={vm.form.organization_id}
+                    errors={vm.errors.organization_id}
+                />
+            {:else}
+                <span class="form-label">{t("Hosting Organization")}</span>
+                <div class="form-control-plaintext">{overview.host_name}</div>
+            {/if}
         </InputContainer>
         <InputContainer>
             <InputText
@@ -69,6 +80,19 @@
                     )}
                 </div>
             {/if}
+        </InputContainer>
+        <InputContainer>
+            <InputSelect
+                label={t("Event Coordinator")}
+                options={coordinator_options}
+                bind:value={vm.form.coordinator_trooper_id}
+                errors={vm.errors.coordinator_trooper_id}
+            />
+            <InputHelp>
+                {t(
+                    "Shown on the event page, and they can edit this event. It's whoever created the event unless you pick an event coordinator or command staff member who is going or attended. If their status changes to anything else, it goes back to the creator. The forum thread stays under the creator's name.",
+                )}
+            </InputHelp>
         </InputContainer>
         <InputContainer>
             <InputSelect

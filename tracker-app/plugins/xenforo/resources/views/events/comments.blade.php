@@ -92,7 +92,7 @@
                                    value="1"
                                    id="notify-command-staff">
                             <label class="form-check-label text-muted small" for="notify-command-staff">
-                                <i class="fa fa-fw fa-bell me-1"></i>{{ __('xenforo::events.Notify command staff') }}
+                                <i class="fa fa-fw fa-bell me-1"></i>{{ __('xenforo::events.Notify command staff and the event coordinator') }}
                             </label>
                         </div>
                     </div>

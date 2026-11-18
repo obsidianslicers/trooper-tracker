@@ -33,6 +33,8 @@ export type EventOverviewForm = {
     comments: string | null;
     require_mission_brief_ack: boolean;
     referred_by: string | null;
+    /** "" (or null) means the event's creator. */
+    coordinator_trooper_id: number | "" | null;
 };
 
 export type EventOrganizationLimit = {
@@ -53,6 +55,10 @@ export type EventOverview = {
     form: EventOverviewForm;
     organizations: EventOrganizationLimit[];
     host_options: Option[];
+    host_name: string | null;
+    can_change_host: boolean;
+    coordinator_options: Option[];
+    coordinator_creator: string;
     event_types: EventTypeOption[];
     status_options: Option[];
     plugin_fields: string;

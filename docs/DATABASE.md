@@ -44,6 +44,7 @@ erDiagram
     tt_organizations ||--o{ tt_trooper_requests : receives
 
     tt_troopers ||--o{ tt_trooper_requests : submits
+    tt_troopers ||--o{ tt_events : coordinates
     tt_troopers ||--o{ tt_permission_requests : subject_of
     tt_troopers ||--o{ tt_permission_requests : requests
     tt_troopers ||--o{ tt_permission_requests : reviews
@@ -98,6 +99,7 @@ erDiagram
     tt_organization_costumes ||--o{ tt_trooper_costumes : assigned_to
 
     tt_troopers ||--o{ tt_trooper_requests : submits
+    tt_troopers ||--o{ tt_events : coordinates
     tt_troopers ||--o{ tt_permission_requests : subject_of
     tt_troopers ||--o{ tt_permission_requests : requests
     tt_troopers ||--o{ tt_permission_requests : reviews
