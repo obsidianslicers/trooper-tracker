@@ -4,7 +4,6 @@
     import { Deferred, usePage } from "@inertiajs/svelte";
     import EventCard from "./components/EventCard.svelte";
     import EventFilters from "./components/EventFilters.svelte";
-    import EventViews from "./components/EventViews.svelte";
     import NoticeAlert from "./components/NoticeAlert.svelte";
     import SupportGoal from "./components/SupportGoal.svelte";
     import { ListEventsViewModel, type ListEventsPageData } from "./models";
@@ -24,8 +23,6 @@
         <SupportGoal support={page.props.support!} />
     </Deferred>
 {/if}
-
-<EventViews active="list" has_map={vm.has_map} />
 
 <EventFilters {vm} />
 

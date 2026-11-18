@@ -191,6 +191,21 @@ describe('ListEventsViewModel', () => {
         expect(cookies.get('events_only_mine')).toBe('0');
     });
 
+    it('counts the filters folded behind the phone Filters button, but not the search', () => {
+        const vm = new ListEventsViewModel(pageData([event()]));
+        vm.setSearch('x');
+        expect(vm.filter_count).toBe(0);
+
+        vm.toggleHosting('3', true);
+        vm.toggleHosting('4', true);
+        vm.toggleOnlyMine();
+        expect(vm.filter_count).toBe(3);
+
+        expect(vm.show_filters).toBe(false);
+        vm.toggleFilters();
+        expect(vm.show_filters).toBe(true);
+    });
+
     it('hides a notice right away and marks it read', () => {
         const vm = new ListEventsViewModel({
             ...pageData([]),

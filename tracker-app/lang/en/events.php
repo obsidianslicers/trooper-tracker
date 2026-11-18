@@ -107,6 +107,7 @@ return [
     'Failed to share roster: :error' => 'Failed to share roster: :error',
     'Filter by squad' => 'Filter by squad',
     'Filter Options' => 'Filter Options',
+    'Filters' => 'Filters',
     'Find a Trooper' => 'Find a Trooper',
     'Fri' => 'Fri',
     'Full' => 'Full',

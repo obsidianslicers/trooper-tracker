@@ -67,6 +67,10 @@ export class ListEventsViewModel extends EventFiltersViewModel {
             || this.needs_troopers;
     }
 
+    get filter_count(): number {
+        return super.filter_count + Number(this.only_mine) + Number(this.needs_troopers);
+    }
+
     override matches(event: EventSummary): boolean {
         if (!super.matches(event)) {
             return false;

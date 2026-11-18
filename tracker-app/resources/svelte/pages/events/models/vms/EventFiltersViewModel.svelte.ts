@@ -22,6 +22,7 @@ export class EventFiltersViewModel extends ViewModel {
     search_term: string = $state("");
     hosting_organization_ids: string[] = $state([]);
     show_hosting_picker: boolean = $state(false);
+    show_filters: boolean = $state(false);
 
     private parents: Record<string, string> = {};
     private children: Record<string, string[]> = {};
@@ -57,6 +58,15 @@ export class EventFiltersViewModel extends ViewModel {
     get has_filters(): boolean {
         return this.search_term.trim().length > 0 || this.has_hosting_filter;
     }
+
+    //  How many filters the phone layout's folded Filters button stands for (search stays visible).
+    get filter_count(): number {
+        return this.active_hosting_ids.length;
+    }
+
+    toggleFilters = () => {
+        this.show_filters = !this.show_filters;
+    };
 
     hostingName = (id: string): string => {
         return this.hosting_organizations.find((o) => String(o.id) === id)?.name ?? "";
