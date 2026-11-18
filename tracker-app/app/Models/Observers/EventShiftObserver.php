@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Observers;
 
 use App\Enums\EventStatus;
+use App\Models\Event;
 use App\Models\EventShift;
 use RuntimeException;
 
@@ -25,5 +26,14 @@ class EventShiftObserver
                 "Cannot close EventShift [{$shift->id}]: shift ends at {$shift->shift_ends_at} which is in the future.",
             );
         }
+    }
+
+    /**
+     * A removed shift takes its sign-ups with it, so its event's picked coordinator may no
+     * longer be going or attended on any shift.
+     */
+    public function deleted(EventShift $shift): void
+    {
+        Event::releaseIneligibleCoordinators([$shift->event_id]);
     }
 }

@@ -15,6 +15,7 @@ use App\Models\EventType;
 use App\Models\EventUpload;
 use App\Models\EventWatch;
 use App\Models\Organization;
+use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $primary_organization_id
  * @property string $name
  * @property int $event_type_id
+ * @property int|null $coordinator_trooper_id
  * @property string $status
  * @property Carbon|null $create_notifications_sent_at
  * @property Carbon|null $cancel_notifications_sent_at
@@ -71,6 +73,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $deleted_id
  * 
  * @property EventType $event_type
+ * @property Trooper|null $coordinator_trooper
  * @property Organization $organization
  * @property Collection|EventMissionAck[] $event_mission_acks
  * @property Collection|EventNotification[] $event_notifications
@@ -90,6 +93,7 @@ class Event extends Model
     const PRIMARY_ORGANIZATION_ID = 'primary_organization_id';
     const NAME = 'name';
     const EVENT_TYPE_ID = 'event_type_id';
+    const COORDINATOR_TROOPER_ID = 'coordinator_trooper_id';
     const STATUS = 'status';
     const CREATE_NOTIFICATIONS_SENT_AT = 'create_notifications_sent_at';
     const CANCEL_NOTIFICATIONS_SENT_AT = 'cancel_notifications_sent_at';
@@ -135,6 +139,7 @@ class Event extends Model
         self::ORGANIZATION_ID => 'int',
         self::PRIMARY_ORGANIZATION_ID => 'int',
         self::EVENT_TYPE_ID => 'int',
+        self::COORDINATOR_TROOPER_ID => 'int',
         self::CREATE_NOTIFICATIONS_SENT_AT => 'datetime',
         self::CANCEL_NOTIFICATIONS_SENT_AT => 'datetime',
         self::LATITUDE => 'float',
@@ -167,6 +172,7 @@ class Event extends Model
         self::PRIMARY_ORGANIZATION_ID,
         self::NAME,
         self::EVENT_TYPE_ID,
+        self::COORDINATOR_TROOPER_ID,
         self::STATUS,
         self::CREATE_NOTIFICATIONS_SENT_AT,
         self::CANCEL_NOTIFICATIONS_SENT_AT,
@@ -204,6 +210,11 @@ class Event extends Model
     public function event_type(): BelongsTo
     {
         return $this->belongsTo(EventType::class);
+    }
+
+    public function coordinator_trooper(): BelongsTo
+    {
+        return $this->belongsTo(Trooper::class, \App\Models\Event::COORDINATOR_TROOPER_ID);
     }
 
     public function organization(): BelongsTo
