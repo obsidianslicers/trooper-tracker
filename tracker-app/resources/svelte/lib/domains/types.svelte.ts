@@ -2,6 +2,9 @@ import { useForm } from "@inertiajs/svelte";
 
 export type Option = { value: string | number | boolean | object, label: string };
 
+/** A smiley a plugin offers in the markdown editors; `code` is the text inserted. */
+export type Smiley = { title: string; code: string; image_url: string };
+
 export type Paginated<T> = {
     data: T[];
     links: { url: string | null; label: string; active: boolean }[];

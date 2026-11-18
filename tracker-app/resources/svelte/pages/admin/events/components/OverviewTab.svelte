@@ -342,6 +342,7 @@
             <InputContainer>
                 <InputMarkdown
                     label={t("Comments")}
+                    smilies={overview.smilies}
                     bind:value={vm.form.comments}
                     errors={vm.errors.comments}
                 />

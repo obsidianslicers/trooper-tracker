@@ -148,6 +148,32 @@ class EventThreadsTest extends TestCase
                 && str_contains($html, 'value="321"')));
     }
 
+    public function test_event_page_offers_forum_smilies_in_the_comments_editor(): void
+    {
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+        $event = Event::factory()->create();
+
+        $this->mock(XenforoService::class, function (MockInterface $mock): void
+        {
+            $mock->shouldReceive('get_smilies')->andReturn([[
+                'smilie_id' => 1,
+                'title' => 'Smile',
+                'smilie_text' => [':)', ':-)'],
+                'image_url' => 'https://forums.example.com/smile.png',
+                'image_url_2x' => '',
+            ]]);
+        });
+
+        $response = $this->actingAs($trooper)->get(route('admin.events.update', $event));
+
+        $response->assertInertia(fn ($page) => $page
+            ->where('overview.smilies', [[
+                'title' => 'Smile',
+                'code' => ':)',
+                'image_url' => 'https://forums.example.com/smile.png',
+            ]]));
+    }
+
     public function test_event_page_shows_forum_comments_and_post_button(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();

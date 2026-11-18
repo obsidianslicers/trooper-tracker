@@ -50,6 +50,13 @@
         return () => instance.destroy();
     };
 
+    // Removing the last station folds the editor back to the "+ Stations" link.
+    $effect(() => {
+        if (vm.form.stations.length === 0) {
+            show_stations = false;
+        }
+    });
+
     const openStations = () => {
         show_stations = true;
 

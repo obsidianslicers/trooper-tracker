@@ -160,6 +160,14 @@ class XenforoServiceProvider extends PluginServiceProvider
         $this->addToSlot('events.display.discussion', 'xenforo::events.comments');
         $this->addToSlot('events.display.share-buttons', 'xenforo::events.forum-post-button');
         $this->addToSlot('admin.events.form.fields', 'xenforo::admin.event-fields');
+        $this->setEditorSmilies(fn (): array => array_map(
+            fn (array $smiley): array => [
+                'title' => $smiley['title'] ?? '',
+                'code' => $smiley['smilie_text'][0] ?? '',
+                'image_url' => $smiley['image_url'] ?? '',
+            ],
+            app(EventComments::class)->smilies(),
+        ));
 
         $this->extendForm(PluginForms::EVENT_UPDATE,
             rules: [

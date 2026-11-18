@@ -162,6 +162,17 @@ abstract class PluginServiceProvider extends ServiceProvider
     }
 
     /**
+     * Offer smilies in the site's markdown editors. The source runs only when an editor is
+     * shown, and returns rows with a title, the code to insert, and an image_url.
+     *
+     * @param  Closure(): iterable<int, array<string, mixed>>  $source
+     */
+    protected function setEditorSmilies(Closure $source): void
+    {
+        $this->app->make(PluginSmilies::class)->set($source);
+    }
+
+    /**
      * Add validation rules and a save callback to a core form, such as
      * PluginForms::ORGANIZATION_UPDATE. Render the inputs through the form's slot.
      *

@@ -12,6 +12,7 @@ use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Plugins\PluginSlots;
+use App\Plugins\PluginSmilies;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
@@ -49,6 +50,7 @@ class AdminEventOverview extends JsonResource
             ]),
             'event_types' => $this->eventTypes($event),
             'status_options' => $this->options(EventStatus::toArray()),
+            'smilies' => app(PluginSmilies::class)->all(),
             'plugin_fields' => app(PluginSlots::class)
                 ->render('admin.events.form.fields', ['event' => $event]),
             'display_url' => route('events.display', ['event' => $event]),

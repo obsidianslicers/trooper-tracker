@@ -355,6 +355,10 @@ $this->extendForm(PluginForms::ORGANIZATION_UPDATE,
 
 Forms that support this are listed as constants on `App\Plugins\PluginForms`: the organization edit form (`ORGANIZATION_UPDATE`) and the event create and edit forms (`EVENT_UPDATE`, saved by the `UpdateEvent` message; `saved` gets the event and the validated input, so check your own keys are present). Give your inputs names that are not event or organization columns, such as a `hello_` prefix.
 
+### Editor smilies
+
+`$this->setEditorSmilies(fn () => [['title' => 'Smile', 'code' => ':)', 'image_url' => 'https://...']])` puts a smilies button on the toolbar of the Svelte markdown editors that offer it (such as the event Comments on the Command Staff event page). Picking one inserts its `code`. The callback runs only when an editor is shown, so cache anything slow. Rows without a code or picture are skipped. One plugin's smilies are offered at a time, and no capability is needed.
+
 ### System Check rows
 
 `$this->addSystemCheck('Hello API key', fn () => filled($this->setting('api_key')))` adds a row to Command Staff > System Check under "Plugins". Return `true` (pass), `false` (warn) or a `SystemCheckResult`. The Plugins group also shows a failure for any enabled plugin that did not load.
