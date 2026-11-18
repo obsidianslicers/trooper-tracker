@@ -16,6 +16,7 @@ use App\Plugins\PluginNotifications;
 use App\Plugins\PluginPermissionRequests;
 use App\Plugins\PluginSheetSource;
 use App\Plugins\PluginSlots;
+use App\Plugins\PluginSmilies;
 use App\Plugins\PluginSystemChecks;
 use App\Services\Synchronizers\BuiltInClubSynchronizers;
 use Illuminate\Support\Facades\Blade;
@@ -34,6 +35,7 @@ class PluginsServiceProvider extends ServiceProvider
         $this->app->singleton(PluginSlots::class);
         $this->app->singleton(PluginForms::class);
         $this->app->singleton(PluginDonations::class);
+        $this->app->singleton(PluginSmilies::class);
         $this->app->singleton(PluginPermissionRequests::class);
         $this->app->singleton(PluginSheetSource::class);
         $this->app->singleton(

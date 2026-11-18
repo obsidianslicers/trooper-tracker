@@ -187,6 +187,10 @@ test.describe('shifts and charity', () => {
         await page.getByRole('button', { name: 'Remove E2E Photo Line' }).click();
         await confirmDialog(page, 'Remove');
 
+        // With nothing left the editor folds away, as it was when the page opened.
+        await expect(page.getByLabel('Station name')).toHaveCount(0);
+        await expect(first.getByRole('button', { name: 'Stations' })).toBeVisible();
+
         await page.reload();
         await expect(page.getByLabel('Station name')).toHaveCount(0);
     });

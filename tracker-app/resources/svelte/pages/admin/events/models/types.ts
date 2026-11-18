@@ -1,4 +1,4 @@
-import type { ITrooperStamps, Option } from "$lib/domains/types.svelte";
+import type { ITrooperStamps, Option, Smiley } from "$lib/domains/types.svelte";
 
 export type EventOverviewForm = {
     organization_id: number | null;
@@ -61,6 +61,7 @@ export type EventOverview = {
     coordinator_creator: string;
     event_types: EventTypeOption[];
     status_options: Option[];
+    smilies: Smiley[];
     plugin_fields: string;
     display_url: string;
     trooper_stamps: ITrooperStamps | null;
