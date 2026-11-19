@@ -35,6 +35,20 @@ class EventTest extends TestCase
         ]);
     }
 
+    public function test_uploads_default_to_instructional_before_the_event_starts(): void
+    {
+        $subject = Event::factory()->withEventStart(Carbon::now()->addDay())->create();
+
+        $this->assertTrue($subject->uploadsDefaultToInstructional());
+    }
+
+    public function test_uploads_default_to_troop_photos_once_the_event_starts(): void
+    {
+        $subject = Event::factory()->withEventStart(Carbon::now()->subHour())->create();
+
+        $this->assertFalse($subject->uploadsDefaultToInstructional());
+    }
+
     public function test_organization_relationship_returns_belongs_to(): void
     {
         $subject = Event::factory()->create();

@@ -23,6 +23,7 @@ use App\Http\Controllers\Events\SignUpHtmxController;
 use App\Http\Controllers\Events\SignUpUpdateHtmxController;
 use App\Http\Controllers\Events\ToggleEventUploadTagController;
 use App\Http\Controllers\Events\ToggleEventWatchHtmxController;
+use App\Http\Controllers\Events\ToggleUploadTypeController;
 use App\Http\Controllers\Events\UploadImageController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +48,7 @@ Route::prefix('events')
         Route::get('/details/{event}/shifts/{event_shift}/roster-csv', [DownloadRosterCsvController::class, 'singleShift'])->name('download-shift-roster-csv');
         Route::post('/upload/{event}', UploadImageController::class)->name('upload-image');
         Route::post('/uploads/{event_upload}/toggle-tag', ToggleEventUploadTagController::class)->name('toggle-upload-tag');
+        Route::post('/uploads/{event_upload}/toggle-type', ToggleUploadTypeController::class)->name('toggle-upload-type');
         Route::post('/share-roster/{event}', ShareRosterHtmxController::class)->name('share-roster-htmx');
         Route::post('/broadcast-message/{event}', BroadcastMessageHtmxController::class)->name('broadcast-message-htmx');
         Route::get('/signup/{event_shift}/add-trooper-org-picker', AddTrooperOrgPickerHtmxController::class)->name('add-trooper-org-picker');

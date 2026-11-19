@@ -58,9 +58,7 @@ class ToggleEventUploadTagController
         }
 
         // Reload uploads with trooper tags so the view can show updated state.
-        $event->load(['event_uploads.troopers']);
-
-        $is_administrative = (bool) $event_upload->is_administrative;
+        $event->load(['event_uploads.troopers', 'event_uploads.trooper']);
 
         $flashMessage = json_encode([
             'message' => $isTagged
@@ -70,7 +68,7 @@ class ToggleEventUploadTagController
         ]);
 
         return response()
-            ->view('pages.events.inc.upload-display', compact('event', 'is_administrative'))
+            ->view('pages.events.inc.uploads-panel', compact('event'))
             ->header('X-Flash-Message', $flashMessage);
     }
 }

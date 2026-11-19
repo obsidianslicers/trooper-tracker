@@ -9,9 +9,11 @@ use App\Models\EventUpload;
 use App\Models\Trooper;
 use App\Services\EventImageUploadResult;
 use App\Services\EventImageUploadService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class UploadImageControllerTest extends TestCase
@@ -23,7 +25,7 @@ class UploadImageControllerTest extends TestCase
         Storage::fake('public');
 
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
-        $event = Event::factory()->create();
+        $event = Event::factory()->withEventStart(Carbon::now()->subDay())->create();
         $file = UploadedFile::fake()->image('mission-review.jpg', 800, 600)->size(2048);
 
         $response = $this->actingAs($trooper)
@@ -45,6 +47,46 @@ class UploadImageControllerTest extends TestCase
         $this->assertSame($trooper->id, $upload->trooper_id);
         Storage::disk('public')->assertExists($upload->image_path_lg);
         Storage::disk('public')->assertExists($upload->image_path_sm);
+    }
+
+    public function test_upload_before_the_event_defaults_to_instructional(): void
+    {
+        Storage::fake('public');
+
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $event = Event::factory()->withEventStart(Carbon::now()->addWeek())->create();
+
+        $response = $this->postImage($trooper, $event, []);
+
+        $response->assertOk();
+        $response->assertSee('admin-event-uploads', false);
+        $this->assertTrue(EventUpload::query()->firstOrFail()->is_administrative);
+    }
+
+    public function test_upload_as_troop_photo_before_the_event_goes_to_mission_review(): void
+    {
+        Storage::fake('public');
+
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $event = Event::factory()->withEventStart(Carbon::now()->addWeek())->create();
+
+        $response = $this->postImage($trooper, $event, ['upload_type' => 'troop']);
+
+        $response->assertOk();
+        $this->assertFalse(EventUpload::query()->firstOrFail()->is_administrative);
+    }
+
+    public function test_upload_as_instructional_after_the_event_starts_is_instructional(): void
+    {
+        Storage::fake('public');
+
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $event = Event::factory()->withEventStart(Carbon::now()->subDay())->create();
+
+        $response = $this->postImage($trooper, $event, ['upload_type' => 'instructional']);
+
+        $response->assertOk();
+        $this->assertTrue(EventUpload::query()->firstOrFail()->is_administrative);
     }
 
     public function test_oversized_image_returns_visible_htmx_error(): void
@@ -155,7 +197,8 @@ class UploadImageControllerTest extends TestCase
             UploadedFile::fake()->image('also-valid.png')->size(1024),
         ];
 
-        $this->mock(EventImageUploadService::class, function ($mock): void {
+        $this->mock(EventImageUploadService::class, function ($mock): void
+        {
             $mock->shouldReceive('upload')
                 ->once()
                 ->andReturn(new EventImageUploadResult(1, 1));
@@ -189,5 +232,19 @@ class UploadImageControllerTest extends TestCase
             ]);
 
         $response->assertRedirect(route('auth.login'));
+    }
+
+    /**
+     * @param  array<string, string>  $fields
+     */
+    private function postImage(Trooper $trooper, Event $event, array $fields): TestResponse
+    {
+        return $this->actingAs($trooper)
+            ->withSession(['_token' => 'test-token'])
+            ->withHeader('HX-Request', 'true')
+            ->withHeader('X-CSRF-TOKEN', 'test-token')
+            ->post(route('events.upload-image', $event), $fields + [
+                'images' => [UploadedFile::fake()->image('map.png', 400, 300)],
+            ]);
     }
 }

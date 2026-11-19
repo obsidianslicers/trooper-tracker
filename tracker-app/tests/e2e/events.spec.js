@@ -149,6 +149,7 @@ test.describe('around the event page', () => {
     test('a trooper uploads a photo to the mission review', async ({ page }) => {
         await openEvent(page, seeded.signupEvent);
 
+        await page.locator('label[for="upload-type-troop"]').click();
         await page.locator('input.image-input').setInputFiles({
             name: 'e2e-photo.png',
             mimeType: 'image/png',
@@ -156,6 +157,19 @@ test.describe('around the event page', () => {
         });
 
         await expect(page.locator('#event-uploads img')).not.toHaveCount(0);
+    });
+
+    test('a photo added before the troop goes to the instructional uploads', async ({ page }) => {
+        await openEvent(page, seeded.signupEvent);
+
+        await expect(page.locator('#upload-type-instructional')).toBeChecked();
+        await page.locator('input.image-input').setInputFiles({
+            name: 'e2e-map.png',
+            mimeType: 'image/png',
+            buffer: PNG,
+        });
+
+        await expect(page.locator('#admin-event-uploads img')).not.toHaveCount(0);
     });
 });
 

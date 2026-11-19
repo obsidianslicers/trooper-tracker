@@ -229,28 +229,48 @@
 
                     @pluginSlot('events.display.sections')
 
-                    @if ($event->event_uploads->where('is_administrative', true)->isNotEmpty())
-                        <div class="mt-5">
-                            <x-section-title>{{ __('events.Instructional Uploads') }}</x-section-title>
-                            @include('pages.events.inc.upload-display', ['event' => $event, 'is_administrative' => true])
-                        </div>
-                    @endif
+                    @include('pages.events.inc.uploads-panel', compact('event'))
 
-                    <div class="mt-5">
-                        <x-section-title>{{ __('events.Mission Review') }}</x-section-title>
-                        @include('pages.events.inc.upload-display', ['event' => $event, 'is_administrative' => false])
+                    <div class="mt-3">
                         <hr />
 
                         <x-transmission-bar :id="'upload-images'" />
                         <div id="mission-review-upload-messages"></div>
 
+                        @php $default_instructional = $event->uploadsDefaultToInstructional(); @endphp
+                        <fieldset class="mb-2">
+                            <legend class="form-label fs-6 mb-1">{{ __('events.Upload as') }}</legend>
+                            <div class="btn-group flex-wrap" role="group">
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="upload_type"
+                                       id="upload-type-instructional"
+                                       value="instructional"
+                                       autocomplete="off"
+                                       @checked($default_instructional) />
+                                <label class="btn btn-outline-primary" for="upload-type-instructional">
+                                    <i class="fa fa-fw fa-map me-1"></i>{{ __('events.Instructional (maps, parking, directions)') }}
+                                </label>
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="upload_type"
+                                       id="upload-type-troop"
+                                       value="troop"
+                                       autocomplete="off"
+                                       @checked(! $default_instructional) />
+                                <label class="btn btn-outline-primary" for="upload-type-troop">
+                                    <i class="fa fa-fw fa-camera me-1"></i>{{ __('events.Troop photo') }}
+                                </label>
+                            </div>
+                        </fieldset>
+
                         <div class="upload-zone border border-secondary rounded p-5 text-center bg-light"
                              hx-post="{{ route('events.upload-image', compact('event')) }}"
                              hx-trigger="submit"
-                             hx-select="#event-uploads"
-                             hx-target="#event-uploads"
+                             hx-select="#event-uploads-panel"
+                             hx-target="#event-uploads-panel"
                              hx-swap="outerHTML"
-                             hx-include="input[type=file]"
+                             hx-include="input[type=file], input[name=upload_type]:checked"
                              hx-encoding="multipart/form-data"
                              data-flash-target="#mission-review-upload-messages"
                              hx-indicator="#transmission-bar-upload-images">

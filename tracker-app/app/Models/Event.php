@@ -79,6 +79,15 @@ class Event extends BaseEvent
     }
 
     /**
+     * Photos added before an event starts are usually maps and directions, so they
+     * default to instructional; after it starts they default to troop photos.
+     */
+    public function uploadsDefaultToInstructional(): bool
+    {
+        return $this->event_start === null || $this->event_start->isFuture();
+    }
+
+    /**
      * The one sentence every page, forum post and announcement uses for an event that
      * doesn't count toward troop totals; null when it counts.
      */

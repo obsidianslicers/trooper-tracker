@@ -12,16 +12,23 @@
                            data-photo-url="{{ $event_upload->large_url }}">
                             <img src="{{ $event_upload->small_url }}"
                                  class="card-img-top rounded"
-                                 alt="Image #{{ $event_upload->id }}" />
+                                 alt="{{ __('events.Image #:id', ['id' => $event_upload->id]) }}" />
                         </a>
+                        @if($is_administrative && $event_upload->trooper)
+                            <div class="card-body p-2">
+                                <small class="text-muted">
+                                    {{ __('events.Uploaded by :name', ['name' => $event_upload->trooper->display_name]) }}
+                                </small>
+                            </div>
+                        @endif
                         <div class="event-image-share-buttons">
                             {!! Share::page(route('shares.event-upload', compact('event', 'event_upload')), $event->name)->facebook()->twitter() !!}
 
                             @if(! $is_administrative)
                                 @php $isTaggedForMe = $event_upload->troopers->contains('id', auth()->id()); @endphp
                                 <form hx-post="{{ route('events.toggle-upload-tag', compact('event_upload')) }}"
-                                      hx-select="#{{ $section_id }}"
-                                      hx-target="#{{ $section_id }}"
+                                      hx-select="#event-uploads-panel"
+                                      hx-target="#event-uploads-panel"
                                       hx-swap="outerHTML"
                                       hx-indicator="#transmission-bar-upload-images"
                                       class="mt-2">
@@ -29,10 +36,26 @@
                                     <button type="submit"
                                             class="btn btn-sm {{ $isTaggedForMe ? 'btn-warning' : 'btn-outline-light' }}">
                                         <i class="fa fa-fw {{ $isTaggedForMe ? 'fa-user-times' : 'fa-user-plus' }} me-1"></i>
-                                        {{ $isTaggedForMe ? 'Untag me' : 'Tag me' }}
+                                        {{ $isTaggedForMe ? __('events.Untag me') : __('events.Tag me') }}
                                     </button>
                                 </form>
                             @endif
+
+                            @can('changeType', $event_upload)
+                                <form hx-post="{{ route('events.toggle-upload-type', compact('event_upload')) }}"
+                                      hx-select="#event-uploads-panel"
+                                      hx-target="#event-uploads-panel"
+                                      hx-swap="outerHTML"
+                                      hx-indicator="#transmission-bar-upload-images"
+                                      class="mt-2">
+                                    @csrf
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-light">
+                                        <i class="fa fa-fw {{ $is_administrative ? 'fa-camera' : 'fa-map' }} me-1"></i>
+                                        {{ $is_administrative ? __('events.Move to Mission Review') : __('events.Move to Instructional') }}
+                                    </button>
+                                </form>
+                            @endcan
                         </div>
                     </div>
                 </div>
