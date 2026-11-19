@@ -39,10 +39,12 @@ if (!function_exists('qs'))
 
     /**
      * Convert a property.name to a bracketed[name]
+     *
+     * Numeric keys may be negative: rows added in the browser use -1, -2, ... until saved.
      */
     function to_bracket_name(string $property): string
     {
-        $bracketed = preg_replace('/\.(\d+)/', '[$1]', $property);
+        $bracketed = preg_replace('/\.(-?\d+)/', '[$1]', $property);
         $bracketed = preg_replace('/\.(\w+)/', '[$1]', $bracketed);
 
         return $bracketed;

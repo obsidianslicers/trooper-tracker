@@ -74,4 +74,29 @@ class InputTextTest extends TestCase
 
         $this->assertStringContainsString('name="event[name]"', $subject);
     }
+
+    /**
+     * Rows added in the browser use negative keys until saved. When a form with such rows is
+     * redrawn after a validation error, their fields must keep a name PHP reads back into the
+     * same array, or the next submit drops them.
+     */
+    public function test_it_keeps_negative_keys_of_unsaved_rows_in_bracket_notation(): void
+    {
+        $errors = new ViewErrorBag();
+        view()->share('errors', $errors);
+
+        $subject = Blade::render('<x-input-text property="shifts.5.stations.-1.name" />');
+
+        $this->assertStringContainsString('name="shifts[5][stations][-1][name]"', $subject);
+    }
+
+    public function test_negative_key_names_parse_back_into_the_same_array(): void
+    {
+        foreach (['shifts.-1.date', 'shifts.5.stations.-2.troopers_allowed'] as $property)
+        {
+            parse_str(to_bracket_name($property).'=x', $parsed);
+
+            $this->assertSame('x', data_get($parsed, $property), $property);
+        }
+    }
 }
