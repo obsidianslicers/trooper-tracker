@@ -222,22 +222,10 @@
         {{ __('admin.Verify PHP, server, and integration settings') }}
         @if($system_check_problems->isNotEmpty())
         <x-slot:after>
-            <p class="card-text text-danger fw-bold mb-1">
+            <p class="card-text text-danger fw-bold">
+                <i class="fa fa-fw fa-solid fa-circle-exclamation"></i>
                 {{ trans_choice('admin.:count check needs attention|:count checks need attention', $system_check_problems->count()) }}
             </p>
-            <ul class="list-unstyled small mb-0">
-                @foreach($system_check_problems as $problem)
-                <li class="mb-1">
-                    <span class="badge {{ $problem->status->badgeClass() }}">
-                        <i class="fa fa-fw fa-solid {{ $problem->status->icon() }}"></i>
-                    </span>
-                    {{ $problem->label }}
-                    @if($problem->detail)
-                    <br><span class="text-muted">{{ $problem->detail }}</span>
-                    @endif
-                </li>
-                @endforeach
-            </ul>
         </x-slot:after>
         @endif
     </x-dashboard-card>

@@ -68,9 +68,7 @@ class AdminDisplayControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('2 checks need attention');
-        $response->assertSee('Queue worker heartbeat');
-        $response->assertSee('Last seen 12 minute(s) ago');
-        $response->assertSee('Debug mode');
+        $response->assertDontSee('Last seen 12 minute(s) ago');
     }
 
     public function test_invoke_shows_no_problem_list_when_system_check_passes(): void
