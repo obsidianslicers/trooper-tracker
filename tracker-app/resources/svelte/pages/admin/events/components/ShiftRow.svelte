@@ -226,8 +226,10 @@
                                 >
                                 <input
                                     id="station-{shift.id}-{station.key}-capacity"
-                                    type="text"
-                                    inputmode="numeric"
+                                    type="number"
+                                    min="1"
+                                    max="999"
+                                    step="1"
                                     class="form-control form-control-sm"
                                     name={name(
                                         `stations][${station.key}][troopers_allowed`,
