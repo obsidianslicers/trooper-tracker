@@ -39,21 +39,23 @@
                 <i class="fa fa-fw fa-ban fa-lg me-2"></i>
                 {{ __('layout.Cancelled') }}
             </x-nav-link>
-            @role(['event_coordinator'])
+            @can('create', \App\Models\Event::class)
                 <li>
                     <hr class="dropdown-divider">
                 </li>
-                <x-nav-link :url="route('admin.events.list')"
-                            :active="request()->routeIs('admin.events.list')">
-                    <i class="fa fa-fw fa-clipboard-list fa-lg me-2"></i>
-                    {{ __('layout.My Events') }}
-                </x-nav-link>
+                @role(['event_coordinator'])
+                    <x-nav-link :url="route('admin.events.list')"
+                                :active="request()->routeIs('admin.events.list')">
+                        <i class="fa fa-fw fa-clipboard-list fa-lg me-2"></i>
+                        {{ __('layout.My Events') }}
+                    </x-nav-link>
+                @endrole
                 <x-nav-link :url="route('admin.events.create')"
                             :active="request()->routeIs('admin.events.create')">
                     <i class="fa fa-fw fa-plus fa-lg me-2"></i>
                     {{ __('layout.Create Event') }}
                 </x-nav-link>
-            @endrole
+            @endcan
         </ul>
     </li>
     @endunless
