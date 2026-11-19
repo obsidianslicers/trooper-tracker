@@ -8,11 +8,13 @@ use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\EventType;
+use App\Models\EventUpload;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PublicApiControllerTest extends TestCase
@@ -139,5 +141,54 @@ class PublicApiControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeInOrder(['Leadership, Liaisons, and Unit Staff', 'Admin Member']);
+    }
+
+    public function test_photos_skip_uploads_whose_files_are_missing(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('uploads/events/1/originals/kept.jpg', 'x');
+        $kept = $this->photo('uploads/events/1/originals/kept.jpg');
+        $this->photo('uploads/events/1/originals/gone.jpg');
+
+        $response = $this->get(route('api.public', ['photos' => 1, 'amount' => 5]));
+
+        $response->assertOk();
+        $response->assertJsonCount(1, '0');
+        $response->assertJsonPath('0.0.troopID', $kept->event_id);
+        $response->assertJsonPath('0.0.imageUrl', Storage::url('uploads/events/1/originals/kept.jpg'));
+    }
+
+    public function test_photo_slideshow_uses_the_stored_image_url(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('uploads/events/1/originals/kept.jpg', 'x');
+        $this->photo('uploads/events/1/originals/kept.jpg');
+
+        $response = $this->get(route('api.public', ['photos' => 1, 'amount' => 5, 'slideshow' => 1]));
+
+        $response->assertOk();
+        $response->assertSee(Storage::url('uploads/events/1/originals/kept.jpg'), false);
+        $response->assertDontSee('images/uploads/resize', false);
+    }
+
+    public function test_photo_slideshow_uses_the_legacy_resized_copy_when_present(): void
+    {
+        Storage::fake('legacy_uploads');
+        Storage::disk('legacy_uploads')->put('2019-old.jpeg', 'x');
+        Storage::disk('legacy_uploads')->put('resize/2019-old.jpg', 'x');
+        $this->photo('2019-old.jpeg');
+
+        $response = $this->get(route('api.public', ['photos' => 1, 'amount' => 5, 'slideshow' => 1]));
+
+        $response->assertSee(url('images/uploads/resize/2019-old.jpg'), false);
+    }
+
+    private function photo(string $path): EventUpload
+    {
+        return EventUpload::factory()->create([
+            EventUpload::IMAGE_PATH_LG => $path,
+            EventUpload::IMAGE_PATH_SM => $path,
+            EventUpload::IS_ADMINISTRATIVE => false,
+        ]);
     }
 }

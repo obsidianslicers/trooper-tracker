@@ -47,6 +47,15 @@ return [
             'report' => false,
         ],
 
+        'legacy_uploads' => [
+            'driver' => 'local',
+            'root' => public_path('images/uploads'),
+            'url' => env('APP_URL').'/images/uploads',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

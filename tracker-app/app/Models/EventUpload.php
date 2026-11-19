@@ -38,7 +38,7 @@ class EventUpload extends BaseEventUpload
             return Storage::url($this->image_path_sm);
         }
 
-        return url('images/uploads/' . $this->image_path_sm);
+        return url('images/uploads/'.$this->image_path_sm);
     }
 
     /**
@@ -57,6 +57,46 @@ class EventUpload extends BaseEventUpload
             return Storage::url($this->image_path_lg);
         }
 
-        return url('images/uploads/' . $this->image_path_lg);
+        return url('images/uploads/'.$this->image_path_lg);
+    }
+
+    /**
+     * Whether the full-size photo is still on disk. Legacy uploads (a bare filename) live
+     * in public/images/uploads; newer uploads are paths on the public disk.
+     */
+    public function hasOriginalFile(): bool
+    {
+        return self::fileExists($this->image_path_lg);
+    }
+
+    /**
+     * The URL to show the photo at full size in places outside the tracker, such as the
+     * public API slideshow. Legacy uploads prefer the old tracker's resized copy when present.
+     */
+    public function getDisplayUrlAttribute(): string
+    {
+        if (!str_contains($this->image_path_lg, '/'))
+        {
+            $resized = 'resize/'.pathinfo($this->image_path_lg, PATHINFO_FILENAME).'.jpg';
+
+            if (Storage::disk('legacy_uploads')->exists($resized))
+            {
+                return url('images/uploads/'.$resized);
+            }
+        }
+
+        return $this->large_url;
+    }
+
+    private static function fileExists(?string $path): bool
+    {
+        if ($path === null || $path === '')
+        {
+            return false;
+        }
+
+        $disk = str_contains($path, '/') ? 'public' : 'legacy_uploads';
+
+        return Storage::disk($disk)->exists($path);
     }
 }
