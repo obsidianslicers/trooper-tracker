@@ -217,8 +217,29 @@
     @role(['system_owner'])
     <x-dashboard-card :label="__('admin.System Check')"
                       :icon="'fa-heart-pulse'"
-                      :url="route('admin.system-check')">
+                      :url="route('admin.system-check')"
+                      :class="$system_check_problems->isNotEmpty() ? 'border-danger' : ''">
         {{ __('admin.Verify PHP, server, and integration settings') }}
+        @if($system_check_problems->isNotEmpty())
+        <x-slot:after>
+            <p class="card-text text-danger fw-bold mb-1">
+                {{ trans_choice('admin.:count check needs attention|:count checks need attention', $system_check_problems->count()) }}
+            </p>
+            <ul class="list-unstyled small mb-0">
+                @foreach($system_check_problems as $problem)
+                <li class="mb-1">
+                    <span class="badge {{ $problem->status->badgeClass() }}">
+                        <i class="fa fa-fw fa-solid {{ $problem->status->icon() }}"></i>
+                    </span>
+                    {{ $problem->label }}
+                    @if($problem->detail)
+                    <br><span class="text-muted">{{ $problem->detail }}</span>
+                    @endif
+                </li>
+                @endforeach
+            </ul>
+        </x-slot:after>
+        @endif
     </x-dashboard-card>
     <x-dashboard-card :label="__('admin.Plugins')"
                       :icon="'fa-puzzle-piece'"

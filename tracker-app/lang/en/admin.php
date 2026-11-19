@@ -18,6 +18,7 @@ return [
     '1 permission request is waiting for review!' => '1 permission request is waiting for review!',
     '1 trooper has a pending request!' => '1 trooper has a pending request!',
     ':count awaiting approval' => ':count awaiting approval',
+    ':count check needs attention|:count checks need attention' => ':count check needs attention|:count checks need attention',
     ':count costume awaiting review|:count costumes awaiting review' => ':count costume awaiting review|:count costumes awaiting review',
     ':count event registration will have its costume reset to N/A. Historical troop credit will be preserved.|:count event registrations will have their costume reset to N/A. Historical troop credit will be preserved.' => ':count event registration will have its costume reset to N/A. Historical troop credit will be preserved.|:count event registrations will have their costume reset to N/A. Historical troop credit will be preserved.',
     ':count pending request|:count pending requests' => ':count pending request|:count pending requests',
