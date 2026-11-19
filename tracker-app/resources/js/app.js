@@ -81,4 +81,5 @@ import './custom/htmx-pickers.js';
 import './custom/htmx-scroll-preserve.js';
 import './custom/htmx-typeahead.js';
 import './custom/htmx-upload.js';
+import './custom/tooltips.js';
 
