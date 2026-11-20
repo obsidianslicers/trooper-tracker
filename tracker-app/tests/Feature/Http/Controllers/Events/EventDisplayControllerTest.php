@@ -289,13 +289,34 @@ class EventDisplayControllerTest extends TestCase
         $event = Event::factory()->create();
         $this->clubOnEvent($event, 'Clone Club', true);
         $this->clubOnEvent($event, 'Rebel Club', true);
-        $this->clubOnEvent($event, 'Sith Club', false);
+        // The page lists every club, and one the event has no row for can't attend; open the
+        // ones the factories made too.
+        Organization::ofTypeOrganizations()
+            ->whereNotIn(Organization::ID, $event->event_organizations()->pluck(EventOrganization::ORGANIZATION_ID))
+            ->each(fn (Organization $club) => EventOrganization::factory()->forEvent($event)->forOrganization($club)->create([
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => null,
+            ]));
 
         $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSeeTextInOrder(['Trooper Quotas', 'No limits', 'Not open to', 'Sith Club']);
+        $response->assertSeeTextInOrder(['Trooper Quotas', 'No limits']);
         $response->assertDontSee('Troopers / Handlers');
+    }
+
+    public function test_invoke_lists_the_clubs_when_one_cannot_attend(): void
+    {
+        $member = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = Event::factory()->create();
+        $this->clubOnEvent($event, 'Clone Club', true);
+        $this->clubOnEvent($event, 'Youth Club', false);
+
+        $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSeeTextInOrder(['Trooper Quotas', 'Troopers / Handlers', 'Clone Club', 'Youth Club']);
+        $response->assertDontSee('No limits');
     }
 
     public function test_invoke_lists_the_clubs_when_one_is_limited(): void
