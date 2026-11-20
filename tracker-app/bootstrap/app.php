@@ -98,12 +98,23 @@ return Application::configure(basePath: dirname(__DIR__))
 
             if ($should_email)
             {
-                RateLimiter::attempt(
-                    'exception-email',
-                    1,
-                    fn () => dispatch(new SendExceptionNotificationJob($e, $context)),
-                    60,
-                );
+                // The rate limiter and the queue both use the database, so during a database
+                // outage queueing the email fails too; don't turn that into a second error.
+                try
+                {
+                    RateLimiter::attempt(
+                        'exception-email',
+                        1,
+                        fn () => dispatch(new SendExceptionNotificationJob($e, $context)),
+                        60,
+                    );
+                }
+                catch (Throwable $notify_error)
+                {
+                    Log::warning(
+                        'Could not queue the exception email: '.$notify_error->getMessage()
+                    );
+                }
             }
 
             return false;

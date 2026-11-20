@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Exceptions;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use RuntimeException;
 use Tests\TestCase;
@@ -47,5 +48,21 @@ class ExceptionLoggingTest extends TestCase
         $this->get('/__ex/not-found')->assertNotFound();
 
         Log::shouldNotHaveReceived('error');
+    }
+
+    public function test_report_does_not_throw_when_the_exception_email_cannot_be_queued(): void
+    {
+        $this->app['env'] = 'production';
+        config(['tracker.exception_notifications.enabled' => true]);
+        RateLimiter::shouldReceive('attempt')
+            ->once()
+            ->andThrow(new RuntimeException('Connection refused'));
+        Log::spy();
+
+        report(new RuntimeException('Database is down'));
+
+        Log::shouldHaveReceived('warning')
+            ->once()
+            ->with('Could not queue the exception email: Connection refused');
     }
 }
