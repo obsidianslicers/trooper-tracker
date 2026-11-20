@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\View\Composers;
 
+use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Models\EventShiftStation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -24,7 +26,29 @@ class ShiftAddTrooperComposer
             ->pluck('organization_id')
             ->toArray();
 
+        //  the Sign Up form: their costume (preselected) and, where the event allows it, Tentative
+        $signup_costume_options = [];
+        $signup_costume_default = null;
+        $signup_status_options = [];
+
+        if ($event_shift->canSignUp(Auth::user()))
+        {
+            $signup_costume_options = $event_shift->costumeOptionsFor(Auth::user());
+            $signup_costume_default = $event_shift->defaultCostumeIdFor(Auth::user(), $signup_costume_options);
+
+            if ($event->status !== EventStatus::MANUAL_SELECTION && $event->allowsTentativeSignups() && !$event->hasLimits())
+            {
+                $signup_status_options = [
+                    EventTrooperStatus::GOING->value => EventTrooperStatus::GOING->label(),
+                    EventTrooperStatus::TENTATIVE->value => EventTrooperStatus::TENTATIVE->label(),
+                ];
+            }
+        }
+
         $view->with([
+            'signup_costume_options'         => $signup_costume_options,
+            'signup_costume_default'         => $signup_costume_default,
+            'signup_status_options'          => $signup_status_options,
             'requires_mission_brief_ack'     => $event->require_mission_brief_ack,
             'has_required_mission_brief_ack' => !$event->require_mission_brief_ack || $event->hasMissionBriefAcknowledgementFor(Auth::user()),
             'eligible_orgs'                  => $eligible_orgs,
