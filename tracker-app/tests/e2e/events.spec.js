@@ -64,12 +64,14 @@ test.describe('signing up', () => {
 
         await choose(page, 'backup_costume_id', { label: seeded.trooperCostume });
 
-        // A guest, by name.
+        // A guest, by name, right in "Your sign-up", where they're listed and changed from then on.
         await shift(page).getByRole('button', { name: 'Add a Guest' }).click();
-        const guests = page.getByRole('dialog');
-        await guests.locator('textarea[name="guest_names"]').fill('E2E Guest Wookiee');
-        await guests.getByRole('button', { name: 'Save Guests' }).click();
-        await expect(shift(page).getByText('E2E Guest Wookiee')).toBeVisible();
+        await shift(page).getByPlaceholder("Guest's name").fill('E2E Guest Wookiee');
+        await htmxSettled(page);
+        await shift(page).getByRole('button', { name: 'Add Guest' }).click();
+        const myGuest = shift(page).locator('[id^="my-shift-guest-"]');
+        await expect(myGuest).toContainText('E2E Guest Wookiee');
+        await expect(myGuest.getByRole('button', { name: 'Cancel' })).toBeVisible();
 
         // A friend from the tracker, in one step like your own: pick them, then their costume
         // (their only one is preselected) goes with Sign Up.
@@ -80,16 +82,29 @@ test.describe('signing up', () => {
         await htmxSettled(page);
         await picker.getByRole('textbox').fill('E2E Trooper Friend');
         await picker.getByRole('listitem').filter({ hasText: seeded.friend.name }).click();
-        const friendForm = shift(page).locator('.friend-signup-confirmation');
+        const friendForm = shift(page).locator('[id^="add-trooper-step2-"] .friend-signup-confirmation');
         await expect(friendForm).toContainText(`Sign up ${seeded.friend.name}`);
         await expect(friendForm.locator('select[name="costume_id"] option:checked')).toHaveText(seeded.friendCostume);
         await htmxSettled(page);
         const friendSignedUp = page.waitForResponse((r) => r.url().includes('/events/signup/') && r.request().method() === 'POST');
         await friendForm.getByRole('button', { name: 'Sign Up' }).click();
         await friendSignedUp;
-        await expect(shift(page).getByRole('link', { name: seeded.friend.name })).toBeVisible();
         // Going straight away, not waiting on a costume.
         await expect(shift(page).getByText('2 / 10 going')).toBeVisible();
+        // Listed under "You're bringing" with the same pickers as yours; every roster row is read-only.
+        const myFriend = shift(page).locator('[id^="my-shift-friend-"]');
+        await expect(myFriend).toContainText(seeded.friend.name);
+        await expect(myFriend.locator('select[name="costume_id"] option:checked')).toHaveText(seeded.friendCostume);
+        await expect(shift(page).locator('[class*="trooper-status-"] select')).toHaveCount(0);
+        await expect(shift(page).locator('[class*="guest-status-"] select')).toHaveCount(0);
+
+        // Cancelling the guest, there too.
+        await htmxSettled(page);
+        page.once('dialog', (dialog) => dialog.accept());
+        const guestCancelled = page.waitForResponse((r) => r.url().includes('/guest') && r.url().includes('/events/update/') && r.request().method() === 'POST');
+        await myGuest.getByRole('button', { name: 'Cancel' }).click();
+        await guestCancelled;
+        await expect(shift(page).locator('[id^="my-shift-guest-"]').getByRole('button', { name: 'Sign up again' })).toBeVisible();
 
         // Backing out: a button that asks first, not an option in a dropdown.
         await htmxSettled(page);
@@ -98,7 +113,7 @@ test.describe('signing up', () => {
         await shift(page).getByRole('button', { name: 'Cancel my sign-up' }).click();
         await response;
         await expect(shift(page).locator('.trooper-status-cancelled')).toContainText(personas.trooper.name);
-        await expect(shift(page).getByRole('button', { name: 'Sign up again' })).toBeVisible();
+        await expect(shift(page).getByRole('button', { name: 'Sign up again' }).first()).toBeVisible();
     });
 
     test('a troop with a required brief opens sign-up once it is acknowledged', async ({ page }) => {

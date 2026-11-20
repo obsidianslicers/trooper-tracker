@@ -1,7 +1,7 @@
 {{--
     "Your sign-up" for one shift, where the Sign Up form was: everything the trooper can change
-    about their own place on the shift, in one spot above the roster. Their roster row below is
-    read-only.
+    about their own place on the shift, and the friends and guests they're bringing, in one spot
+    above the roster. Those roster rows below are read-only for them.
 --}}
 @php($status = $event_trooper->status)
 <div class="my-shift-signup"
@@ -35,4 +35,6 @@
             @include('pages.events.inc.trooper-status-controls', ['event_trooper' => $event_trooper, 'read_only' => false, 'show_status' => false])
         </div>
     </div>
+    {{-- the friends and guests they're bringing, changed here too, and the Add buttons --}}
+    @include('pages.events.inc.my-shift-bringing')
 </div>

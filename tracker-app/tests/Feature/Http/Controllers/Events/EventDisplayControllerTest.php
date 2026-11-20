@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Events;
 use App\Enums\EventTrooperStatus;
 use App\Models\Costume;
 use App\Models\Event;
+use App\Models\EventGuest;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
@@ -386,6 +387,58 @@ class EventDisplayControllerTest extends TestCase
         $this->assertSame(1, substr_count($response->getContent(), 'name="costume_id"'));
         $response->assertDontSee('id="costume-picker-'.$event_shift->id.'"', false);
         $response->assertDontSee('<option value="cancelled"', false);
+    }
+
+    public function test_invoke_lists_the_friends_and_guests_you_brought_in_your_sign_up(): void
+    {
+        [$trooper, $event, $friend_sign_up, $guest] = $this->shiftWithAFriendAndAGuest();
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSee(__('events.You\'re bringing'));
+        $response->assertSee('id="my-shift-friend-'.$friend_sign_up->id.'"', false);
+        $response->assertSee('id="my-shift-guest-'.$guest->id.'"', false);
+        //  two costume pickers, yours and your friend's, both in "Your sign-up"; the roster rows are read-only
+        $this->assertSame(2, substr_count($response->getContent(), 'name="costume_id"'));
+        //  the guest is changed in "Your sign-up" only, not on the guest's roster row as well
+        $this->assertSame(1, substr_count($response->getContent(), route('events.guest-update-htmx', ['event_guest' => $guest->id])));
+    }
+
+    public function test_invoke_does_not_list_someone_elses_friends_and_guests(): void
+    {
+        [, $event, $friend_sign_up, $guest] = $this->shiftWithAFriendAndAGuest();
+        $other = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+
+        $response = $this->actingAs($other)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertDontSee('id="my-shift-friend-'.$friend_sign_up->id.'"', false);
+        $response->assertDontSee('id="my-shift-guest-'.$guest->id.'"', false);
+        $response->assertSee('Wookiee Guest');
+    }
+
+    /**
+     * A trooper going to a shift with a friend and a guest they added.
+     *
+     * @return array{Trooper, Event, EventTrooper, EventGuest}
+     */
+    private function shiftWithAFriendAndAGuest(): array
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $friend = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($event_shift)->forTrooper($trooper)->asGoing()->create([
+            EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => true,
+        ]);
+        $friend_sign_up = EventTrooper::factory()->forEventShift($event_shift)->forTrooper($friend)->asGoing()->create([
+            EventTrooper::ADDED_BY_TROOPER_ID => $trooper->id,
+            EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => true,
+        ]);
+        $guest = EventGuest::factory()->forEventShift($event_shift)->forTrooper($trooper)->withName('Wookiee Guest')->asGoing()->create();
+
+        return [$trooper, $event, $friend_sign_up, $guest];
     }
 
     private function clubOnEvent(Event $event, string $name, bool $can_attend, ?int $troopers_allowed = null): void

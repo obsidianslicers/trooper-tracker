@@ -72,17 +72,19 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="d-flex flex-wrap gap-2 mb-3"
-                 data-tour-example="extras">
-                <span class="btn btn-sm btn-outline-info">
-                    <i class="fa fa-fw fa-plus-circle me-2"></i>
-                    {{ __('events.Add a Friend') }}
-                </span>
-                <span class="btn btn-sm btn-outline-info">
-                    <i class="fa fa-fw fa-plus-circle me-2"></i>
-                    {{ __('events.Add a Guest') }}
-                </span>
+                <div class="my-shift-bringing">
+                    <div class="my-shift-bringing__add"
+                         data-tour-example="extras">
+                        <span class="btn btn-sm btn-outline-info">
+                            <i class="fa fa-fw fa-plus-circle me-2"></i>
+                            {{ __('events.Add a Friend') }}
+                        </span>
+                        <span class="btn btn-sm btn-outline-info">
+                            <i class="fa fa-fw fa-plus-circle me-2"></i>
+                            {{ __('events.Add a Guest') }}
+                        </span>
+                    </div>
+                </div>
             </div>
 
             <div class="small text-muted mb-2">{{ __('events.After the troop:') }}</div>
@@ -149,7 +151,7 @@
     <template data-tour-step
               data-target="[data-tour-example='extras']"
               data-title="{{ __('events.Bringing someone?') }}">
-        {{ __('events.Once you\'re going, and if the event allows it, these buttons add a friend who has a tracker account, or a guest who doesn\'t.') }}
+        {{ __('events.Once you\'re going, and if the event allows it, these buttons add a friend who has a tracker account, or a guest who doesn\'t. They show up here, where you change or cancel their sign-ups like your own.') }}
     </template>
     <template data-tour-step
               data-target="[data-tour-example='after']"

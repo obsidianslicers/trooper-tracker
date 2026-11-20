@@ -1,6 +1,8 @@
-{{-- one row of a shift's roster; the viewer's own row is read-only, since they change their
-     sign-up on the "Your sign-up" panel above the roster (pages/events/inc/my-shift-signup.blade.php) --}}
+{{-- one row of a shift's roster; the viewer's own row, and those of friends they added, are
+     read-only, since they change those on "Your sign-up" above the roster
+     (pages/events/inc/my-shift-signup.blade.php and my-shift-bringing.blade.php) --}}
 @php($is_my_row = $event_trooper->trooper_id === Auth::id())
+@php($is_changed_above = $is_my_row || $event_trooper->added_by_trooper_id === Auth::id())
 <div class="row mb-3 trooper-status-{{ $event_trooper->status->value }} {{ $is_my_row ? 'roster-row--mine' : '' }}">
     <div class="col-7 col-md-4 order-1 order-md-1">
         <i class="d-none fa fa-fw fa-times pe-2 text-danger cancelled-icon"></i>
@@ -25,11 +27,11 @@
         @endif
     </div>
     <div class="col-12 col-md-5 order-3 order-md-2">
-        @include('pages.events.inc.trooper-costume-controls', ['event_trooper' => $event_trooper, 'read_only' => $is_my_row, 'labelled' => false])
+        @include('pages.events.inc.trooper-costume-controls', ['event_trooper' => $event_trooper, 'read_only' => $is_changed_above, 'labelled' => false])
     </div>
     <div class="col-12 col-md-3 order-2 order-md-3 text-md-end">
         <div class="ps-md-0">
-            @include('pages.events.inc.trooper-status-controls', ['event_trooper' => $event_trooper, 'read_only' => $is_my_row])
+            @include('pages.events.inc.trooper-status-controls', ['event_trooper' => $event_trooper, 'read_only' => $is_changed_above])
         </div>
     </div>
 </div>

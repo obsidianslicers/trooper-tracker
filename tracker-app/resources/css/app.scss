@@ -436,6 +436,37 @@ input.searching {
     padding-top: 0.25rem;
 }
 
+//  "You're bringing", under "Your sign-up": the friends and guests they added, then the Add buttons
+.my-shift-bringing {
+    border-top: 1px solid color-mix(in srgb, var(--bs-success) 30%, var(--bs-border-color));
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+}
+
+//  on its own (they aren't on the shift) with nobody added yet: just the Add buttons
+.my-shift-bringing--loose {
+    border-top: 0;
+    flex-basis: 100%;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.my-shift-bringing__person {
+    margin-bottom: 0.75rem;
+
+    + .my-shift-bringing__person {
+        border-top: 1px dashed var(--bs-border-color);
+        padding-top: 0.75rem;
+    }
+}
+
+.my-shift-bringing__add {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
 .shift-signup-primary--station {
     background: color-mix(in srgb, var(--bs-success) 7%, var(--bs-card-bg));
     border: 1px solid color-mix(in srgb, var(--bs-success) 30%, var(--bs-border-color));
@@ -483,7 +514,8 @@ input.searching {
     flex-wrap: wrap;
     gap: 0.5rem;
 
-    .form-select {
+    .form-select,
+    .form-control {
         flex: 1 1 12rem;
         max-width: none;
     }
@@ -545,7 +577,8 @@ input.searching {
     }
 
     .shift-signup-primary .form-select,
-    .shift-signup-secondary .form-select {
+    .shift-signup-secondary .form-select,
+    .shift-signup-secondary .form-control {
         flex: none;
         max-width: none;
         width: 100%;
