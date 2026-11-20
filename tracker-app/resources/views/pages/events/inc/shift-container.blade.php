@@ -1,4 +1,7 @@
-<div id="shift-container-{{ $event_shift->id }}">
+{{-- data-flash-target: messages from anything in the shift ("Saved.", "You're signed up.") show
+     as toasts (resources/js/custom/toasts.js), so they don't push the page down --}}
+<div id="shift-container-{{ $event_shift->id }}"
+     data-flash-target="toast">
     <span id="shift-{{ $event_shift->id }}"></span>
     <x-accordion-card :label="$event_shift->short_time_display"
                       :open="$count_of_shifts == 1 || (isset($open) && $open === true)">

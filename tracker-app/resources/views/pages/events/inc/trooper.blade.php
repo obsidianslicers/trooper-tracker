@@ -83,7 +83,9 @@
                             :placeholder="__('events.-- Select Backup Costume (optional) --')"
                             hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
                             hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
-                            hx-swap="none"
+                            hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                            hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                            hx-swap="outerHTML"
                             class="form-select-sm mt-2 mt-md-0" />
         @else
             @if($event_trooper->costume === null)

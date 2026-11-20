@@ -374,6 +374,12 @@ input.searching {
     justify-content: flex-end;
 }
 
+//  toasts (ToastMessages.svelte) float over the page: Bootstrap's see-through toast background let
+//  the text underneath show through the alert
+.toast {
+    --bs-toast-bg: var(--bs-body-bg);
+}
+
 .shift-signup-primary--station {
     background: color-mix(in srgb, var(--bs-success) 7%, var(--bs-card-bg));
     border: 1px solid color-mix(in srgb, var(--bs-success) 30%, var(--bs-border-color));

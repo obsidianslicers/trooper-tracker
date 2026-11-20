@@ -35,6 +35,46 @@ class SignUpHtmxControllerTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_invoke_says_what_to_do_next_after_signing_up(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($trooper)->post(route('events.signup-htmx', ['event_shift' => $event_shift->id]));
+
+        $response->assertOk();
+        $flash = json_decode((string) $response->headers->get('X-Flash-Message'), true);
+        $this->assertSame("You're on the shift. Pick a costume below to confirm your spot.", $flash['message']);
+        $this->assertSame('success', $flash['type']);
+        $response->assertSee('data-flash-target="toast"', false);
+    }
+
+    public function test_invoke_names_the_friend_who_was_signed_up(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $friend = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($friend)->forOrganization($organization)->asMember()->create();
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($event_shift)->forTrooper($trooper)->asGoing()->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['trooper_id' => $friend->id]
+        );
+
+        $response->assertOk();
+        $this->assertStringStartsWith(
+            $friend->display_name.' is ',
+            json_decode((string) $response->headers->get('X-Flash-Message'), true)['message']
+        );
+    }
+
     public function test_invoke_says_a_second_shift_on_the_same_day_shares_the_troop(): void
     {
         config(['tracker.count_as_one_troop_per_day' => true]);
