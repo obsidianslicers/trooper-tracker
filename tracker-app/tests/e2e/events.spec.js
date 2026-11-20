@@ -71,7 +71,8 @@ test.describe('signing up', () => {
         await guests.getByRole('button', { name: 'Save Guests' }).click();
         await expect(shift(page).getByText('E2E Guest Wookiee')).toBeVisible();
 
-        // A friend from the tracker.
+        // A friend from the tracker, in one step like your own: pick them, then their costume
+        // (their only one is preselected) goes with Sign Up.
         await shift(page).getByRole('button', { name: 'Add a Friend' }).click();
         const picker = page.getByRole('dialog');
         // The picker loads into the dialog with HTMX; typing before it settles sends no search.
@@ -79,7 +80,16 @@ test.describe('signing up', () => {
         await htmxSettled(page);
         await picker.getByRole('textbox').fill('E2E Trooper Friend');
         await picker.getByRole('listitem').filter({ hasText: seeded.friend.name }).click();
+        const friendForm = shift(page).locator('.friend-signup-confirmation');
+        await expect(friendForm).toContainText(`Sign up ${seeded.friend.name}`);
+        await expect(friendForm.locator('select[name="costume_id"] option:checked')).toHaveText(seeded.friendCostume);
+        await htmxSettled(page);
+        const friendSignedUp = page.waitForResponse((r) => r.url().includes('/events/signup/') && r.request().method() === 'POST');
+        await friendForm.getByRole('button', { name: 'Sign Up' }).click();
+        await friendSignedUp;
         await expect(shift(page).getByRole('link', { name: seeded.friend.name })).toBeVisible();
+        // Going straight away, not waiting on a costume.
+        await expect(shift(page).getByText('2 / 10 going')).toBeVisible();
 
         // Backing out: a button that asks first, not an option in a dropdown.
         await htmxSettled(page);

@@ -285,6 +285,7 @@ class E2eSeeder extends Seeder
 
         $friend = $this->persona('friend@e2e.test', 'E2E Trooper Friend', MembershipRole::MEMBER);
         $this->assign($friend, $legion, is_moderator: false);
+        $this->trooperCostume($friend, $legion, 'E2E Friend Armor');
 
         $this->openEvent($legion, 'E2E Signup Troop', attributes: [
             Event::FRIENDS_ALLOWED => 2,

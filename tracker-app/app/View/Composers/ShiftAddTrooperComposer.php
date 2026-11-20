@@ -49,9 +49,6 @@ class ShiftAddTrooperComposer
             'has_required_mission_brief_ack' => !$event->require_mission_brief_ack || $event->hasMissionBriefAcknowledgementFor(Auth::user()),
             'eligible_orgs'                  => $eligible_orgs,
             'event_has_org_limits'           => $eligible_orgs->whereIn('id', $limited_org_ids)->isNotEmpty(),
-            'limited_orgs_for_add'           => $event->organizations
-                ->filter(fn ($o) => $o->pivot->can_attend && ($o->pivot->troopers_allowed !== null || $o->pivot->handlers_allowed !== null))
-                ->values(),
             'event_allows_handlers'          => $event->handlers_allowed !== 0,
             'station_options'                => $event_shift->event_shift_stations
                 ->sortBy([

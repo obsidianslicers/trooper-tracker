@@ -183,7 +183,6 @@ class SignUpHtmxControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee("friend-station-picker-{$event_shift->id}", false);
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::TROOPER_ID => $friend->id,
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
@@ -354,6 +353,70 @@ class SignUpHtmxControllerTest extends TestCase
         $response->assertSee('id="my-shift-signup-'.$event_shift->id.'"', false);
         $response->assertSee('Cancel my sign-up');
         $response->assertDontSee('<option value="cancelled"', false);
+    }
+
+    public function test_invoke_signs_up_a_friend_in_their_picked_costume_as_going(): void
+    {
+        [$friend, $event_shift, $costume] = $this->trooperWithCostumeAndShift();
+        $trooper = $this->goingTrooperOn($event_shift);
+
+        $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['trooper_id' => $friend->id, 'costume_id' => $costume->id]
+        )->assertOk();
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $friend->id,
+            EventTrooper::COSTUME_ID => $costume->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+            EventTrooper::ADDED_BY_TROOPER_ID => $trooper->id,
+        ]);
+    }
+
+    public function test_invoke_ignores_a_costume_the_friend_does_not_have(): void
+    {
+        [$friend, $event_shift] = $this->trooperWithCostumeAndShift();
+        $trooper = $this->goingTrooperOn($event_shift);
+        $someone_elses = Costume::factory()->state(['name' => 'Someone Else\'s Costume'])->create();
+
+        $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['trooper_id' => $friend->id, 'costume_id' => $someone_elses->id]
+        )->assertOk();
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $friend->id,
+            EventTrooper::COSTUME_ID => null,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_invoke_never_signs_up_a_friend_as_tentative(): void
+    {
+        [$friend, $event_shift, $costume] = $this->trooperWithCostumeAndShift(tentative_allowed: true);
+        $trooper = $this->goingTrooperOn($event_shift);
+
+        $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['trooper_id' => $friend->id, 'costume_id' => $costume->id, 'status' => EventTrooperStatus::TENTATIVE->value]
+        )->assertOk();
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $friend->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    /**
+     * A member of the shift's organization who is going, so they can bring a friend.
+     */
+    private function goingTrooperOn(EventShift $event_shift): Trooper
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($event_shift->event->organization)->asMember()->create();
+        EventTrooper::factory()->forEventShift($event_shift)->forTrooper($trooper)->asGoing()->create();
+
+        return $trooper;
     }
 
     /**

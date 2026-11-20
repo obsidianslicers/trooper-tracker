@@ -457,15 +457,6 @@ input.searching {
     max-width: 18rem;
 }
 
-.shift-signup-secondary--station {
-    background: color-mix(in srgb, var(--bs-info) 7%, var(--bs-card-bg));
-    border: 1px solid color-mix(in srgb, var(--bs-info) 30%, var(--bs-border-color));
-    border-radius: 0.5rem;
-    flex: 1 1 28rem;
-    justify-content: flex-end;
-    padding: 0.75rem;
-}
-
 .shift-friend-trigger {
     align-items: center;
     display: flex;
@@ -473,11 +464,12 @@ input.searching {
     width: 100%;
 }
 
+//  Add a Friend, step 2: a full-width box like the Sign Up form, with the friend's costume and Sign Up in one row
 .shift-signup-secondary--confirming {
     background: color-mix(in srgb, var(--bs-info) 7%, var(--bs-card-bg));
     border: 1px solid color-mix(in srgb, var(--bs-info) 30%, var(--bs-border-color));
     border-radius: 0.5rem;
-    flex: 1 1 28rem;
+    flex-basis: 100%;
     padding: 0.75rem;
 }
 
@@ -485,21 +477,20 @@ input.searching {
     width: 100%;
 }
 
+.friend-signup-confirmation__fields {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    .form-select {
+        flex: 1 1 12rem;
+        max-width: none;
+    }
+}
+
 .shift-signup-secondary--confirming .friend-signup-step {
     width: 100%;
-}
-
-.shift-signup-secondary--station .form-select {
-    flex: 0 1 26rem;
-    max-width: 26rem;
-}
-
-.shift-signup-secondary__label {
-    color: var(--bs-secondary-color);
-    font-size: 0.875rem;
-    font-weight: 600;
-    margin-right: auto;
-    white-space: nowrap;
 }
 
 .shift-friend-trigger .btn {
@@ -553,10 +544,6 @@ input.searching {
         flex-direction: column;
     }
 
-    .shift-signup-secondary__label {
-        display: none;
-    }
-
     .shift-signup-primary .form-select,
     .shift-signup-secondary .form-select {
         flex: none;
@@ -573,10 +560,6 @@ input.searching {
 
     .shift-signup-guest {
         align-self: stretch;
-    }
-
-    .shift-signup-secondary--station {
-        padding: 0.75rem;
     }
 }
 
