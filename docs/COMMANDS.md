@@ -176,6 +176,28 @@ php artisan tracker:merge-costumes 87 12
 
 ---
 
+### `tracker:prune-missing-uploads`
+
+Finds event photo records (`tt_event_uploads`) whose full-size image file is no longer on disk, and optionally deletes them. These records show as broken images in the gallery and in the public API's `photos` feed.
+
+- Legacy uploads (a bare filename) are checked in `public/images/uploads/`.
+- Newer uploads (a path such as `uploads/events/12/originals/...`) are checked on the public disk (`storage/app/public`).
+
+Without `--delete` the command only lists what it found. With `--delete` it asks for confirmation, then removes each record, its tagged troopers, and any leftover thumbnail.
+
+Before deleting, check that the files are really gone rather than not copied over yet: a long list of legacy filenames usually means `public/images/uploads/` was not copied from the old tracker, and a long list of `uploads/events/...` paths usually means `storage/app/public` is on the wrong volume.
+
+```bash
+php artisan tracker:prune-missing-uploads [--delete] [--force]
+```
+
+| Option | Description |
+|---|---|
+| `--delete` | Delete the records (without it, only lists them) |
+| `--force` | Skip the confirmation prompt when deleting |
+
+---
+
 ### `tracker:mimic-trooper-permissions`
 
 Copies the `membership_role` and all `TrooperAssignment` records from a source trooper to a target trooper. Saves a snapshot of the target's original permissions before applying the change so it can be fully reverted. Useful for testing authorization flows as a specific role without changing accounts. **Dev use only.**

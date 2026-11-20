@@ -107,16 +107,21 @@ class PublicApiController
     {
         $amount = $request->integer('amount');
 
+        // Over-fetch so photos whose files have gone missing can be skipped.
         $uploads = EventUpload::where(EventUpload::IS_ADMINISTRATIVE, false)
             ->inRandomOrder()
-            ->limit($amount)
-            ->get();
+            ->limit($amount * 3)
+            ->get()
+            ->filter(fn (EventUpload $upload): bool => $upload->hasOriginalFile())
+            ->take($amount);
 
-        $upload_array = $uploads->map(fn ($upload) => [
+        $upload_array = $uploads->map(fn (EventUpload $upload) => [
             'fileName' => $upload->image_path_sm,
+            'imageUrl' => $upload->display_url,
+            'thumbnailUrl' => $upload->small_url,
             'troopID' => $upload->event_id,
             'trooperID' => $upload->trooper_id,
-        ])->toArray();
+        ])->values()->toArray();
 
         if ($request->has('slideshow'))
         {
@@ -253,8 +258,7 @@ h2{font-size:1em;border-bottom:1px solid #ccc;padding-bottom:6px;margin-top:20px
 
         foreach ($uploads as $item)
         {
-            $filename = pathinfo($item['fileName'], PATHINFO_FILENAME);
-            $html .= '<img class="slideshow" src="'.e(url('images/uploads/resize/'.$filename.'.jpg')).'" width="100%" height="100%">';
+            $html .= '<img class="slideshow" src="'.e($item['imageUrl']).'" width="100%" height="100%">';
         }
 
         $html .= '<script>w3.slideshow(".slideshow", 3000);</script>';
