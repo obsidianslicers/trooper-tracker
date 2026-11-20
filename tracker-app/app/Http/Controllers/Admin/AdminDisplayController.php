@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\MembershipStatus;
 use App\Http\Controllers\PageController;
 use App\Messages\Events\Queries\Verification\GetTroopsAwaitingVerification;
+use App\Messages\System\Queries\GetSystemCheckProblems;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
@@ -41,12 +42,17 @@ class AdminDisplayController extends PageController
             ? PermissionRequest::pending()->count()
             : 0;
 
+        $system_check_problems = $trooper->has_system_owner
+            ? GetSystemCheckProblems::call()
+            : collect();
+
         return view('pages.admin.display', compact(
             'not_approved',
             'pending_join_requests',
             'pending_permission_requests',
             'pending_costumes',
             'troops_awaiting_verification',
+            'system_check_problems',
         ));
     }
 }

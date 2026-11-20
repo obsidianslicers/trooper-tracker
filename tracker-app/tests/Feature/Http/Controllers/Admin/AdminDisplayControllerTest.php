@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Enums\SystemCheckStatus;
+use App\Messages\System\Queries\GetSystemCheckProblems;
 use App\Models\Organization;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
+use App\Services\SystemCheckResult;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class AdminDisplayControllerTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_invoke_displays_admin_dashboard_for_admin_trooper(): void
@@ -49,6 +54,44 @@ class AdminDisplayControllerTest extends TestCase
         $response->assertSee('Request Permissions');
         $response->assertDontSee('Permission Approvals');
         $response->assertDontSee('waiting for review');
+    }
+
+    public function test_invoke_shows_system_check_problems_to_system_owners(): void
+    {
+        $owner = Trooper::factory()->asSystemOwner()->create();
+        $this->fakeMessages([GetSystemCheckProblems::class => collect([
+            new SystemCheckResult('Queue worker heartbeat', SystemCheckStatus::FAIL, 'Last seen 12 minute(s) ago'),
+            new SystemCheckResult('Debug mode', SystemCheckStatus::WARN),
+        ])]);
+
+        $response = $this->actingAs($owner)->get(route('admin.display'));
+
+        $response->assertOk();
+        $response->assertSee('2 checks need attention');
+        $response->assertDontSee('Last seen 12 minute(s) ago');
+    }
+
+    public function test_invoke_shows_no_problem_list_when_system_check_passes(): void
+    {
+        $owner = Trooper::factory()->asSystemOwner()->create();
+        $this->fakeMessages([GetSystemCheckProblems::class => collect()]);
+
+        $response = $this->actingAs($owner)->get(route('admin.display'));
+
+        $response->assertOk();
+        $response->assertSee('System Check');
+        $response->assertDontSee('need attention');
+    }
+
+    public function test_invoke_skips_system_check_for_staff_officers(): void
+    {
+        $officer = Trooper::factory()->asStaffOfficer()->create();
+        $fake = $this->fakeMessages([GetSystemCheckProblems::class => collect()]);
+
+        $response = $this->actingAs($officer)->get(route('admin.display'));
+
+        $response->assertOk();
+        $fake->assertNotCalled(GetSystemCheckProblems::class);
     }
 
     public function test_invoke_requires_authentication(): void
