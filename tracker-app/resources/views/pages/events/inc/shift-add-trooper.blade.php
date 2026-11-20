@@ -1,4 +1,6 @@
-@if($event_shift->canSignUp(Auth::user()) && $has_required_mission_brief_ack)
+@if($my_event_trooper !== null)
+    @include('pages.events.inc.my-shift-signup', ['event_trooper' => $my_event_trooper])
+@elseif($event_shift->canSignUp(Auth::user()) && $has_required_mission_brief_ack)
     {{-- one step: their costume (preselected when we can guess it) and Sign Up --}}
     <div class="shift-signup-primary shift-signup-primary--form"
          x-data="{ costume: @js($signup_costume_default !== null ? (string) $signup_costume_default : '') }">

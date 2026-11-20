@@ -365,6 +365,29 @@ class EventDisplayControllerTest extends TestCase
         $response->assertSee('Attending without a costume');
     }
 
+    public function test_invoke_shows_your_sign_up_with_a_read_only_roster_row(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $other = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($event_shift)->forTrooper($trooper)->asGoing()->create([
+            EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => true,
+        ]);
+        EventTrooper::factory()->forEventShift($event_shift)->forTrooper($other)->asGoing()->create();
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSee('id="my-shift-signup-'.$event_shift->id.'"', false);
+        $response->assertSee('Cancel my sign-up');
+        $response->assertSee('roster-row--mine', false);
+        //  one costume picker: the panel's, not the roster row's as well
+        $this->assertSame(1, substr_count($response->getContent(), 'name="costume_id"'));
+        $response->assertDontSee('id="costume-picker-'.$event_shift->id.'"', false);
+        $response->assertDontSee('<option value="cancelled"', false);
+    }
+
     private function clubOnEvent(Event $event, string $name, bool $can_attend, ?int $troopers_allowed = null): void
     {
         $club = Organization::factory()->asOrganization()->create([Organization::NAME => $name]);

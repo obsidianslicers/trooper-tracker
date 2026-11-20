@@ -343,6 +343,9 @@ class SignUpUpdateHtmxController extends PageController
             ];
 
             UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
+
+            //  the backup picker swaps the whole shift, like the other pickers
+            return $this->shiftContainerView($event_trooper->event_shift, Auth::user());
         }
 
         return response('ok', 200);

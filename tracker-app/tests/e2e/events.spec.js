@@ -60,7 +60,7 @@ test.describe('signing up', () => {
         await signUp.click();
         await signedUp;
         await expect(shift(page).getByText('1 / 10 going')).toBeVisible();
-        await expect(shift(page).locator('select[name="status"]')).toHaveValue('going');
+        await expect(shift(page).locator('[id^="my-shift-signup-"]')).toContainText('Going');
 
         await choose(page, 'backup_costume_id', { label: seeded.trooperCostume });
 
@@ -78,13 +78,14 @@ test.describe('signing up', () => {
         await picker.getByRole('listitem').filter({ hasText: seeded.friend.name }).click();
         await expect(shift(page).getByRole('link', { name: seeded.friend.name })).toBeVisible();
 
-        // Backing out.
+        // Backing out: a button that asks first, not an option in a dropdown.
         await htmxSettled(page);
-        const own = shift(page).locator('.row').filter({ has: page.getByRole('link', { name: personas.trooper.name, exact: true }) });
+        page.once('dialog', (dialog) => dialog.accept());
         const response = page.waitForResponse((r) => r.url().includes('/events/update/') && r.request().method() === 'POST');
-        await own.locator('select[name="status"]').selectOption('cancelled');
+        await shift(page).getByRole('button', { name: 'Cancel my sign-up' }).click();
         await response;
         await expect(shift(page).locator('.trooper-status-cancelled')).toContainText(personas.trooper.name);
+        await expect(shift(page).getByRole('button', { name: 'Sign up again' })).toBeVisible();
     });
 
     test('a troop with a required brief opens sign-up once it is acknowledged', async ({ page }) => {
@@ -184,7 +185,7 @@ test.describe('after the troop', () => {
         await shift(page).getByRole('link', { name: 'Made It' }).click();
 
         await openEvent(page, seeded.pastParade, '/events/closed');
-        await expect(shift(page).getByText('Attended')).toBeVisible();
+        await expect(shift(page).locator('[id^="my-shift-signup-"]')).toContainText('Attended');
     });
 });
 

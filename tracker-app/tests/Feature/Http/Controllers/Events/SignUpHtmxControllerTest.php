@@ -342,6 +342,20 @@ class SignUpHtmxControllerTest extends TestCase
         ]);
     }
 
+    public function test_invoke_shows_your_sign_up_in_place_of_the_form(): void
+    {
+        [$trooper, $event_shift, $costume] = $this->trooperWithCostumeAndShift();
+
+        $response = $this->actingAs($trooper)
+            ->withHeader('HX-Request', 'true')
+            ->post(route('events.signup-htmx', ['event_shift' => $event_shift->id]), ['costume_id' => $costume->id]);
+
+        $response->assertOk();
+        $response->assertSee('id="my-shift-signup-'.$event_shift->id.'"', false);
+        $response->assertSee('Cancel my sign-up');
+        $response->assertDontSee('<option value="cancelled"', false);
+    }
+
     /**
      * @return array{Trooper, EventShift, Costume}
      */

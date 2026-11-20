@@ -3,12 +3,15 @@
     itself for is the tracker.signup_tour setting (App\Support\SignUpTour); it then stays quiet on
     that browser once seen. The button above the roster (pages/events/inc/shifts.blade.php) replays
     it. Behaviour: resources/js/events/signupTour.js.
-    The example rows below are a picture only: nothing in them works.
+    The example below is a picture only: nothing in it works.
 --}}
 @php
     $tour_auto_start = \App\Support\SignUpTour::startsFor(Auth::user(), $event);
     $tour_brief_pending = ($mission_brief_required ?? false) && !($has_mission_brief_ack ?? false);
-    $tour_status_options = $event->signUpStatusOptions(\App\Enums\EventTrooperStatus::GOING);
+    $tour_plan_options = array_diff_key(
+        $event->signUpStatusOptions(\App\Enums\EventTrooperStatus::GOING),
+        [\App\Enums\EventTrooperStatus::CANCELLED->value => true]
+    );
     $tour_going = \App\Enums\EventTrooperStatus::GOING;
 @endphp
 <div x-data="Events.signupTour({ autoStart: @js($tour_auto_start), storageKey: @js('tt.signupTourSeen.' . Auth::id()) })"
@@ -17,7 +20,7 @@
      data-signup-tour
      data-autostart="{{ $tour_auto_start ? 'true' : 'false' }}">
 
-    {{-- the example rows, shown only while the tour runs --}}
+    {{-- the example, shown only while the tour runs --}}
     <div class="card mb-3 signup-tour-example"
          x-show="active"
          x-cloak
@@ -28,28 +31,46 @@
         </div>
         <div class="card-body">
             <div class="small text-muted mb-2">{{ __('events.After you press Sign Up:') }}</div>
-            <div class="row mb-3"
-                 data-tour-example="going">
-                <div class="col-7 col-md-4 order-1">
-                    <a href="#">{{ Auth::user()->display_name }}</a>
+            <div class="my-shift-signup mb-3"
+                 data-tour-example="panel">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span class="fw-semibold">
+                        <i class="fa fa-fw fa-user-check me-1"></i>
+                        {{ __('events.Your sign-up') }}
+                    </span>
+                    <span class="{{ $tour_going->color() }}">
+                        {{ $tour_going->label() }}
+                        {!! $tour_going->iconTag() !!}
+                    </span>
                 </div>
-                <div class="col-12 col-md-5 order-3 order-md-2">
-                    <select class="form-select form-select-sm mt-2 mt-md-0"
-                            data-tour-example="costume">
-                        <option>{{ __('events.Your costume') }}</option>
-                    </select>
-                    <select class="form-select form-select-sm mt-2"
-                            data-tour-example="backup">
-                        <option>{{ __('events.-- Select Backup Costume (optional) --') }}</option>
-                    </select>
-                </div>
-                <div class="col-5 col-md-3 order-2 order-md-3 text-end">
-                    <select class="form-select form-select-sm"
-                            data-tour-example="status">
-                        @foreach($tour_status_options as $value => $label)
-                            <option @selected($value === $tour_going->value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small text-muted mb-1">{{ __('events.Costume') }}</label>
+                        <select class="form-select form-select-sm">
+                            <option>{{ __('events.Your costume') }}</option>
+                        </select>
+                        <label class="form-label small text-muted mb-1 mt-2">{{ __('events.Backup costume (optional)') }}</label>
+                        <select class="form-select form-select-sm"
+                                data-tour-example="backup">
+                            <option>{{ __('events.-- None --') }}</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6 text-md-end align-self-end">
+                        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-md-end"
+                             data-tour-example="plans">
+                            @if(count($tour_plan_options) > 1)
+                                <select class="form-select form-select-sm w-auto">
+                                    @foreach($tour_plan_options as $value => $label)
+                                        <option @selected($value === $tour_going->value)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            @endif
+                            <span class="btn btn-sm btn-outline-danger">
+                                <i class="fa fa-fw fa-times me-1"></i>
+                                {{ __('events.Cancel my sign-up') }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="d-flex flex-wrap gap-2 mb-3"
@@ -107,9 +128,9 @@
         {!! __('events.Every shift has its own <b>Sign Up</b>. Open a shift with its <b>+</b> to see it, pick your costume and press <b>Sign Up</b>. Working more than one shift? Sign up for each one.') !!}
     </template>
     <template data-tour-step
-              data-target="[data-tour-example='going']"
-              data-title="{{ __('events.Then you\'re on the roster') }}">
-        {{ __('events.Your own row on the roster shows your costume. Change it there any time; it saves as soon as you choose.') }}
+              data-target="[data-tour-example='panel']"
+              data-title="{{ __('events.Then it\'s your sign-up') }}">
+        {{ __('events.Once you\'re signed up, this box takes the Sign Up button\'s place. Change your costume here any time; it saves as soon as you choose.') }}
     </template>
     <template data-tour-step
               data-target="[data-tour-example='backup']"
@@ -117,9 +138,13 @@
         {{ __('events.Optional. Pick one in case your main costume can\'t make it.') }}
     </template>
     <template data-tour-step
-              data-target="[data-tour-example='status']"
+              data-target="[data-tour-example='plans']"
               data-title="{{ __('events.Change your plans here') }}">
-        {{ __('events.This menu on your row sets whether you\'re going. This is also where you cancel.') }}
+        @if(count($tour_plan_options) > 1)
+            {!! __('events.Switch between Going and Tentative here. Can\'t make it after all? Press <b>Cancel my sign-up</b>.') !!}
+        @else
+            {!! __('events.Can\'t make it after all? Press <b>Cancel my sign-up</b>.') !!}
+        @endif
     </template>
     <template data-tour-step
               data-target="[data-tour-example='extras']"
@@ -129,7 +154,7 @@
     <template data-tour-step
               data-target="[data-tour-example='after']"
               data-title="{{ __('events.After the troop') }}">
-        {!! __('events.Come back and press <b>Made It</b> or <b>Missed It</b> on your row.') !!}
+        {!! __('events.Come back and press <b>Made It</b> or <b>Missed It</b> on your sign-up.') !!}
     </template>
     <template data-tour-step
               data-target="[data-tour-replay]"
@@ -186,4 +211,3 @@
         </div>
     </div>
 </div>
-
