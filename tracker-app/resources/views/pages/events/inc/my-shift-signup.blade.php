@@ -34,7 +34,7 @@
         <div class="col-12 col-md-6">
             @include('pages.events.inc.trooper-costume-controls', ['event_trooper' => $event_trooper, 'labelled' => true, 'read_only' => false])
         </div>
-        <div class="col-12 col-md-6 text-md-end align-self-end">
+        <div class="col-12 col-md-6 text-md-end align-self-end my-shift-signup__actions">
             @include('pages.events.inc.trooper-status-controls', ['event_trooper' => $event_trooper, 'read_only' => false, 'show_status' => false])
         </div>
     </div>
