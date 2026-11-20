@@ -133,7 +133,7 @@
     <template data-tour-step
               data-target="[data-tour-example='pending']"
               data-title="{{ __('events.Then pick your costume') }}">
-        {!! __('events.You\'re added as <b>Pending</b>. To confirm your spot, pick your costume on your own row of the roster. It saves as soon as you choose. Not wearing one? Pick <i>Attending without a costume</i>.') !!}
+        {!! __('events.You\'re added as <b>Needs Costume</b>. To confirm your spot, pick your costume on your own row of the roster. It saves as soon as you choose. Not wearing one? Pick <i>Attending without a costume</i>.') !!}
     </template>
     <template data-tour-step
               data-target="[data-tour-example='backup']"

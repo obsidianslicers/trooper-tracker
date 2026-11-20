@@ -279,7 +279,7 @@ return [
     'You have reached the maximum number of shift sign-ups allowed.' => 'You have reached the maximum number of shift sign-ups allowed.',
     'You must review and acknowledge the mission brief before you can sign up for this deployment.' => 'You must review and acknowledge the mission brief before you can sign up for this deployment.',
     'You worked an earlier shift of this event on the same day, and that shift already counted as the troop for the day.' => 'You worked an earlier shift of this event on the same day, and that shift already counted as the troop for the day.',
-    'You\'re added as <b>Pending</b>. To confirm your spot, pick your costume on your own row of the roster. It saves as soon as you choose. Not wearing one? Pick <i>Attending without a costume</i>.' => 'You\'re added as <b>Pending</b>. To confirm your spot, pick your costume on your own row of the roster. It saves as soon as you choose. Not wearing one? Pick <i>Attending without a costume</i>.',
+    'You\'re added as <b>Needs Costume</b>. To confirm your spot, pick your costume on your own row of the roster. It saves as soon as you choose. Not wearing one? Pick <i>Attending without a costume</i>.' => 'You\'re added as <b>Needs Costume</b>. To confirm your spot, pick your costume on your own row of the roster. It saves as soon as you choose. Not wearing one? Pick <i>Attending without a costume</i>.',
     'You\'re already signed up for :times on :day.' => 'You\'re already signed up for :times on :day.',
     'You\'re also signed up for :times on :day.' => 'You\'re also signed up for :times on :day.',
     'You\'re signed up' => 'You\'re signed up',
