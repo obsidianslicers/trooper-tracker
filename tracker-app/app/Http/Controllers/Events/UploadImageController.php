@@ -15,6 +15,9 @@ use Illuminate\Validation\ValidationException;
 /**
  * Handles event image uploads from troopers.
  *
+ * The uploader picks instructional (maps, directions) or troop photo; without a
+ * choice, uploads before the event starts are instructional.
+ *
  * This controller processes image uploads for events, creating both original
  * and thumbnail versions. Images are normalized to square canvases with
  * transparency and stored in the public storage disk.
@@ -49,7 +52,12 @@ class UploadImageController extends PageController
             return $this->response($event, $this->eventImageUploadValidationMessage($e), 'danger', HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $result = $this->uploads->upload($event, $trooper_id, $request->file('images', []), false);
+        $result = $this->uploads->upload(
+            $event,
+            $trooper_id,
+            $request->file('images', []),
+            $this->isInstructional($request, $event)
+        );
 
         return $this->response(
             $event,
@@ -59,16 +67,24 @@ class UploadImageController extends PageController
         );
     }
 
+    private function isInstructional(Request $request, Event $event): bool
+    {
+        return match ($request->input('upload_type'))
+        {
+            'instructional' => true,
+            'troop' => false,
+            default => $event->uploadsDefaultToInstructional(),
+        };
+    }
+
     private function response(Event $event, string $message, string $type, int $status = HttpResponse::HTTP_OK)
     {
-        $is_administrative = false;
-        $event->load(['event_uploads.troopers']);
+        $event->load(['event_uploads.troopers', 'event_uploads.trooper']);
 
-        $data = compact('event', 'is_administrative');
         $flash = json_encode($this->eventImageUploadFlash($message, $type));
 
         return response()
-            ->view('pages.events.inc.upload-display', $data)
+            ->view('pages.events.inc.uploads-panel', compact('event'))
             ->setStatusCode($status)
             ->header('X-Flash-Message', $flash);
     }
