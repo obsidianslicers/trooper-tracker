@@ -8,7 +8,8 @@ export type StationForm = {
     /** The station's id, or a negative number for one not saved yet. */
     key: number;
     name: string;
-    troopers_allowed: string;
+    /** From a number input, which gives null while it's empty. */
+    troopers_allowed: number | null;
 };
 
 export type ShiftForm = {
@@ -30,12 +31,12 @@ function toStationForm(station: EventStation): StationForm {
     return {
         key: station.id,
         name: station.name,
-        troopers_allowed: String(station.troopers_allowed ?? ""),
+        troopers_allowed: station.troopers_allowed === null ? null : Number(station.troopers_allowed),
     };
 }
 
 function isComplete(station: StationForm): boolean {
-    return station.name.trim() !== "" && station.troopers_allowed.trim() !== "";
+    return station.name.trim() !== "" && station.troopers_allowed !== null;
 }
 
 /**
@@ -85,7 +86,7 @@ export class ShiftViewModel extends AutosaveViewModel<ShiftForm, EventPageResult
     };
 
     addStation = () => {
-        this.form.stations = [...this.form.stations, { key: draftKey(), name: "", troopers_allowed: "" }];
+        this.form.stations = [...this.form.stations, { key: draftKey(), name: "", troopers_allowed: null }];
     };
 
     changeStation = (station: StationForm) => {
