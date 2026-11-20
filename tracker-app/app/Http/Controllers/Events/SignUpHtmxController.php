@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\SignUpEventTrooper;
 use App\Messages\Events\Queries\GetEventShiftDisplay;
@@ -83,13 +84,43 @@ class SignUpHtmxController extends PageController
 
             $is_handler = (bool) $request->input('is_handler', $trooper->is_handler ? 1 : 0);
 
+            //  the Sign Up form carries the trooper's costume (or "attending without a costume")
+            //  and, where the event allows it, Tentative. A costume that isn't one of theirs is
+            //  ignored, which leaves them on the shift needing a costume, as before.
+            $costume_id = null;
+            $is_attending_without_costume = false;
+            $is_tentative = false;
+
+            if (!$is_friend_add)
+            {
+                $raw_costume_id = $request->input('costume_id');
+
+                if ($raw_costume_id === 'none')
+                {
+                    $is_attending_without_costume = true;
+                    $is_handler = false;
+                }
+                elseif (is_numeric($raw_costume_id)
+                    && array_key_exists((int) $raw_costume_id, $event_shift->costumeOptionsFor($trooper, $organization_id)))
+                {
+                    $costume_id = (int) $raw_costume_id;
+                }
+
+                $is_tentative = $request->input('status') === EventTrooperStatus::TENTATIVE->value
+                    && $event_shift->event->allowsTentativeSignups()
+                    && !$event_shift->event->hasLimits();
+            }
+
             SignUpEventTrooper::call(
                 event_shift: $event_shift,
                 trooper: $trooper,
                 added_by_trooper: $auth_trooper,
                 organization_id: $organization_id,
                 is_handler: $is_handler,
+                costume_id: $costume_id,
                 event_shift_station_id: $event_shift_station_id,
+                is_attending_without_costume: $is_attending_without_costume,
+                is_tentative: $is_tentative,
             );
 
             $signed_up = true;

@@ -374,6 +374,35 @@ input.searching {
     justify-content: flex-end;
 }
 
+//  the Sign Up form: title on its own line, then costume, plans and Sign Up in one row (phones stack them)
+.shift-signup-primary--form {
+    background: color-mix(in srgb, var(--bs-success) 7%, var(--bs-card-bg));
+    border: 1px solid color-mix(in srgb, var(--bs-success) 30%, var(--bs-border-color));
+    border-radius: 0.5rem;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    padding: 0.75rem;
+    scroll-margin-top: 5rem;
+}
+
+@media (min-width: 576px) {
+    .shift-signup-primary.shift-signup-primary--form {
+        .shift-signup-primary__label {
+            flex-basis: 100%;
+            margin-right: 0;
+        }
+
+        .form-select {
+            flex: 1 1 12rem;
+            max-width: none;
+        }
+
+        .shift-signup-primary__status {
+            flex: 0 0 9rem;
+        }
+    }
+}
+
 .shift-signup-primary--station {
     background: color-mix(in srgb, var(--bs-success) 7%, var(--bs-card-bg));
     border: 1px solid color-mix(in srgb, var(--bs-success) 30%, var(--bs-border-color));
