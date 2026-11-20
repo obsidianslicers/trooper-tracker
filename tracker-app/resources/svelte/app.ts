@@ -1,3 +1,4 @@
+import '../js/custom/stale-assets.js';
 import flashState from '$lib/states/flash-state.svelte';
 import toastState from '$lib/states/toast-state.svelte';
 import { setupProgress } from '@inertiajs/core';

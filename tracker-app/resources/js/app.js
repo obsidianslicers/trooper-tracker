@@ -1,3 +1,4 @@
+import './custom/stale-assets.js';
 import './bootstrap';
 
 // jQuery
