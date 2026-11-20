@@ -28,3 +28,7 @@
         @endif
     </x-accordion-card>
 </div>
+@if(request()->hasHeader('HX-Request'))
+    {{-- swapped in out of band, so the summary at the top of the page follows this shift's change --}}
+    @include('pages.events.inc.my-signup-summary', ['event' => $event, 'oob' => true])
+@endif

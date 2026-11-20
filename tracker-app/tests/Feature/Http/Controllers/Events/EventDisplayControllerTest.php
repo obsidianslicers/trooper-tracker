@@ -359,6 +359,7 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
+        $response->assertSee("You're not signed up for this event yet.");
         $response->assertSee('id="costume-picker-'.$event_shift->id.'"', false);
         $response->assertSee('<option value="'.$second->id.'"'."\n".'                        selected', false);
         $response->assertSee($first->name);
@@ -379,6 +380,7 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
+        $response->assertSee('id="my-signup-summary"', false);
         $response->assertSee('id="my-shift-signup-'.$event_shift->id.'"', false);
         $response->assertSee('Cancel my sign-up');
         $response->assertSee('roster-row--mine', false);

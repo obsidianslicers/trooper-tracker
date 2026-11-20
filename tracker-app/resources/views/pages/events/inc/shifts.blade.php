@@ -1,4 +1,5 @@
-<div class="d-flex justify-content-between align-items-center mb-2">
+<div id="mission-roster"
+     class="d-flex justify-content-between align-items-center mb-2">
     <x-section-title class="mb-0">{{ __('events.Mission Roster') }}</x-section-title>
     <div class="d-flex gap-2">
         @auth

@@ -144,6 +144,24 @@ class Event extends BaseEvent
     }
 
     /**
+     * The trooper's own sign-ups on this event's shifts, in shift order, with their costumes.
+     * Queried fresh, so the "Your sign-up" summary is right after a change to any one shift.
+     *
+     * @return Collection<int, EventTrooper>
+     */
+    public function signUpsFor(Trooper $trooper): Collection
+    {
+        return EventTrooper::query()
+            ->with(['event_shift', 'costume', 'backup_costume'])
+            ->where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->whereIn(EventTrooper::EVENT_SHIFT_ID, $this->event_shifts()->select(EventShift::ID))
+            ->get()
+            ->sortBy(fn (EventTrooper $event_trooper) => $event_trooper->event_shift->shift_starts_at)
+            ->values()
+            ->toBase();
+    }
+
+    /**
      * Whether the trooper holds a place on the shift, or worked it: going, tentative, stand-by,
      * pending a costume, or attended. Not cancelled, missed or not picked.
      */

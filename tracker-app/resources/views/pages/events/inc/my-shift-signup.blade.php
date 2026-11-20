@@ -1,7 +1,7 @@
 {{--
     "Your sign-up" for one shift, where the Sign Up form was: everything the trooper can change
     about their own place on the shift, in one spot above the roster. Their roster row below is
-    read-only.
+    read-only. The top-of-page summary (pages/events/inc/my-signup-summary.blade.php) links here.
 --}}
 @php($status = $event_trooper->status)
 <div class="my-shift-signup"

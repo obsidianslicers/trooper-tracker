@@ -107,6 +107,8 @@
                         </div>
                     </div>
 
+                    @include('pages.events.inc.my-signup-summary', compact('event'))
+
                     <div class="row">
                         <div class="col-12 col-md-6 mb-3">
                             @include('pages.events.inc.venue', compact('event'))
@@ -287,6 +289,9 @@
                     </div>
 
                     @pluginSlot('events.display.discussion')
+
+                    {{-- room for the phones' sign-up bar (pages/events/inc/my-signup-summary.blade.php) --}}
+                    <div class="my-signup-bar-spacer d-md-none"></div>
 
                 </div>
             </div>

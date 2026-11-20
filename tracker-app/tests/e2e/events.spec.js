@@ -50,6 +50,7 @@ test.describe('finding a troop', () => {
 test.describe('signing up', () => {
     test('a trooper signs up in a costume, brings a guest and a friend, then cancels', async ({ page }) => {
         await openEvent(page, seeded.signupEvent);
+        await expect(page.getByText("You're not signed up for this event yet.")).toBeVisible();
 
         // One step: the costume goes with the Sign Up button.
         const signUp = shift(page).getByRole('button', { name: 'Sign Up' });
@@ -61,6 +62,7 @@ test.describe('signing up', () => {
         await signedUp;
         await expect(shift(page).getByText('1 / 10 going')).toBeVisible();
         await expect(shift(page).locator('[id^="my-shift-signup-"]')).toContainText('Going');
+        await expect(page.locator('#my-signup-summary')).toContainText(seeded.trooperCostume);
 
         await choose(page, 'backup_costume_id', { label: seeded.trooperCostume });
 
