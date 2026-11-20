@@ -143,8 +143,8 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        //  for everyone, at the top of the details and again above the roster
-        $this->assertSame(2, substr_count($response->getContent(), 'One troop per day: more than one shift on the same day counts as one troop.'));
+        //  for everyone, once, at the top of the details; the shifts say it again where it matters
+        $this->assertSame(1, substr_count($response->getContent(), 'One troop per day: more than one shift on the same day counts as one troop.'));
         //  at the afternoon and evening shifts, before signing up
         $this->assertSame(2, substr_count($response->getContent(), 'same-day-notice--warning'));
         $response->assertSeeInOrder([

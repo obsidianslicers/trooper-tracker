@@ -22,11 +22,10 @@
     </div>
 </div>
 
-{{-- again where troopers sign up, so nobody signs up without seeing it --}}
+{{-- again where troopers sign up, so nobody signs up without seeing it. "One troop per day"
+     isn't repeated here: the shift itself says so when it matters (same-day-shift-note) --}}
 <x-not-counted :event="$event"
                class="mb-3" />
-<x-one-troop-per-day :event="$event"
-                     class="mb-3" />
 
 @php($count_of_shifts = $event->event_shifts->count())
 @if($count_of_shifts > 1)
