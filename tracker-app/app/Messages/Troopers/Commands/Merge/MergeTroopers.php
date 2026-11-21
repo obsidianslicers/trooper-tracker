@@ -7,6 +7,7 @@ namespace App\Messages\Troopers\Commands\Merge;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\NotificationFrequency;
+use App\Messages\Concerns\DateConcerns;
 use App\Models\Trooper;
 use Exception;
 use Hyperdrive\Message;

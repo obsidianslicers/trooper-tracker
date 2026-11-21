@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Messages\Troopers\Commands;
 
 use App\Enums\MembershipStatus;
-use App\Messages\Troopers\Commands\DirectAddTrooper;
+use App\Messages\Troopers\Commands\AddTrooperDirectly;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -15,7 +15,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
-class DirectAddTrooperTest extends TestCase
+class AddTrooperDirectlyTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -24,7 +24,7 @@ class DirectAddTrooperTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        (new DirectAddTrooper($trooper, $organization, 'TK-12345'))->handle();
+        (new AddTrooperDirectly($trooper, $organization, 'TK-12345'))->handle();
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,
@@ -38,7 +38,7 @@ class DirectAddTrooperTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        (new DirectAddTrooper($trooper, $organization, 'TK-12345'))->handle();
+        (new AddTrooperDirectly($trooper, $organization, 'TK-12345'))->handle();
 
         $this->assertDatabaseHas('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
@@ -59,7 +59,7 @@ class DirectAddTrooperTest extends TestCase
         // Pre-create the primary club record so the handler can update it without inserting a new row
         TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($root)->create();
 
-        (new DirectAddTrooper($trooper, $target, null))->handle();
+        (new AddTrooperDirectly($trooper, $target, null))->handle();
 
         $this->assertDatabaseHas('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
@@ -75,7 +75,7 @@ class DirectAddTrooperTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        (new DirectAddTrooper($trooper, $organization, 'TK-12345'))->handle();
+        (new AddTrooperDirectly($trooper, $organization, 'TK-12345'))->handle();
 
         Notification::assertSentTo($trooper, DirectlyAddedToClubNotification::class);
     }
@@ -85,7 +85,7 @@ class DirectAddTrooperTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        (new DirectAddTrooper($trooper, $organization, 'TK-12345'))->handle();
+        (new AddTrooperDirectly($trooper, $organization, 'TK-12345'))->handle();
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,
@@ -104,7 +104,7 @@ class DirectAddTrooperTest extends TestCase
         // Pre-create the primary club record so a null identifier doesn't need to INSERT
         TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($organization)->create();
 
-        (new DirectAddTrooper($trooper, $organization, null))->handle();
+        (new AddTrooperDirectly($trooper, $organization, null))->handle();
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,

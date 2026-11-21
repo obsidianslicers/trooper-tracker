@@ -14,7 +14,7 @@ use Hyperdrive\Message;
  *
  * @method static void call(Trooper $trooper, string $legal_name, TrooperTheme $theme, string $email, NotificationFrequency $notification_frequency)
  */
-final class SetupTrooper extends Message
+final class SetUpTrooper extends Message
 {
     public function __construct(
         private readonly Trooper $trooper,

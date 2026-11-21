@@ -15,7 +15,7 @@ use Hyperdrive\Message;
  *
  * @method static void call(Trooper $trooper, int $costume_id)
  */
-final class AddCostumeToTrooper extends Message
+final class AddTrooperCostume extends Message
 {
     public function __construct(
         private readonly Trooper $trooper,

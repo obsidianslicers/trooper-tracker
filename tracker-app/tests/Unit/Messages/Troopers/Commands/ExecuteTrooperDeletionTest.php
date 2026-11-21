@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Troopers\Commands;
 
-use App\Messages\Troopers\Commands\ExecuteAccountDeletion;
+use App\Messages\Troopers\Commands\ExecuteTrooperDeletion;
 use App\Models\EventTrooper;
 use App\Models\MobileDevice;
 use App\Models\OauthLogin;
@@ -13,7 +13,7 @@ use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class ExecuteAccountDeletionTest extends TestCase
+class ExecuteTrooperDeletionTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -25,7 +25,7 @@ class ExecuteAccountDeletionTest extends TestCase
             Trooper::PHONE => '555-1234',
         ]);
 
-        (new ExecuteAccountDeletion($trooper))->handle();
+        (new ExecuteTrooperDeletion($trooper))->handle();
 
         $fresh = Trooper::withTrashed()->find($trooper->id);
         $this->assertNotEquals('Jane Trooper Display', $fresh->display_name);
@@ -39,7 +39,7 @@ class ExecuteAccountDeletionTest extends TestCase
     {
         $trooper = Trooper::factory()->asActive()->create();
 
-        (new ExecuteAccountDeletion($trooper))->handle();
+        (new ExecuteTrooperDeletion($trooper))->handle();
 
         $this->assertSoftDeleted('tt_troopers', [Trooper::ID => $trooper->id]);
     }
@@ -49,7 +49,7 @@ class ExecuteAccountDeletionTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
         OauthLogin::factory()->create([OauthLogin::TROOPER_ID => $trooper->id]);
 
-        (new ExecuteAccountDeletion($trooper))->handle();
+        (new ExecuteTrooperDeletion($trooper))->handle();
 
         $this->assertDatabaseMissing('tt_oauth_logins', [OauthLogin::TROOPER_ID => $trooper->id]);
     }
@@ -59,7 +59,7 @@ class ExecuteAccountDeletionTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
         MobileDevice::factory()->create([MobileDevice::TROOPER_ID => $trooper->id]);
 
-        (new ExecuteAccountDeletion($trooper))->handle();
+        (new ExecuteTrooperDeletion($trooper))->handle();
 
         $this->assertDatabaseMissing('tt_mobile_devices', [MobileDevice::TROOPER_ID => $trooper->id]);
     }
@@ -69,7 +69,7 @@ class ExecuteAccountDeletionTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
         TrooperCostume::factory()->create([TrooperCostume::TROOPER_ID => $trooper->id]);
 
-        (new ExecuteAccountDeletion($trooper))->handle();
+        (new ExecuteTrooperDeletion($trooper))->handle();
 
         $this->assertSoftDeleted('tt_trooper_costumes', [TrooperCostume::TROOPER_ID => $trooper->id]);
     }
@@ -79,7 +79,7 @@ class ExecuteAccountDeletionTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
         $event_trooper = EventTrooper::factory()->create([EventTrooper::TROOPER_ID => $trooper->id]);
 
-        (new ExecuteAccountDeletion($trooper))->handle();
+        (new ExecuteTrooperDeletion($trooper))->handle();
 
         $this->assertDatabaseHas('tt_event_troopers', [EventTrooper::ID => $event_trooper->id]);
     }

@@ -7,11 +7,11 @@ namespace Tests\Feature\Messages\Troopers\Commands;
 use App\Enums\NotificationFrequency;
 use App\Enums\TrooperTheme;
 use App\Models\Trooper;
-use App\Messages\Troopers\Commands\SetupTrooper;
+use App\Messages\Troopers\Commands\SetUpTrooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class SetupTrooperTest extends TestCase
+class SetUpTrooperTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -21,7 +21,7 @@ class SetupTrooperTest extends TestCase
         $theme = TrooperTheme::REBEL;
         $notification_frequency = NotificationFrequency::DAILY;
 
-        $subject = new SetupTrooper(
+        $subject = new SetUpTrooper(
             trooper: $trooper,
             email: 'rebel@example.com',
             legal_name: 'Leia Organa',

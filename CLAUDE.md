@@ -114,6 +114,18 @@ A feature's name is `[Verb] [Object] [optional details]` (e.g. `RequestDeletion`
 
 When adding a sibling action to an existing feature (e.g. a "cancel" counterpart to "request"), name it the same way — verb first, object second, matching object noun — rather than reusing an unrelated noun or reversing the order (avoid e.g. `DeletionCancelController`; prefer `CancelDeletionController`).
 
+**Every Command message follows `[Verb][Object][Optional Detail]`.** The name starts with a single
+verb, then the object it acts on, then any detail: `ExecuteTrooperDeletion`, `AddTrooperDirectly`,
+`MarkNoticeAsRead`, `UnrevokeTrooperCostume`. Avoid:
+
+- a missing object (`Login` → `LoginTrooper`)
+- a modifier or a second verb before the object (`DirectAddTrooper`, `UndoRevokeTrooperCostume`)
+- an object noun that differs from its siblings (`ExecuteAccountDeletion` next to
+  `RequestTrooperDeletion`; `AddCostumeToTrooper` next to `ApproveTrooperCostume`)
+- a noun used as the verb (`SetupTrooper` → `SetUpTrooper`)
+
+Traits shared by messages go in `app/Messages/Concerns/`, not in a `Commands` folder.
+
 ---
 
 ## Svelte & Frontend Architecture

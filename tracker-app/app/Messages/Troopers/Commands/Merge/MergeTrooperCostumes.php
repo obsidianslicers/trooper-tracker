@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\Commands\Merge;
 
+use App\Messages\Concerns\DateConcerns;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use Hyperdrive\Message;

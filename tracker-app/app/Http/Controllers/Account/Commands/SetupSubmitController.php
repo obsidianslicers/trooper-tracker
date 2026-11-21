@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Account\Commands;
 
 use App\Http\Controllers\PageController;
 use App\Http\Requests\Account\SetupRequest;
-use App\Messages\Troopers\Commands\SetupTrooper;
+use App\Messages\Troopers\Commands\SetUpTrooper;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -28,7 +28,7 @@ class SetupSubmitController extends PageController
     {
         $trooper = $request->user();
 
-        SetupTrooper::call(
+        SetUpTrooper::call(
             trooper: $trooper,
             legal_name: $request->validated('legal_name'),
             theme: $request->validated('theme'),

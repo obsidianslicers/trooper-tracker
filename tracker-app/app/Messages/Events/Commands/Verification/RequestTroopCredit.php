@@ -14,7 +14,7 @@ use Hyperdrive\Message;
  *
  * @method static void call(EventTrooper $event_trooper, array $organization_ids)
  */
-final class RequestTroopVerification extends Message
+final class RequestTroopCredit extends Message
 {
     /**
      * @param  array<int, int>  $organization_ids

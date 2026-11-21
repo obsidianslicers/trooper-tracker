@@ -7,7 +7,7 @@ namespace Tests\Unit\Messages\Troopers\Commands\Costumes;
 use App\Messages\Troopers\Commands\Costumes\ApproveTrooperCostume;
 use App\Messages\Troopers\Commands\Costumes\DenyTrooperCostume;
 use App\Messages\Troopers\Commands\Costumes\RevokeTrooperCostume;
-use App\Messages\Troopers\Commands\Costumes\UndoRevokeTrooperCostume;
+use App\Messages\Troopers\Commands\Costumes\UnrevokeTrooperCostume;
 use App\Models\TrooperCostume;
 use App\Notifications\Troopers\CostumeApprovedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -115,7 +115,7 @@ class ReviewTrooperCostumeTest extends TestCase
         (new RevokeTrooperCostume($moderator, $approved))->handle();
         $revoked = TrooperCostume::withPending()->withTrashed()->findOrFail($approved->id);
 
-        (new UndoRevokeTrooperCostume($moderator, $revoked))->handle();
+        (new UnrevokeTrooperCostume($moderator, $revoked))->handle();
 
         $restored = TrooperCostume::findOrFail($approved->id);
         $this->assertFalse($restored->isPending());
@@ -130,7 +130,7 @@ class ReviewTrooperCostumeTest extends TestCase
 
         $this->expectException(RuntimeException::class);
 
-        (new UndoRevokeTrooperCostume($moderator, $approved))->handle();
+        (new UnrevokeTrooperCostume($moderator, $approved))->handle();
     }
 
     public function test_approving_a_re_added_revoked_costume_clears_the_revoke(): void

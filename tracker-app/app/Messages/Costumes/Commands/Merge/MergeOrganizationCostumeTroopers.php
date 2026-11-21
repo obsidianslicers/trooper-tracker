@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Costumes\Commands\Merge;
 
-use App\Messages\Troopers\Commands\Merge\DateConcerns;
+use App\Messages\Concerns\DateConcerns;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
