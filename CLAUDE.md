@@ -425,4 +425,5 @@ Available policies: `AwardPolicy`, `EventPolicy`, `NoticePolicy`, `OrganizationP
 | Deployment | `docs/DEPLOY.md` |
 | Plugins (hooks, slots, settings) | `docs/PLUGINS.md` |
 | Browser tests & coverage plan | `docs/E2E_TESTING.md` |
+| Docker (dev stack, isolated test runs) | `docs/DOCKER.md` |
 | Translations & languages (start here for any user-facing text) | `docs/LOCALIZATION.md` |
