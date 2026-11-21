@@ -1,0 +1,31 @@
+# What `docker compose build` leaves out of the test images (the dev image mounts the code instead).
+/vendor
+/node_modules
+/.env
+/.env.*
+!/.env.example
+/public/build
+/public/hot
+/public/storage
+/public/images/uploads
+/bootstrap/cache/*.php
+# Contents only: the .gitignore files keep the folders, which Laravel needs to exist.
+/storage/logs/*
+!/storage/logs/.gitignore
+/storage/framework/cache/data
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/framework/testing
+/storage/app/plugin-deploy
+/database/*.sqlite
+/composer.plugins.json
+/composer.plugins.lock
+/.phpunit.cache
+/.phpunit.result.cache
+/test-results
+/playwright-report
+/tests/e2e/.auth
+.DS_Store
+Thumbs.db

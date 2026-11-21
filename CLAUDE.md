@@ -284,6 +284,7 @@ Do not edit anything in `app/Models/Base/` — it is overwritten on regeneration
 - Factory states for setup: `asSystemOwner()`, `asActive()`, etc.
 - Test DB: SQLite in-memory (configured in `phpunit.xml`)
 - Front-end: `npm test` runs Vitest (`vitest.config.js`, `tests/js/**/*.test.js`)
+- Before calling a change done, follow `.claude/skills/verify-changes/SKILL.md`: the tests that cover it first, then the gates CI runs
 
 ```php
 public function test_handle_returns_troopers_with_role(): void
@@ -315,11 +316,12 @@ Inject via constructor or `__invoke` parameter:
 
 ```bash
 # Run tests
-php artisan test
+php artisan test --parallel               # Whole suite, one process per core (~10 s)
 php artisan test --filter=TestClassName
 php artisan test --testsuite=Plugins      # Plugin tests only
 npm test                                  # Front-end unit tests (Vitest)
 npm run test:e2e                          # Browser tests (Playwright, needs npm run build)
+npm run test:e2e:parallel                 # Same, split over several app servers (about half the time)
 
 # Translations
 php artisan tracker:report-translations --strict  # Missing English lines / untranslated per language
@@ -411,4 +413,5 @@ Available policies: `AwardPolicy`, `EventPolicy`, `NoticePolicy`, `OrganizationP
 | Deployment | `docs/DEPLOY.md` |
 | Plugins (hooks, slots, settings) | `docs/PLUGINS.md` |
 | Browser tests & coverage plan | `docs/E2E_TESTING.md` |
+| Docker (dev stack, isolated test runs) | `docs/DOCKER.md` |
 | Translations & languages (start here for any user-facing text) | `docs/LOCALIZATION.md` |

@@ -132,6 +132,8 @@ Get operational in under 5 minutes. All commands run from the `tracker-app/` dir
 
 ### 1. Install
 
+No PHP, Composer, Node or MySQL on your machine? [Docker](docs/DOCKER.md) runs the app and the tests with one command each.
+
 ```bash
 # Clone and navigate to the Laravel app directory
 git clone https://github.com/obsidianslicers/trooper-tracker.git
@@ -172,7 +174,7 @@ composer dev
 ```bash
 # Run full test suite (Feature + Unit)
 composer test:freshdb # just once is all it takes
-php artisan test
+php artisan test --parallel   # one process per CPU core: ~10 s instead of ~1 min
 
 # Run with coverage report
 #php artisan test --coverage
@@ -186,7 +188,7 @@ npm test
 
 **Before submitting PRs:**
 - New/Updated Code must be tested
-- All tests must pass: `php artisan test` and `npm test`
+- All tests must pass: `php artisan test --parallel` and `npm test`
 - Code must pass formatting: `composer pint:format`
 - Code must pass static analysis: `composer stan`
 - Follow conventions in `docs/CODING_CONVENTIONS.md`
@@ -259,6 +261,7 @@ Consult these when working on specific subsystems:
 - **[Artisan Commands](docs/COMMANDS.md)** - Scheduled and manual tracker command reference
 - **[Issue Fix Seeders](docs/ISSUE_MIGRATIONS.md)** - One-time data repair seeders and how to run them
 - **[Florida Garrison Setup](docs/FLORIDA_GARRISON_SETUP.md)** - Florida Garrison-specific installation and migration setup
+- **[Docker](docs/DOCKER.md)** - Run the app and the tests in containers
 - **[Composer Dependencies](docs/COMPOSER.md)** - PHP package reference
 - **[NPM Dependencies](docs/NPM.md)** - Frontend package reference
 
