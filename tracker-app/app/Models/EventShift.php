@@ -416,6 +416,17 @@ class EventShift extends BaseEventShift
     }
 
     /**
+     * The trooper's own sign-up on this shift, whatever its status, or null.
+     *
+     * @param Trooper $trooper The trooper to look up
+     * @return EventTrooper|null Their sign-up
+     */
+    public function signUpFor(Trooper $trooper): ?EventTrooper
+    {
+        return $this->event_troopers->firstWhere(EventTrooper::TROOPER_ID, $trooper->id);
+    }
+
+    /**
      * Check if a specific trooper is signed up for this shift.
      *
      * @param Trooper $trooper The trooper to check
@@ -423,7 +434,7 @@ class EventShift extends BaseEventShift
      */
     public function isSignedUp(Trooper $trooper): bool
     {
-        return $this->hasTrooperSignedUp($trooper->id);
+        return $this->signUpFor($trooper) !== null;
     }
 
     private function hasTrooperSignedUp(int $trooper_id): bool

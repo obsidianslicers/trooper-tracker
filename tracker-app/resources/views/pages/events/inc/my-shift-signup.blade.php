@@ -11,15 +11,12 @@
             <i class="fa fa-fw fa-user-check me-1"></i>
             {{ __('events.Your sign-up') }}
         </span>
-        <span class="my-shift-signup__status {{ $status->color() }}">
-            {{ $status->label() }}
-            {!! $status->iconTag() !!}
-        </span>
+        <x-sign-up-status :status="$status" class="my-shift-signup__status" />
     </div>
     @if($status === \App\Enums\EventTrooperStatus::PENDING)
         <div class="small mb-2">
             <i class="fa fa-fw fa-arrow-down me-1"></i>
-            {{ __('events.Pick your costume to confirm your spot. Not wearing one? Pick "Attending without a costume".') }}
+            {{ __('events.Select a costume, or mark attending without one, to confirm your spot.') }}
         </div>
     @elseif($status === \App\Enums\EventTrooperStatus::STAND_BY && $event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
         <div class="small text-muted mb-2">

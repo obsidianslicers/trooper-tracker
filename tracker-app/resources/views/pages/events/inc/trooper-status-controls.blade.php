@@ -22,12 +22,7 @@
         && in_array($status, [\App\Enums\EventTrooperStatus::STAND_BY, \App\Enums\EventTrooperStatus::GOING], true)
     )
     @if($status === \App\Enums\EventTrooperStatus::STAND_BY && $event_trooper->needsCostumeBeforeGoing())
-        <span class="{{ \App\Enums\EventTrooperStatus::PENDING->color() }} d-block mb-1">
-            {{ \App\Enums\EventTrooperStatus::PENDING->label() }}
-            <span class="d-none d-md-inline">
-                {!! \App\Enums\EventTrooperStatus::PENDING->iconTag() !!}
-            </span>
-        </span>
+        <x-sign-up-status :status="\App\Enums\EventTrooperStatus::PENDING" :block="true" />
         <i class="small text-muted">
             {{ __('events.Select a costume, or mark attending without one, to confirm your spot.') }}
         </i>
@@ -70,20 +65,10 @@
         </div>
     @endif
 @elseif($read_only)
-    <span class="{{ $status->color() }}">
-        {{ $status->label() }}
-        <span class="d-none d-md-inline">
-            {!! $status->iconTag() !!}
-        </span>
-    </span>
+    <x-sign-up-status :status="$status" />
 @elseif($event_shift->is_open && $status === \App\Enums\EventTrooperStatus::CANCELLED)
     @if($show_status)
-        <span class="{{ $status->color() }} d-block mb-1">
-            {{ $status->label() }}
-            <span class="d-none d-md-inline">
-                {!! $status->iconTag() !!}
-            </span>
-        </span>
+        <x-sign-up-status :status="$status" :block="true" />
     @endif
     @php
         //  limited events re-queue them by sign-up time; the others just set them back to going
@@ -111,10 +96,7 @@
     @endif
 @elseif($event_shift->is_open && $event_trooper->canCancel($viewer))
     @php
-        $plan_options = array_diff_key(
-            $event->signUpStatusOptions($status),
-            [\App\Enums\EventTrooperStatus::CANCELLED->value => true]
-        );
+        $plan_options = $event->planStatusOptions($status);
         $can_change_plans = in_array($status, \App\Enums\EventTrooperStatus::intentToGoArray(), true)
             && $event_trooper->canUpdateStatus($viewer)
             && count($plan_options) > 1;
@@ -132,12 +114,7 @@
                             hx-swap="outerHTML"
                             class="form-select-sm w-auto" />
         @elseif($show_status)
-            <span class="{{ $status->color() }}">
-                {{ $status->label() }}
-                <span class="d-none d-md-inline">
-                    {!! $status->iconTag() !!}
-                </span>
-            </span>
+            <x-sign-up-status :status="$status" />
         @endif
         <form hx-post="{{ $update_url }}"
               hx-confirm="{{ $is_self ? __('events.Cancel your sign-up for this shift?') : __('events.Cancel :name\'s sign-up for this shift?', ['name' => $event_trooper->trooper->display_name]) }}"
@@ -161,12 +138,7 @@
 @elseif($event_shift->is_closed && $event_shift->shift_ends_at->isPast() && $event_trooper->isEligibleForAttendance() && ($can_moderate || $event_trooper->canMarkAttendance($viewer)))
     @if(in_array($status, [\App\Enums\EventTrooperStatus::ATTENDED, \App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND, \App\Enums\EventTrooperStatus::AWAITING_VERIFICATION], true))
         @if($show_status)
-            <span class="{{ $status->color() }} d-block mb-1">
-                {{ $status->label() }}
-                <span class="d-none d-md-inline">
-                    {!! $status->iconTag() !!}
-                </span>
-            </span>
+            <x-sign-up-status :status="$status" :block="true" />
         @endif
     @else
         <div class="input-group input-group-sm d-inline-flex w-auto">
@@ -181,12 +153,7 @@
         </div>
     @endif
 @elseif($show_status)
-    <span class="{{ $status->color() }}">
-        {{ $status->label() }}
-        <span class="d-none d-md-inline">
-            {!! $status->iconTag() !!}
-        </span>
-    </span>
+    <x-sign-up-status :status="$status" />
     @if($status === \App\Enums\EventTrooperStatus::PENDING)
         <br />
         <i class="small text-muted">

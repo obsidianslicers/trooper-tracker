@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\View\Composers;
 
-use App\Enums\EventStatus;
-use App\Enums\EventTrooperStatus;
 use App\Models\EventShiftStation;
-use App\Models\EventTrooper;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -28,7 +25,7 @@ class ShiftAddTrooperComposer
             ->toArray();
 
         //  the trooper's own place on this shift, shown as "Your sign-up" instead of the Sign Up form
-        $my_event_trooper = $event_shift->event_troopers->firstWhere(EventTrooper::TROOPER_ID, Auth::id());
+        $my_event_trooper = $event_shift->signUpFor(Auth::user());
 
         //  the Sign Up form: their costume (preselected) and, where the event allows it, Tentative
         $signup_costume_options = [];
@@ -40,13 +37,7 @@ class ShiftAddTrooperComposer
             $signup_costume_options = $event_shift->costumeOptionsFor(Auth::user());
             $signup_costume_default = $event_shift->defaultCostumeIdFor(Auth::user(), $signup_costume_options);
 
-            if ($event->status !== EventStatus::MANUAL_SELECTION && $event->allowsTentativeSignups() && !$event->hasLimits())
-            {
-                $signup_status_options = [
-                    EventTrooperStatus::GOING->value => EventTrooperStatus::GOING->label(),
-                    EventTrooperStatus::TENTATIVE->value => EventTrooperStatus::TENTATIVE->label(),
-                ];
-            }
+            $signup_status_options = $event->planStatusOptions();
         }
 
         $view->with([

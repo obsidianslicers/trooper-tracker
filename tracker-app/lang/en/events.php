@@ -186,7 +186,6 @@ return [
     'Photo moved to Instructional Uploads.' => 'Photo moved to Instructional Uploads.',
     'Photo moved to Mission Review.' => 'Photo moved to Mission Review.',
     'Pick the squads you troop with. Picking a club or garrison shows all its squads too, and picking a squad also shows events its garrison and club host.' => 'Pick the squads you troop with. Picking a club or garrison shows all its squads too, and picking a squad also shows events its garrison and club host.',
-    'Pick your costume to confirm your spot. Not wearing one? Pick "Attending without a costume".' => 'Pick your costume to confirm your spot. Not wearing one? Pick "Attending without a costume".',
     'Pick your costume, then press Sign Up.' => 'Pick your costume, then press Sign Up.',
     'Please choose at least one image to upload.' => 'Please choose at least one image to upload.',
     'Please select at least one club to receive credit for this troop.' => 'Please select at least one club to receive credit for this troop.',

@@ -107,8 +107,7 @@ class SignUpHtmxController extends PageController
                 }
 
                 $is_tentative = $request->input('status') === EventTrooperStatus::TENTATIVE->value
-                    && $event_shift->event->allowsTentativeSignups()
-                    && !$event_shift->event->hasLimits();
+                    && array_key_exists(EventTrooperStatus::TENTATIVE->value, $event_shift->event->planStatusOptions());
             }
 
             SignUpEventTrooper::call(
