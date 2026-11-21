@@ -7,7 +7,8 @@
         "dev": "vite",
         "check": "svelte-check --tsconfig ./tsconfig.json",
         "test": "vitest run",
-        "test:e2e": "playwright test"
+        "test:e2e": "playwright test",
+        "test:e2e:parallel": "node tests/e2e/support/parallel.js"
     },
     "devDependencies": {
         "@playwright/test": "~1.63.0",
