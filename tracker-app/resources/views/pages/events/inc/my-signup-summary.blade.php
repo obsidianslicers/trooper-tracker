@@ -10,6 +10,11 @@
     $has_open_shift = $event->event_shifts->contains(fn ($event_shift) => $event_shift->is_open);
     $my_active_signups = $my_signups->filter(fn ($event_trooper) => $event_trooper->status !== \App\Enums\EventTrooperStatus::CANCELLED);
     $multiple_shifts = $event->event_shifts->count() > 1;
+    // Sign up opens these shifts' cards if they're collapsed (resources/js/custom/hash-link-collapse.js)
+    $open_shift_cards = $event->event_shifts
+        ->filter(fn ($event_shift) => $event_shift->is_open)
+        ->map(fn ($event_shift) => '#shift-card-'.$event_shift->id)
+        ->implode(',');
 @endphp
 <div id="my-signup-summary"
      @if($oob ?? false) hx-swap-oob="true" @endif>
@@ -64,6 +69,7 @@
             <div class="card-body py-2 d-flex flex-wrap align-items-center gap-2">
                 <span>{{ __('events.You\'re not signed up for this event yet.') }}</span>
                 <a href="#mission-roster"
+                   data-expand="{{ $open_shift_cards }}"
                    class="btn btn-sm btn-success ms-auto">
                     <i class="fa fa-fw fa-plus-circle me-1"></i>
                     {{ __('events.Sign up') }}
@@ -92,6 +98,7 @@
             @else
                 <span class="my-signup-bar__status text-muted">{{ __('events.Not signed up') }}</span>
                 <a href="#mission-roster"
+                   data-expand="{{ $open_shift_cards }}"
                    class="btn btn-sm btn-success">
                     <i class="fa fa-fw fa-plus-circle me-1"></i>
                     {{ __('events.Sign up') }}

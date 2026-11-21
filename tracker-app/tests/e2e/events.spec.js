@@ -16,6 +16,19 @@ function shift(page) {
     return page.locator('[id^="shift-container-"]').first();
 }
 
+// The "Your sign-up" card at the top (the phone bar below it is hidden at this width)
+function summary(page) {
+    return page.locator('#my-signup-summary .my-signup-summary');
+}
+
+async function collapseShift(page) {
+    // The header toggles once the deferred Bootstrap bundle has run
+    await page.waitForLoadState('load');
+    await shift(page).locator('.card-header').click();
+    // Hidden only once the animation ends; Bootstrap ignores show() until then.
+    await expect(shift(page).locator('[id^="shift-card-"]')).toBeHidden();
+}
+
 // Each select posts with HTMX and swaps the shift in place; wait for the new one.
 async function choose(page, name, option) {
     await htmxSettled(page);
@@ -48,6 +61,17 @@ test.describe('finding a troop', () => {
 });
 
 test.describe('signing up', () => {
+    test("the summary's Sign up opens a collapsed shift", async ({ page }) => {
+        await openEvent(page, seeded.signupEvent);
+        const signUp = shift(page).getByRole('button', { name: 'Sign Up' });
+        await collapseShift(page);
+        await expect(signUp).toBeHidden();
+
+        await summary(page).getByRole('link', { name: 'Sign up' }).click();
+        await expect(signUp).toBeVisible();
+        await expect(shift(page).locator('.collapse-icon')).toHaveClass(/fa-minus/);
+    });
+
     test('a trooper signs up in a costume, brings a guest and a friend, then cancels', async ({ page }) => {
         await openEvent(page, seeded.signupEvent);
         await expect(page.getByText("You're not signed up for this event yet.")).toBeVisible();
@@ -63,6 +87,12 @@ test.describe('signing up', () => {
         await expect(shift(page).getByText('1 / 10 going')).toBeVisible();
         await expect(shift(page).locator('[id^="my-shift-signup-"]')).toContainText('Going');
         await expect(page.locator('#my-signup-summary')).toContainText(seeded.trooperCostume);
+
+        // "Change" in the summary opens the shift again when it was collapsed.
+        await collapseShift(page);
+        await expect(shift(page).locator('[id^="my-shift-signup-"]')).toBeHidden();
+        await summary(page).getByRole('link', { name: 'Change' }).click();
+        await expect(shift(page).locator('[id^="my-shift-signup-"]')).toBeVisible();
 
         await choose(page, 'backup_costume_id', { label: seeded.trooperCostume });
 
