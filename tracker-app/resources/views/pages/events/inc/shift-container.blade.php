@@ -1,5 +1,5 @@
 {{-- shifts the viewer is on start open, so they see their own sign-up without hunting for it --}}
-@php($is_my_shift = $event_shift->event_troopers->contains(\App\Models\EventTrooper::TROOPER_ID, Auth::id()))
+@php($is_my_shift = $event_shift->isSignedUp(Auth::user()))
 <div id="shift-container-{{ $event_shift->id }}">
     <span id="shift-{{ $event_shift->id }}"></span>
     <x-accordion-card :label="$event_shift->short_time_display"
