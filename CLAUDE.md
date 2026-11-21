@@ -349,6 +349,18 @@ npm run build    # Production build
 
 ---
 
+## Commit Messages
+
+Format: `<type>: <short all lower case message>`, where type is `fix`, `feature`, `chore`,
+`style`, etc.
+
+```
+fix: station capacity is a number input
+feature: create event in the events menu for everyone who can create events
+```
+
+---
+
 ## Enums
 
 All enums are backed strings using `HasEnumHelpers`:

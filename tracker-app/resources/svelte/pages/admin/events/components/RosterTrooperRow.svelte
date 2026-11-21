@@ -33,27 +33,29 @@
             <i class="small text-muted">{row.legal_name}</i>
         {/if}
     </td>
-    <td class="align-top">
-        <select
-            class="form-select form-select-sm"
-            aria-label={t("Costume")}
-            name={name("costume_id")}
-            disabled={!roster.can_manage}
-            bind:value={vm.form.costume_id}
-            onchange={vm.changeCostume}
-        >
-            <option value={null}>{t("-- No Costume --")}</option>
-            {#each row.costume_options as option (option.value)}
-                <option value={option.value}>{option.label}</option>
-            {/each}
-        </select>
-        {#if row.backup_costume}
-            <i class="small text-muted d-block mt-1">
-                <i class="fa fa-fw fa-box-archive"></i>
-                {row.backup_costume}
-            </i>
-        {/if}
-    </td>
+    {#if roster.requires_costume}
+        <td class="align-top">
+            <select
+                class="form-select form-select-sm"
+                aria-label={t("Costume")}
+                name={name("costume_id")}
+                disabled={!roster.can_manage}
+                bind:value={vm.form.costume_id}
+                onchange={vm.changeCostume}
+            >
+                <option value={null}>{t("-- No Costume --")}</option>
+                {#each row.costume_options as option (option.value)}
+                    <option value={option.value}>{option.label}</option>
+                {/each}
+            </select>
+            {#if row.backup_costume}
+                <i class="small text-muted d-block mt-1">
+                    <i class="fa fa-fw fa-box-archive"></i>
+                    {row.backup_costume}
+                </i>
+            {/if}
+        </td>
+    {/if}
     <td class="align-top">
         <select
             class="form-select form-select-sm"

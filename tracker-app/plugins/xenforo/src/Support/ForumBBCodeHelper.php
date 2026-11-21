@@ -102,7 +102,7 @@ class ForumBBCodeHelper
 
         if ($shifts->count() === 1)
         {
-            return self::rosterTable($shifts->first()->event_troopers);
+            return self::rosterTable($shifts->first()->event_troopers, $event->requiresCostume());
         }
 
         $sections = [];
@@ -113,7 +113,7 @@ class ForumBBCodeHelper
 
             $section .= $shift->event_troopers->isEmpty()
                 ? '[center]No troopers are signed up for this shift.[/center]'
-                : self::rosterTable($shift->event_troopers);
+                : self::rosterTable($shift->event_troopers, $event->requiresCostume());
 
             $sections[] = $section;
         }
@@ -179,15 +179,17 @@ class ForumBBCodeHelper
     }
 
     /**
-     * Render a table with one row per signup, ordered by signup time.
+     * Render a table with one row per signup, ordered by signup time. Events of a type troopers
+     * don't wear a costume to leave out the Costume column.
      */
-    private static function rosterTable(Collection $event_troopers): string
+    private static function rosterTable(Collection $event_troopers, bool $with_costumes = true): string
     {
         $event_troopers = $event_troopers
             ->sortBy(fn (EventTrooper $event_trooper) => $event_trooper->signed_up_at)
             ->values();
 
-        $bb = '[table][tr][td][b]Trooper Name[/b][/td][td][b]Costume[/b][/td]'
+        $bb = '[table][tr][td][b]Trooper Name[/b][/td]'
+            .($with_costumes ? '[td][b]Costume[/b][/td]' : '')
             .'[td][b]Status[/b][/td][/tr]';
 
         foreach ($event_troopers as $event_trooper)
@@ -213,7 +215,8 @@ class ForumBBCodeHelper
                 $costume_label = 'No Costume Selected';
             }
 
-            $bb .= "\n[tr][td]".MarkdownToBBCode::escape($name).'[/td][td]'.MarkdownToBBCode::escape($costume_label).'[/td]'
+            $bb .= "\n[tr][td]".MarkdownToBBCode::escape($name).'[/td]'
+                .($with_costumes ? '[td]'.MarkdownToBBCode::escape($costume_label).'[/td]' : '')
                 .'[td][i]'.$status_label.'[/i][/td][/tr]';
         }
 

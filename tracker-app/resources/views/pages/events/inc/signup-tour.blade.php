@@ -11,6 +11,8 @@
     $tour_status_options = $event->signUpStatusOptions(\App\Enums\EventTrooperStatus::GOING);
     $tour_pending = \App\Enums\EventTrooperStatus::PENDING;
     $tour_going = \App\Enums\EventTrooperStatus::GOING;
+    //  no costume to pick on an event type troopers don't wear one to: those steps drop out
+    $tour_costumes = $event->requiresCostume();
 @endphp
 <div x-data="Events.signupTour({ autoStart: @js($tour_auto_start), storageKey: @js('tt.signupTourSeen.' . Auth::id()) })"
      x-on:signup-tour:start.window="start()"
@@ -28,6 +30,7 @@
             <span class="badge text-bg-secondary">{{ __('events.Example only, not a real sign-up') }}</span>
         </div>
         <div class="card-body">
+            @if($tour_costumes)
             <div class="small text-muted mb-2">{{ __('events.Right after you press Sign Up:') }}</div>
             <div class="row mb-3"
                  data-tour-example="pending">
@@ -53,19 +56,24 @@
             </div>
 
             <div class="small text-muted mb-2">{{ __('events.After you pick a costume:') }}</div>
+            @else
+            <div class="small text-muted mb-2">{{ __('events.Right after you press Sign Up:') }}</div>
+            @endif
             <div class="row mb-3"
                  data-tour-example="going">
                 <div class="col-7 col-md-4 order-1">
                     <a href="#">{{ Auth::user()->display_name }}</a>
                 </div>
                 <div class="col-12 col-md-5 order-3 order-md-2">
-                    <b>{{ __('events.Your costume') }}</b>
-                    <br />
-                    <i class="small text-muted"
-                       data-tour-example="backup-shown">
-                        <i class="fa fa-fw fa-box-archive"></i>
-                        {{ __('events.Your backup costume') }}
-                    </i>
+                    @if($tour_costumes)
+                        <b>{{ __('events.Your costume') }}</b>
+                        <br />
+                        <i class="small text-muted"
+                           data-tour-example="backup-shown">
+                            <i class="fa fa-fw fa-box-archive"></i>
+                            {{ __('events.Your backup costume') }}
+                        </i>
+                    @endif
                 </div>
                 <div class="col-5 col-md-3 order-2 order-md-3 text-end">
                     <select class="form-select form-select-sm"
@@ -143,7 +151,11 @@
     <template data-tour-step
               data-target="[data-tour-example='status']"
               data-title="{{ __('events.Change your plans here') }}">
-        {{ __('events.After your costume is picked, this menu on your row sets whether you\'re going. This is also where you cancel.') }}
+        @if($tour_costumes)
+            {{ __('events.After your costume is picked, this menu on your row sets whether you\'re going. This is also where you cancel.') }}
+        @else
+            {{ __('events.This menu on your row sets whether you\'re going. This is also where you cancel.') }}
+        @endif
     </template>
     <template data-tour-step
               data-target="[data-tour-example='extras']"
