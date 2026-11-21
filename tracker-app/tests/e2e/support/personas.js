@@ -1,10 +1,8 @@
 // Seeded by database/seeders/E2eSeeder.php. Every persona's password is "password".
 import path from 'node:path';
-import { APP_ROOT } from './env.js';
+import { AUTH_DIR } from './env.js';
 
 export const PASSWORD = 'password';
-
-const AUTH_DIR = path.join(APP_ROOT, 'tests', 'e2e', '.auth');
 
 function persona(key, email, name) {
     return { key, email, name, storageState: path.join(AUTH_DIR, `${key}.json`) };
