@@ -84,6 +84,20 @@ enum EventTrooperStatus: string
     }
 
     /**
+     * This status's label in the current language. PENDING reads "Needs Costume": it only
+     * ever means the trooper hasn't picked a costume yet, and "Pending" reads like
+     * "waiting for someone to approve me".
+     */
+    public function label(): string
+    {
+        return match ($this)
+        {
+            self::PENDING => __('enums.Needs Costume'),
+            default => self::caseLabel($this),
+        };
+    }
+
+    /**
      * Get the Font Awesome icon class for this status.
      *
      * @return string The Font Awesome icon class (e.g., 'fa-circle-play')

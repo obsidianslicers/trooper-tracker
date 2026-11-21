@@ -20,6 +20,7 @@ class CreateSubmitController extends Controller
             name: $request->validated('name'),
             description: $request->validated('description'),
             is_counted: $request->boolean('is_counted'),
+            is_costume_required: $request->boolean('is_costume_required'),
             is_active: $request->boolean('is_active'),
         );
 

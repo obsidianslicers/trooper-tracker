@@ -14,9 +14,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * A kind of event (troop) that coordinators pick on the event form.
  *
  * Administrators manage the list: its order on the form, a description that helps
- * coordinators pick the right one, whether it is offered at all, and whether its
+ * coordinators pick the right one, whether it is offered at all, whether its
  * events count toward troopers' troop totals (milestones, leaderboards, service
- * records). Events reference a type by its id, so renaming one is safe.
+ * records), and whether troopers wear a costume to them. Events reference a type by
+ * its id, so renaming one is safe.
  */
 class EventType extends BaseEventType
 {

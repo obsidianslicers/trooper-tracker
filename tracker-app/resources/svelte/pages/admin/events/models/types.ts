@@ -135,6 +135,7 @@ export type RosterShift = {
 export type EventRoster = {
     is_manual_selection: boolean;
     has_station_shifts: boolean;
+    requires_costume: boolean;
     can_manage: boolean;
     status_options: Option[];
     guest_status_options: Option[];
