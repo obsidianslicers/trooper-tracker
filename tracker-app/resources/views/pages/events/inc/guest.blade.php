@@ -56,17 +56,8 @@
                         </form>
                     @endif
                 </div>
-            @elseif($event_shift->is_open && $event_guest->canUpdateStatus(Auth::user()))
-                <x-input-select :property="'status'"
-                                :options="\App\Enums\EventGuestStatus::toSelectArray()"
-                                :value="$event_guest->status->value"
-                                hx-post="{{ route('events.guest-update-htmx', compact('event_guest')) }}"
-                                hx-indicator="#transmission-bar-shift-{{ $event_guest->event_shift->id }}"
-                                hx-select="#shift-container-{{ $event_guest->event_shift->id }}"
-                                hx-target="#shift-container-{{ $event_guest->event_shift->id }}"
-                                hx-swap="outerHTML"
-                                class="form-select-sm" />
             @else
+                {{-- whoever added the guest changes them on "Your sign-up" (my-shift-bringing.blade.php) --}}
                 <span class="{{ $event_guest->status->color() }}">
                     {{ $event_guest->status->label() }}
                     {!! $event_guest->status->iconTag() !!}

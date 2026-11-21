@@ -30,6 +30,7 @@ export const seeded = {
     expiredVisitor: { email: 'expired-visitor@e2e.test', name: 'E2E Expired Visitor' },
     friend: { email: 'friend@e2e.test', name: 'E2E Trooper Friend' },
     trooperCostume: 'E2E Trooper Armor',
+    friendCostume: 'E2E Friend Armor',
     signupEvent: 'E2E Signup Troop',
     briefedEvent: 'E2E Briefed Troop',
     missionBrief: 'E2E brief: report to the loading dock at nine.',
