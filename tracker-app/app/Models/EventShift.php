@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Enums\MembershipRole;
 use App\Models\Base\EventShift as BaseEventShift;
 use App\Models\Casts\MoneyCast;
 use App\Models\Casts\SanitizeHtmlCast;
@@ -348,6 +349,84 @@ class EventShift extends BaseEventShift
     }
 
     /**
+     * The costumes a trooper can pick for this shift, keyed by costume ID, with Handler and
+     * Command Staff last. Handler members only get the Handler costume.
+     *
+     * @param  int|null  $organization_id  The organization they're trooping for, when the event has per-organization limits.
+     * @param  int|null  $excluding_event_trooper_id  Their own sign-up, left out of the per-organization capacity counts.
+     * @return array<int, string>
+     */
+    public function costumeOptionsFor(Trooper $trooper, ?int $organization_id = null, ?int $excluding_event_trooper_id = null): array
+    {
+        if ($trooper->membership_role === MembershipRole::HANDLER)
+        {
+            return Costume::where('name', Costume::HANDLER)->pluck('name', 'id')->toArray();
+        }
+
+        $organization_ids = $organization_id !== null
+            ? collect([$organization_id])
+            : $this->event->event_organizations()->pluckCanAttend($this, $excluding_event_trooper_id);
+
+        return Costume::forTrooper($trooper->id, $organization_ids)
+            ->pluck('name', 'id')
+            ->sortBy(fn ($name) => match ($name)
+            {
+                Costume::COMMAND_STAFF => 2,
+                Costume::HANDLER => 1,
+                default => 0,
+            })
+            ->toArray();
+    }
+
+    /**
+     * The costume to preselect on the Sign Up form: the one they last signed up in, when
+     * it's still an option; otherwise their only costume, when they have just one.
+     *
+     * @param  array<int, string>  $costume_options  From costumeOptionsFor().
+     */
+    public function defaultCostumeIdFor(Trooper $trooper, array $costume_options): ?int
+    {
+        $recent_costume_ids = EventTrooper::query()
+            ->where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->whereNotNull(EventTrooper::COSTUME_ID)
+            ->orderByDesc(EventTrooper::SIGNED_UP_AT)
+            ->limit(20)
+            ->pluck(EventTrooper::COSTUME_ID);
+
+        $last_used = $recent_costume_ids->first(fn ($costume_id) => array_key_exists($costume_id, $costume_options));
+
+        if ($last_used !== null)
+        {
+            return (int) $last_used;
+        }
+
+        $own_costumes = array_diff($costume_options, [Costume::COMMAND_STAFF, Costume::HANDLER]);
+
+        if (count($own_costumes) === 1)
+        {
+            return (int) array_key_first($own_costumes);
+        }
+
+        if (count($costume_options) === 1)
+        {
+            return (int) array_key_first($costume_options);
+        }
+
+        return null;
+    }
+
+    /**
+     * The trooper's own sign-up on this shift, whatever its status, or null.
+     *
+     * @param Trooper $trooper The trooper to look up
+     * @return EventTrooper|null Their sign-up
+     */
+    public function signUpFor(Trooper $trooper): ?EventTrooper
+    {
+        return $this->event_troopers->firstWhere(EventTrooper::TROOPER_ID, $trooper->id);
+    }
+
+    /**
      * Check if a specific trooper is signed up for this shift.
      *
      * @param Trooper $trooper The trooper to check
@@ -355,7 +434,7 @@ class EventShift extends BaseEventShift
      */
     public function isSignedUp(Trooper $trooper): bool
     {
-        return $this->hasTrooperSignedUp($trooper->id);
+        return $this->signUpFor($trooper) !== null;
     }
 
     private function hasTrooperSignedUp(int $trooper_id): bool

@@ -1,7 +1,18 @@
 import { t } from '../i18n.js';
+import toastState from './toasts.js';
+
+//  data-flash-target="toast": show the message as a toast instead of in a container on the page
+const TOAST = 'toast';
+
 /** FLASH AFTER SWAP / ERROR **/
 function resolveFlashContainer(event) {
-    const targetSelector = event.detail.elt?.dataset?.flashTarget;
+    //  the element itself or a container around it (e.g. a whole shift on the event page, whose
+    //  swapped-in copy is the elt of its afterSwap)
+    const targetSelector = event.detail.elt?.closest?.('[data-flash-target]')?.dataset?.flashTarget;
+
+    if (targetSelector === TOAST) {
+        return TOAST;
+    }
 
     if (targetSelector) {
         const target = document.querySelector(targetSelector);
@@ -16,6 +27,11 @@ function resolveFlashContainer(event) {
 
 function appendFlashMessage(response, messagesContainer) {
     if (response && response.message && response.type) {
+        if (messagesContainer === TOAST) {
+            toastState.show(response.message, { type: response.type, delay: response.fadeOut || 4000 });
+            return;
+        }
+
         if (!messagesContainer) {
             console.error('Flash message container not found.');
             return;
@@ -92,7 +108,19 @@ function showHtmxErrorFallback(event) {
     }
 }
 
-document.body.addEventListener('htmx:afterSwap', showHtmxFlash);
+//  htmx fires afterSwap on every element a response swapped in, out-of-band ones included (e.g.
+//  the event page's "Your sign-up" summary), with detail.elt set to that element. Only the main
+//  swap shows the message, or it would appear twice.
+const swappedOutOfBand = new WeakSet();
+
+document.body.addEventListener('htmx:oobAfterSwap', (event) => swappedOutOfBand.add(event.target));
+document.body.addEventListener('htmx:afterSwap', (event) => {
+    if (swappedOutOfBand.has(event.target)) {
+        return;
+    }
+
+    showHtmxFlash(event);
+});
 document.body.addEventListener('htmx:responseError', function (event) {
     showHtmxFlash(event);
     showHtmxErrorFallback(event);

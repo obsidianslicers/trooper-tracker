@@ -153,6 +153,24 @@ class Event extends BaseEvent
     }
 
     /**
+     * The trooper's own sign-ups on this event's shifts, in shift order, with their costumes.
+     * Queried fresh, so the "Your sign-up" summary is right after a change to any one shift.
+     *
+     * @return Collection<int, EventTrooper>
+     */
+    public function signUpsFor(Trooper $trooper): Collection
+    {
+        return EventTrooper::query()
+            ->with(['event_shift', 'costume', 'backup_costume'])
+            ->where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->whereIn(EventTrooper::EVENT_SHIFT_ID, $this->event_shifts()->select(EventShift::ID))
+            ->get()
+            ->sortBy(fn (EventTrooper $event_trooper) => $event_trooper->event_shift->shift_starts_at)
+            ->values()
+            ->toBase();
+    }
+
+    /**
      * Whether the trooper holds a place on the shift, or worked it: going, tentative, stand-by,
      * pending a costume, or attended. Not cancelled, missed or not picked.
      */
@@ -334,6 +352,26 @@ class Event extends BaseEvent
         }
 
         return $options;
+    }
+
+    /**
+     * Statuses a trooper may pick when signing up, or switch between once signed up: Going, plus
+     * Tentative where the event allows it. Empty on manual-selection events, where command staff
+     * picks who goes. Pass the current status to keep it listed (see signUpStatusOptions()).
+     *
+     * @return array<string, string>
+     */
+    public function planStatusOptions(?EventTrooperStatus $current = null): array
+    {
+        if ($this->status === EventStatus::MANUAL_SELECTION)
+        {
+            return [];
+        }
+
+        return array_diff_key(
+            $this->signUpStatusOptions($current),
+            [EventTrooperStatus::CANCELLED->value => true]
+        );
     }
 
     /**

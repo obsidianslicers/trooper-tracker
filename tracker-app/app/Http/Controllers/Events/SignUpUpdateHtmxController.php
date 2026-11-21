@@ -165,7 +165,14 @@ class SignUpUpdateHtmxController extends PageController
                 );
             }
 
-            return $this->shiftContainerView($event_shift, $authTrooper);
+            $saved = match (true)
+            {
+                $requestedStatus === EventTrooperStatus::CANCELLED => __('events.Sign-up cancelled.'),
+                $previous_status === EventTrooperStatus::CANCELLED => __('events.Signed up again.'),
+                default => __('events.Saved.'),
+            };
+
+            return $this->savedView($event_shift, $authTrooper, $event_trooper, $saved);
         }
         elseif ($request->has('organization_id'))
         {
@@ -203,7 +210,7 @@ class SignUpUpdateHtmxController extends PageController
 
             UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
 
-            return $this->shiftContainerView($event_shift, $auth_trooper);
+            return $this->savedView($event_shift, $auth_trooper, $event_trooper, __('events.Saved.'));
         }
         elseif ($request->has('event_shift_station_id'))
         {
@@ -224,7 +231,7 @@ class SignUpUpdateHtmxController extends PageController
                 event_shift_station_id: $new_station_id,
             );
 
-            return $this->shiftContainerView($event_shift, $auth_trooper);
+            return $this->savedView($event_shift, $auth_trooper, $event_trooper, __('events.Saved.'));
         }
         elseif ($request->has('resign_up'))
         {
@@ -264,7 +271,7 @@ class SignUpUpdateHtmxController extends PageController
 
             dispatch(new SendEventRosterActivityNotificationsJob($event_trooper, RosterAction::RESIGNED_UP));
 
-            return $this->shiftContainerView($event_shift, $authTrooper);
+            return $this->savedView($event_shift, $authTrooper, $event_trooper, __('events.Signed up again.'));
         }
         elseif ($request->has('costume_id'))
         {
@@ -334,7 +341,7 @@ class SignUpUpdateHtmxController extends PageController
 
             $this->resolveCostumeDecision($event_trooper, $previous_status, $capacity);
 
-            return $this->shiftContainerView($event_shift, $auth_trooper);
+            return $this->savedView($event_shift, $auth_trooper, $event_trooper, __('events.Saved.'));
         }
         elseif ($request->has('backup_costume_id'))
         {
@@ -343,9 +350,36 @@ class SignUpUpdateHtmxController extends PageController
             ];
 
             UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
+
+            return $this->savedView($event_trooper->event_shift, Auth::user(), $event_trooper, __('events.Saved.'));
         }
 
         return response('ok', 200);
+    }
+
+    /**
+     * The refreshed shift with a short confirmation, so a change that saves on its own still
+     * says it did. When the change moved the sign-up somewhere the trooper didn't pick (stand-by,
+     * or still needing a costume), the message says so.
+     */
+    private function savedView(EventShift $event_shift, Trooper $auth_trooper, EventTrooper $event_trooper, string $message): Response
+    {
+        $status = $event_trooper->fresh()?->status;
+
+        $message = match ($status)
+        {
+            EventTrooperStatus::STAND_BY => $message.' '.__('events.This sign-up is on the stand-by list.'),
+            EventTrooperStatus::PENDING => $message.' '.__('events.Select a costume, or mark attending without one, to confirm your spot.'),
+            default => $message,
+        };
+
+        return $this->shiftContainerView($event_shift, $auth_trooper)
+            ->header('X-Flash-Message', json_encode([
+                'message' => $message,
+                'type' => 'success',
+                'focus' => false,
+                'fadeOut' => 4000,
+            ]));
     }
 
     /**
