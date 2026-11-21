@@ -1,8 +1,10 @@
+{{-- shifts the viewer is on start open, so they see their own sign-up without hunting for it --}}
+@php($is_my_shift = $event_shift->isSignedUp(Auth::user()))
 <div id="shift-container-{{ $event_shift->id }}">
     <span id="shift-{{ $event_shift->id }}"></span>
     <x-accordion-card :id="'shift-card-' . $event_shift->id"
                       :label="$event_shift->short_time_display"
-                      :open="$count_of_shifts == 1 || (isset($open) && $open === true)">
+                      :open="$count_of_shifts == 1 || $is_my_shift || (isset($open) && $open === true)">
         <x-transmission-bar :id="'shift-' . $event_shift->id" />
         @include('pages.events.inc.shift-header', compact('event_shift'))
         {{-- Sign Up, or "Your sign-up" once they're on the shift, above the roster --}}

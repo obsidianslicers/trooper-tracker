@@ -146,8 +146,8 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        //  for everyone, at the top of the details and again above the roster
-        $this->assertSame(2, substr_count($response->getContent(), 'One troop per day: more than one shift on the same day counts as one troop.'));
+        //  for everyone, once, at the top of the details; the shifts say it again where it matters
+        $this->assertSame(1, substr_count($response->getContent(), 'One troop per day: more than one shift on the same day counts as one troop.'));
         //  at the afternoon and evening shifts, before signing up
         $this->assertSame(2, substr_count($response->getContent(), 'same-day-notice--warning'));
         $response->assertSeeInOrder([
@@ -315,6 +315,68 @@ class EventDisplayControllerTest extends TestCase
         $response->assertDontSee('No limits');
     }
 
+    public function test_invoke_offers_a_costume_on_your_row_when_the_event_type_needs_one(): void
+    {
+        [$trooper, $event] = $this->goingOnEventOfType(EventType::factory()->create());
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSee('name="costume_id"', false);
+        $response->assertSee('data-tour-example="backup"', false);
+    }
+
+    public function test_invoke_leaves_out_costumes_when_the_event_type_needs_none(): void
+    {
+        [$trooper, $event] = $this->goingOnEventOfType(EventType::factory()->withoutCostumes()->create());
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertDontSee('name="costume_id"', false);
+        $response->assertDontSee('name="backup_costume_id"', false);
+        //  the tour's "pick your costume" steps drop out with their example row
+        $response->assertDontSee('data-tour-example="backup"', false);
+        $response->assertDontSee('id="costume-picker-', false);
+    }
+
+    public function test_invoke_offers_sign_up_without_a_costume_when_the_event_type_needs_none(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+        $event = Event::factory()->withOrganization($organization)->create([
+            Event::EVENT_TYPE_ID => EventType::factory()->withoutCostumes()->create()->id,
+        ]);
+        EventOrganization::factory()->forEvent($event)->forOrganization($organization)->create([
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSee(route('events.signup-htmx', ['event_shift' => $event_shift->id]), false);
+        $response->assertDontSee('id="costume-picker-'.$event_shift->id.'"', false);
+    }
+
+    /**
+     * @return array{Trooper, Event}
+     */
+    private function goingOnEventOfType(EventType $event_type): array
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+        $event = Event::factory()->withOrganization($organization)->create([
+            Event::EVENT_TYPE_ID => $event_type->id,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asGoing()->create();
+
+        return [$trooper, $event];
+    }
+
     public function test_invoke_requires_authentication(): void
     {
         $event = Event::factory()->create();
@@ -388,6 +450,33 @@ class EventDisplayControllerTest extends TestCase
         $this->assertSame(1, substr_count($response->getContent(), 'name="costume_id"'));
         $response->assertDontSee('id="costume-picker-'.$event_shift->id.'"', false);
         $response->assertDontSee('<option value="cancelled"', false);
+    }
+
+    public function test_invoke_opens_the_shifts_the_trooper_is_on(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = Event::factory()->create();
+        $other_shift = EventShift::factory()->forEvent($event)->create();
+        $my_shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($my_shift)->forTrooper($trooper)->asGoing()->create();
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $this->assertStringContainsString('class="collapse show"', $this->shiftHtml($response->getContent(), $my_shift));
+        $this->assertStringNotContainsString('class="collapse show"', $this->shiftHtml($response->getContent(), $other_shift));
+    }
+
+    /**
+     * One shift's part of the event page, up to the next shift.
+     */
+    private function shiftHtml(string $html, EventShift $event_shift): string
+    {
+        $start = strpos($html, 'id="shift-container-'.$event_shift->id.'"');
+        $this->assertNotFalse($start);
+        $end = strpos($html, 'id="shift-container-', $start + 1);
+
+        return substr($html, $start, $end === false ? null : $end - $start);
     }
 
     private function clubOnEvent(Event $event, string $name, bool $can_attend, ?int $troopers_allowed = null): void

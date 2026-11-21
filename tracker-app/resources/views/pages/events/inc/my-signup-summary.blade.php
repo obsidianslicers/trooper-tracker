@@ -35,7 +35,9 @@
                             @endif
                             <x-sign-up-status :status="$event_trooper->status" class="my-signup-summary__status fw-semibold" />
                             <span class="my-signup-summary__costume">
-                                @if($event_trooper->costume !== null)
+                                @if(!$event->requiresCostume())
+                                    {{-- an event type troopers don't wear a costume to --}}
+                                @elseif($event_trooper->costume !== null)
                                     {{ $event_trooper->costume->name }}
                                 @elseif($event_trooper->is_attending_without_costume)
                                     {{ __('events.Attending without a costume') }}

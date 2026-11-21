@@ -4,10 +4,16 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 export const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-export const DATABASE = path.join(APP_ROOT, 'database', 'e2e.sqlite');
+
+// E2E_SHARD (set by support/parallel.js) gives each of several runs side by side its own port,
+// database and saved sign-ins. Without it, everything is as for a single run.
+const shard = process.env.E2E_SHARD || '';
+
+export const DATABASE = path.join(APP_ROOT, 'database', shard ? `e2e-${shard}.sqlite` : 'e2e.sqlite');
+export const AUTH_DIR = path.join(APP_ROOT, 'tests', 'e2e', '.auth', ...(shard ? [shard] : []));
 
 const host = '127.0.0.1';
-const port = process.env.E2E_PORT || '8077';
+const port = process.env.E2E_PORT || String(8077 + Number(shard || 0));
 
 export const BASE_URL = `http://${host}:${port}`;
 
@@ -20,7 +26,7 @@ const database = USES_MYSQL
         DB_CONNECTION: 'mysql',
         DB_HOST: process.env.E2E_DB_HOST || '127.0.0.1',
         DB_PORT: process.env.E2E_DB_PORT || '3306',
-        DB_DATABASE: process.env.E2E_DB_DATABASE || 'trooper_e2e',
+        DB_DATABASE: (process.env.E2E_DB_DATABASE || 'trooper_e2e') + (shard ? `_${shard}` : ''),
         DB_USERNAME: process.env.E2E_DB_USERNAME || 'e2e',
         DB_PASSWORD: process.env.E2E_DB_PASSWORD || 'e2e',
     }

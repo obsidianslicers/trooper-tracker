@@ -40,13 +40,13 @@
     </span>
 {/snippet}
 
-<div class="d-none d-md-block">
-    <EventViews {active} has_map={vm.has_map} />
-</div>
-
 <div class="event-filters mb-2">
     <div class="row g-2 align-items-stretch">
-        <div class="col-12 col-md-8">
+        <div class="col-auto d-none d-md-block">
+            <EventViews {active} has_map={vm.has_map} />
+        </div>
+
+        <div class="col-12 col-md">
             <div class="input-group">
                 <span class="input-group-text"><i class="fa fa-fw fa-magnifying-glass"></i></span>
                 <input
@@ -61,7 +61,7 @@
         </div>
 
         <div class="col-12 d-flex gap-2 d-md-none event-filters-phone">
-            <EventViews {active} has_map={vm.has_map} compact />
+            <EventViews {active} has_map={vm.has_map} />
             <button
                 type="button"
                 class={["btn flex-grow-1", vm.filter_count > 0 || vm.show_filters ? "btn-primary" : "btn-outline-light"]}
