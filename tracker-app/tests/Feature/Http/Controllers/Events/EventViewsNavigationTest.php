@@ -49,9 +49,10 @@ class EventViewsNavigationTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.map'));
 
         $response->assertOk();
-        $response->assertSee('class="d-flex flex-wrap justify-content-center gap-2 mb-3 event-views"', false);
+        $response->assertSee('class="dropdown event-views-menu"', false);
         $response->assertSee('href="'.route('events.list').'"', false);
         $response->assertSee('href="'.route('events.calendar').'"', false);
+        $response->assertSee('href="'.route('events.cancelled').'"', false);
         $response->assertSeeInOrder(['aria-current="page"', 'Map'], false);
     }
 }

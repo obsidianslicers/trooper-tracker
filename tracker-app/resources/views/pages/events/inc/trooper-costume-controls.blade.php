@@ -11,6 +11,7 @@
     $read_only = $read_only ?? false;
     $can_change = !$read_only && $event_trooper->canUpdateCostume(Auth::user());
     $shift_target = '#shift-container-' . $event_trooper->event_shift->id;
+    $with_costumes = $event->requiresCostume();
 @endphp
 @if($event_shift->usesStations())
     @if($can_change)
@@ -63,6 +64,7 @@
             {{ __('events.Trooping as :organization', ['organization' => $eligible_orgs_for_change->first()->name]) }}
         </div>
     @endif
+    @if($with_costumes)
     @php
         $costume_options = ['none' => __('events.Attending without a costume')] + $event_trooper->costumes;
     @endphp
@@ -90,7 +92,8 @@
                     hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
                     hx-swap="none"
                     class="form-select-sm mt-2 {{ $labelled ? 'mt-md-0' : '' }}" />
-@else
+    @endif
+@elseif($with_costumes)
     @if($event_trooper->costume === null)
         @if($event_trooper->is_handler)
             {{ __('events.Handler') }}

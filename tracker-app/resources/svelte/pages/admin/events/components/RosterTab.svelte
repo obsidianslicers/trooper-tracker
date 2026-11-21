@@ -32,7 +32,7 @@
     };
 
     const colspan = $derived(
-        (roster.is_manual_selection ? 7 : 5) + (roster.has_station_shifts ? 1 : 0),
+        (roster.is_manual_selection ? 6 : 4) + (roster.has_station_shifts ? 1 : 0) + (roster.requires_costume ? 1 : 0),
     );
 
     const has_multiple_shifts = $derived(roster.shifts.length > 1);
@@ -59,7 +59,9 @@
         <thead>
             <tr>
                 <th>{t("Trooper Name")}</th>
-                <th>{t("Costume")}</th>
+                {#if roster.requires_costume}
+                    <th>{t("Costume")}</th>
+                {/if}
                 <th class="align-top">{t("Status")}</th>
                 {#if roster.has_station_shifts}
                     <th>{t("Station")}</th>
@@ -123,7 +125,7 @@
                     {#if roster.can_manage}
                         <tr>
                             <td {colspan} class="ps-4 py-2">
-                                <RosterAddTrooper {event_id} {shift} />
+                                <RosterAddTrooper {event_id} {shift} requires_costume={roster.requires_costume} />
                             </td>
                         </tr>
                     {/if}

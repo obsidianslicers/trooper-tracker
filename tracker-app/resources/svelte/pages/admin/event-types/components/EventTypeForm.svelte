@@ -53,6 +53,17 @@
 
     <InputContainer>
         <InputCheckbox
+            label={t("Costume required")}
+            bind:checked={vm.form.is_costume_required}
+            errors={vm.errors.is_costume_required}
+        />
+        <InputHelp>
+            {t("Uncheck for events troopers don't wear a costume to, such as an armor party. Sign-up won't ask for a costume, and its events show none.")}
+        </InputHelp>
+    </InputContainer>
+
+    <InputContainer>
+        <InputCheckbox
             label={t("Offered on the event form")}
             bind:checked={vm.form.is_active}
             errors={vm.errors.is_active}

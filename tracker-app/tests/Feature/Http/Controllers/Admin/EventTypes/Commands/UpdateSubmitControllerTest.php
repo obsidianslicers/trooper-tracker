@@ -23,12 +23,14 @@ class UpdateSubmitControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $armor_party = EventType::where(EventType::NAME, 'Armor Party')->firstOrFail();
+        $this->assertFalse($armor_party->is_costume_required, 'seeded without a costume');
 
         $response = $this->actingAs($trooper)
             ->post(route('admin.event-types.update', ['event_type' => $armor_party]), [
                 'name' => 'Armor Build Party',
                 'description' => 'Workshops. No troop credit.',
                 'is_counted' => false,
+                'is_costume_required' => true,
                 'is_active' => true,
             ]);
 
@@ -38,6 +40,7 @@ class UpdateSubmitControllerTest extends TestCase
             EventType::NAME => 'Armor Build Party',
             EventType::DESCRIPTION => 'Workshops. No troop credit.',
             EventType::IS_COUNTED => false,
+            EventType::IS_COSTUME_REQUIRED => true,
         ]);
     }
 
@@ -50,6 +53,7 @@ class UpdateSubmitControllerTest extends TestCase
         $admin = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->asMember()->create();
         $armor_party = EventType::where(EventType::NAME, 'Armor Party')->firstOrFail();
+        $this->assertFalse($armor_party->is_costume_required, 'seeded without a costume');
         $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))
             ->create([Event::EVENT_TYPE_ID => $armor_party->id]);
         EventTrooper::factory()->forTrooper($trooper)->asAttended()
@@ -66,6 +70,7 @@ class UpdateSubmitControllerTest extends TestCase
                 'name' => $armor_party->name,
                 'description' => $armor_party->description,
                 'is_counted' => false,
+                'is_costume_required' => true,
                 'is_active' => true,
             ])
             ->assertRedirect(route('admin.event-types.index'));
@@ -91,6 +96,7 @@ class UpdateSubmitControllerTest extends TestCase
             ->post(route('admin.event-types.update', ['event_type' => $charity]), [
                 'name' => 'Charity',
                 'is_counted' => true,
+                'is_costume_required' => true,
                 'is_active' => false,
             ]);
 

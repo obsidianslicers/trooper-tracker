@@ -18,6 +18,7 @@ class EventTypeFactory extends BaseEventTypeFactory
             EventType::DESCRIPTION => $this->faker->sentence(),
             EventType::SORT_ORDER => $this->faker->numberBetween(100, 999),
             EventType::IS_COUNTED => true,
+            EventType::IS_COSTUME_REQUIRED => true,
             EventType::IS_ACTIVE => true,
         ]);
     }
@@ -26,6 +27,13 @@ class EventTypeFactory extends BaseEventTypeFactory
     {
         return $this->state(fn (array $attributes) => [
             EventType::IS_COUNTED => false,
+        ]);
+    }
+
+    public function withoutCostumes(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            EventType::IS_COSTUME_REQUIRED => false,
         ]);
     }
 
