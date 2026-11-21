@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Events;
 
+use App\Enums\EventTrooperStatus;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventMissionAck;
 use App\Models\EventOrganization;
@@ -11,8 +13,10 @@ use App\Models\EventShift;
 use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -253,5 +257,139 @@ class SignUpHtmxControllerTest extends TestCase
             EventTrooper::TROOPER_ID => $friend->id,
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
         ]);
+    }
+
+    public function test_invoke_signs_up_in_the_picked_costume_as_going(): void
+    {
+        [$trooper, $event_shift, $costume] = $this->trooperWithCostumeAndShift();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['costume_id' => $costume->id]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $costume->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_invoke_signs_up_attending_without_a_costume_as_going(): void
+    {
+        [$trooper, $event_shift] = $this->trooperWithCostumeAndShift();
+
+        $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['costume_id' => 'none']
+        )->assertOk();
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => null,
+            EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => true,
+            EventTrooper::IS_HANDLER => false,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_invoke_ignores_a_costume_that_is_not_theirs(): void
+    {
+        [$trooper, $event_shift] = $this->trooperWithCostumeAndShift();
+        $someone_elses = Costume::factory()->state(['name' => 'Someone Else\'s Costume'])->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['costume_id' => $someone_elses->id]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => null,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_invoke_signs_up_as_tentative_when_the_event_allows_it(): void
+    {
+        [$trooper, $event_shift, $costume] = $this->trooperWithCostumeAndShift(tentative_allowed: true);
+
+        $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['costume_id' => $costume->id, 'status' => EventTrooperStatus::TENTATIVE->value]
+        )->assertOk();
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::TENTATIVE->value,
+        ]);
+    }
+
+    public function test_invoke_ignores_tentative_when_the_event_does_not_allow_it(): void
+    {
+        [$trooper, $event_shift, $costume] = $this->trooperWithCostumeAndShift(tentative_allowed: false);
+
+        $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['costume_id' => $costume->id, 'status' => EventTrooperStatus::TENTATIVE->value]
+        )->assertOk();
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_invoke_shows_your_sign_up_in_place_of_the_form(): void
+    {
+        [$trooper, $event_shift, $costume] = $this->trooperWithCostumeAndShift();
+
+        $response = $this->actingAs($trooper)
+            ->withHeader('HX-Request', 'true')
+            ->post(route('events.signup-htmx', ['event_shift' => $event_shift->id]), ['costume_id' => $costume->id]);
+
+        $response->assertOk();
+        $response->assertSee('id="my-shift-signup-'.$event_shift->id.'"', false);
+        $response->assertSee('Cancel my sign-up');
+        $response->assertDontSee('<option value="cancelled"', false);
+    }
+
+    /**
+     * @return array{Trooper, EventShift, Costume}
+     */
+    private function trooperWithCostumeAndShift(bool $tentative_allowed = false): array
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create([
+            Event::EVENT_START => now()->addDays(30),
+            Event::EVENT_END => now()->addDays(30)->addHours(4),
+            Event::TROOPERS_ALLOWED => null,
+            Event::HANDLERS_ALLOWED => null,
+            Event::TENTATIVE_SIGNUPS_ALLOWED => $tentative_allowed,
+        ]);
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => null,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $costume = Costume::factory()->state(['name' => 'Stormtrooper'])->create();
+        $organization_costume = OrganizationCostume::factory()
+            ->state([OrganizationCostume::ORGANIZATION_ID => $organization->id, OrganizationCostume::COSTUME_ID => $costume->id])
+            ->create();
+        TrooperCostume::factory()
+            ->state([TrooperCostume::TROOPER_ID => $trooper->id, TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id])
+            ->create();
+
+        return [$trooper, $event_shift, $costume];
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
@@ -12,8 +13,10 @@ use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\EventType;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -319,6 +322,70 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->get(route('events.display', ['event' => $event->id]));
 
         $response->assertRedirect(route('auth.login'));
+    }
+
+    public function test_invoke_offers_a_one_step_sign_up_with_the_last_costume_picked(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+        [$first, $second] = collect(['Clone Trooper', 'Scout Trooper'])
+            ->map(function (string $name) use ($trooper, $organization)
+            {
+                $costume = Costume::factory()->state(['name' => $name])->create();
+                $organization_costume = OrganizationCostume::factory()
+                    ->state([OrganizationCostume::ORGANIZATION_ID => $organization->id, OrganizationCostume::COSTUME_ID => $costume->id])
+                    ->create();
+                TrooperCostume::factory()
+                    ->state([TrooperCostume::TROOPER_ID => $trooper->id, TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id])
+                    ->create();
+
+                return $costume;
+            })
+            ->all();
+        $past_shift = EventShift::factory()->forEvent(Event::factory()->withOrganization($organization)->create())->create();
+        EventTrooper::factory()->forEventShift($past_shift)->forTrooper($trooper)->asGoing()->create([
+            EventTrooper::COSTUME_ID => $second->id,
+            EventTrooper::SIGNED_UP_AT => now()->subDays(20),
+        ]);
+        $event = Event::factory()->withOrganization($organization)->create();
+        EventOrganization::factory()->state([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $organization->id,
+            EventOrganization::CAN_ATTEND => true,
+        ])->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSee('id="costume-picker-'.$event_shift->id.'"', false);
+        $response->assertSee('<option value="'.$second->id.'"'."\n".'                        selected', false);
+        $response->assertSee($first->name);
+        $response->assertSee('Attending without a costume');
+    }
+
+    public function test_invoke_shows_your_sign_up_with_a_read_only_roster_row(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $other = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($event_shift)->forTrooper($trooper)->asGoing()->create([
+            EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => true,
+        ]);
+        EventTrooper::factory()->forEventShift($event_shift)->forTrooper($other)->asGoing()->create();
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSee('id="my-shift-signup-'.$event_shift->id.'"', false);
+        $response->assertSee('Cancel my sign-up');
+        $response->assertSee('roster-row--mine', false);
+        //  one costume picker: the panel's, not the roster row's as well
+        $this->assertSame(1, substr_count($response->getContent(), 'name="costume_id"'));
+        $response->assertDontSee('id="costume-picker-'.$event_shift->id.'"', false);
+        $response->assertDontSee('<option value="cancelled"', false);
     }
 
     private function clubOnEvent(Event $event, string $name, bool $can_attend, ?int $troopers_allowed = null): void

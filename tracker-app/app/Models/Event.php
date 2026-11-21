@@ -328,6 +328,26 @@ class Event extends BaseEvent
     }
 
     /**
+     * Statuses a trooper may pick when signing up, or switch between once signed up: Going, plus
+     * Tentative where the event allows it. Empty on manual-selection events, where command staff
+     * picks who goes. Pass the current status to keep it listed (see signUpStatusOptions()).
+     *
+     * @return array<string, string>
+     */
+    public function planStatusOptions(?EventTrooperStatus $current = null): array
+    {
+        if ($this->status === EventStatus::MANUAL_SELECTION)
+        {
+            return [];
+        }
+
+        return array_diff_key(
+            $this->signUpStatusOptions($current),
+            [EventTrooperStatus::CANCELLED->value => true]
+        );
+    }
+
+    /**
      * Get a formatted time display string for the event.
      *
      * Format: "Sat - Oct 03, 2026 - 2:00pm - 4:00pm"

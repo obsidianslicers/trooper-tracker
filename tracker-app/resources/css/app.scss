@@ -374,6 +374,68 @@ input.searching {
     justify-content: flex-end;
 }
 
+//  the Sign Up form (costume, plans, Sign Up) and, once signed up, "Your sign-up" in its place
+.shift-signup-primary--form,
+.my-shift-signup {
+    background: color-mix(in srgb, var(--bs-success) 7%, var(--bs-card-bg));
+    border: 1px solid color-mix(in srgb, var(--bs-success) 30%, var(--bs-border-color));
+    border-radius: 0.5rem;
+    flex-basis: 100%;
+    padding: 0.75rem;
+    scroll-margin-top: 5rem;
+}
+
+//  title on its own line, then costume, plans and Sign Up in one row (phones stack them)
+.shift-signup-primary--form {
+    flex-wrap: wrap;
+}
+
+@media (min-width: 576px) {
+    .shift-signup-primary.shift-signup-primary--form {
+        .shift-signup-primary__label {
+            flex-basis: 100%;
+            margin-right: 0;
+        }
+
+        .form-select {
+            flex: 1 1 12rem;
+            max-width: none;
+        }
+
+        .shift-signup-primary__status {
+            flex: 0 0 9rem;
+        }
+    }
+}
+
+//  phones: "Your sign-up"'s dropdowns and buttons fill the panel, like the Sign Up form's
+@media (max-width: 575.98px) {
+    .my-shift-signup__actions {
+        > .d-flex {
+            align-items: stretch !important;
+            flex-direction: column;
+        }
+
+        .form-select,
+        .btn,
+        .input-group {
+            width: 100% !important;
+        }
+
+        .input-group > .btn {
+            flex: 1 1 0;
+        }
+    }
+}
+
+//  the viewer's own roster row, which they change on "Your sign-up" instead
+.roster-row--mine {
+    background: color-mix(in srgb, var(--bs-primary) 6%, transparent);
+    border-radius: var(--bs-border-radius);
+    padding-bottom: 0.25rem;
+    padding-top: 0.25rem;
+}
+
 .shift-signup-primary--station {
     background: color-mix(in srgb, var(--bs-success) 7%, var(--bs-card-bg));
     border: 1px solid color-mix(in srgb, var(--bs-success) 30%, var(--bs-border-color));
