@@ -53,7 +53,7 @@ test.describe('signing up', () => {
 
         await shift(page).getByRole('button', { name: 'Sign Up' }).click();
         await expect(shift(page).getByText('Select a costume, or mark attending without one')).toBeVisible();
-        await expect(page.locator('.toast:visible').getByText("You're on the shift. Pick a costume below to confirm your spot.")).toBeVisible();
+        await expect(page.locator('.toast:visible').getByText("You're on the shift. Select a costume, or mark attending without one, to confirm your spot.")).toBeVisible();
 
         await choose(page, 'costume_id', { label: seeded.trooperCostume });
         await expect(shift(page).getByText('1 / 10 going')).toBeVisible();

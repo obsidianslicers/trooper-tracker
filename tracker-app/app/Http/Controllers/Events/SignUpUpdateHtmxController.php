@@ -369,7 +369,7 @@ class SignUpUpdateHtmxController extends PageController
         $message = match ($status)
         {
             EventTrooperStatus::STAND_BY => $message.' '.__('events.This sign-up is on the stand-by list.'),
-            EventTrooperStatus::PENDING => $message.' '.__('events.Pick a costume to confirm the spot.'),
+            EventTrooperStatus::PENDING => $message.' '.__('events.Select a costume, or mark attending without one, to confirm your spot.'),
             default => $message,
         };
 

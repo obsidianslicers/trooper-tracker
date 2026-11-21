@@ -47,7 +47,7 @@ class SignUpHtmxControllerTest extends TestCase
 
         $response->assertOk();
         $flash = json_decode((string) $response->headers->get('X-Flash-Message'), true);
-        $this->assertSame("You're on the shift. Pick a costume below to confirm your spot.", $flash['message']);
+        $this->assertSame("You're on the shift. Select a costume, or mark attending without one, to confirm your spot.", $flash['message']);
         $this->assertSame('success', $flash['type']);
         $response->assertSee('data-flash-target="toast"', false);
     }

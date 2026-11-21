@@ -118,7 +118,7 @@ class SignUpHtmxController extends PageController
                 ? __("events.This shift is full, so you're on the stand-by list. You'll move up if a spot opens.")
                 : __('events.This shift is full, so :name is on the stand-by list.', ['name' => $name]),
             $status === EventTrooperStatus::PENDING => $is_self
-                ? __("events.You're on the shift. Pick a costume below to confirm your spot.")
+                ? __("events.You're on the shift.").' '.__('events.Select a costume, or mark attending without one, to confirm your spot.')
                 : __('events.:name is on the shift. Pick their costume on their row to confirm the spot.', ['name' => $name]),
             default => $is_self
                 ? __("events.You're signed up.")
