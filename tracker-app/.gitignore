@@ -14,6 +14,8 @@
 /auth.json
 /node_modules
 /public/build
+/public/build-next
+/public/build-old
 /public/hot
 /public/storage
 /public/images/uploads
@@ -26,7 +28,7 @@ Thumbs.db
 google-credentials.json
 /composer.plugins.json
 /composer.plugins.lock
-/database/e2e.sqlite
+/database/e2e*.sqlite
 /tests/e2e/.auth
 /playwright-report
 /test-results

@@ -24,6 +24,7 @@ class EventTypeResource extends JsonResource
             EventType::NAME => $this->name,
             EventType::DESCRIPTION => $this->description,
             EventType::IS_COUNTED => $this->is_counted,
+            EventType::IS_COSTUME_REQUIRED => $this->is_costume_required,
             EventType::IS_ACTIVE => $this->is_active,
             'events_count' => $this->whenCounted('events'),
             'can_delete' => $request->user()?->can('delete', $this->resource) ?? false,

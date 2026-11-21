@@ -64,6 +64,7 @@
                     {{ __('events.Trooping as :organization', ['organization' => $eligible_orgs_for_change->first()->name]) }}
                 </div>
             @endif
+            @if($event->requiresCostume())
             @php
                 $costume_options = ['none' => 'Attending without a costume'] + $event_trooper->costumes;
             @endphp
@@ -87,7 +88,8 @@
                             hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
                             hx-swap="outerHTML"
                             class="form-select-sm mt-2 mt-md-0" />
-        @else
+            @endif
+        @elseif($event->requiresCostume())
             @if($event_trooper->costume === null)
                 @if($event_trooper->is_handler)
                     {{ __('events.Handler') }}

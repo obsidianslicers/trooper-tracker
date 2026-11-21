@@ -46,6 +46,7 @@ class AdminEventRoster extends JsonResource
         return [
             'is_manual_selection' => $event->status === EventStatus::MANUAL_SELECTION,
             'has_station_shifts' => $this->shifts->contains(fn (EventShift $s): bool => $s->usesStations()),
+            'requires_costume' => $event->requiresCostume(),
             'can_manage' => $this->actor->is_administrator
                 || ($event->organization !== null
                     && $this->actor->isModeratorForOrganization($event->organization)),

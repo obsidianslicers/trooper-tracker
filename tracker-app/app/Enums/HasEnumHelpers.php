@@ -33,7 +33,7 @@ trait HasEnumHelpers
 
         foreach ($cases as $case)
         {
-            $pairs[$case->value] = self::caseLabel($case);
+            $pairs[$case->value] = $case->label();
         }
 
         return $pairs;
@@ -69,7 +69,7 @@ trait HasEnumHelpers
                 continue;
             }
 
-            $pairs[] = ['value' => $case->value, 'label' => self::caseLabel($case)];
+            $pairs[] = ['value' => $case->value, 'label' => $case->label()];
         }
 
         return $pairs;

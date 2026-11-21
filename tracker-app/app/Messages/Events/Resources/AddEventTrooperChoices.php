@@ -38,7 +38,7 @@ class AddEventTrooperChoices extends JsonResource
         return [
             'trooper_id' => $trooper->id,
             'display_name' => $trooper->display_name,
-            'costume_options' => Costume::forTrooper($trooper->id)
+            'costume_options' => !$this->event->requiresCostume() ? [] : Costume::forTrooper($trooper->id)
                 ->pluck(Costume::NAME, Costume::ID)
                 ->map(fn (string $name, int $id): array => ['value' => $id, 'label' => $name])
                 ->values()

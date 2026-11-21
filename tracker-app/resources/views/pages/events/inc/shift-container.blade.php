@@ -1,10 +1,9 @@
-{{-- data-flash-target: messages from anything in the shift ("Saved.", "You're signed up.") show
-     as toasts (resources/js/custom/toasts.js), so they don't push the page down --}}
-<div id="shift-container-{{ $event_shift->id }}"
-     data-flash-target="toast">
+{{-- shifts the viewer is on start open, so they see their own sign-up without hunting for it --}}
+@php($is_my_shift = $event_shift->isSignedUp(Auth::user()))
+<div id="shift-container-{{ $event_shift->id }}">
     <span id="shift-{{ $event_shift->id }}"></span>
     <x-accordion-card :label="$event_shift->short_time_display"
-                      :open="$count_of_shifts == 1 || (isset($open) && $open === true)">
+                      :open="$count_of_shifts == 1 || $is_my_shift || (isset($open) && $open === true)">
         <x-transmission-bar :id="'shift-' . $event_shift->id" />
         @include('pages.events.inc.shift-header', compact('event_shift'))
         @foreach($event_shift->event_troopers as $event_trooper)

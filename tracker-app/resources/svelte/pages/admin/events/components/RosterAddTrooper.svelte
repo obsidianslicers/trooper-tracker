@@ -10,8 +10,10 @@
     interface Props {
         event_id: number;
         shift: RosterShift;
+        /** False for an event type troopers don't wear a costume to: no costume to pick. */
+        requires_costume?: boolean;
     }
-    let { event_id, shift }: Props = $props();
+    let { event_id, shift, requires_costume = true }: Props = $props();
 
     const vm = new AddTrooperViewModel(
         untrack(() => event_id),
@@ -38,13 +40,13 @@
             <i class="fa fa-fw fa-user me-1"></i>
             {t("Add :name to this shift", { name: vm.choices.display_name })}
         </div>
-        {#if vm.choices.costume_options.length > 0}
+        {#if requires_costume && vm.choices.costume_options.length > 0}
             <select class="form-select form-select-sm mb-2" aria-label={t("Costume")} bind:value={vm.costume_id}>
                 {#each vm.choices.costume_options as option (option.value)}
                     <option value={option.value}>{option.label}</option>
                 {/each}
             </select>
-        {:else}
+        {:else if requires_costume}
             <p class="small text-muted mb-2">
                 {t("No approved costumes found — will add without costume.")}
             </p>

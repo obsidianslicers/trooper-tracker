@@ -144,11 +144,20 @@ else
     "$NPM" install
 fi
 
-"$NPM" run build
+# shellcheck source=bin/build-assets.sh
+. "$APP_DIR/bin/build-assets.sh"
+
+# The site keeps serving the current build while the new one is made.
+if ! build_assets; then
+    abort_to_previous_release "The front end did not build."
+fi
 
 echo "🚧 Taking application offline..."
 MAINTENANCE_STARTED=true
 "$PHP" artisan down --refresh=15
+
+echo "📦 Putting the new front end in place..."
+swap_assets
 
 echo "🧹 Clearing caches..."
 "$PHP" artisan cache:clear

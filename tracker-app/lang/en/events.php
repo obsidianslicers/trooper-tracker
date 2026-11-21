@@ -252,6 +252,7 @@ return [
     'Then pick your costume' => 'Then pick your costume',
     'There are not any events that have been cancelled in the last :days days.' => 'There are not any events that have been cancelled in the last :days days.',
     'This event asks you to read the mission brief and confirm you\'ve read it. The Sign Up buttons appear after you do.' => 'This event asks you to read the mission brief and confirm you\'ve read it. The Sign Up buttons appear after you do.',
+    'This menu on your row sets whether you\'re going. This is also where you cancel.' => 'This menu on your row sets whether you\'re going. This is also where you cancel.',
     'This Month\'s Support Goal' => 'This Month\'s Support Goal',
     'This shift is full, so :name is on the stand-by list.' => 'This shift is full, so :name is on the stand-by list.',
     'This shift is full, so you\'re on the stand-by list. You\'ll move up if a spot opens.' => 'This shift is full, so you\'re on the stand-by list. You\'ll move up if a spot opens.',

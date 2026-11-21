@@ -181,7 +181,10 @@ class EventTrooper extends BaseEventTrooper
      */
     public function needsCostumeBeforeGoing(): bool
     {
-        return !$this->is_handler && $this->costume_id === null && !$this->is_attending_without_costume;
+        return !$this->is_handler
+            && $this->costume_id === null
+            && !$this->is_attending_without_costume
+            && $this->event_shift->event->requiresCostume();
     }
 
     /**
