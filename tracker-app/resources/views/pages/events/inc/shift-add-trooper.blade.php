@@ -1,7 +1,7 @@
 @if($event_shift->canSignUp(Auth::user()) && $has_required_mission_brief_ack)
     {{-- one step: their costume (preselected when we can guess it) and Sign Up --}}
     <div class="shift-signup-primary shift-signup-primary--form"
-         x-data="{ costume: @js($signup_costume_default !== null ? (string) $signup_costume_default : '') }">
+         x-data="{ costume: @js(!$event->requiresCostume() ? 'none' : ($signup_costume_default !== null ? (string) $signup_costume_default : '')) }">
         <span class="shift-signup-primary__label">{{ __('events.Sign up for this shift') }}</span>
         @if($event_has_org_limits)
             @if($eligible_orgs->count() > 1)
@@ -34,6 +34,7 @@
                 @endforeach
             </select>
         @endif
+        @if($event->requiresCostume())
         <select id="costume-picker-{{ $event_shift->id }}"
                 name="costume_id"
                 class="form-select form-select-sm"
@@ -46,6 +47,7 @@
             @endforeach
             <option value="none">{{ __('events.Attending without a costume') }}</option>
         </select>
+        @endif
         @if(count($signup_status_options) > 1)
             <select id="status-picker-{{ $event_shift->id }}"
                     name="status"

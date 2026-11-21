@@ -76,7 +76,9 @@ class EventTrooperStatusTest extends TestCase
 
         foreach ($cases as $case)
         {
-            $expected_array[$case->value] = to_title($case->name)->toString();
+            $expected_array[$case->value] = $case === EventTrooperStatus::PENDING
+                ? 'Needs Costume'
+                : to_title($case->name)->toString();
             $expected_values[] = $case->value;
         }
 

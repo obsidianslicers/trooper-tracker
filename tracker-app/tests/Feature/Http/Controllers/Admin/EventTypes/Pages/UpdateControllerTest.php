@@ -29,6 +29,7 @@ class UpdateControllerTest extends TestCase
             ->component('admin/event-types/Update')
             ->where('event_type.id', $event_type->id)
             ->where('event_type.is_counted', false)
+            ->where('event_type.is_costume_required', true)
             ->where('event_type.events_count', 2));
     }
 

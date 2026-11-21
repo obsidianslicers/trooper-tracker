@@ -4,8 +4,6 @@
 
 @section('content')
 
-    @include('pages.events.inc.event-views', ['active' => 'map'])
-
     <div class="row p-3"
          hx-get="{{ route('widgets.notices-htmx') }}"
          hx-trigger="load"
@@ -26,10 +24,11 @@
     @endif
 
     <div x-data="Events.Search.mapSelector(@js($events))">
-        <div class="d-flex align-items-center gap-2 mb-2"
-             x-show="canLocate">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            @include('pages.events.inc.event-views', ['active' => 'map'])
             <button type="button"
-                    class="btn btn-sm btn-primary"
+                    class="btn btn-primary"
+                    x-show="canLocate"
                     x-on:click="centerOnUser()"
                     x-bind:disabled="locating">
                 <i class="fa fa-fw fa-location-crosshairs"

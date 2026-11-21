@@ -9,6 +9,7 @@ export type EventTypeRow = {
     name: string;
     description: string | null;
     is_counted: boolean;
+    is_costume_required: boolean;
     is_active: boolean;
     events_count: number;
     can_delete: boolean;
