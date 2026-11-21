@@ -26,6 +26,7 @@ trait EventTypeRules
             ],
             EventType::DESCRIPTION => ['nullable', 'string', 'max:1000'],
             EventType::IS_COUNTED => ['required', 'boolean'],
+            EventType::IS_COSTUME_REQUIRED => ['required', 'boolean'],
             EventType::IS_ACTIVE => ['required', 'boolean'],
         ];
     }

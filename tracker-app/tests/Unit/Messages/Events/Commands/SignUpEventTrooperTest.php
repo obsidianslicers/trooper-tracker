@@ -14,6 +14,7 @@ use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
+use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -55,6 +56,30 @@ class SignUpEventTrooperTest extends TestCase
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_handle_signs_up_going_when_the_event_type_needs_no_costume(): void
+    {
+        Notification::fake();
+
+        $event = Event::factory()->create([
+            Event::EVENT_TYPE_ID => EventType::factory()->withoutCostumes()->create()->id,
+        ]);
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $trooper = Trooper::factory()->create();
+
+        (new SignUpEventTrooper(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper
+        ))->handle(new EventRosterCapacityService);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => null,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
         ]);
     }
 
