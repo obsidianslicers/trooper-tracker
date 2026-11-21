@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\SignUpEventTrooper;
 use App\Messages\Events\Queries\GetEventShiftDisplay;
 use App\Models\EventShift;
+use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -98,6 +101,31 @@ class SignUpHtmxController extends PageController
         return $this->shiftContainerResponse($event_shift, $auth_trooper, $trooper, $can_moderate, $signed_up);
     }
 
+    /**
+     * What the shift says right after a sign-up, depending on where it landed.
+     */
+    private function signedUpMessage(EventShift $event_shift, Trooper $trooper, bool $is_self): string
+    {
+        $status = $event_shift->event_troopers->firstWhere(EventTrooper::TROOPER_ID, $trooper->id)?->status;
+        $name = $trooper->display_name;
+
+        return match (true)
+        {
+            $status === EventTrooperStatus::STAND_BY && $event_shift->event->status === EventStatus::MANUAL_SELECTION => $is_self
+                ? __("events.You're signed up. Command staff picks who goes to this event; you're on the stand-by list until then.")
+                : __('events.:name is signed up and on the stand-by list until command staff picks who goes.', ['name' => $name]),
+            $status === EventTrooperStatus::STAND_BY => $is_self
+                ? __("events.This shift is full, so you're on the stand-by list. You'll move up if a spot opens.")
+                : __('events.This shift is full, so :name is on the stand-by list.', ['name' => $name]),
+            $status === EventTrooperStatus::PENDING => $is_self
+                ? __("events.You're on the shift.").' '.__('events.Select a costume, or mark attending without one, to confirm your spot.')
+                : __('events.:name is on the shift. Pick their costume on their row to confirm the spot.', ['name' => $name]),
+            default => $is_self
+                ? __("events.You're signed up.")
+                : __('events.:name is signed up.', ['name' => $name]),
+        };
+    }
+
     private function shiftContainerResponse(EventShift $event_shift, Trooper $auth_trooper, Trooper $trooper, bool $can_moderate, bool $signed_up = true): Response
     {
         $event_shift = GetEventShiftDisplay::call(event_shift: $event_shift, trooper: $auth_trooper);
@@ -115,6 +143,16 @@ class SignUpHtmxController extends PageController
         $same_day_shifts = $signed_up && $trooper->id === $auth_trooper->id
             ? $event->sameDayShiftsFor($event_shift, $trooper)
             : collect();
+
+        if ($signed_up && $same_day_shifts->isEmpty())
+        {
+            $response = $response->header('X-Flash-Message', json_encode([
+                'message' => $this->signedUpMessage($event_shift, $trooper, $trooper->id === $auth_trooper->id),
+                'type' => 'success',
+                'focus' => false,
+                'fadeOut' => 6000,
+            ]));
+        }
 
         if ($same_day_shifts->isNotEmpty())
         {
