@@ -36,6 +36,23 @@ class TrooperFilterTest extends TestCase
         $this->assertSame($base, $filtered);
     }
 
+    public function test_has_filter_ignores_a_search_term_too_short_to_apply(): void
+    {
+        $this->assertFalse((new TrooperFilter(Request::create('/', 'GET', ['search_term' => 'ab'])))->hasFilter());
+        $this->assertFalse((new TrooperFilter(Request::create('/', 'GET', ['search_term' => ' ab '])))->hasFilter());
+        $this->assertTrue((new TrooperFilter(Request::create('/', 'GET', ['search_term' => 'abc'])))->hasFilter());
+    }
+
+    public function test_has_filter_counts_other_filters_alongside_a_short_search_term(): void
+    {
+        $request = Request::create('/', 'GET', [
+            'search_term' => 'ab',
+            'membership_role' => MembershipRole::MODERATOR->value,
+        ]);
+
+        $this->assertTrue((new TrooperFilter($request))->hasFilter());
+    }
+
     public function test_has_multi_word_search_term_is_false_for_single_word(): void
     {
         $subject = new TrooperFilter(Request::create('/', 'GET', ['search_term' => 'Matthew']));

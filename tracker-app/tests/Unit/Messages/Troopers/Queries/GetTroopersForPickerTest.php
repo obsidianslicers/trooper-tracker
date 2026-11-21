@@ -30,6 +30,52 @@ class GetTroopersForPickerTest extends TestCase
         $this->assertEmpty($result);
     }
 
+    public function test_handle_returns_nothing_while_the_search_term_is_under_three_characters(): void
+    {
+        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Alpha Trooper')->create();
+        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Bravo Trooper')->create();
+
+        $trooper = Trooper::factory()->asMember()->create();
+        $filter = new TrooperFilter(new Request(['search_term' => 'jo']));
+
+        $result = (new GetTroopersForPicker($trooper, $filter, []))->handle();
+
+        $this->assertEmpty($result);
+    }
+
+    public function test_handle_with_friends_picker_mode_lists_friends_while_the_search_term_is_short(): void
+    {
+        $requesting_trooper = Trooper::factory()->asMember()->create();
+        $friend = Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Alpha Friend')->create();
+        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Non Friend')->create();
+
+        TrooperFriend::factory()->forTrooper($requesting_trooper)->forFriend($friend)->create();
+
+        $filter = new TrooperFilter(new Request(['search_term' => 'no']));
+
+        $result = (new GetTroopersForPicker($requesting_trooper, $filter, [
+            'picker_mode' => TrooperSearchMode::FRIENDS->value,
+        ]))->handle();
+
+        $this->assertSame(['Alpha Friend'], $result->pluck(Trooper::DISPLAY_NAME)->all());
+    }
+
+    public function test_handle_returns_at_most_max_results_best_matches_first(): void
+    {
+        Trooper::factory()->count(GetTroopersForPicker::MAX_RESULTS + 5)->asMember()->withSetupCompleted()
+            ->sequence(fn ($sequence) => [Trooper::DISPLAY_NAME => sprintf('Alpha Trooper %02d', $sequence->index)])
+            ->create();
+        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Trooper Zulu')->create();
+
+        $trooper = Trooper::factory()->asMember()->create();
+        $filter = new TrooperFilter(new Request(['search_term' => 'Trooper']));
+
+        $result = (new GetTroopersForPicker($trooper, $filter, []))->handle();
+
+        $this->assertCount(GetTroopersForPicker::MAX_RESULTS, $result);
+        $this->assertSame('Trooper Zulu', $result->first()->display_name);
+    }
+
     public function test_handle_filters_by_organization_id_when_provided(): void
     {
         $trooper = Trooper::factory()->asMember()->create();

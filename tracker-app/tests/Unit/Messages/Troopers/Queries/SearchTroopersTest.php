@@ -170,9 +170,9 @@ class SearchTroopersTest extends TestCase
 
     public function test_handle_returns_results_sorted_by_display_name(): void
     {
-        Trooper::factory()->asMember()->withLegalName('Zulu Trooper')->create();
-        Trooper::factory()->asMember()->withLegalName('Alpha Trooper')->create();
-        Trooper::factory()->asMember()->withLegalName('Bravo Trooper')->create();
+        Trooper::factory()->asMember()->withLegalName('Zulu Trooper')->withDisplayName('Zulu Trooper')->create();
+        Trooper::factory()->asMember()->withLegalName('Alpha Trooper')->withDisplayName('Alpha Trooper')->create();
+        Trooper::factory()->asMember()->withLegalName('Bravo Trooper')->withDisplayName('Bravo Trooper')->create();
 
         $trooper = Trooper::factory()->asMember()->create();
 
@@ -184,6 +184,31 @@ class SearchTroopersTest extends TestCase
             ['Alpha Trooper', 'Bravo Trooper', 'Zulu Trooper'],
             $result->pluck(Trooper::LEGAL_NAME)->all(),
         );
+    }
+
+    public function test_handle_ranks_a_display_name_starting_with_the_term_first(): void
+    {
+        Trooper::factory()->asMember()->withDisplayName('Anakin Skywalker')->create();
+        Trooper::factory()->asMember()->withDisplayName('Skywalker Ranch')->create();
+
+        $trooper = Trooper::factory()->asMember()->create();
+
+        $result = (new SearchTroopers($trooper, 'Skywalker'))->handle();
+
+        $this->assertSame(['Skywalker Ranch', 'Anakin Skywalker'], $result->pluck(Trooper::DISPLAY_NAME)->all());
+    }
+
+    public function test_handle_returns_at_most_max_results(): void
+    {
+        Trooper::factory()->count(SearchTroopers::MAX_RESULTS + 5)->asMember()
+            ->sequence(fn ($sequence) => [Trooper::DISPLAY_NAME => sprintf('Alpha Trooper %02d', $sequence->index)])
+            ->create();
+
+        $trooper = Trooper::factory()->asMember()->create();
+
+        $result = (new SearchTroopers($trooper, 'a'))->handle();
+
+        $this->assertCount(SearchTroopers::MAX_RESULTS, $result);
     }
 
     public function test_handle_with_admin_search_mode_allows_administrator_to_search_all_troopers(): void
@@ -219,7 +244,7 @@ class SearchTroopersTest extends TestCase
 
         $result = $subject->handle();
 
-        $this->assertSame(
+        $this->assertEqualsCanonicalizing(
             ['Admin Search Incomplete', 'Admin Search Minor', 'Admin Search Retired'],
             $result->pluck(Trooper::LEGAL_NAME)->all(),
         );
