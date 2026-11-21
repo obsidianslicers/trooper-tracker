@@ -950,6 +950,20 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         $this->assertSame(EventTrooperStatus::STAND_BY, $event_trooper->fresh()->status);
     }
 
+    public function test_invoke_cancel_offers_sign_up_again(): void
+    {
+        [$trooper, $event_trooper] = $this->goingTrooper();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['status' => EventTrooperStatus::CANCELLED->value]
+        );
+
+        $response->assertOk();
+        $this->assertSame(EventTrooperStatus::CANCELLED, $event_trooper->fresh()->status);
+        $response->assertSee('Sign up again');
+    }
+
     /**
      * @return array{Trooper, EventTrooper}
      */

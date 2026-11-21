@@ -6,7 +6,6 @@ namespace App\Models;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Enums\MembershipRole;
 use App\Models\Base\EventTrooper as BaseEventTrooper;
 use App\Models\Concerns\HasAuditTrail;
 use App\Models\Concerns\HasCreditVerification;
@@ -124,33 +123,7 @@ class EventTrooper extends BaseEventTrooper
      */
     public function getCostumes(): array
     {
-        if ($this->trooper->membership_role === MembershipRole::HANDLER)
-        {
-            return Costume::where('name', Costume::HANDLER)->pluck('name', 'id')->toArray();
-        }
-
-        $event_shift = $this->event_shift;
-
-        $organization_ids = $this->organization_id !== null
-            ? collect([$this->organization_id])
-            : $this->event_shift->event->event_organizations()->pluckCanAttend($event_shift, $this->id);
-
-        return Costume::forTrooper($this->trooper->id, $organization_ids)
-            ->pluck('name', 'id')
-            ->sortBy(function ($name, $id)
-            {
-                if ($name === Costume::COMMAND_STAFF)
-                {
-                    return 2;
-                }
-                if ($name === Costume::HANDLER)
-                {
-                    return 1;
-                }
-
-                return 0; // Everything else stays at the top
-            })
-            ->toArray();
+        return $this->event_shift->costumeOptionsFor($this->trooper, $this->organization_id, $this->id);
     }
 
     /**
