@@ -13,6 +13,8 @@
         [\App\Enums\EventTrooperStatus::CANCELLED->value => true]
     );
     $tour_going = \App\Enums\EventTrooperStatus::GOING;
+    //  no costume to pick on an event type troopers don't wear one to: those steps drop out
+    $tour_costumes = $event->requiresCostume();
 @endphp
 <div x-data="Events.signupTour({ autoStart: @js($tour_auto_start), storageKey: @js('tt.signupTourSeen.' . Auth::id()) })"
      x-on:signup-tour:start.window="start()"
@@ -45,6 +47,7 @@
                 </div>
                 <div class="row g-3">
                     <div class="col-12 col-md-6">
+                        @if($tour_costumes)
                         <label class="form-label small text-muted mb-1">{{ __('events.Costume') }}</label>
                         <select class="form-select form-select-sm">
                             <option>{{ __('events.Your costume') }}</option>
@@ -54,6 +57,7 @@
                                 data-tour-example="backup">
                             <option>{{ __('events.-- None --') }}</option>
                         </select>
+                        @endif
                     </div>
                     <div class="col-12 col-md-6 text-md-end align-self-end">
                         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-md-end"
@@ -106,7 +110,7 @@
     {{-- the steps, in order; a step whose target isn't on the page is left out --}}
     <template data-tour-step
               data-title="{{ __('events.How signing up works') }}">
-        {{ __('events.Signing up is one step: pick your costume and press Sign Up. After that, any change saves the moment you pick it.') }}
+        {{ $tour_costumes ? __('events.Signing up is one step: pick your costume and press Sign Up. After that, any change saves the moment you pick it.') : __('events.Signing up is one step: press Sign Up. After that, any change saves the moment you pick it.') }}
         <br /><br />
         {{ __('events.This takes about a minute, and nothing in it signs you up.') }}
     </template>
@@ -120,19 +124,19 @@
     <template data-tour-step
               data-target=".shift-signup-primary--form"
               data-title="{{ __('events.Sign up for each shift') }}">
-        {!! __('events.Every shift has its own <b>Sign Up</b>. Pick your costume (the one you wore last time is already picked) and press <b>Sign Up</b>. Not wearing one? Pick <i>Attending without a costume</i>. Working more than one shift? Sign up for each one.') !!}
+        {!! $tour_costumes ? __('events.Every shift has its own <b>Sign Up</b>. Pick your costume (the one you wore last time is already picked) and press <b>Sign Up</b>. Not wearing one? Pick <i>Attending without a costume</i>. Working more than one shift? Sign up for each one.') : __('events.Every shift has its own <b>Sign Up</b>. Working more than one shift? Sign up for each one.') !!}
     </template>
     {{-- when the shifts are collapsed, or none can be signed up for right now --}}
     <template data-tour-step
               data-target="[id^='shift-container-']"
               data-unless=".shift-signup-primary--form"
               data-title="{{ __('events.Sign up for each shift') }}">
-        {!! __('events.Every shift has its own <b>Sign Up</b>. Open a shift with its <b>+</b> to see it, pick your costume and press <b>Sign Up</b>. Working more than one shift? Sign up for each one.') !!}
+        {!! $tour_costumes ? __('events.Every shift has its own <b>Sign Up</b>. Open a shift with its <b>+</b> to see it, pick your costume and press <b>Sign Up</b>. Working more than one shift? Sign up for each one.') : __('events.Every shift has its own <b>Sign Up</b>. Open a shift with its <b>+</b> to see it and press <b>Sign Up</b>. Working more than one shift? Sign up for each one.') !!}
     </template>
     <template data-tour-step
               data-target="[data-tour-example='panel']"
               data-title="{{ __('events.Then it\'s your sign-up') }}">
-        {{ __('events.Once you\'re signed up, this box takes the Sign Up button\'s place. Change your costume here any time; it saves as soon as you choose.') }}
+        {{ $tour_costumes ? __('events.Once you\'re signed up, this box takes the Sign Up button\'s place. Change your costume here any time; it saves as soon as you choose.') : __('events.Once you\'re signed up, this box takes the Sign Up button\'s place.') }}
     </template>
     <template data-tour-step
               data-target="[data-tour-example='backup']"

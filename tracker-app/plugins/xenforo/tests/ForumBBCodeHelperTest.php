@@ -359,6 +359,25 @@ class ForumBBCodeHelperTest extends TestCase
         $this->assertLessThan($later_position, $earlier_position);
     }
 
+    public function test_roster_summary_leaves_out_costumes_when_the_event_type_needs_none(): void
+    {
+        $event = Event::factory()->create([
+            Event::EVENT_TYPE_ID => EventType::factory()->withoutCostumes()->create()->id,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $trooper = Trooper::factory()->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asGoing()->create();
+
+        $result = ForumBBCodeHelper::rosterSummary($event);
+
+        $this->assertStringContainsString(
+            '[table][tr][td][b]Trooper Name[/b][/td][td][b]Status[/b][/td][/tr]'
+                ."\n[tr][td]".$trooper->display_name.'[/td][td][i]Going[/i][/td][/tr]',
+            $result
+        );
+        $this->assertStringNotContainsString('Costume', $result);
+    }
+
     public function test_roster_summary_notes_empty_shifts_in_multi_shift_events(): void
     {
         $event = Event::factory()->create();

@@ -1,6 +1,6 @@
 {{-- Add a Friend, step 2: sign up the trooper picked in the modal in one go, like the Sign Up form --}}
 <div class="friend-signup-confirmation"
-     x-data="{ costume: @js($costume_default !== null ? (string) $costume_default : ''), station: '' }">
+     x-data="{ costume: @js(!$event_shift->event->requiresCostume() ? 'none' : ($costume_default !== null ? (string) $costume_default : '')), station: '' }">
     <div class="small fw-semibold mb-2">
         <i class="fa fa-fw fa-user me-1"></i>{{ __('events.Sign up :name', ['name' => $trooper->display_name]) }}
     </div>
@@ -36,6 +36,7 @@
                 @endforeach
             </select>
         @endif
+        @if($event_shift->event->requiresCostume())
         <select id="friend-costume-picker-{{ $event_shift->id }}"
                 name="costume_id"
                 class="form-select form-select-sm"
@@ -48,6 +49,7 @@
             @endforeach
             <option value="none">{{ __('events.Attending without a costume') }}</option>
         </select>
+        @endif
         <button class="btn btn-sm btn-success htmx-disable"
                 hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
                 hx-vals='{"trooper_id": {{ $trooper->id }}}'

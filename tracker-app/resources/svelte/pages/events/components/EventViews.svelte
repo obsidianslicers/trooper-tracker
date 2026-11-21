@@ -6,10 +6,9 @@
     interface Props {
         active: EventView;
         has_map: boolean;
-        compact?: boolean;
     }
 
-    let { active, has_map = false, compact = false }: Props = $props();
+    let { active, has_map = false }: Props = $props();
 
     let open = $state(false);
     let menu: HTMLElement | undefined = $state();
@@ -35,44 +34,28 @@
 
 <svelte:window onclick={closeOutside} />
 
-{#if compact}
-    <div class="dropdown event-views-menu" bind:this={menu}>
-        <button
-            type="button"
-            class="btn btn-outline-light dropdown-toggle text-nowrap"
-            aria-haspopup="true"
-            aria-expanded={open}
-            aria-label={t("Event views")}
-            onclick={() => (open = !open)}
-        >
-            <i class="fa fa-fw {current.icon} me-1"></i>{current.label}
-        </button>
-        <ul class={["dropdown-menu", { show: open }]}>
-            {#each views as view (view.key)}
-                <li>
-                    <a
-                        class={["dropdown-item", { active: view.key === active }]}
-                        href={getRoute(view.route)}
-                        aria-current={view.key === active ? "page" : undefined}
-                    >
-                        <i class="fa fa-fw {view.icon} me-2"></i>{view.label}
-                    </a>
-                </li>
-            {/each}
-        </ul>
-    </div>
-{:else}
-    <nav class="d-flex flex-wrap justify-content-center gap-2 mb-3 event-views" aria-label={t("Event views")}>
+<div class="dropdown event-views-menu" bind:this={menu}>
+    <button
+        type="button"
+        class="btn btn-outline-light dropdown-toggle text-nowrap h-100"
+        aria-haspopup="true"
+        aria-expanded={open}
+        aria-label={t("Event views")}
+        onclick={() => (open = !open)}
+    >
+        <i class="fa fa-fw {current.icon} me-1"></i>{current.label}
+    </button>
+    <ul class={["dropdown-menu", { show: open }]}>
         {#each views as view (view.key)}
-            {#if view.key === active}
-                <span class="btn btn-sm btn-primary active" aria-current="page">
-                    <i class="fa fa-fw {view.icon} me-1"></i>{view.label}
-                </span>
-            {:else}
-                <a class="btn btn-sm btn-outline-light" href={getRoute(view.route)}>
-                    <i class="fa fa-fw {view.icon} me-1"></i>{view.label}
+            <li>
+                <a
+                    class={["dropdown-item", { active: view.key === active }]}
+                    href={getRoute(view.route)}
+                    aria-current={view.key === active ? "page" : undefined}
+                >
+                    <i class="fa fa-fw {view.icon} me-2"></i>{view.label}
                 </a>
-            {/if}
+            </li>
         {/each}
-    </nav>
-{/if}
+    </ul>
+</div>

@@ -38,6 +38,22 @@ test.describe('finding a troop', () => {
         expect(map?.status()).toBe(200);
     });
 
+    test('the views menu beside the search box switches between event views', async ({ page }) => {
+        await page.goto('/events');
+        const menu = page.getByRole('button', { name: 'Event views' }).filter({ visible: true });
+        await expect(menu).toHaveText('List');
+
+        await menu.click();
+        await page.getByRole('link', { name: 'Calendar' }).filter({ visible: true }).click();
+        await expect(page).toHaveURL(/\/events\/calendar$/);
+        await expect(menu).toHaveText('Calendar');
+
+        await menu.click();
+        await page.getByRole('link', { name: 'Completed' }).filter({ visible: true }).click();
+        await expect(page).toHaveURL(/\/events\/closed$/);
+        await expect(menu).toHaveText('Completed');
+    });
+
     test('completed troops are listed apart from open ones', async ({ page }) => {
         await page.goto('/events/closed');
         await expect(page.getByText(seeded.pastParade).first()).toBeVisible();

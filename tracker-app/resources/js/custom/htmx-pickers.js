@@ -33,8 +33,19 @@ document.addEventListener('click', function (evt) {
         }));
     }
 
-    const modalEl = record.closest('.modal-picker');
-    const modal = bootstrap.Modal.getInstance(modalEl);
-    if (modal) modal.hide();
+    closePicker(record.closest('.modal-picker'));
 });
+
+// Bootstrap ignores hide() while a modal is still fading in, so a quick pick would leave the
+// picker open. If it's still open after hide(), close it once it has finished opening.
+function closePicker(modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (!modal) return;
+
+    modal.hide();
+
+    if (modalEl.classList.contains('show')) {
+        modalEl.addEventListener('shown.bs.modal', () => modal.hide(), { once: true });
+    }
+}
 

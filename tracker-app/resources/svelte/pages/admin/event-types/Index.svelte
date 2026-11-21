@@ -28,6 +28,7 @@
                 <th style="width: 80px;">{t("Order")}</th>
                 <th>{t("Event Type")}</th>
                 <th style="width: 140px;">{t("Troop credit")}</th>
+                <th style="width: 120px;">{t("Costume")}</th>
                 <th style="width: 80px;">{t("Events")}</th>
                 <th class="text-end">
                     <CreateButton

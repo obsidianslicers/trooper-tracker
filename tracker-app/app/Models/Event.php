@@ -79,6 +79,15 @@ class Event extends BaseEvent
     }
 
     /**
+     * Whether troopers wear a costume to this event, as its type decides. When they don't,
+     * sign-up asks for no costume and the event shows none.
+     */
+    public function requiresCostume(): bool
+    {
+        return $this->event_type?->is_costume_required ?? true;
+    }
+
+    /**
      * Photos added before an event starts are usually maps and directions, so they
      * default to instructional; after it starts they default to troop photos.
      */

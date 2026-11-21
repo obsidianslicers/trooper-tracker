@@ -16,6 +16,7 @@ function generateForm(event_type: UpdatePageData["event_type"]): InertiaForm<IEv
         name: event_type.name,
         description: event_type.description ?? "",
         is_counted: event_type.is_counted,
+        is_costume_required: event_type.is_costume_required,
         is_active: event_type.is_active,
     });
 }
