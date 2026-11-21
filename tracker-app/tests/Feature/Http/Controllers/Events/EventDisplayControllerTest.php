@@ -362,6 +362,33 @@ class EventDisplayControllerTest extends TestCase
         $response->assertRedirect(route('auth.login'));
     }
 
+    public function test_invoke_opens_the_shifts_the_trooper_is_on(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = Event::factory()->create();
+        $other_shift = EventShift::factory()->forEvent($event)->create();
+        $my_shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($my_shift)->forTrooper($trooper)->asGoing()->create();
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $this->assertStringContainsString('class="collapse show"', $this->shiftHtml($response->getContent(), $my_shift));
+        $this->assertStringNotContainsString('class="collapse show"', $this->shiftHtml($response->getContent(), $other_shift));
+    }
+
+    /**
+     * One shift's part of the event page, up to the next shift.
+     */
+    private function shiftHtml(string $html, EventShift $event_shift): string
+    {
+        $start = strpos($html, 'id="shift-container-'.$event_shift->id.'"');
+        $this->assertNotFalse($start);
+        $end = strpos($html, 'id="shift-container-', $start + 1);
+
+        return substr($html, $start, $end === false ? null : $end - $start);
+    }
+
     private function clubOnEvent(Event $event, string $name, bool $can_attend, ?int $troopers_allowed = null): void
     {
         $club = Organization::factory()->asOrganization()->create([Organization::NAME => $name]);
