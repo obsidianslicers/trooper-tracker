@@ -16,6 +16,12 @@ use Illuminate\Support\Collection;
 final class SearchTroopers extends Message
 {
     /**
+     * The most troopers a search returns: the best matches by relevance. A one-letter search
+     * would otherwise return nearly everyone.
+     */
+    public const MAX_RESULTS = 25;
+
+    /**
      * Summary of __construct
      *
      * @param  Actor&Trooper  $actor
@@ -45,8 +51,6 @@ final class SearchTroopers extends Message
                 });
         }
 
-        $query = $query->orderBy(Trooper::LEGAL_NAME);
-
         if ($this->organization_id)
         {
             $query = $query->whereHas('organizations', function ($q)
@@ -75,14 +79,15 @@ final class SearchTroopers extends Message
 
         if ($has_filter)
         {
-            $query = $query->searchFor($search_term);
-
-            $execute_query = true;
+            return $query->searchFor($search_term)
+                ->orderByRelevance($search_term)
+                ->limit(self::MAX_RESULTS)
+                ->get();
         }
 
         if ($execute_query)
         {
-            return $query->get();
+            return $query->orderBy(Trooper::LEGAL_NAME)->get();
         }
 
         return collect([]);

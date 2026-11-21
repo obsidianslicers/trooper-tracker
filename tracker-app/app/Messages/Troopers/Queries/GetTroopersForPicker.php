@@ -27,6 +27,12 @@ use Illuminate\Support\Collection;
 final class GetTroopersForPicker extends Message
 {
     /**
+     * The most troopers a search returns: the best matches by relevance. Typing more narrows
+     * the list, and a short list keeps the picker quick to render on a slow server.
+     */
+    public const MAX_RESULTS = 25;
+
+    /**
      * Create a new query instance.
      *
      * @param  Trooper  $trooper  The trooper requesting troopers
@@ -55,8 +61,9 @@ final class GetTroopersForPicker extends Message
      *    requesting trooper is their guardian
      * 3. If organization_id is set: Filter to troopers belonging to that organization
      * 4. If moderated_only is set: Filter to troopers moderated by the requesting trooper
-     * 5. If filter has criteria: Apply search term and role filtering and return results
-     * 6. If no filter criteria: Return empty collection
+     * 5. If filter has criteria: Apply search term and role filtering and return the best
+     *    MAX_RESULTS matches. A search term under 3 characters isn't a criterion.
+     * 6. If no filter criteria: Return empty collection, or every friend in friends mode
      *
      * @return Collection<int, Trooper> Collection of filtered troopers, or empty if no filter applied
      */
@@ -82,12 +89,12 @@ final class GetTroopersForPicker extends Message
         }
 
         $order_term = $this->filter->searchTermValue();
-        $results = $this->resolveOrder($query, $order_term)->get();
+        $results = $this->fetch($query, $order_term, $has_filter);
 
         if ($results->isEmpty() && $has_filter && $this->filter->hasMultiWordSearchTerm())
         {
             $query = $this->buildBaseQuery()->filterWith($this->filter->useLooseSearch());
-            $results = $this->resolveOrder($query, $order_term)->get();
+            $results = $this->fetch($query, $order_term, $has_filter);
         }
 
         return $results;
@@ -154,6 +161,22 @@ final class GetTroopersForPicker extends Message
         }
 
         return $query;
+    }
+
+    /**
+     * Run the query in order, capped at MAX_RESULTS when it's a search. A friends list
+     * without a search term is returned in full.
+     *
+     * @param  Builder<Trooper>  $query  The query to run.
+     * @param  string|null  $order_term  The search term to rank against, if any.
+     * @param  bool  $has_filter  Whether the query is a search.
+     * @return Collection<int, Trooper>
+     */
+    private function fetch(Builder $query, ?string $order_term, bool $has_filter): Collection
+    {
+        return $this->resolveOrder($query, $order_term)
+            ->when($has_filter, fn (Builder $q) => $q->limit(self::MAX_RESULTS))
+            ->get();
     }
 
     /**

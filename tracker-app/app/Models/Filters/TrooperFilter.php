@@ -56,6 +56,31 @@ class TrooperFilter extends QueryFilter
     }
 
     /**
+     * Whether any filter will actually narrow the query.
+     *
+     * A search term only counts once it's long enough to be applied (see searchTerm()).
+     * Otherwise a picker would list every trooper while someone has typed "jo".
+     *
+     * @return bool True when at least one filter applies.
+     */
+    public function hasFilter(): bool
+    {
+        foreach (array_keys($this->filters()) as $name)
+        {
+            $applies = $name === 'search_term'
+                ? $this->searchTermValue() !== null
+                : $this->request->filled($name);
+
+            if ($applies)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Get the search term if it's long enough to have actually been applied as a filter.
      *
      * @return string|null The trimmed search term, or null if absent or too short to search on.
