@@ -74,6 +74,9 @@ test.describe('signing up', () => {
         // A friend from the tracker.
         await shift(page).getByRole('button', { name: 'Add a Friend' }).click();
         const picker = page.getByRole('dialog');
+        // The picker loads into the dialog with HTMX; typing before it settles sends no search.
+        await expect(picker.getByRole('textbox')).toBeVisible();
+        await htmxSettled(page);
         await picker.getByRole('textbox').fill('E2E Trooper Friend');
         await picker.getByRole('listitem').filter({ hasText: seeded.friend.name }).click();
         await expect(shift(page).getByRole('link', { name: seeded.friend.name })).toBeVisible();
