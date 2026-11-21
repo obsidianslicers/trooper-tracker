@@ -9,25 +9,29 @@
         'cancelled' => ['route' => 'events.cancelled', 'icon' => 'fa-ban', 'label' => __('events.Cancelled')],
     ];
 
-    if (!config('services.google.maps_api_key'))
+    if (!config('services.google.maps_api_key') && $active !== 'map')
     {
         unset($views['map']);
     }
 @endphp
 
-<nav class="d-flex flex-wrap justify-content-center gap-2 mb-3 event-views"
-     aria-label="{{ __('events.Event views') }}">
-    @foreach($views as $key => $view)
-        @if($key === $active)
-            <span class="btn btn-sm btn-primary active"
-                  aria-current="page">
-                <i class="fa fa-fw {{ $view['icon'] }} me-1"></i>{{ $view['label'] }}
-            </span>
-        @else
-            <a class="btn btn-sm btn-outline-light"
-               href="{{ route($view['route']) }}">
-                <i class="fa fa-fw {{ $view['icon'] }} me-1"></i>{{ $view['label'] }}
-            </a>
-        @endif
-    @endforeach
-</nav>
+<div class="dropdown event-views-menu">
+    <button type="button"
+            class="btn btn-outline-light dropdown-toggle text-nowrap"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            aria-label="{{ __('events.Event views') }}">
+        <i class="fa fa-fw {{ $views[$active]['icon'] }} me-1"></i>{{ $views[$active]['label'] }}
+    </button>
+    <ul class="dropdown-menu">
+        @foreach($views as $key => $view)
+            <li>
+                <a @class(['dropdown-item', 'active' => $key === $active])
+                   href="{{ route($view['route']) }}"
+                   @if($key === $active) aria-current="page" @endif>
+                    <i class="fa fa-fw {{ $view['icon'] }} me-2"></i>{{ $view['label'] }}
+                </a>
+            </li>
+        @endforeach
+    </ul>
+</div>

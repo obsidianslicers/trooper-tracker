@@ -53,6 +53,7 @@ return [
     'Missing' => 'Missing',
     'Moderator' => 'Moderator',
     'Monthly' => 'Monthly',
+    'Needs Costume' => 'Needs Costume',
     'Never' => 'Never',
     'No Show' => 'No Show',
     'None' => 'None',

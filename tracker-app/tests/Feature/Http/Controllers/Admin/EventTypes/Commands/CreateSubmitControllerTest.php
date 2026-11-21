@@ -22,6 +22,7 @@ class CreateSubmitControllerTest extends TestCase
             'name' => 'Squad Meeting',
             'description' => 'Business meetings, out of costume.',
             'is_counted' => false,
+            'is_costume_required' => false,
             'is_active' => true,
         ]);
 
@@ -29,6 +30,7 @@ class CreateSubmitControllerTest extends TestCase
         $this->assertDatabaseHas('tt_event_types', [
             EventType::NAME => 'Squad Meeting',
             EventType::IS_COUNTED => false,
+            EventType::IS_COSTUME_REQUIRED => false,
             EventType::IS_ACTIVE => true,
             EventType::SORT_ORDER => $last + 1,
             EventType::CREATED_ID => $trooper->id,
@@ -42,6 +44,7 @@ class CreateSubmitControllerTest extends TestCase
         $response = $this->actingAs($trooper)->post(route('admin.event-types.create'), [
             'name' => 'Charity',
             'is_counted' => true,
+            'is_costume_required' => true,
             'is_active' => true,
         ]);
 
@@ -55,6 +58,7 @@ class CreateSubmitControllerTest extends TestCase
         $response = $this->actingAs($trooper)->post(route('admin.event-types.create'), [
             'name' => 'Squad Meeting',
             'is_counted' => true,
+            'is_costume_required' => true,
             'is_active' => true,
         ]);
 

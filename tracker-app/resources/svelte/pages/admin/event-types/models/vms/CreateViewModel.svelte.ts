@@ -8,6 +8,7 @@ function generateForm(): InertiaForm<IEventTypeForm> {
         name: "",
         description: "",
         is_counted: true,
+        is_costume_required: true,
         is_active: true,
     });
 }

@@ -172,7 +172,7 @@ composer dev
 ```bash
 # Run full test suite (Feature + Unit)
 composer test:freshdb # just once is all it takes
-php artisan test
+php artisan test --parallel   # one process per CPU core: ~10 s instead of ~1 min
 
 # Run with coverage report
 #php artisan test --coverage
@@ -186,7 +186,7 @@ npm test
 
 **Before submitting PRs:**
 - New/Updated Code must be tested
-- All tests must pass: `php artisan test` and `npm test`
+- All tests must pass: `php artisan test --parallel` and `npm test`
 - Code must pass formatting: `composer pint:format`
 - Code must pass static analysis: `composer stan`
 - Follow conventions in `docs/CODING_CONVENTIONS.md`

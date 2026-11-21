@@ -21,6 +21,7 @@ Used for local development and testing only:
 | Package | Purpose |
 |---|---|
 | `barryvdh/laravel-debugbar` | A debugging toolbar for Laravel that displays queries, view data, route information, and performance metrics during development. |
+| `brianium/paratest` | Runs PHPUnit in several processes at once, so `php artisan test --parallel` runs the suite in about a sixth of the time. |
 | `fakerphp/faker` | A library for generating fake data. Essential for populating the database with test data (database seeding) for development and automated testing. |
 | `laravel/boost` | A Laravel package that provides performance optimizations and pre-compilation for production deployments. |
 | `laravel/pail` | A command-line tool for tailing Laravel application logs in real-time with helpful filtering and formatting capabilities. |

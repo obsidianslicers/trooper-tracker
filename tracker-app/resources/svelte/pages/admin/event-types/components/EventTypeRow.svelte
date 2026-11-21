@@ -35,6 +35,14 @@
             <span class="badge text-bg-warning">{t("Non-troop-credit")}</span>
         {/if}
     </td>
+    <td>
+        {#if event_type.is_costume_required}
+            <i class="fa fa-fw fa-check text-success" aria-hidden="true"></i>
+            <span class="visually-hidden">{t("Costume required")}</span>
+        {:else}
+            <span class="badge text-bg-secondary">{t("No costume")}</span>
+        {/if}
+    </td>
     <td class="text-muted small">{event_type.events_count}</td>
     <td class="text-end">
         <ActionMenu>

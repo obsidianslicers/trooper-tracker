@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $description
  * @property int $sort_order
  * @property bool $is_counted
+ * @property bool $is_costume_required
  * @property bool $is_active
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -38,6 +39,7 @@ class EventType extends Model
     const DESCRIPTION = 'description';
     const SORT_ORDER = 'sort_order';
     const IS_COUNTED = 'is_counted';
+    const IS_COSTUME_REQUIRED = 'is_costume_required';
     const IS_ACTIVE = 'is_active';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -50,6 +52,7 @@ class EventType extends Model
         self::ID => 'int',
         self::SORT_ORDER => 'int',
         self::IS_COUNTED => 'bool',
+        self::IS_COSTUME_REQUIRED => 'bool',
         self::IS_ACTIVE => 'bool',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
@@ -63,6 +66,7 @@ class EventType extends Model
         self::DESCRIPTION,
         self::SORT_ORDER,
         self::IS_COUNTED,
+        self::IS_COSTUME_REQUIRED,
         self::IS_ACTIVE
     ];
 

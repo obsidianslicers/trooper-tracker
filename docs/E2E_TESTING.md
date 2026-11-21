@@ -23,6 +23,25 @@ Playwright starts the app itself (`tests/e2e/support/server.js`): it rebuilds
 `http://127.0.0.1:8077` (set `E2E_PORT` to change it). Its environment overrides your `.env`,
 so your local database is never touched. Set `PHP_BINARY` if `php` on your path is not PHP 8.4.
 
+### In parallel
+
+The specs share one database, so a single run goes one test at a time (about 5 minutes).
+`npm run test:e2e:parallel` splits the suite over several Playwright runs side by side, each with
+its own app server, port, database and saved sign-ins, so it takes about half that time:
+
+```bash
+npm run test:e2e:parallel                       # one shard per 2 CPU cores, at most 6
+npm run test:e2e:parallel -- --shards=3         # pick the number
+npm run test:e2e:parallel -- --shards=3 events  # anything else goes to `playwright test`
+```
+
+Each shard is a normal run with `E2E_SHARD=<n>` set (`tests/e2e/support/env.js`): port
+`8077 + n`, `database/e2e-<n>.sqlite` (or `trooper_e2e_<n>` on MySQL, which must exist) and
+`tests/e2e/.auth/<n>/`. It prints one line per shard and the failures; the full output is in
+`test-results/shard-<n>.log`, and traces and screenshots in `test-results/shard-<n>/`. Tests are
+split one by one (`--fully-parallel`), so a test must not rely on an earlier test in its file
+having run.
+
 ### On MySQL
 
 Production runs MySQL, and a few reports (Trooper Event Summary, Donation Event Summary,
