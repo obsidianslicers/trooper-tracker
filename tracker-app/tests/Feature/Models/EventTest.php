@@ -480,6 +480,50 @@ class EventTest extends TestCase
         );
     }
 
+    public function test_plan_status_options_offer_going_and_tentative_without_cancelled(): void
+    {
+        config(['tracker.tentative_cutoff_days' => null]);
+
+        $options = $this->tentativeEvent(now()->addDays(30))->planStatusOptions();
+
+        $this->assertSame(
+            [EventTrooperStatus::GOING->value, EventTrooperStatus::TENTATIVE->value],
+            array_keys($options)
+        );
+    }
+
+    public function test_plan_status_options_drop_tentative_on_a_limited_event(): void
+    {
+        config(['tracker.tentative_cutoff_days' => null]);
+
+        $event = $this->tentativeEvent(now()->addDays(30));
+        $event->troopers_allowed = 10;
+
+        $this->assertSame([EventTrooperStatus::GOING->value], array_keys($event->planStatusOptions()));
+    }
+
+    public function test_plan_status_options_keep_the_current_status(): void
+    {
+        config(['tracker.tentative_cutoff_days' => '7']);
+
+        $options = $this->tentativeEvent(now()->addDays(3))->planStatusOptions(EventTrooperStatus::TENTATIVE);
+
+        $this->assertSame(
+            [EventTrooperStatus::TENTATIVE->value, EventTrooperStatus::GOING->value],
+            array_keys($options)
+        );
+    }
+
+    public function test_plan_status_options_are_empty_on_a_manual_selection_event(): void
+    {
+        config(['tracker.tentative_cutoff_days' => null]);
+
+        $event = $this->tentativeEvent(now()->addDays(30));
+        $event->status = EventStatus::MANUAL_SELECTION;
+
+        $this->assertSame([], $event->planStatusOptions());
+    }
+
     private function tentativeEvent(Carbon $starts_at): Event
     {
         return Event::factory()->create([

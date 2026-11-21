@@ -4,6 +4,16 @@
                       :open="$count_of_shifts == 1 || (isset($open) && $open === true)">
         <x-transmission-bar :id="'shift-' . $event_shift->id" />
         @include('pages.events.inc.shift-header', compact('event_shift'))
+        {{-- Sign Up, or "Your sign-up" once they're on the shift, above the roster --}}
+        <div class="row mb-3">
+            <div class="col-12 shift-signup-actions">
+                @include('pages.events.inc.shift-add-trooper', compact('event_shift', 'event'))
+            </div>
+        </div>
+        @include('pages.events.inc.same-day-shift-note', compact('event_shift', 'event'))
+        @if($event_shift->event_troopers->isNotEmpty())
+            <hr />
+        @endif
         @foreach($event_shift->event_troopers as $event_trooper)
             @include('pages.events.inc.trooper', compact('event_trooper'))
         @endforeach
@@ -16,11 +26,9 @@
                 @endforeach
             @endif
         @endif
-        @include('pages.events.inc.same-day-shift-note', compact('event_shift', 'event'))
-        <div class="row my-3">
-            <div class="col-12 shift-signup-actions">
-                @include('pages.events.inc.shift-add-trooper', compact('event_shift', 'event'))
-            </div>
-        </div>
     </x-accordion-card>
 </div>
+@if(request()->hasHeader('HX-Request'))
+    {{-- swapped in out of band, so the summary at the top of the page follows this shift's change --}}
+    @include('pages.events.inc.my-signup-summary', ['event' => $event, 'oob' => true])
+@endif

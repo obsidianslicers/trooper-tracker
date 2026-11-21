@@ -48,15 +48,21 @@ test.describe('finding a troop', () => {
 });
 
 test.describe('signing up', () => {
-    test('a trooper signs up, picks a costume, brings a guest and a friend, then cancels', async ({ page }) => {
+    test('a trooper signs up in a costume, brings a guest and a friend, then cancels', async ({ page }) => {
         await openEvent(page, seeded.signupEvent);
+        await expect(page.getByText("You're not signed up for this event yet.")).toBeVisible();
 
-        await shift(page).getByRole('button', { name: 'Sign Up' }).click();
-        await expect(shift(page).getByText('Select a costume, or mark attending without one')).toBeVisible();
-
-        await choose(page, 'costume_id', { label: seeded.trooperCostume });
+        // One step: the costume goes with the Sign Up button.
+        const signUp = shift(page).getByRole('button', { name: 'Sign Up' });
+        await shift(page).locator('select[name="costume_id"]').selectOption({ label: seeded.trooperCostume });
+        await expect(signUp).toBeEnabled();
+        await htmxSettled(page);
+        const signedUp = page.waitForResponse((r) => r.url().includes('/events/signup/') && r.request().method() === 'POST');
+        await signUp.click();
+        await signedUp;
         await expect(shift(page).getByText('1 / 10 going')).toBeVisible();
-        await expect(shift(page).locator('select[name="status"]')).toHaveValue('going');
+        await expect(shift(page).locator('[id^="my-shift-signup-"]')).toContainText('Going');
+        await expect(page.locator('#my-signup-summary')).toContainText(seeded.trooperCostume);
 
         await choose(page, 'backup_costume_id', { label: seeded.trooperCostume });
 
@@ -70,17 +76,21 @@ test.describe('signing up', () => {
         // A friend from the tracker.
         await shift(page).getByRole('button', { name: 'Add a Friend' }).click();
         const picker = page.getByRole('dialog');
+        // The picker loads into the dialog with HTMX; typing before it settles sends no search.
+        await expect(picker.getByRole('textbox')).toBeVisible();
+        await htmxSettled(page);
         await picker.getByRole('textbox').fill('E2E Trooper Friend');
         await picker.getByRole('listitem').filter({ hasText: seeded.friend.name }).click();
         await expect(shift(page).getByRole('link', { name: seeded.friend.name })).toBeVisible();
 
-        // Backing out.
+        // Backing out: a button that asks first, not an option in a dropdown.
         await htmxSettled(page);
-        const own = shift(page).locator('.row').filter({ has: page.getByRole('link', { name: personas.trooper.name, exact: true }) });
+        page.once('dialog', (dialog) => dialog.accept());
         const response = page.waitForResponse((r) => r.url().includes('/events/update/') && r.request().method() === 'POST');
-        await own.locator('select[name="status"]').selectOption('cancelled');
+        await shift(page).getByRole('button', { name: 'Cancel my sign-up' }).click();
         await response;
         await expect(shift(page).locator('.trooper-status-cancelled')).toContainText(personas.trooper.name);
+        await expect(shift(page).getByRole('button', { name: 'Sign up again' })).toBeVisible();
     });
 
     test('a troop with a required brief opens sign-up once it is acknowledged', async ({ page }) => {
@@ -180,7 +190,7 @@ test.describe('after the troop', () => {
         await shift(page).getByRole('link', { name: 'Made It' }).click();
 
         await openEvent(page, seeded.pastParade, '/events/closed');
-        await expect(shift(page).getByText('Attended')).toBeVisible();
+        await expect(shift(page).locator('[id^="my-shift-signup-"]')).toContainText('Attended');
     });
 });
 

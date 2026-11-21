@@ -92,7 +92,19 @@ function showHtmxErrorFallback(event) {
     }
 }
 
-document.body.addEventListener('htmx:afterSwap', showHtmxFlash);
+//  htmx fires afterSwap on every element a response swapped in, out-of-band ones included (e.g.
+//  the event page's "Your sign-up" summary), with detail.elt set to that element. Only the main
+//  swap shows the message, or it would appear twice.
+const swappedOutOfBand = new WeakSet();
+
+document.body.addEventListener('htmx:oobAfterSwap', (event) => swappedOutOfBand.add(event.target));
+document.body.addEventListener('htmx:afterSwap', (event) => {
+    if (swappedOutOfBand.has(event.target)) {
+        return;
+    }
+
+    showHtmxFlash(event);
+});
 document.body.addEventListener('htmx:responseError', function (event) {
     showHtmxFlash(event);
     showHtmxErrorFallback(event);
