@@ -1,0 +1,70 @@
+# Troop Tracker in Docker, from tracker-app/. See docs/DOCKER.md.
+#
+#   docker compose up -d                          app on http://localhost:8000, MySQL, Vite
+#   docker compose exec app php artisan migrate          (then the seeders in README.md)
+#   docker compose run --rm --build test          whole PHPUnit suite, in parallel
+#   docker compose run --rm --build test php artisan test --filter=EventTest
+#   docker compose run --rm --build e2e           whole Playwright suite, in parallel
+#
+# Compose reads .env here for the ${...} values below, so the database matches the app's .env.
+# Ports: APP_PORT, VITE_PORT and FORWARD_DB_PORT, if 8000, 5173 or 3306 are taken.
+
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "${APP_PORT:-8000}:8000"
+      - "${VITE_PORT:-5173}:${VITE_PORT:-5173}"
+    environment:
+      # Only the host and port. The connection and database name stay in .env, so phpunit.xml's
+      # in-memory SQLite still wins for `php artisan test` in this container.
+      DB_HOST: mysql
+      DB_PORT: 3306
+      # Vite listens on the same port inside, since the page sends the browser straight to it.
+      VITE_PORT: "${VITE_PORT:-5173}"
+    volumes:
+      - .:/app
+      # Packages in volumes: faster than the bind mount, and they don't clash with the host's.
+      - vendor:/app/vendor
+      - node_modules:/app/node_modules
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD:-CHANGE_ME}"
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: "${DB_DATABASE:-trooptracker}"
+    ports:
+      - "${FORWARD_DB_PORT:-3306}:3306"
+    volumes:
+      - mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # The test images hold a copy of the code, so each run tests the files as they are when it
+  # starts, and several runs (or worktrees, with -p <name>) don't get in each other's way.
+  test:
+    build:
+      context: .
+      target: test
+    profiles: ["test"]
+
+  e2e:
+    build:
+      context: .
+      target: e2e
+    profiles: ["test"]
+    shm_size: 1gb
+
+volumes:
+  vendor:
+  node_modules:
+  mysql:

@@ -49,6 +49,21 @@ npx playwright test approvals  # or one spec
 run its spec on its own once before treating it as real; the traces and screenshots are in
 `test-results/`. Run `npx playwright install chromium` once per machine.
 
+## In Docker
+
+Without PHP or Node on the machine, or to test without touching a running dev server, use the
+images in `docs/DOCKER.md`. Each run tests a copy of the working tree, so several can run at once:
+
+```bash
+docker compose run --rm --build test                          # php artisan test --parallel
+docker compose run --rm --build test php artisan test --filter=EventTest
+docker compose run --rm --build test composer pint:test
+docker compose run --rm --build e2e                           # whole browser suite, sharded
+```
+
+Don't run the suite through a bind mount on Docker Desktop (macOS, Windows): reading the code
+through it makes the suite about 15 minutes instead of about 10 seconds.
+
 ## Things that skip or differ locally
 
 - PHPUnit runs on in-memory SQLite (`phpunit.xml`). Its `<env>` values are defaults, not forced,
