@@ -75,7 +75,7 @@
             <button type="button" class="btn btn-sm btn-success" disabled={vm.submitting} onclick={vm.confirm}>
                 <i class="fa fa-fw fa-check me-1"></i>{t("Add to Roster")}
             </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" onclick={vm.cancel}>
+            <button type="button" class="btn btn-sm btn-link text-muted" onclick={vm.cancel}>
                 {t("Cancel")}
             </button>
         </div>

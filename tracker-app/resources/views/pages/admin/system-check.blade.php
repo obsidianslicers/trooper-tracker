@@ -53,11 +53,12 @@
                             <small class="text-muted ms-auto">{{ $entry->logged_at }}</small>
                         </div>
                         <div class="mt-1">{{ $entry->summary() }}</div>
-                        <a href="#" class="small"
-                           data-bs-toggle="collapse"
-                           data-bs-target="#error-detail-{{ $index }}">
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary btn-secondary-action mt-1"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#error-detail-{{ $index }}">
                             {{ __('admin.View full error') }}
-                        </a>
+                        </button>
                         <div id="error-detail-{{ $index }}" class="collapse mt-2">
                             <pre class="bg-dark text-light p-2 rounded small mb-0" style="white-space: pre-wrap;">{{ $entry->message }}</pre>
                         </div>

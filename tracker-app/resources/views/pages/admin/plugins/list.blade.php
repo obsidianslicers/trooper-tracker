@@ -119,7 +119,7 @@
                             </button>
                         @elseif($plugin['is_enable_pending'])
                             <button type="submit"
-                                    class="btn btn-sm btn-outline-secondary">
+                                    class="btn btn-sm btn-link text-muted">
                                 {{ __('admin.Cancel') }}
                             </button>
                         @else

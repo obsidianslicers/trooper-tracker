@@ -27,7 +27,7 @@
                         @csrf
                         @method('DELETE')
                         <button type="submit"
-                                class="btn btn-sm btn-outline-secondary">
+                                class="btn btn-sm btn-outline-secondary btn-secondary-action">
                             {{ __('layout.Clear all') }}
                         </button>
                     </form>

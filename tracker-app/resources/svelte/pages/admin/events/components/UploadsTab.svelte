@@ -48,7 +48,7 @@
                     </div>
                 {/if}
                 <div class="card-footer p-2">
-                    <button type="button" class="btn btn-sm btn-outline-primary w-100 mb-2" onclick={() => vm.ask(upload, "move")}>
+                    <button type="button" class="btn btn-sm btn-outline-secondary btn-secondary-action w-100 mb-2" onclick={() => vm.ask(upload, "move")}>
                         <i class={["fa me-1", is_administrative ? "fa-share" : "fa-folder"]}></i>
                         {vm.move_label}
                     </button>

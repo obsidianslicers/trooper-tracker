@@ -33,7 +33,7 @@
         {/each}
     </div>
     <div class="d-flex justify-content-between">
-        <button type="button" class="btn btn-outline-secondary" onclick={vm.clearHosting}>
+        <button type="button" class="btn btn-outline-secondary btn-secondary-action" onclick={vm.clearHosting}>
             {t("Show All")}
         </button>
         <button type="button" class="btn btn-primary" onclick={close}>

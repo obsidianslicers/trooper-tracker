@@ -106,7 +106,7 @@
         {@render hostingChips()}
 
         {#if vm.has_filters}
-            <button type="button" class="btn btn-sm btn-link" onclick={vm.clearFilters}>
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-secondary-action" onclick={vm.clearFilters}>
                 {t("Clear Filters")}
             </button>
         {/if}

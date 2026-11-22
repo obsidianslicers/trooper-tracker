@@ -5,7 +5,7 @@
           onsubmit="return confirm('Undo the revoke? The costume is approved again and club syncs manage it as usual.');">
         @csrf
         <button type="submit"
-                class="btn btn-sm btn-outline-secondary">
+                class="btn btn-sm btn-outline-secondary btn-secondary-action">
             {{ __('admin.Undo') }}
         </button>
     </form>
