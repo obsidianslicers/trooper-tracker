@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Plugins;
+namespace Tests\Feature\Http\Controllers\Admin\Plugins\Commands;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\Plugins\UsesFixturePlugins;
 use Tests\TestCase;
 
-class DisableSubmitControllerTest extends TestCase
+class DisablePluginControllerTest extends TestCase
 {
     use RefreshDatabase;
     use UsesFixturePlugins;
@@ -25,7 +25,7 @@ class DisableSubmitControllerTest extends TestCase
             ['slug' => 'hello'],
         ));
 
-        $response->assertRedirect(route('admin.plugins.list'));
+        $response->assertRedirect(route('admin.plugins.index'));
         $this->assertFalse($plugins->isEnabled('hello'));
     }
 }

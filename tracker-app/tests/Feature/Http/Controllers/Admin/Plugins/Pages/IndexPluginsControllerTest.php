@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Plugins;
+namespace Tests\Feature\Http\Controllers\Admin\Plugins\Pages;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -10,7 +10,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Feature\Plugins\UsesFixturePlugins;
 use Tests\TestCase;
 
-class ListControllerTest extends TestCase
+class IndexPluginsControllerTest extends TestCase
 {
     use RefreshDatabase;
     use UsesFixturePlugins;
@@ -20,7 +20,7 @@ class ListControllerTest extends TestCase
         $this->useFixturePlugins();
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.plugins.list'));
+        $response = $this->actingAs($trooper)->get(route('admin.plugins.index'));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -37,13 +37,13 @@ class ListControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asModerator()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.plugins.list'));
+        $response = $this->actingAs($trooper)->get(route('admin.plugins.index'));
 
         $this->assertContains($response->status(), [302, 403]);
     }
 
     public function test_invoke_requires_authentication(): void
     {
-        $this->get(route('admin.plugins.list'))->assertRedirect(route('auth.login'));
+        $this->get(route('admin.plugins.index'))->assertRedirect(route('auth.login'));
     }
 }

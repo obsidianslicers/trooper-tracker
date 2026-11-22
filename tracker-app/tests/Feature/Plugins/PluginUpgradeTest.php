@@ -127,7 +127,7 @@ class PluginUpgradeTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.plugins.enable', ['slug' => 'greeter']))
-            ->assertRedirect(route('admin.plugins.list'))
+            ->assertRedirect(route('admin.plugins.index'))
             ->assertSessionHas('danger');
 
         $this->assertFalse($this->plugins->isEnabled('greeter'));

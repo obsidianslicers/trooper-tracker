@@ -171,7 +171,7 @@ class PluginRequirementsTest extends TestCase
         $this->writePlugin('needs-php', ['php' => '>=99.0']);
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $this->actingAs($trooper)->get(route('admin.plugins.list'))
+        $this->actingAs($trooper)->get(route('admin.plugins.index'))
             ->assertInertia(fn (Assert $page) => $page->where(
                 'plugins',
                 fn ($rows) => str_starts_with(collect($rows)->firstWhere('slug', 'needs-php')['requirements']['text'], 'Needs PHP >=99.0')
@@ -186,7 +186,7 @@ class PluginRequirementsTest extends TestCase
 
         $this->actingAs($trooper)
             ->post(route('admin.plugins.enable', ['slug' => 'needs-php']))
-            ->assertRedirect(route('admin.plugins.list'))
+            ->assertRedirect(route('admin.plugins.index'))
             ->assertSessionHas('danger');
     }
 

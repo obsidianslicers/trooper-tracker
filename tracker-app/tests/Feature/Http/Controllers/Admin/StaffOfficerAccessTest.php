@@ -22,7 +22,7 @@ class StaffOfficerAccessTest extends TestCase
     public static function developerRoutes(): array
     {
         return [
-            'plugins' => ['admin.plugins.list'],
+            'plugins' => ['admin.plugins.index'],
             'system check' => ['admin.system-check'],
             'merge troopers' => ['admin.troopers.merge'],
             'merge costumes' => ['admin.costumes.merge.create'],

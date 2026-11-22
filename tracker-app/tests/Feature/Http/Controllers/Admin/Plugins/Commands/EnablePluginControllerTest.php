@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Plugins;
+namespace Tests\Feature\Http\Controllers\Admin\Plugins\Commands;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\Plugins\UsesFixturePlugins;
 use Tests\TestCase;
 
-class EnableSubmitControllerTest extends TestCase
+class EnablePluginControllerTest extends TestCase
 {
     use RefreshDatabase;
     use UsesFixturePlugins;
@@ -24,7 +24,7 @@ class EnableSubmitControllerTest extends TestCase
             ['slug' => 'hello'],
         ));
 
-        $response->assertRedirect(route('admin.plugins.list'));
+        $response->assertRedirect(route('admin.plugins.index'));
         $response->assertSessionHas('success');
         $this->assertTrue($plugins->isEnabled('hello'));
         $this->assertDatabaseHas('tt_plugins', ['slug' => 'hello', 'created_id' => $trooper->id]);

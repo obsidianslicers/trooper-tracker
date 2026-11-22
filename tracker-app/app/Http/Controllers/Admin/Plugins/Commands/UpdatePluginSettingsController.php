@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Plugins;
+namespace App\Http\Controllers\Admin\Plugins\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
@@ -10,7 +10,7 @@ use App\Http\Requests\Admin\Plugins\UpdateSettingsRequest;
 use App\Messages\Plugins\Commands\UpdatePluginSettings;
 use Illuminate\Http\RedirectResponse;
 
-class UpdateSettingsSubmitController extends Controller
+class UpdatePluginSettingsController extends Controller
 {
     public function __invoke(UpdateSettingsRequest $request, string $slug): RedirectResponse
     {
@@ -20,6 +20,6 @@ class UpdateSettingsSubmitController extends Controller
 
         FlashType::success(__('admin.Settings for ":plugin" were saved.', ['plugin' => $manifest->name]));
 
-        return redirect()->route('admin.plugins.list');
+        return redirect()->route('admin.plugins.index');
     }
 }
