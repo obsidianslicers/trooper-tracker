@@ -2,7 +2,7 @@
 
 ## Overview
 
-FAQ content is stored in the `tt_faq` table and managed by Command Staff via the admin panel at `/admin/faq`. Sections are stored in the `tt_faq_sections` table and managed at `/admin/faq/sections`. The public page at `/faq` renders all items dynamically from the database, grouped by section in `sort_order`.
+FAQ content is stored in the `tt_faq` table and managed by Command Staff via the admin panel at `/admin/faq`. Sections are stored in the `tt_faq_sections` table and managed on the same page. The public page at `/faq` renders all items dynamically from the database, grouped by section in `sort_order`.
 
 ---
 
@@ -38,7 +38,7 @@ FAQ content is stored in the `tt_faq` table and managed by Command Staff via the
 
 ## Sections
 
-Sections are database rows in `tt_faq_sections`, not a PHP enum. The display order on the public page follows each section's `sort_order`. Sections are managed via the admin panel at `/admin/faq/sections`.
+Sections are database rows in `tt_faq_sections`, not a PHP enum. The display order on the public page follows each section's `sort_order`. Sections are managed on the admin FAQ page at `/admin/faq`.
 
 The seeded sections (in sort order) are:
 
@@ -73,33 +73,33 @@ All sections render as accordion cards. When `video_url` is set, a YouTube embed
 
 ## Admin CRUD
 
-Both route groups are protected by `auth` and `check.role:staff_officer,system_owner` middleware.
+All routes are protected by `auth` and `check.role:staff_officer,system_owner` middleware. The
+FAQ page itself (sections with their items) is `GET /admin/faq`, `IndexFaqController`,
+`admin.faq.index`.
 
 ### FAQ Items
 
 | Method | Path | Controller | Name |
 |---|---|---|---|
-| GET | `/admin/faq` | `ListController` | `admin.faq.list` |
-| GET | `/admin/faq/create` | `CreateController` | `admin.faq.create` |
-| POST | `/admin/faq/create` | `CreateSubmitController` | — |
-| GET | `/admin/faq/{faq}/update` | `UpdateController` | `admin.faq.update` |
-| POST | `/admin/faq/{faq}/update` | `UpdateSubmitController` | — |
-| POST | `/admin/faq/{faq}/delete` | `DeleteSubmitController` | `admin.faq.delete` |
-
-**Source:** `routes/web/admin-faq.php`, `app/Http/Controllers/Admin/Faq/`
+| GET | `/admin/faq/items/create` | `Pages\CreateFaqItemController` | `admin.faq.items.create` |
+| POST | `/admin/faq/items` | `Commands\StoreFaqItemController` | `admin.faq.items.store` |
+| POST | `/admin/faq/items/reorder` | `Commands\ReorderFaqItemsController` | `admin.faq.items.reorder` |
+| GET | `/admin/faq/items/{item}/edit` | `Pages\EditFaqItemController` | `admin.faq.items.edit` |
+| POST | `/admin/faq/items/{item}` | `Commands\UpdateFaqItemController` | `admin.faq.items.update` |
+| POST | `/admin/faq/items/{item}/delete` | `Commands\DestroyFaqItemController` | `admin.faq.items.destroy` |
 
 ### FAQ Sections
 
 | Method | Path | Controller | Name |
 |---|---|---|---|
-| GET | `/admin/faq/sections` | `SectionListController` | `admin.faq.index` |
-| GET | `/admin/faq/sections/create` | `SectionCreateController` | `admin.faq.sections.create` |
-| POST | `/admin/faq/sections/create` | `SectionCreateSubmitController` | — |
-| GET | `/admin/faq/sections/{section}/update` | `SectionUpdateController` | `admin.faq.sections.update` |
-| POST | `/admin/faq/sections/{section}/update` | `SectionUpdateSubmitController` | — |
-| POST | `/admin/faq/sections/{section}/delete` | `SectionDeleteSubmitController` | `admin.faq.sections.delete` |
+| GET | `/admin/faq/sections/create` | `Pages\CreateFaqSectionController` | `admin.faq.sections.create` |
+| POST | `/admin/faq/sections` | `Commands\StoreFaqSectionController` | `admin.faq.sections.store` |
+| POST | `/admin/faq/sections/reorder` | `Commands\ReorderFaqSectionsController` | `admin.faq.sections.reorder` |
+| GET | `/admin/faq/sections/{section}/edit` | `Pages\EditFaqSectionController` | `admin.faq.sections.edit` |
+| POST | `/admin/faq/sections/{section}` | `Commands\UpdateFaqSectionController` | `admin.faq.sections.update` |
+| POST | `/admin/faq/sections/{section}/delete` | `Commands\DestroyFaqSectionController` | `admin.faq.sections.destroy` |
 
-**Source:** `routes/web/admin-faq.php`, `app/Http/Controllers/Admin/FaqSections/`
+**Source:** `routes/web/admin-faq.php`, `app/Http/Controllers/Admin/Faq/`
 
 ---
 

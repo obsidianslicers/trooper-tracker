@@ -140,7 +140,7 @@ stateDiagram-v2
 | Any → CANCELLED | All shifts set to CANCELLED; all active `EventTrooper` records set to CANCELLED; `SendEventCancelledNotificationsJob` dispatched |
 | Capacity limits changed | `ReconcileEventRosterJob` dispatched to re-evaluate the roster |
 
-**Source:** `app/Http/Controllers/Admin/Events/UpdateSubmitController.php:51-95`
+**Source:** `app/Http/Controllers/Admin/Events/Commands/UpdateEventController.php`
 
 ---
 

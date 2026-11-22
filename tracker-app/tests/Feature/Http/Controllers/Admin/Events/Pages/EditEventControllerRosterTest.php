@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Events;
+namespace Tests\Feature\Http\Controllers\Admin\Events\Pages;
 
 use App\Models\Costume;
 use App\Models\Event;
@@ -19,7 +19,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
-class UpdateControllerRosterTest extends TestCase
+class EditEventControllerRosterTest extends TestCase
 {
     use RefreshDatabase;
 

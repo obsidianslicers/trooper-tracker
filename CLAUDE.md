@@ -76,7 +76,8 @@ final class GetTroopersByRole extends Message
 
 **Calling a message from a controller:**
 ```php
-class VoidSubmitController extends PageController
+// app/Http/Controllers/Admin/Troopers/Commands/VoidTrooperController.php
+class VoidTrooperController extends Controller
 {
     public function __invoke(Request $request, Trooper $trooper): RedirectResponse
     {
@@ -84,7 +85,7 @@ class VoidSubmitController extends PageController
 
         VoidTrooper::call(trooper: $trooper);
 
-        return redirect()->route('admin.troopers.profile', compact('trooper'));
+        return redirect()->route('admin.troopers.show', compact('trooper'));
     }
 }
 ```
@@ -275,21 +276,47 @@ app/Http/Controllers/Events/
 └── Pages/DownloadEventIcsController.php
 ```
 
-Admin controllers have not moved to `Commands/`/`Pages/` yet (except `Admin/Troopers` and
-`Admin/EventTypes`); they will follow Laravel's resource verbs (`Index`, `Show`, `Create`,
-`Store`, `Edit`, `Update`, `Destroy`). Front-end URLs and route names stay as they are, because
-people bookmark them; admin routes may change.
+**Admin (Command Staff) is stricter: it follows Laravel's resource conventions.** For plain CRUD,
+the controller verb, route name and URL come from Laravel's resource actions. Every write is a
+POST (no PUT/PATCH/DELETE), so forms and Svelte send with `post`:
+
+| Action | Controller | Method + URL | Route name |
+|---|---|---|---|
+| index | `Pages/IndexAwardsController` | `GET /admin/awards` | `admin.awards.index` |
+| create | `Pages/CreateAwardController` | `GET /admin/awards/create` | `admin.awards.create` |
+| store | `Commands/StoreAwardController` | `POST /admin/awards` | `admin.awards.store` |
+| show | `Pages/ShowTrooperController` | `GET /admin/troopers/{trooper}` | `admin.troopers.show` |
+| edit | `Pages/EditAwardController` | `GET /admin/awards/{award}/edit` | `admin.awards.edit` |
+| update | `Commands/UpdateAwardController` | `POST /admin/awards/{award}` | `admin.awards.update` |
+| destroy | `Commands/DestroyCostumeController` | `POST /admin/costumes/{costume}/delete` | `admin.costumes.destroy` |
+
+- The controller name is the resource verb plus the object, even when the message says something
+  else (`UpdateAwardController` calls `RenameAward`).
+- A GET page and its POST never share a route name: the form page is `create`/`edit`, and the form
+  posts to `store`/`update`.
+- Nested resources nest the name: `admin.awards.troopers.create` / `.store` / `.destroy`
+  (`CreateAwardTrooperController`). So do parts of one resource that are saved on their own:
+  `admin.troopers.guardian.update`, `admin.events.shifts.edit` / `.update`.
+- Actions that aren't CRUD keep their own verb, named like the message: `VoidTrooperController`
+  (`admin.troopers.void`), `ApproveCostumeController`, `ReorderFaqItemsController`. If such an
+  action has a form page, the page is `Show[Thing]FormController` on `[action].create` and the
+  POST is `[action].store`, on the same URL (`/admin/troopers/merge`:
+  `ShowMergeTroopersFormController`, `MergeTroopersController`).
 
 ```php
-// app/Http/Controllers/Events/Commands/CreateEventController.php
-class CreateEventController extends Controller
-{
-    public function __invoke(CreateEventRequest $request): RedirectResponse { ... }
-}
-
-// routes/web.php
-Route::post('/events', CreateEventController::class);
+// routes/web/admin-awards.php
+Route::get('/', IndexAwardsController::class)->name('index');
+Route::get('/create', CreateAwardController::class)->name('create');
+Route::post('/', StoreAwardController::class)->name('store');
+Route::get('/{award}/edit', EditAwardController::class)->name('edit');
+Route::post('/{award}', UpdateAwardController::class)->name('update');
 ```
+
+Front-end URLs and route names stay as they are, because people bookmark them. Admin routes may
+change, but redirect any old URL that went out in an email or notification, with a dated comment
+saying when to remove it (see `routes/web/admin-troopers.php`).
+
+Tests mirror the controller: `tests/Feature/Http/Controllers/<same path>Test.php`.
 
 Controllers that render pages extend `PageController`, which provides the breadcrumb service
 (`$this->crumbs`) and an `initialized()` hook.
