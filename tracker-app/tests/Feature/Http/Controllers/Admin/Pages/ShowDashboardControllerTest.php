@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin;
+namespace Tests\Feature\Http\Controllers\Admin\Pages;
 
 use App\Enums\SystemCheckStatus;
 use App\Messages\System\Queries\GetSystemCheckProblems;
@@ -16,7 +16,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
-class AdminDisplayControllerTest extends TestCase
+class ShowDashboardControllerTest extends TestCase
 {
     use FakesMessages;
     use RefreshDatabase;
@@ -25,7 +25,7 @@ class AdminDisplayControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.display'));
+        $response = $this->actingAs($trooper)->get(route('admin.dashboard'));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -42,7 +42,7 @@ class AdminDisplayControllerTest extends TestCase
         PermissionRequest::factory()->create();
         PermissionRequest::factory()->asApproved()->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.display'));
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
 
         $response->assertInertia(fn (Assert $page) => $page
             ->where('counts.pending_permission_requests', 1)
@@ -55,7 +55,7 @@ class AdminDisplayControllerTest extends TestCase
         $moderator = Trooper::factory()->asModerator()->create();
         PermissionRequest::factory()->create();
 
-        $response = $this->actingAs($moderator)->get(route('admin.display'));
+        $response = $this->actingAs($moderator)->get(route('admin.dashboard'));
 
         $response->assertInertia(fn (Assert $page) => $page
             ->where('counts.pending_permission_requests', 0)
@@ -72,7 +72,7 @@ class AdminDisplayControllerTest extends TestCase
             new SystemCheckResult('Debug mode', SystemCheckStatus::WARN),
         ])]);
 
-        $response = $this->actingAs($owner)->get(route('admin.display'));
+        $response = $this->actingAs($owner)->get(route('admin.dashboard'));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page->where('system_check_problems', 2));
@@ -84,7 +84,7 @@ class AdminDisplayControllerTest extends TestCase
         $owner = Trooper::factory()->asSystemOwner()->create();
         $this->fakeMessages([GetSystemCheckProblems::class => collect()]);
 
-        $response = $this->actingAs($owner)->get(route('admin.display'));
+        $response = $this->actingAs($owner)->get(route('admin.dashboard'));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -98,7 +98,7 @@ class AdminDisplayControllerTest extends TestCase
         $officer = Trooper::factory()->asStaffOfficer()->create();
         $fake = $this->fakeMessages([GetSystemCheckProblems::class => collect()]);
 
-        $response = $this->actingAs($officer)->get(route('admin.display'));
+        $response = $this->actingAs($officer)->get(route('admin.dashboard'));
 
         $response->assertOk();
         $fake->assertNotCalled(GetSystemCheckProblems::class);
@@ -106,7 +106,7 @@ class AdminDisplayControllerTest extends TestCase
 
     public function test_invoke_requires_authentication(): void
     {
-        $response = $this->get(route('admin.display'));
+        $response = $this->get(route('admin.dashboard'));
 
         $response->assertRedirect(route('auth.login'));
     }
@@ -123,7 +123,7 @@ class AdminDisplayControllerTest extends TestCase
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.display'));
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
 
         $response->assertInertia(fn (Assert $page) => $page->where('counts.pending_join_requests', 1));
     }
@@ -147,7 +147,7 @@ class AdminDisplayControllerTest extends TestCase
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.display'));
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
 
         $response->assertInertia(fn (Assert $page) => $page
             ->where('counts.not_approved', 1)

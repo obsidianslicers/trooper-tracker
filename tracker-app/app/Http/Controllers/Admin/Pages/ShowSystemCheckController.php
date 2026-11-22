@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\System;
+namespace App\Http\Controllers\Admin\Pages;
 
 use App\Http\Controllers\Controller;
 use App\Messages\System\PageData\SystemCheckPageData;
@@ -12,7 +12,7 @@ use Inertia\Response;
 /**
  * Shows the System Check page.
  */
-class SystemCheckController extends Controller
+class ShowSystemCheckController extends Controller
 {
     public function __invoke(): Response
     {

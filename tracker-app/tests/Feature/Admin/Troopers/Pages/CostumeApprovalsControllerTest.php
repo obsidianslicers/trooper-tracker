@@ -156,7 +156,7 @@ class CostumeApprovalsControllerTest extends TestCase
         $this->costumeFor($this->memberOf($this->garrison), $this->club);
 
         $this->actingAs($moderator)
-            ->get(route('admin.display'))
+            ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('counts.pending_costumes', 1));
     }

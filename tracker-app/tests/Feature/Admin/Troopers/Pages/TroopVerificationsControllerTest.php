@@ -97,7 +97,7 @@ class TroopVerificationsControllerTest extends TestCase
         $this->awaiting($this->memberOf($this->garrison), [$this->garrison->id]);
 
         $this->actingAs($moderator)
-            ->get(route('admin.display'))
+            ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('counts.troops_awaiting_verification', 1));
     }

@@ -34,7 +34,7 @@ class MissingCreditsControllerTest extends TestCase
 
         $response = $this->actingAs($admin)->get(route('admin.service-records.missing-credits'));
 
-        $response->assertSee('<a href="'.route('admin.display').'">Command Staff</a>', false);
+        $response->assertSee('<a href="'.route('admin.dashboard').'">Command Staff</a>', false);
     }
 
     public function test_invoke_scopes_rows_to_moderator_authority(): void
