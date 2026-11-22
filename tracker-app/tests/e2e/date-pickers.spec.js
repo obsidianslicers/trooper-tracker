@@ -2,6 +2,7 @@
 // own pickers where it's a finger (resources/js/custom/date-picker.js).
 import { test, expect, devices } from '@playwright/test';
 import { personas } from './support/personas.js';
+import { field, pickHost } from './support/event-form.js';
 
 test.use({ storageState: personas.moderator.storageState });
 
@@ -13,26 +14,18 @@ Event End: 12/13/2030 - 1300`;
 
 async function openCreate(page) {
     await page.goto('/admin/events/create');
-    await page.locator('#picker-container-organization_id').click();
-    const modal = page.locator('#modal-picker');
-    await modal.locator('li[data-name="501st Legion"]').click();
-    await expect(modal).toBeHidden();
-}
-
-async function openSchedule(page) {
-    await page.getByRole('button', { name: 'Schedule' }).click();
+    await pickHost(page, '501st Legion');
 }
 
 test.describe('with a mouse', () => {
     test('a date-time field opens a calendar, and picking a day fills it in', async ({ page }) => {
         await openCreate(page);
         await page.getByText('Input Manually').click();
-        await openSchedule(page);
 
-        const start = page.locator('#event_start');
+        const start = field(page, 'Starts');
         await expect(start).toHaveAttribute('type', 'text');
         await start.fill('2030-06-01 1:00PM');
-        await page.locator('#name').click();
+        await field(page, 'Name').click();
 
         await start.click();
         const calendar = page.locator('[data-vc="calendar"]').filter({ visible: true });
@@ -53,13 +46,12 @@ test.describe('on a touch screen', () => {
     test('date-time fields are the phone\'s own, and a pasted request fills them in', async ({ page }) => {
         await openCreate(page);
 
-        await page.locator('#source').fill(request);
-        await page.locator('#source').blur();
+        await page.getByLabel('501st Legion Message').fill(request);
+        await page.getByLabel('501st Legion Message').blur();
 
-        await openSchedule(page);
-        await expect(page.locator('#event_start')).toHaveAttribute('type', 'datetime-local');
-        await expect(page.locator('#event_start')).toHaveValue('2030-12-13T09:30');
-        await expect(page.locator('#event_end')).toHaveValue('2030-12-13T13:00');
+        await expect(field(page, 'Starts')).toHaveAttribute('type', 'datetime-local');
+        await expect(field(page, 'Starts')).toHaveValue('2030-12-13T09:30');
+        await expect(field(page, 'Ends')).toHaveValue('2030-12-13T13:00');
         await expect(page.locator('[data-vc="calendar"]')).toHaveCount(0);
     });
 });

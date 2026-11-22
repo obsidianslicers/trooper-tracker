@@ -174,3 +174,19 @@ export type AddTrooperChoices = {
     organization_options: Option[];
     station_options: Option[];
 };
+
+export type HostOption = Option & {
+    /** The club the organization belongs to, which decides how its request message reads. */
+    club: string;
+};
+
+/** Create Event's page: a new event's defaults and the form's choices. */
+export type NewEvent = {
+    form: EventOverviewForm;
+    organizations: EventOrganizationLimit[];
+    host_options: HostOption[];
+    event_types: EventTypeOption[];
+    status_options: Option[];
+    smilies: Smiley[];
+    plugin_fields: string;
+};

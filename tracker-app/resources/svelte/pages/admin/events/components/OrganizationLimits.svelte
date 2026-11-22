@@ -5,9 +5,9 @@
     import InputHelp from "$lib/components/form/InputHelp.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
     import { t } from "$lib/i18n";
-    import type { OverviewViewModel } from "../models";
+    import type { EventFormViewModel } from "../models";
 
-    let { vm }: { vm: OverviewViewModel } = $props();
+    let { vm }: { vm: EventFormViewModel<unknown> } = $props();
 </script>
 
 <div class="mt-3">
