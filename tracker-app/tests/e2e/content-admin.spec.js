@@ -148,26 +148,28 @@ test.describe('organizations', () => {
         await page.goto('/admin/organizations');
         const garrison = rowFor(page, 'E2E Garrison').first();
         await page.goto(await garrison.locator('a[href$="/create"]').getAttribute('href'));
-        await expect(page.locator('#parent_name')).toHaveValue('E2E Garrison');
+        await expect(page.getByLabel('Parent')).toHaveValue('E2E Garrison');
 
         await page.getByRole('button', { name: 'Create', exact: true }).click();
         await expect(form(page).getByText('The name field is required.')).toBeVisible();
 
-        await page.locator('#name').fill(seeded.newUnit);
+        await page.getByLabel('Name').fill(seeded.newUnit);
         await page.getByRole('button', { name: 'Create', exact: true }).click();
+        await expect(page).toHaveURL(/\/admin\/organizations\/\d+\/update$/);
 
         await page.goto('/admin/organizations');
         const unit = rowFor(page, seeded.newUnit);
         await page.goto(await unit.locator('a[href$="/update"]').getAttribute('href'));
-        await page.locator('#name').fill(`${seeded.newUnit} Prime`);
+        await page.getByLabel('Name').fill(`${seeded.newUnit} Prime`);
         await page.getByRole('button', { name: 'Update', exact: true }).click();
+        await expect(page).toHaveURL(/\/admin\/organizations$/);
 
         await page.goto('/admin/organizations');
         await page.goto(await rowFor(page, `${seeded.newUnit} Prime`).locator('a[href$="/update"]').getAttribute('href'));
 
         const logo = page.getByAltText('Organization Logo');
         const before = await logo.getAttribute('src');
-        await page.locator('#logo-input').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: PNG });
+        await page.getByTestId('logo-input').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: PNG });
         await expect(page.getByAltText('Organization Logo')).not.toHaveAttribute('src', before);
     });
 });

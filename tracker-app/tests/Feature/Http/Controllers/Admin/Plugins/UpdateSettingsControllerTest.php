@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Plugins;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Feature\Plugins\UsesFixturePlugins;
 use Tests\TestCase;
 
@@ -26,9 +27,11 @@ class UpdateSettingsControllerTest extends TestCase
         ));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.plugins.update-settings');
-        $response->assertSee('Howdy');
-        $response->assertSee('Saved. Leave empty to keep it.');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/plugins/UpdateSettings')
+            ->where('settings', fn ($settings) => collect($settings)->firstWhere('key', 'greeting')['value'] === 'Howdy'
+                && collect($settings)->firstWhere('key', 'api_key')['is_saved'] === true
+                && collect($settings)->firstWhere('key', 'api_key')['value'] === ''));
         $response->assertDontSee('super-secret');
     }
 

@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Pages;
 
 use App\Http\Controllers\PageController;
-use App\Messages\Events\Queries\Verification\GetTroopsAwaitingVerification;
-use Illuminate\Contracts\View\View;
+use App\Messages\Troopers\PageData\Reviews\TroopVerificationsPageData;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class TroopVerificationsController extends PageController
 {
@@ -16,10 +17,11 @@ class TroopVerificationsController extends PageController
         $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
     }
 
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): Response
     {
-        $event_troopers = GetTroopsAwaitingVerification::call(moderator: $request->user());
-
-        return view('pages.admin.troopers.troop-verifications', compact('event_troopers'));
+        return Inertia::render(
+            'admin/troopers/TroopVerifications',
+            TroopVerificationsPageData::call(actor: $request->user()),
+        );
     }
 }

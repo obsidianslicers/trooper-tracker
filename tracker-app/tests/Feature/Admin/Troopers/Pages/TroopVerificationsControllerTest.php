@@ -10,6 +10,7 @@ use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\BuildsCostumeReviews;
 use Tests\TestCase;
 
@@ -33,8 +34,11 @@ class TroopVerificationsControllerTest extends TestCase
         $response = $this->actingAs($moderator)->get(route('admin.troopers.troop-verifications'));
 
         $response->assertOk();
-        $response->assertSee($covered->trooper->display_name);
-        $response->assertDontSee($other->trooper->display_name);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/troopers/TroopVerifications')
+            ->has('event_troopers', 1)
+            ->where('event_troopers.0.trooper.name', $covered->trooper->display_name)
+            ->where('event_troopers.0.clubs', [['id' => $this->garrison->id, 'name' => $this->garrison->name]]));
     }
 
     public function test_moderator_approves_their_club(): void
@@ -95,7 +99,7 @@ class TroopVerificationsControllerTest extends TestCase
         $this->actingAs($moderator)
             ->get(route('admin.display'))
             ->assertOk()
-            ->assertSee('1 troop awaiting verification');
+            ->assertInertia(fn (Assert $page) => $page->where('counts.troops_awaiting_verification', 1));
     }
 
     /**

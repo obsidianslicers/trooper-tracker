@@ -5,18 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Organizations;
 
 use App\Http\Controllers\PageController;
-use App\Models\Organization;
-use Illuminate\Contracts\View\View;
+use App\Messages\Organizations\PageData\ListOrganizationsPageData;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
-/**
- * Class ListController
- *
- * Handles the display of the main organizations list in the admin section.
- * This controller fetches and displays a list of organizations with their assignment
- * status for the authenticated user.
- */
 class ListController extends PageController
 {
     protected function initialized(): void
@@ -24,22 +17,11 @@ class ListController extends PageController
         $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
     }
 
-    /**
-     * Handle the request to display the organizations list page
-     *
-     * Sets up breadcrumbs, retrieves organizations with assignment data for the
-     * authenticated user, and returns the list view.
-     *
-     * @param  Request  $request  The incoming HTTP request object
-     * @return View The rendered organizations list view
-     */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): InertiaResponse
     {
-        $user = Auth::user();
-        $organizations = Organization::withAllAssignments($user)->get();
-
-        return view('pages.admin.organizations.list', [
-            'organizations' => $organizations,
-        ]);
+        return Inertia::render(
+            'admin/organizations/List',
+            ListOrganizationsPageData::call(actor: $request->user())
+        );
     }
 }

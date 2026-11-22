@@ -16,7 +16,6 @@ use App\Plugins\PluginForms;
 use App\Plugins\PluginServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\View;
 use Laravel\Socialite\Facades\Socialite;
 use TroopTracker\Plugins\Xenforo\Auth\XenforoLoginProvider;
 use TroopTracker\Plugins\Xenforo\Console\ImportEnvCommand;
@@ -179,11 +178,6 @@ class XenforoServiceProvider extends PluginServiceProvider
                 $event,
                 $validated
             ),
-        );
-
-        View::composer(
-            'pages.admin.events.inc.miscellaneous',
-            fn ($view) => $view->with('smilies', app(EventComments::class)->smilies()),
         );
     }
 
