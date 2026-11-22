@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Messages\Notices\PageData;
 
 use App\Messages\Notices\Resources\NoticeFormResource;
+use App\Messages\Organizations\Queries\GetModeratedOrganizationOptions;
 use App\Models\Notice;
-use App\Models\Organization;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
@@ -34,7 +34,10 @@ final class NoticeFormPageData extends Message
 
         if (!$this->notice->exists)
         {
-            $data['organization_options'] = $this->getOrganizationOptions();
+            $data['organization_options'] = GetModeratedOrganizationOptions::call(
+                trooper: $this->actor,
+                with_everyone: true,
+            );
         }
 
         return $data;
@@ -51,33 +54,5 @@ final class NoticeFormPageData extends Message
             ['value' => 'warning', 'label' => '⚠️ '.__('admin.ATTENTION TROOPERS!')],
             ['value' => 'danger', 'label' => '❌ '.__('admin.BATTLE STATIONS!')],
         ];
-    }
-
-    /**
-     * Administrators may post to everyone; everyone else picks an organization they moderate.
-     *
-     * @return array<int, array{value: int|null, label: string}>
-     */
-    private function getOrganizationOptions(): array
-    {
-        $options = [];
-
-        if ($this->actor->is_administrator)
-        {
-            $options[] = ['value' => null, 'label' => __('admin.Everyone')];
-        }
-
-        $organizations = Organization::moderatedBy($this->actor)
-            ->orderBy(Organization::SEQUENCE)
-            ->get();
-
-        foreach ($organizations as $organization)
-        {
-            $indent = str_repeat('— ', max(0, $organization->depth - 1));
-
-            $options[] = ['value' => $organization->id, 'label' => $indent.$organization->name];
-        }
-
-        return $options;
     }
 }
