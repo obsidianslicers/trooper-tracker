@@ -240,14 +240,12 @@ This is enforced in two places:
 Visitors (`membership_role = visitor`) have an additional constraint enforced by `TrooperAssignmentObserver.saving()`:
 
 ```php
-if ($trooper_assignment->trooper->is_visitor) {
-    if ($organization && $organization->depth > 1) {
-        throw new Exception('Visitors can only join top-level organizations.');
-    }
+if ($trooper_assignment->trooper->is_visitor && $organization && $organization->depth > 1) {
+    throw new Exception('Visitors can only join top-level organizations.');
 }
 ```
 
-Visitors can only be assigned to organizations at `depth 0` (primary clubs). The approval and assignment flows are identical for visitors and members — the restriction is enforced at the observer level when `->save()` is called on an individual model.
+Visitors can only be members of primary clubs. The check applies only to `is_member` assignments, so a visitor can still get notifications for a region or unit, which is where events are hosted. The approval and assignment flows are identical for visitors and members — the restriction is enforced at the observer level when `->save()` is called on an individual model.
 
 ---
 
