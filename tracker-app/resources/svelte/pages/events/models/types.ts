@@ -160,3 +160,20 @@ export type CalendarPageData = {
     hosting_organizations: HostingOrganization[];
     has_map: boolean;
 };
+
+export type MapEvent = {
+    id: number;
+    name: string;
+    url: string;
+    date_range: string;
+    venue_address: string | null;
+    organization_id: number | null;
+    lat: number;
+    lng: number;
+};
+
+export type MapPageData = {
+    events: MapEvent[];
+    hosting_organizations: HostingOrganization[];
+    has_map: boolean;
+};

@@ -3,6 +3,7 @@ export * from './CalendarViewModel.svelte';
 export * from './EventDisplayViewModel.svelte';
 export * from './EventFiltersViewModel.svelte';
 export * from './ListEventsViewModel.svelte';
+export * from './MapViewModel.svelte';
 export * from './PastEventsViewModel.svelte';
 export * from './SignUpFormViewModel.svelte';
 export * from './SignUpTourViewModel.svelte';

@@ -22,6 +22,7 @@ class EventViewsNavigationTest extends TestCase
         return [
             'list' => ['events.list', 'events/List'],
             'calendar' => ['events.calendar', 'events/Calendar'],
+            'map' => ['events.map', 'events/Map'],
             'completed' => ['events.closed', 'events/PastEvents'],
             'cancelled' => ['events.cancelled', 'events/PastEvents'],
         ];
@@ -39,20 +40,5 @@ class EventViewsNavigationTest extends TestCase
         config(['services.google.maps_api_key' => null]);
         $this->actingAs($trooper)->get(route($route))
             ->assertInertia(fn (Assert $page) => $page->where('has_map', false));
-    }
-
-    public function test_the_map_page_links_back_to_the_list(): void
-    {
-        config(['services.google.maps_api_key' => 'test-key']);
-        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
-
-        $response = $this->actingAs($trooper)->get(route('events.map'));
-
-        $response->assertOk();
-        $response->assertSee('class="dropdown event-views-menu"', false);
-        $response->assertSee('href="'.route('events.list').'"', false);
-        $response->assertSee('href="'.route('events.calendar').'"', false);
-        $response->assertSee('href="'.route('events.cancelled').'"', false);
-        $response->assertSeeInOrder(['aria-current="page"', 'Map'], false);
     }
 }
