@@ -177,16 +177,3 @@ export type MapPageData = {
     hosting_organizations: HostingOrganization[];
     has_map: boolean;
 };
-
-export type TroopToConfirm = {
-    id: number;
-    event_name: string;
-    event_url: string;
-    shift_label: string;
-    is_tentative: boolean;
-    confirm_url: string;
-};
-
-export type TroopsToConfirmPageData = {
-    troops: TroopToConfirm[];
-};

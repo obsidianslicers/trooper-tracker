@@ -11,7 +11,7 @@
                 <div class="card-header fw-semibold">{{ __('layout.Did you make it?') }}</div>
                 <div class="list-group list-group-flush">
                     @foreach($troops_to_confirm as $event_trooper)
-                        <div class="list-group-item py-3">
+                        <div class="list-group-item py-3 troop-to-confirm-row">
                             @include('partials.inc.troop-to-confirm')
                         </div>
                     @endforeach

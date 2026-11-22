@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 
 /**
  * A trooper answering "did you make it?" for one of their own troops, from the bell or the
- * "Troops to confirm" page.
+ * notifications page.
  */
 class ConfirmShiftAttendanceRequest extends FormRequest
 {

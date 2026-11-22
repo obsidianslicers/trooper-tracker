@@ -1,9 +1,11 @@
 {{-- One troop waiting for "did you make it?", with both answers: the bell and the notifications page. --}}
-<a class="d-block text-break"
-   href="{{ route('events.display', ['event' => $event_trooper->event_shift->event_id]) }}#shift-{{ $event_trooper->event_shift_id }}">
-    {{ $event_trooper->event_shift->event->name }}
-</a>
-<div class="small opacity-75">{{ $event_trooper->event_shift->time_display }}</div>
+<div class="troop-to-confirm-event">
+    <a class="d-block text-break"
+       href="{{ route('events.display', ['event' => $event_trooper->event_shift->event_id]) }}#shift-{{ $event_trooper->event_shift_id }}">
+        {{ $event_trooper->event_shift->event->name }}
+    </a>
+    <div class="small opacity-75">{{ $event_trooper->event_shift->time_display }}</div>
+</div>
 <form method="POST"
       action="{{ route('events.confirm-attendance', $event_trooper) }}"
       class="troop-answers d-flex gap-2 mt-2">

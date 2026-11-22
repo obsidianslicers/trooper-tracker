@@ -42,7 +42,7 @@ class ConfirmShiftAttendanceControllerTest extends TestCase
 
         $this->actingAs($trooper)
             ->post(route('events.confirm-attendance', $troop), ['status' => EventTrooperStatus::UNABLE_TO_ATTEND->value])
-            ->assertRedirect(route('events.troops-to-confirm'));
+            ->assertRedirect(route('account.push-notifications'));
 
         $this->assertSame(EventTrooperStatus::UNABLE_TO_ATTEND, $troop->fresh()->status);
     }

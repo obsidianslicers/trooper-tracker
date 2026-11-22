@@ -13,7 +13,7 @@ use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
- * Records "Made It" or "Missed It" from the bell or the "Troops to confirm" page,
+ * Records "Made It" or "Missed It" from the bell or the notifications page,
  * then goes back to the page it came from. A costume that can credit more than one club goes
  * to the club choice page first, the same page the email link opens.
  */
@@ -33,6 +33,6 @@ class ConfirmShiftAttendanceController
         $type = $outcome === ShiftAttendanceOutcome::CLOSED ? FlashType::DANGER : FlashType::SUCCESS;
         $type->flash($outcome->message($answer));
 
-        return redirect()->back(fallback: route('events.troops-to-confirm'));
+        return redirect()->back(fallback: route('account.push-notifications'));
     }
 }

@@ -44,7 +44,7 @@
                     @endforeach
                     @if($navbar_troops_to_confirm_count > $navbar_troops_to_confirm->count())
                         <a class="dropdown-item small pb-2"
-                           href="{{ route('events.troops-to-confirm') }}">
+                           href="{{ route('account.push-notifications') }}">
                             {{ __('layout.See all :count troops to confirm', ['count' => $navbar_troops_to_confirm_count]) }}
                         </a>
                     @endif

@@ -35,7 +35,7 @@ class EventShiftCompletedNotification extends BaseNotification
         return [
             'title' => __('notifications.Event Shift Completed for :name', ['name' => $name]),
             'body' => __('notifications.This event shift :time has completed.', ['time' => $time_display]),
-            'url' => route('events.troops-to-confirm', absolute: false),
+            'url' => route('account.push-notifications', absolute: false),
             self::EVENT_TROOPER_ID => $this->event_trooper->id,
         ];
     }

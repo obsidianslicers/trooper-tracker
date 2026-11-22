@@ -129,7 +129,7 @@ class NavbarNotificationsComposerTest extends TestCase
         $this->assertSame(NavbarNotificationsComposer::TROOPS_TO_CONFIRM_PREVIEW_COUNT + 1, $bell['navbar_troops_to_confirm_count']);
 
         $this->actingAs($trooper)->get(route('faq'))
-            ->assertSee(route('events.troops-to-confirm'), false);
+            ->assertSee('See all 6 troops to confirm');
     }
 
     public function test_the_bell_leaves_attendance_reminders_out_of_its_list(): void

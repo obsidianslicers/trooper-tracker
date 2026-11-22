@@ -82,6 +82,6 @@ class ForgetAttendanceRemindersTest extends TestCase
         $reminders = TrooperNotification::where(TrooperNotification::TYPE, EventShiftCompletedNotification::class)->get();
         $this->assertCount(1, $reminders);
         $this->assertSame($troop->id, $reminders->first()->data[EventShiftCompletedNotification::EVENT_TROOPER_ID]);
-        $this->assertSame(route('events.troops-to-confirm', absolute: false), $reminders->first()->data['url']);
+        $this->assertSame(route('account.push-notifications', absolute: false), $reminders->first()->data['url']);
     }
 }

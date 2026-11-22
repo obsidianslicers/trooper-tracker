@@ -22,7 +22,6 @@ use App\Http\Controllers\Events\Pages\DownloadRosterCsvController;
 use App\Http\Controllers\Events\Pages\ListCancelledEventsController;
 use App\Http\Controllers\Events\Pages\ListClosedEventsController;
 use App\Http\Controllers\Events\Pages\ListEventsController;
-use App\Http\Controllers\Events\Pages\ListTroopsToConfirmController;
 use App\Http\Controllers\Events\Pages\ShowAddTrooperFormController;
 use App\Http\Controllers\Events\Pages\ShowEventCalendarController;
 use App\Http\Controllers\Events\Pages\ShowEventController;
@@ -60,6 +59,5 @@ Route::prefix('events')
         Route::post('/update/{event_guest}/guest', UpdateGuestSignUpController::class)->name('guest-update');
         Route::get('/complete/{event_trooper}/{status}', CompleteShiftController::class)->name('shift-complete');
         Route::post('/complete/{event_trooper}/club-select', CompleteShiftWithClubController::class)->name('shift-complete-club-select');
-        Route::get('/to-confirm', ListTroopsToConfirmController::class)->name('troops-to-confirm');
         Route::post('/confirm/{event_trooper}', ConfirmShiftAttendanceController::class)->name('confirm-attendance');
     });
