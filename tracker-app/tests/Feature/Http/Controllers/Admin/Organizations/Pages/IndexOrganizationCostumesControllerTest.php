@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Organizations;
+namespace Tests\Feature\Http\Controllers\Admin\Organizations\Pages;
 
 use App\Models\Costume;
 use App\Models\Organization;
@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class CostumesControllerTest extends TestCase
+class IndexOrganizationCostumesControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -24,7 +24,7 @@ class CostumesControllerTest extends TestCase
 
         OrganizationCostume::factory()->forOrganization($organization)->forCostume($costume)->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.organizations.costumes', ['organization' => $organization->id]));
+        $response = $this->actingAs($trooper)->get(route('admin.organizations.costumes.index', ['organization' => $organization->id]));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -36,7 +36,7 @@ class CostumesControllerTest extends TestCase
     {
         $organization = Organization::factory()->create();
 
-        $response = $this->get(route('admin.organizations.costumes', ['organization' => $organization->id]));
+        $response = $this->get(route('admin.organizations.costumes.index', ['organization' => $organization->id]));
 
         $response->assertRedirect(route('auth.login'));
     }

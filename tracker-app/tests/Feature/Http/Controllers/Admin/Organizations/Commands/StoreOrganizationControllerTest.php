@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Organizations;
+namespace Tests\Feature\Http\Controllers\Admin\Organizations\Commands;
 
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class CreateSubmitControllerTest extends TestCase
+class StoreOrganizationControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -18,7 +18,7 @@ class CreateSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $parent = Organization::factory()->asOrganization()->create();
 
-        $response = $this->actingAs($trooper)->post('/admin/organizations/' . $parent->id . '/create', [
+        $response = $this->actingAs($trooper)->post('/admin/organizations/'.$parent->id.'/children', [
             'name' => 'New Region',
         ]);
 
@@ -33,7 +33,7 @@ class CreateSubmitControllerTest extends TestCase
     {
         $parent = Organization::factory()->asOrganization()->create();
 
-        $response = $this->post('/admin/organizations/' . $parent->id . '/create', [
+        $response = $this->post('/admin/organizations/'.$parent->id.'/children', [
             'name' => 'New Region',
         ]);
 

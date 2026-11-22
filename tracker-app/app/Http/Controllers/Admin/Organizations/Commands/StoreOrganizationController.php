@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Organizations;
+namespace App\Http\Controllers\Admin\Organizations\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
@@ -11,7 +11,7 @@ use App\Messages\Organizations\Commands\CreateSubOrganization;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
 
-class CreateSubmitController extends Controller
+class StoreOrganizationController extends Controller
 {
     public function __invoke(CreateRequest $request, Organization $parent): RedirectResponse
     {
@@ -22,6 +22,6 @@ class CreateSubmitController extends Controller
 
         FlashType::created($organization);
 
-        return redirect()->route('admin.organizations.update', compact('organization'));
+        return redirect()->route('admin.organizations.edit', compact('organization'));
     }
 }

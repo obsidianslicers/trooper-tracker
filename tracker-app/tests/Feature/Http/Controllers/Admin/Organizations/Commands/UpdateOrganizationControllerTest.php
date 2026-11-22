@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Organizations;
+namespace Tests\Feature\Http\Controllers\Admin\Organizations\Commands;
 
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class UpdateSubmitControllerTest extends TestCase
+class UpdateOrganizationControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -18,11 +18,11 @@ class UpdateSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create(['name' => 'Old Org']);
 
-        $response = $this->actingAs($trooper)->post('/admin/organizations/'.$organization->id.'/update', [
+        $response = $this->actingAs($trooper)->post('/admin/organizations/'.$organization->id, [
             'name' => 'New Org',
         ]);
 
-        $response->assertRedirect(route('admin.organizations.list'));
+        $response->assertRedirect(route('admin.organizations.index'));
         $this->assertDatabaseHas('tt_organizations', [
             'id' => $organization->id,
             'name' => 'New Org',
@@ -33,7 +33,7 @@ class UpdateSubmitControllerTest extends TestCase
     {
         $organization = Organization::factory()->create();
 
-        $response = $this->post('/admin/organizations/'.$organization->id.'/update', [
+        $response = $this->post('/admin/organizations/'.$organization->id, [
             'name' => 'New Org',
         ]);
 
@@ -112,6 +112,6 @@ class UpdateSubmitControllerTest extends TestCase
 
     private function updateUrl(Organization $organization): string
     {
-        return '/admin/organizations/'.$organization->id.'/update';
+        return '/admin/organizations/'.$organization->id;
     }
 }

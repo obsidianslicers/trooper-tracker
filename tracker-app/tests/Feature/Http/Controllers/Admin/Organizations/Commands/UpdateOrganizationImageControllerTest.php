@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Organizations;
+namespace Tests\Feature\Http\Controllers\Admin\Organizations\Commands;
 
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -11,7 +11,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-class UpdateImageControllerTest extends TestCase
+class UpdateOrganizationImageControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -23,11 +23,11 @@ class UpdateImageControllerTest extends TestCase
         $organization = Organization::factory()->create();
         $logo = UploadedFile::fake()->image('logo.png');
 
-        $response = $this->actingAs($trooper)->post(route('admin.organizations.update-image', ['organization' => $organization->id]), [
+        $response = $this->actingAs($trooper)->post(route('admin.organizations.image.update', ['organization' => $organization->id]), [
             'logo' => $logo,
         ]);
 
-        $response->assertRedirect(route('admin.organizations.update', ['organization' => $organization->id]));
+        $response->assertRedirect(route('admin.organizations.edit', ['organization' => $organization->id]));
         Storage::disk('public')->assertExists("uploads/organizations/{$organization->id}-128x128.png");
         Storage::disk('public')->assertExists("uploads/organizations/{$organization->id}-32x32.png");
     }
@@ -37,7 +37,7 @@ class UpdateImageControllerTest extends TestCase
         $organization = Organization::factory()->create();
         $logo = UploadedFile::fake()->image('logo.png');
 
-        $response = $this->post(route('admin.organizations.update-image', ['organization' => $organization->id]), [
+        $response = $this->post(route('admin.organizations.image.update', ['organization' => $organization->id]), [
             'logo' => $logo,
         ]);
 

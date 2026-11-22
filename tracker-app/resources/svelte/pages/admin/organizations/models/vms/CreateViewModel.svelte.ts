@@ -21,6 +21,6 @@ export class CreateViewModel
     submit = (e: Event) => {
         e.preventDefault();
 
-        this.form.post(getRoute("admin.organizations.create", { parent: this.parent.id }));
+        this.form.post(getRoute("admin.organizations.store", { parent: this.parent.id }));
     };
 }

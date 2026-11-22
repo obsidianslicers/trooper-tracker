@@ -106,7 +106,7 @@ final class CommandStaffDashboardPageData extends Message
             'awards' => ['admin.awards.index', true],
             'costumes' => ['admin.costumes.index', $trooper->can('create', Costume::class)],
             'merge-costumes' => ['admin.costumes.merge.create', $owner],
-            'organizations' => ['admin.organizations.list', true],
+            'organizations' => ['admin.organizations.index', true],
             'reports' => ['admin.reports.display', true],
             'faq' => ['admin.faq.index', $administrator],
             'system-check' => ['admin.system-check', $owner],
