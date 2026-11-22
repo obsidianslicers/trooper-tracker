@@ -138,7 +138,7 @@ class GoogleSheetsPluginTest extends TestCase
         OrganizationSheet::store($club->id, 'sheet-old');
 
         $this->actingAs($admin)
-            ->get(route('admin.organizations.update', ['organization' => $club]))
+            ->get(route('admin.organizations.edit', ['organization' => $club]))
             ->assertOk()
             ->assertSee('Google Sync Sheet ID:')
             ->assertSee('sheet-old');
@@ -146,7 +146,7 @@ class GoogleSheetsPluginTest extends TestCase
         $this->actingAs($admin)->post(
             route('admin.organizations.update', ['organization' => $club]),
             [Organization::NAME => $club->name, 'google_sheet_id' => 'sheet-new'],
-        )->assertRedirect(route('admin.organizations.list'));
+        )->assertRedirect(route('admin.organizations.index'));
 
         $this->assertSame('sheet-new', OrganizationSheet::forOrganization($club->id));
     }
@@ -158,7 +158,7 @@ class GoogleSheetsPluginTest extends TestCase
         $region = Organization::factory()->asRegion()->create();
 
         $this->actingAs($admin)
-            ->get(route('admin.organizations.update', ['organization' => $region]))
+            ->get(route('admin.organizations.edit', ['organization' => $region]))
             ->assertOk()
             ->assertDontSee('Google Sync Sheet ID:');
     }

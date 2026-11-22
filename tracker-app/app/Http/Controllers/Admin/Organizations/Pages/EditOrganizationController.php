@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Organizations;
+namespace App\Http\Controllers\Admin\Organizations\Pages;
 
 use App\Http\Controllers\PageController;
-use App\Messages\Organizations\PageData\OrganizationCostumesPageData;
+use App\Messages\Organizations\PageData\UpdateOrganizationPageData;
 use App\Models\Organization;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
-class CostumesController extends PageController
+class EditOrganizationController extends PageController
 {
     protected function initialized(): void
     {
         $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.dashboard');
-        $this->crumbs->addRoute(__('admin.Organizations'), 'admin.organizations.list');
+        $this->crumbs->addRoute(__('admin.Organizations'), 'admin.organizations.index');
     }
 
     public function __invoke(Request $request, Organization $organization): InertiaResponse
@@ -24,8 +24,8 @@ class CostumesController extends PageController
         $this->authorize('update', $organization);
 
         return Inertia::render(
-            'admin/organizations/Costumes',
-            OrganizationCostumesPageData::call(organization: $organization)
+            'admin/organizations/Update',
+            UpdateOrganizationPageData::call(actor: $request->user(), organization: $organization)
         );
     }
 }

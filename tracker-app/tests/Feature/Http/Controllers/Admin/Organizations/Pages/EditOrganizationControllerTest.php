@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Organizations;
+namespace Tests\Feature\Http\Controllers\Admin\Organizations\Pages;
 
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class UpdateControllerTest extends TestCase
+class EditOrganizationControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -19,7 +19,7 @@ class UpdateControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.organizations.update', ['organization' => $organization->id]));
+        $response = $this->actingAs($trooper)->get(route('admin.organizations.edit', ['organization' => $organization->id]));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -31,7 +31,7 @@ class UpdateControllerTest extends TestCase
     {
         $organization = Organization::factory()->create();
 
-        $response = $this->get(route('admin.organizations.update', ['organization' => $organization->id]));
+        $response = $this->get(route('admin.organizations.edit', ['organization' => $organization->id]));
 
         $response->assertRedirect(route('auth.login'));
     }
@@ -44,7 +44,7 @@ class UpdateControllerTest extends TestCase
         ]);
 
         $this->actingAs($trooper)
-            ->get(route('admin.organizations.update', ['organization' => $organization->id]))
+            ->get(route('admin.organizations.edit', ['organization' => $organization->id]))
             ->assertInertia(fn (Assert $page) => $page
                 ->where('organization.synchronizer', 'from-a-disabled-plugin')
                 ->where('synchronizer_options', fn ($options) => collect($options)->pluck('label')
@@ -59,7 +59,7 @@ class UpdateControllerTest extends TestCase
         $organization = Organization::factory()->asRegion()->create();
 
         $this->actingAs($trooper)
-            ->get(route('admin.organizations.update', ['organization' => $organization->id]))
+            ->get(route('admin.organizations.edit', ['organization' => $organization->id]))
             ->assertInertia(fn (Assert $page) => $page->where('synchronizer_options', null));
     }
 }

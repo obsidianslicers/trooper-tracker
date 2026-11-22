@@ -45,11 +45,11 @@
                                     <ActionMenuLink
                                         label={t("Costumes")}
                                         icon="fa-shirt"
-                                        href={getRoute("admin.organizations.costumes", { organization: organization.id })}
+                                        href={getRoute("admin.organizations.costumes.index", { organization: organization.id })}
                                     />
                                 {/if}
                                 <ActionMenuUpdate
-                                    href={getRoute("admin.organizations.update", { organization: organization.id })}
+                                    href={getRoute("admin.organizations.edit", { organization: organization.id })}
                                 />
                                 <li><hr class="dropdown-divider" /></li>
                                 <ActionMenuLink

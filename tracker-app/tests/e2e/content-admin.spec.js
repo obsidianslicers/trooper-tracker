@@ -155,7 +155,7 @@ test.describe('organizations', () => {
 
         await page.getByLabel('Name').fill(seeded.newUnit);
         await page.getByRole('button', { name: 'Create', exact: true }).click();
-        await expect(page).toHaveURL(/\/admin\/organizations\/\d+\/update$/);
+        await expect(page).toHaveURL(/\/admin\/organizations\/\d+\/edit$/);
 
         await page.goto('/admin/organizations');
         const unit = rowFor(page, seeded.newUnit);

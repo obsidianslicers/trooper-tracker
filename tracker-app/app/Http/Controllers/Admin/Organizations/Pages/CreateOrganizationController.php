@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Organizations;
+namespace App\Http\Controllers\Admin\Organizations\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Models\Organization;
@@ -10,12 +10,12 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
-class CreateController extends PageController
+class CreateOrganizationController extends PageController
 {
     protected function initialized(): void
     {
         $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.dashboard');
-        $this->crumbs->addRoute(__('admin.Organizations'), 'admin.organizations.list');
+        $this->crumbs->addRoute(__('admin.Organizations'), 'admin.organizations.index');
     }
 
     public function __invoke(Request $request, Organization $parent): InertiaResponse

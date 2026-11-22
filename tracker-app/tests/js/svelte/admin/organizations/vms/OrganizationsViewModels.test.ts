@@ -49,7 +49,7 @@ describe('CreateViewModel', () => {
         vm.form.name = 'Squad';
         vm.submit(new Event('submit'));
 
-        expect(formPost).toHaveBeenLastCalledWith('/admin.organizations.create?parent=3');
+        expect(formPost).toHaveBeenLastCalledWith('/admin.organizations.store?parent=3');
     });
 });
 
@@ -85,7 +85,7 @@ describe('UpdateViewModel', () => {
 
         expect(vm.uploading).toBe(true);
         const [url, data, options] = post.mock.calls.at(-1)!;
-        expect(url).toBe('/admin.organizations.update-image?organization=7');
+        expect(url).toBe('/admin.organizations.image.update?organization=7');
         expect(data).toEqual({ logo: file });
         expect(options.forceFormData).toBe(true);
 

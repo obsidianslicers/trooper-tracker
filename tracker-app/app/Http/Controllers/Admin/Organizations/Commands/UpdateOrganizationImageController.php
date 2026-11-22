@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Organizations;
+namespace App\Http\Controllers\Admin\Organizations\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
@@ -11,7 +11,7 @@ use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class UpdateImageController extends Controller
+class UpdateOrganizationImageController extends Controller
 {
     public function __invoke(Request $request, Organization $organization): RedirectResponse
     {
@@ -25,6 +25,6 @@ class UpdateImageController extends Controller
 
         FlashType::SUCCESS->flash(__('admin.Logo updated.'));
 
-        return redirect()->route('admin.organizations.update', compact('organization'));
+        return redirect()->route('admin.organizations.edit', compact('organization'));
     }
 }
