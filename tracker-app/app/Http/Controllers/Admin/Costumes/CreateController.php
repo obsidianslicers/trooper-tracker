@@ -6,40 +6,22 @@ namespace App\Http\Controllers\Admin\Costumes;
 
 use App\Http\Controllers\PageController;
 use App\Models\Costume;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
-/**
- * Displays the form for creating a new costume.
- *
- * An invokable controller that authorizes the user and renders the costume
- * creation form with appropriate breadcrumbs.
- */
 class CreateController extends PageController
 {
-    /**
-     * Set up breadcrumbs for the costume creation page.
-     */
     protected function initialized(): void
     {
         $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
         $this->crumbs->addRoute(__('admin.Costumes'), 'admin.costumes.list');
     }
 
-    /**
-     * Displays the costume creation form.
-     *
-     * Authorizes the authenticated trooper, initializes a new Costume instance,
-     * and renders the creation form.
-     */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): InertiaResponse
     {
         $this->authorize('create', Costume::class);
 
-        $costume = new Costume;
-
-        $data = compact('costume');
-
-        return view('pages.admin.costumes.create', $data);
+        return Inertia::render('admin/costumes/Create');
     }
 }

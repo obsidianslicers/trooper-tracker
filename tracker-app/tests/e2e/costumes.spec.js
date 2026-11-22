@@ -41,12 +41,13 @@ test.describe('costume list', () => {
         await page.getByRole('button', { name: 'Create' }).click();
         await expect(form(page).getByText('The name field is required.')).toBeVisible();
 
-        await page.locator('[name="name"]').fill(seeded.newCostume);
+        await page.getByLabel('Name').fill(seeded.newCostume);
         await page.getByRole('button', { name: 'Create' }).click();
         await expect(page).toHaveURL(/\/admin\/costumes\/\d+\/update$/);
 
         await page.getByLabel('Rebel Legion').check();
         await page.getByRole('button', { name: 'Update' }).click();
+        await expect(page).toHaveURL(/\/admin\/costumes$/);
 
         await searchCostumes(page, seeded.newCostume);
         await expect(costumeRow(page, seeded.newCostume)).toContainText('Rebel Legion');
@@ -55,22 +56,27 @@ test.describe('costume list', () => {
     test('an administrator renames a costume; the new name must be unused', async ({ page }) => {
         await openCostume(page, seeded.renamedCostume, 'update');
 
-        await page.locator('[name="name"]').fill(seeded.keptCostume);
+        await page.getByLabel('Name').fill(seeded.keptCostume);
         await page.getByRole('button', { name: 'Update' }).click();
-        await expect(form(page).getByText('The name has already been taken.')).toBeVisible();
+        const costume_form = page.locator('form').filter({ has: page.getByLabel('Name') });
+        await expect(costume_form.getByText('The name has already been taken.')).toBeVisible();
 
-        await page.locator('[name="name"]').fill(`${seeded.renamedCostume} Mk II`);
+        await page.getByLabel('Name').fill(`${seeded.renamedCostume} Mk II`);
         await page.getByRole('button', { name: 'Update' }).click();
+        await expect(page).toHaveURL(/\/admin\/costumes$/);
 
         await searchCostumes(page, `${seeded.renamedCostume} Mk II`);
         await expect(costumeRow(page, `${seeded.renamedCostume} Mk II`)).toBeVisible();
     });
 
     test('deleting a costume warns that troopers will lose it', async ({ page }) => {
-        await openCostume(page, seeded.doomedCostume, 'delete');
-
-        await expect(page.getByText('1 trooper costume will be removed from trooper profiles.')).toBeVisible();
+        await openCostume(page, seeded.doomedCostume, 'update');
         await page.getByRole('button', { name: 'Delete' }).click();
+
+        const confirm = page.getByRole('dialog');
+        await expect(confirm.getByText('1 trooper costume will be removed from trooper profiles.')).toBeVisible();
+        await confirm.getByRole('button', { name: 'Delete' }).click();
+        await expect(page).toHaveURL(/\/admin\/costumes$/);
 
         await searchCostumes(page, seeded.doomedCostume);
         await expect(costumeRow(page, seeded.doomedCostume)).toHaveCount(0);

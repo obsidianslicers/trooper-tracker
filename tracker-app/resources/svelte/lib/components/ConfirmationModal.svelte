@@ -4,6 +4,7 @@
     import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
+    import type { Snippet } from "svelte";
 
     interface Props {
         show: boolean;
@@ -14,6 +15,8 @@
         submitting?: boolean;
         onConfirm: () => void;
         onCancel: () => void;
+        /** More detail shown under the message. */
+        children?: Snippet;
     }
 
     let {
@@ -25,6 +28,7 @@
         submitting = false,
         onConfirm,
         onCancel,
+        children,
     }: Props = $props();
 
     const submit = (e: Event) => {
@@ -35,6 +39,7 @@
 
 <Modal bind:show {title} canClose={onCancel}>
     <p>{message}</p>
+    {@render children?.()}
     <form onsubmit={submit}>
         <SubmitButtonContainer>
             <SubmitButton label={confirmLabel} {danger} {submitting} />
