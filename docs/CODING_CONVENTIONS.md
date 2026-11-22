@@ -20,7 +20,7 @@ We enforce a strict set of casing rules to maintain consistency across the codeb
 
 | Element                                       | Convention   | Example                               |
 | --------------------------------------------- | ------------ | ------------------------------------- |
-| Classes (Controllers, Models, Services, etc.) | `PascalCase` | `LoginSubmitController`, `Trooper`    |
+| Classes (Controllers, Models, Services, etc.) | `PascalCase` | `LoginTrooperController`, `Trooper`    |
 | Functions & Class Methods                     | `camelCase`  | `function handleRequest(Request $data)` |
 | Function/Method Parameters                    | `snake_case` | `function myMethod(string $user_name)` |
 | Test Function/Method Parameters               | `snake_case` | `function test_my_feature()` |
@@ -82,8 +82,8 @@ For controller actions that perform a single, specific task (e.g., submitting a 
 **Example:**
 
 ```php
-// app/Http/Controllers/LoginSubmitController.php
-class LoginSubmitController extends Controller
+// app/Http/Controllers/Auth/Commands/LoginTrooperController.php
+class LoginTrooperController extends Controller
 {
     public function __invoke(LoginRequest $request)
     {
@@ -92,7 +92,7 @@ class LoginSubmitController extends Controller
 }
 
 // routes/web.php
-Route::post('/login', LoginSubmitController::class);
+Route::post('/login', LoginTrooperController::class);
 ```
 
 ## 8. Jobs & Console Commands

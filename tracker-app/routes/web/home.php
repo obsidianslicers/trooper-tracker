@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\FaqController;
-use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Home\Pages\ShowFaqController;
+use App\Http\Controllers\Home\Pages\ShowHomeController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', HomeController::class)->name('home');
-Route::get('/faq', FaqController::class)->name('faq');
+Route::get('/', ShowHomeController::class)->name('home');
+Route::get('/faq', ShowFaqController::class)->name('faq');

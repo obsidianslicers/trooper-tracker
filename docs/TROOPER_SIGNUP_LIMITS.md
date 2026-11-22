@@ -49,7 +49,7 @@ The code uses different capacity checks depending on the type of signup:
 
 If a shift has stations, a station is also required and its capacity is checked alongside the limits above — a stationed signup must fit the station, event, and organization limits at the same time. See [Station Signups](STATION_SIGNUPS.md) for the station-specific rules, display behavior, and standby promotion flow.
 
-When a signup cannot be completed because the trooper has reached the event’s shift limit, `SignUpController` sends the trooper back to the event page with a toast explaining that the maximum number of shift signups has been reached.
+When a signup cannot be completed because the trooper has reached the event’s shift limit, `SignUpTrooperController` sends the trooper back to the event page with a toast explaining that the maximum number of shift signups has been reached.
 
 The actual status assigned after a successful submit is decided by `SignUpEventTrooper` in [`tracker-app/app/Messages/Events/Commands/SignUpEventTrooper.php`](../tracker-app/app/Messages/Events/Commands/SignUpEventTrooper.php):
 
@@ -61,7 +61,7 @@ The actual status assigned after a successful submit is decided by `SignUpEventT
 
 ## Signing Up Another Trooper
 
-The signup controller accepts an optional `trooper_id` for moderator-driven signups in [`tracker-app/app/Http/Controllers/Events/SignUpController.php`](../tracker-app/app/Http/Controllers/Events/SignUpController.php).
+The signup controller accepts an optional `trooper_id` for moderator-driven signups in [`tracker-app/app/Http/Controllers/Events/Commands/SignUpTrooperController.php`](../tracker-app/app/Http/Controllers/Events/Commands/SignUpTrooperController.php).
 
 That path still uses the same `EventShift::canSignUp()` rules listed above. The controller only switches which trooper is being signed up.
 
@@ -91,7 +91,7 @@ The corresponding UI in [`ShiftLinks.svelte`](../tracker-app/resources/svelte/pa
 
 1. `EventShift::canSignUp()` is the active self-signup gate.
 2. `Event::canSignUp()` exists only as a commented-out legacy method and is not the current decision point.
-3. `SignUpUpdateController` applies separate rules for changing existing sign-up status, costume, resignation, and re-signup. Those are update rules, not initial signup rules.
+3. `UpdateTrooperSignUpController` applies separate rules for changing existing sign-up status, costume, resignation, and re-signup. Those are update rules, not initial signup rules.
 
 ## Practical Summary
 

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Widgets\NoticeDisplayHtmxController;
-use App\Http\Controllers\Widgets\SupportDisplayHtmxController;
+use App\Http\Controllers\Widgets\Pages\ShowNoticeHtmxController;
+use App\Http\Controllers\Widgets\Pages\ShowSupportGoalHtmxController;
 use Illuminate\Support\Facades\Route;
 
 //  ACCOUNT
@@ -12,6 +12,6 @@ Route::prefix('widgets')
     ->middleware('auth')
     ->group(function ()
     {
-        Route::get('/support-htmx', SupportDisplayHtmxController::class)->name('support-htmx');
-        Route::get('/notices-htmx', NoticeDisplayHtmxController::class)->name('notices-htmx');
+        Route::get('/support-htmx', ShowSupportGoalHtmxController::class)->name('support-htmx');
+        Route::get('/notices-htmx', ShowNoticeHtmxController::class)->name('notices-htmx');
     });

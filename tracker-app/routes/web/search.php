@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Search\SearchController;
-use App\Http\Controllers\Search\SearchCostumesController;
-use App\Http\Controllers\Search\SearchTroopersController;
+use App\Http\Controllers\Search\Pages\SearchAllController;
+use App\Http\Controllers\Search\Pages\SearchCostumesController;
+use App\Http\Controllers\Search\Pages\SearchTroopersController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('search')
@@ -14,5 +14,5 @@ Route::prefix('search')
     {
         Route::get('/troopers', SearchTroopersController::class)->name('troopers');
         Route::get('/costumes', SearchCostumesController::class)->name('costumes');
-        Route::get('/all', SearchController::class)->name('all');
+        Route::get('/all', SearchAllController::class)->name('all');
     });

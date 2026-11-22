@@ -94,7 +94,7 @@ email clears `guardian_id`.
 | `app/Messages/Troopers/Queries/GetTroopersForPicker.php` | Hides minors from all but their guardian |
 | `app/Http/Requests/Auth/RegisterRequest.php` | Enforces DOB + guardian email at registration |
 | `app/Messages/Troopers/Commands/CreateTrooper.php` | Sets `guardian_id` and `date_of_birth` |
-| `app/Http/Controllers/Auth/RegisterSubmitController.php` | Sends `GuardianAwareness` email |
+| `app/Http/Controllers/Auth/Commands/RegisterTrooperController.php` | Sends `GuardianAwareness` email |
 | `app/Mail/Auth/GuardianAwareness.php` | Guardian awareness mailable |
 | `app/Http/Controllers/Admin/Troopers/GuardianController.php` | Admin GET — guardian edit tab |
 | `app/Http/Controllers/Admin/Troopers/GuardianSubmitController.php` | Admin POST — save DOB + guardian |

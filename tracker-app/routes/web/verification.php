@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Verifications\VerifyEmailController;
-use App\Http\Controllers\Verifications\VerifyNoticeController;
-use App\Http\Controllers\Verifications\VerifyNoticeSubmitController;
+use App\Http\Controllers\Verifications\Commands\ResendVerificationEmailController;
+use App\Http\Controllers\Verifications\Commands\VerifyEmailController;
+use App\Http\Controllers\Verifications\Pages\ShowVerifyEmailNoticeController;
 use Illuminate\Support\Facades\Route;
 
 // VERIFICATION
@@ -14,6 +14,6 @@ Route::prefix('verification')
     ->group(function ()
     {
         Route::get('/email/{id}/{hash}', VerifyEmailController::class)->middleware('signed')->name('verify');
-        Route::get('/notice', VerifyNoticeController::class)->name('notice');
-        Route::post('/notice', VerifyNoticeSubmitController::class)->middleware('throttle:6,1');
+        Route::get('/notice', ShowVerifyEmailNoticeController::class)->name('notice');
+        Route::post('/notice', ResendVerificationEmailController::class)->middleware('throttle:6,1');
     });
