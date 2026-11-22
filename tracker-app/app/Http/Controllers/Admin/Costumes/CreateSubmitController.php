@@ -5,27 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Costumes;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Costumes\CreateRequest;
-use App\Models\Costume;
+use App\Messages\Costumes\Commands\CreateCostume;
 use Illuminate\Http\RedirectResponse;
 
-/**
- * Handles submission of the form for creating a new costume.
- *
- * An invokable controller that validates the request via CreateRequest,
- * persists the new costume, and redirects to the update page with a success
- * flash message.
- */
-class CreateSubmitController extends PageController
+class CreateSubmitController extends Controller
 {
-    public function __invoke(CreateRequest $request, Costume $parent): RedirectResponse
+    public function __invoke(CreateRequest $request): RedirectResponse
     {
-        $costume = new Costume;
-
-        $costume->name = $request->validated('name');
-
-        $costume->save();
+        $costume = CreateCostume::call(name: $request->validated('name'));
 
         FlashType::created($costume);
 
