@@ -452,6 +452,20 @@ Plugin code that is part of a change still stops the change when it fails, so no
 
 ---
 
+## Bundled plugins
+
+These plugins ship in `tracker-app/plugins`. Each has a README covering what it does, how to configure it, what it adds and how to run its tests. The sections below add how each one moved out of core.
+
+| Plugin | Purpose | README |
+|--------|---------|--------|
+| Discord (`discord`) | Announces newly posted events in a Discord channel, mentioning the hosting organization's role | [README](../tracker-app/plugins/discord/README.md) |
+| Google Sheets (`google-sheets`) | Lets the club synchronizers and member lookups read a club's roster from a Google Sheet | [README](../tracker-app/plugins/google-sheets/README.md) |
+| HoloNet (`holonet`) | Links garrison trackers, so a trooper's service record shows troops done on other trackers | [README](../tracker-app/plugins/holonet/README.md) |
+| Sentry (`sentry`) | Sends server and browser errors to Sentry | [README](../tracker-app/plugins/sentry/README.md) |
+| XenForo (`xenforo`) | Forum login, user sync, event threads and replies, forum notifications and forum donations | [README](../tracker-app/plugins/xenforo/README.md) |
+
+---
+
 ## Example: the Discord plugin
 
 `tracker-app/plugins/discord` announces newly posted events in Discord. It used to be core code; core no longer knows Discord exists. It shows the full pattern:

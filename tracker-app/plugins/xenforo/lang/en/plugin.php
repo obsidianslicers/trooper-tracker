@@ -7,7 +7,7 @@ return [
     'A XenForo super user API key. Leave empty to use XENFORO_API_KEY.' => 'A XenForo super user API key. Leave empty to use XENFORO_API_KEY.',
     'API key' => 'API key',
     'API user ID' => 'API user ID',
-    'Connects TroopTracker to a XenForo forum: keeps forum users in step with troopers. More of the forum integration moves here in later releases.' => 'Connects TroopTracker to a XenForo forum: keeps forum users in step with troopers. More of the forum integration moves here in later releases.',
+    'Connects TroopTracker to a XenForo forum: forum login, user sync, event threads and replies, forum notifications, forum groups and forum donations.' => 'Connects TroopTracker to a XenForo forum: forum login, user sync, event threads and replies, forum notifications, forum groups and forum donations.',
     'Event Forum Post' => 'Event Forum Post',
     'For example https://forum.example.com. Leave empty to use XENFORO_BASE_URL.' => 'For example https://forum.example.com. Leave empty to use XENFORO_BASE_URL.',
     'Forum name' => 'Forum name',
