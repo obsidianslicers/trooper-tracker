@@ -50,10 +50,10 @@
                 <button type="button" class="btn btn-link btn-sm text-muted" onclick={form.close}>
                     {t("Never mind")}
                 </button>
-                {#if sign_up.requires_costume && form.costume_id === ""}
-                    <span class="small text-muted">{t("Pick your costume, then press Confirm.")}</span>
-                {/if}
             </div>
+            {#if sign_up.requires_costume && form.costume_id === ""}
+                <span class="small text-muted shift-signup__hint">{t("Pick your costume, then press Confirm.")}</span>
+            {/if}
         </div>
     {/if}
 </div>

@@ -637,6 +637,27 @@ html body .btn.btn-secondary-action {
         .shift-signup-primary__status {
             flex: 0 0 9rem;
         }
+
+        //  Confirm on the pickers' line, the backup costume on its own line under them
+        .shift-signup__confirm {
+            flex: none;
+            flex-wrap: nowrap;
+            order: 1;
+        }
+
+        .shift-signup__backup {
+            flex: 0 0 100%;
+            order: 2;
+
+            .form-select {
+                flex: 0 1 24rem;
+            }
+        }
+
+        .shift-signup__hint {
+            flex-basis: 100%;
+            order: 3;
+        }
     }
 }
 
