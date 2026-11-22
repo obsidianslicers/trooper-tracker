@@ -369,7 +369,7 @@ input.searching {
     column-gap: 0.75rem;
     display: grid;
     //  who and costume as wide as their widest entry (capped), the spare room before the status
-    grid-template-columns: 1.25rem fit-content(40%) fit-content(40%) minmax(0, 1fr) auto;
+    grid-template-columns: minmax(1.25rem, auto) fit-content(40%) fit-content(40%) minmax(0, 1fr) auto;
     margin-bottom: 0.5rem;
 }
 
@@ -410,6 +410,7 @@ input.searching {
 .roster-row__number {
     font-size: 0.875rem;
     text-align: end;
+    white-space: nowrap;
 }
 
 .roster-row__status,
@@ -440,7 +441,7 @@ input.searching {
 //  across the full width under them (the status column would otherwise squeeze it)
 @media (max-width: 575.98px) {
     .roster {
-        grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+        grid-template-columns: minmax(1.25rem, auto) minmax(0, 1fr) auto;
     }
 
     .roster-row__main {
