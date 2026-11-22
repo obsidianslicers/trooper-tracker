@@ -14,8 +14,8 @@ class HasEventTrooperScopesTest extends TestCase
     {
         $query = EventTrooper::query()->troopers();
 
-        $this->assertStringContainsString('"status" = ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('"is_handler" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"status" = ?', $this->sql($query));
+        $this->assertStringContainsString('"is_handler" = ?', $this->sql($query));
         $this->assertContains(EventTrooperStatus::GOING->value, $query->getBindings());
     }
 
@@ -23,8 +23,8 @@ class HasEventTrooperScopesTest extends TestCase
     {
         $query = EventTrooper::query()->handlers();
 
-        $this->assertStringContainsString('"status" = ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('"is_handler" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"status" = ?', $this->sql($query));
+        $this->assertStringContainsString('"is_handler" = ?', $this->sql($query));
         $this->assertContains(EventTrooperStatus::GOING->value, $query->getBindings());
     }
 }

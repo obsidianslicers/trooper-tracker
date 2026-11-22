@@ -14,6 +14,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -137,7 +138,7 @@ trait SeedsLegacyTables
             $table->boolean('closed')->default(true);
             $table->boolean('limitedEvent')->default(false);
             $table->boolean('allowTentative')->default(false);
-            $table->text('comments')->default('');
+            $table->text('comments')->default(new Expression("('')"));
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
 

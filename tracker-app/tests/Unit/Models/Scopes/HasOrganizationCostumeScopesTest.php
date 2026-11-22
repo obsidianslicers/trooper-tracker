@@ -13,7 +13,7 @@ class HasOrganizationCostumeScopesTest extends TestCase
     {
         $query = OrganizationCostume::query()->excluding([2, 5]);
 
-        $this->assertStringContainsString('"id" not in (?, ?)', $query->toBase()->toSql());
+        $this->assertStringContainsString('"id" not in (?, ?)', $this->sql($query));
         $this->assertSame([2, 5], $query->getBindings());
     }
 }

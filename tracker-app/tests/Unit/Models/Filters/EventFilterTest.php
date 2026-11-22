@@ -20,7 +20,7 @@ class EventFilterTest extends TestCase
 
         $query = $subject->apply(Event::query());
 
-        $this->assertStringContainsString('"status" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"status" = ?', $this->sql($query));
         $this->assertSame([EventStatus::OPEN->value], $query->getBindings());
     }
 
@@ -30,8 +30,8 @@ class EventFilterTest extends TestCase
 
         $subject = new EventFilter($request);
 
-        $base = Event::query()->toBase()->toSql();
-        $filtered = $subject->apply(Event::query())->toBase()->toSql();
+        $base = $this->sql(Event::query());
+        $filtered = $this->sql($subject->apply(Event::query()));
 
         $this->assertSame($base, $filtered);
     }

@@ -10,7 +10,9 @@ class FaqFactory extends BaseFaqFactory
 {
     public function definition(): array
     {
-        return parent::definition();
+        return array_merge(parent::definition(), [
+            Faq::SORT_ORDER => $this->faker->numberBetween(1, 999),
+        ]);
     }
 
     public function withSection(FaqSection $section): static

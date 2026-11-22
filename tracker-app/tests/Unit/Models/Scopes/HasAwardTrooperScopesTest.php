@@ -13,8 +13,8 @@ class HasAwardTrooperScopesTest extends TestCase
     {
         $query = AwardTrooper::query()->byTrooper(55);
 
-        $this->assertStringContainsString('"trooper_id" = ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('order by "award_date" desc', $query->toBase()->toSql());
+        $this->assertStringContainsString('"trooper_id" = ?', $this->sql($query));
+        $this->assertStringContainsString('order by "award_date" desc', $this->sql($query));
         $this->assertSame([55], $query->getBindings());
     }
 }

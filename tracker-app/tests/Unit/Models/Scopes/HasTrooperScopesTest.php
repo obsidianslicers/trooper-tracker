@@ -20,7 +20,7 @@ class HasTrooperScopesTest extends TestCase
     {
         $query = Trooper::query()->byEmail('tk421@example.com');
 
-        $this->assertStringContainsString('"email" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"email" = ?', $this->sql($query));
         $this->assertSame(['tk421@example.com'], $query->getBindings());
     }
 
@@ -28,7 +28,7 @@ class HasTrooperScopesTest extends TestCase
     {
         $query = Trooper::query()->active();
 
-        $this->assertStringContainsString('"membership_status" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"membership_status" = ?', $this->sql($query));
         $this->assertSame([MembershipStatus::ACTIVE->value], $query->getBindings());
     }
 
@@ -54,10 +54,10 @@ class HasTrooperScopesTest extends TestCase
     {
         $query = Trooper::query()->searchFor('vader');
 
-        $this->assertStringContainsString('"email" like ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('or ("display_name" like ?)', $query->toBase()->toSql());
-        $this->assertStringContainsString('or ("legal_name" like ?)', $query->toBase()->toSql());
-        $this->assertStringContainsString('or exists', $query->toBase()->toSql());
+        $this->assertStringContainsString('"email" like ?', $this->sql($query));
+        $this->assertStringContainsString('or ("display_name" like ?)', $this->sql($query));
+        $this->assertStringContainsString('or ("legal_name" like ?)', $this->sql($query));
+        $this->assertStringContainsString('or exists', $this->sql($query));
         $this->assertSame(['%vader%', '%vader%', '%vader%', '%vader%'], $query->getBindings());
     }
 
@@ -139,8 +139,8 @@ class HasTrooperScopesTest extends TestCase
     {
         $query = Trooper::query()->pendingApprovals();
 
-        $this->assertStringContainsString('"membership_status" = ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('order by "display_name" asc', $query->toBase()->toSql());
+        $this->assertStringContainsString('"membership_status" = ?', $this->sql($query));
+        $this->assertStringContainsString('order by "display_name" asc', $this->sql($query));
         $this->assertSame([MembershipStatus::PENDING->value], $query->getBindings());
     }
 

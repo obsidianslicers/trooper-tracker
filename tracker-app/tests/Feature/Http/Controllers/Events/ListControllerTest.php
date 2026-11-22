@@ -67,7 +67,7 @@ class ListControllerTest extends TestCase
         DB::enableQueryLog();
         $this->actingAs($trooper)->get(route('events.list'))->assertOk();
         $type_queries = collect(DB::getQueryLog())
-            ->filter(fn (array $q) => str_contains($q['query'], 'from "tt_event_types"'));
+            ->filter(fn (array $q) => preg_match('/from ["`]tt_event_types["`]/', $q['query']) === 1);
 
         $this->assertCount(1, $type_queries);
     }

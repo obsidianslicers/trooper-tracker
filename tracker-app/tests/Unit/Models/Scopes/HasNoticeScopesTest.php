@@ -17,32 +17,32 @@ class HasNoticeScopesTest extends TestCase
     {
         $query = Notice::query()->active();
 
-        $this->assertStringContainsString('"starts_at" <= ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('"ends_at" >= ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"starts_at" <= ?', $this->sql($query));
+        $this->assertStringContainsString('"ends_at" >= ?', $this->sql($query));
     }
 
     public function test_past_scope_adds_past_date_constraints(): void
     {
         $query = Notice::query()->past();
 
-        $this->assertStringContainsString('"starts_at" < ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('"ends_at" < ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"starts_at" < ?', $this->sql($query));
+        $this->assertStringContainsString('"ends_at" < ?', $this->sql($query));
     }
 
     public function test_future_scope_adds_future_date_constraints(): void
     {
         $query = Notice::query()->future();
 
-        $this->assertStringContainsString('"starts_at" > ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('"ends_at" > ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"starts_at" > ?', $this->sql($query));
+        $this->assertStringContainsString('"ends_at" > ?', $this->sql($query));
     }
 
     public function test_moderated_by_returns_unmodified_query_for_administrator(): void
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $base_sql = Notice::query()->toBase()->toSql();
-        $moderated_sql = Notice::query()->moderatedBy($trooper)->toBase()->toSql();
+        $base_sql = $this->sql(Notice::query());
+        $moderated_sql = $this->sql(Notice::query()->moderatedBy($trooper));
 
         $this->assertSame($base_sql, $moderated_sql);
     }

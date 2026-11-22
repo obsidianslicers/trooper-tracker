@@ -15,7 +15,7 @@ class HasEventShiftScopesTest extends TestCase
     {
         $query = EventShift::query()->active();
 
-        $this->assertStringContainsString('"status" in (?, ?, ?, ?)', $query->toBase()->toSql());
+        $this->assertStringContainsString('"status" in (?, ?, ?, ?)', $this->sql($query));
         $this->assertSame([
             EventStatus::OPEN->value,
             EventStatus::MANUAL_SELECTION->value,
@@ -28,7 +28,7 @@ class HasEventShiftScopesTest extends TestCase
     {
         $query = EventShift::query()->closed();
 
-        $this->assertStringContainsString('"status" in (?)', $query->toBase()->toSql());
+        $this->assertStringContainsString('"status" in (?)', $this->sql($query));
         $this->assertSame([EventStatus::CLOSED->value], $query->getBindings());
     }
 
@@ -36,8 +36,8 @@ class HasEventShiftScopesTest extends TestCase
     {
         $query = EventShift::query()->byTrooper(7, false);
 
-        $this->assertStringContainsString('"status" in (?, ?)', $query->toBase()->toSql());
-        $this->assertStringContainsString('exists', $query->toBase()->toSql());
+        $this->assertStringContainsString('"status" in (?, ?)', $this->sql($query));
+        $this->assertStringContainsString('exists', $this->sql($query));
         $this->assertContains(EventStatus::OPEN->value, $query->getBindings());
         $this->assertContains(EventStatus::MANUAL_SELECTION->value, $query->getBindings());
         $this->assertContains(7, $query->getBindings());
@@ -47,8 +47,8 @@ class HasEventShiftScopesTest extends TestCase
     {
         $query = EventShift::query()->byTrooper(7, true);
 
-        $this->assertStringContainsString('"status" = ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('exists', $query->toBase()->toSql());
+        $this->assertStringContainsString('"status" = ?', $this->sql($query));
+        $this->assertStringContainsString('exists', $this->sql($query));
         $this->assertContains(EventStatus::CLOSED->value, $query->getBindings());
         $this->assertContains(EventTrooperStatus::ATTENDED->value, $query->getBindings());
         $this->assertContains(7, $query->getBindings());

@@ -19,7 +19,7 @@ class HasOrganizationScopesTest extends TestCase
     {
         $query = Organization::query()->ofTypeOrganizations();
 
-        $this->assertStringContainsString('"type" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"type" = ?', $this->sql($query));
         $this->assertSame([OrganizationType::ORGANIZATION->value], $query->getBindings());
     }
 
@@ -27,7 +27,7 @@ class HasOrganizationScopesTest extends TestCase
     {
         $query = Organization::query()->ofTypeRegions();
 
-        $this->assertStringContainsString('"type" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"type" = ?', $this->sql($query));
         $this->assertSame([OrganizationType::REGION->value], $query->getBindings());
     }
 
@@ -35,7 +35,7 @@ class HasOrganizationScopesTest extends TestCase
     {
         $query = Organization::query()->ofTypeUnits();
 
-        $this->assertStringContainsString('"type" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"type" = ?', $this->sql($query));
         $this->assertSame([OrganizationType::UNIT->value], $query->getBindings());
     }
 
@@ -43,16 +43,16 @@ class HasOrganizationScopesTest extends TestCase
     {
         $query = Organization::query()->fullyLoaded();
 
-        $this->assertStringContainsString('"type" = ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('order by "name" asc', $query->toBase()->toSql());
+        $this->assertStringContainsString('"type" = ?', $this->sql($query));
+        $this->assertStringContainsString('order by "name" asc', $this->sql($query));
     }
 
     public function test_moderated_by_returns_unmodified_query_for_administrator(): void
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $base_sql = Organization::query()->toBase()->toSql();
-        $moderated_sql = Organization::query()->moderatedBy($trooper)->toBase()->toSql();
+        $base_sql = $this->sql(Organization::query());
+        $moderated_sql = $this->sql(Organization::query()->moderatedBy($trooper));
 
         $this->assertSame($base_sql, $moderated_sql);
     }

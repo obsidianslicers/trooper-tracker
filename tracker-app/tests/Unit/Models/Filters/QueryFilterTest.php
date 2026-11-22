@@ -43,7 +43,7 @@ class QueryFilterTest extends TestCase
 
         $query = $subject->apply(Trooper::query());
 
-        $this->assertStringContainsString('where "display_name" like ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('where "display_name" like ?', $this->sql($query));
         $this->assertSame(['%trooper%'], $query->getBindings());
     }
 

@@ -20,7 +20,7 @@ class TrooperFilterTest extends TestCase
 
         $query = $subject->apply(Trooper::query());
 
-        $this->assertStringContainsString('"membership_role" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"membership_role" = ?', $this->sql($query));
         $this->assertSame([MembershipRole::MODERATOR->value], $query->getBindings());
     }
 
@@ -30,8 +30,8 @@ class TrooperFilterTest extends TestCase
 
         $subject = new TrooperFilter($request);
 
-        $base = Trooper::query()->toBase()->toSql();
-        $filtered = $subject->apply(Trooper::query())->toBase()->toSql();
+        $base = $this->sql(Trooper::query());
+        $filtered = $this->sql($subject->apply(Trooper::query()));
 
         $this->assertSame($base, $filtered);
     }

@@ -31,7 +31,7 @@ class HasTrooperOrgCreditQueryTest extends TestCase
 
         $this->subject()->apply($query, [7], []);
 
-        $sql = $query->toSql();
+        $sql = $this->sql($query);
         $this->assertStringContainsString('"ta_credit"."is_member" = ?', $sql);
         $this->assertStringContainsString('"trooper_org"."id" in (?)', $sql);
         $this->assertStringContainsString('"tt_event_troopers"."organization_id" in (?)', $sql);
@@ -46,7 +46,7 @@ class HasTrooperOrgCreditQueryTest extends TestCase
 
         $this->subject()->apply($query, [], [$root->id]);
 
-        $this->assertStringContainsString('SUBSTRING_INDEX', $query->toSql());
+        $this->assertStringContainsString('SUBSTRING_INDEX', $this->sql($query));
         $this->assertContains($child->id, $query->getBindings());
     }
 
