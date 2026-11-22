@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
 use App\Messages\Troopers\Commands\AddTrooperDirectly;
 use App\Models\Organization;
@@ -54,12 +55,12 @@ class RecruitSubmitController extends PageController
             identifier: $request->filled('identifier') ? $request->string('identifier')->toString() : null,
         );
 
-        return redirect()
-            ->route('admin.troopers.recruit')
-            ->with('flash_message', json_encode([
-                'message' => "{$subject->display_name} has been added to {$organization->name}.",
-                'type' => 'success',
-            ]));
+        FlashType::success(__('admin.:trooper has been added to :organization.', [
+            'trooper' => $subject->display_name,
+            'organization' => $organization->name,
+        ]));
+
+        return redirect()->route('admin.troopers.recruit');
     }
 
     private function buildIdentifierRules(Organization $organization, Trooper $trooper): array
