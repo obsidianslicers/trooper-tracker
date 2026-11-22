@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Plugins;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Feature\Plugins\UsesFixturePlugins;
 use Tests\TestCase;
 
@@ -49,11 +50,17 @@ class UninstallSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)->get(route('admin.plugins.list'))
-            ->assertDontSee(route('admin.plugins.uninstall', ['slug' => 'hello']));
+            ->assertInertia(fn (Assert $page) => $page->where(
+                'plugins',
+                fn ($rows) => collect($rows)->firstWhere('slug', 'hello')['is_installed'] === false,
+            ));
 
         $plugins->enable('hello');
 
         $this->actingAs($trooper)->get(route('admin.plugins.list'))
-            ->assertSee(route('admin.plugins.uninstall', ['slug' => 'hello']));
+            ->assertInertia(fn (Assert $page) => $page->where(
+                'plugins',
+                fn ($rows) => collect($rows)->firstWhere('slug', 'hello')['is_installed'] === true,
+            ));
     }
 }
