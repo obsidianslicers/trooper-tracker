@@ -13,7 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
-class BroadcastMessageHtmxControllerTest extends TestCase
+class BroadcastMessageControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -39,21 +39,18 @@ class BroadcastMessageHtmxControllerTest extends TestCase
         ]);
     }
 
-    public function test_invoke_queues_broadcast_and_returns_success_view(): void
+    public function test_invoke_queues_broadcast_and_says_it_was_sent(): void
     {
         Queue::fake();
         $message = 'Please review the updated event details.';
 
         $response = $this->actingAs($this->moderator)
-            ->withHeaders(['HX-Request' => 'true'])
-            ->post(route('events.broadcast-message-htmx', ['event' => $this->event->id]), [
+            ->post(route('events.broadcast-message', ['event' => $this->event->id]), [
                 'message' => $message,
             ]);
 
-        $response->assertOk();
-        $response->assertViewIs('pages.events.inc.broadcast-message');
-        $response->assertViewHas('message', $message);
-        $response->assertViewHas('can_moderate', true);
+        $response->assertRedirect(route('events.display', ['event' => $this->event]));
+        $response->assertSessionHas('toast.success', 'Message sent.');
         Queue::assertPushed(BroadcastEventMessageJob::class, function (BroadcastEventMessageJob $job) use ($message): bool
         {
             return $job->event->id === $this->event->id
@@ -66,18 +63,12 @@ class BroadcastMessageHtmxControllerTest extends TestCase
         Queue::fake();
 
         $response = $this->actingAs($this->moderator)
-            ->withHeaders(['HX-Request' => 'true'])
-            ->post(route('events.broadcast-message-htmx', ['event' => $this->event->id]), [
+            ->post(route('events.broadcast-message', ['event' => $this->event->id]), [
                 'message' => '',
             ]);
 
-        $response->assertOk();
-        $response->assertViewIs('pages.events.inc.broadcast-message');
-        $response->assertSeeText('The message field is required.');
-        $response->assertViewHas('errors', function ($errors): bool
-        {
-            return $errors->getBag('default')->has('message');
-        });
+        $response->assertRedirect();
+        $response->assertSessionHasErrors(['message' => 'The message field is required.']);
         Queue::assertNothingPushed();
     }
 }

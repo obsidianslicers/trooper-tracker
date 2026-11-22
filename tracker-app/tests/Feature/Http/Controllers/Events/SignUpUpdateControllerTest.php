@@ -21,9 +21,12 @@ use DateTimeInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
+use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Concerns\ReadsToasts;
 
-class SignUpUpdateHtmxControllerTest extends TestCase
+class SignUpUpdateControllerTest extends TestCase
 {
+    use ReadsToasts;
     use RefreshDatabase;
 
     public function test_invoke_updates_event_trooper_status_for_owner(): void
@@ -42,11 +45,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->asGoing()
             ->create();
 
-        $response = $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+        $response = $this->actingAs($trooper)->post(route('events.signup-update', ['event_trooper' => $event_trooper->id]), [
             'status' => EventTrooperStatus::CANCELLED->value,
         ]);
 
-        $response->assertOk();
+        $response->assertRedirect();
     }
 
     public function test_invoke_requires_authentication(): void
@@ -57,7 +60,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         $event_shift = EventShift::factory()->forEvent($event)->create();
         $event_trooper = EventTrooper::factory()->forEventShift($event_shift)->forTrooper($trooper)->create();
 
-        $response = $this->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+        $response = $this->post(route('events.signup-update', ['event_trooper' => $event_trooper->id]), [
             'status' => EventTrooperStatus::CANCELLED->value,
         ]);
 
@@ -79,15 +82,15 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->withHeaders(['HX-Request' => 'true'])->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper]),
+            route('events.signup-update', ['event_trooper' => $event_trooper]),
             ['event_shift_station_id' => ''],
         );
 
-        $response->assertOk();
-        $response->assertHeader('X-Flash-Message');
+        $response->assertRedirect();
+        $this->assertNotNull($this->toast());
         $this->assertStringContainsString(
             'A station is required for this shift.',
-            $response->headers->get('X-Flash-Message'),
+            (string) $this->toast(),
         );
         $response->assertSessionDoesntHaveErrors();
         $this->assertSame($station->id, $event_trooper->fresh()->event_shift_station_id);
@@ -139,11 +142,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['organization_id' => $org_b->id]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::ORGANIZATION_ID => $org_b->id,
@@ -198,11 +201,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['organization_id' => $org_b->id]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         // organization_id should be unchanged
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
@@ -227,7 +230,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['organization_id' => $organization->id]
         );
 
@@ -253,11 +256,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['costume_id' => $handler_costume->id]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
@@ -284,11 +287,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['costume_id' => $command_staff_costume->id]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::IS_HANDLER => true,
@@ -332,11 +335,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['costume_id' => $regular_costume->id]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::IS_HANDLER => false,
@@ -372,11 +375,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['costume_id' => $handler_costume->id]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
@@ -427,11 +430,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['costume_id' => $regular_costume->id]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $standby_handler->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING->value,
@@ -461,11 +464,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['event_shift_station_id' => $full_station->id]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::EVENT_SHIFT_STATION_ID => $full_station->id,
@@ -494,11 +497,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['status' => EventTrooperStatus::GOING->value]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
@@ -527,11 +530,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['resign_up' => 1]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
@@ -575,11 +578,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['costume_id' => $costume->id]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING->value,
@@ -626,11 +629,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['costume_id' => $costume->id]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
@@ -658,11 +661,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['costume_id' => 'none']
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING->value,
@@ -692,11 +695,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['costume_id' => '']
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
@@ -726,11 +729,12 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($admin)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['status' => EventTrooperStatus::GOING->value]
         );
 
-        $response->assertStatus(409);
+        $response->assertRedirect();
+        $this->assertSame('danger', $this->toastType());
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
@@ -761,11 +765,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($admin)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['status' => EventTrooperStatus::GOING->value]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING->value,
@@ -775,7 +779,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
     public function test_invoke_costume_decision_on_manual_selection_event_returns_to_standby_not_going(): void
     {
         // Only a moderator can act on a manual-selection event trooper (per
-        // SignupUpdateHtmxRequest::authorize()), and the costume_id branch also
+        // SignUpUpdateRequest::authorize()), and the costume_id branch also
         // requires ownership — so this is a moderator signed up for their own spot.
         $admin = Trooper::factory()->asSystemOwner()->withVerifiedEmail()->create();
         $organization = Organization::factory()->create();
@@ -795,11 +799,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($admin)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['costume_id' => 'none']
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
@@ -826,12 +830,12 @@ class SignUpUpdateHtmxControllerTest extends TestCase
     {
         [$trooper, $event_trooper] = $this->goingTrooper();
 
-        $response = $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+        $response = $this->actingAs($trooper)->post(route('events.signup-update', ['event_trooper' => $event_trooper->id]), [
             'status' => $status->value,
         ]);
 
-        $response->assertOk();
-        $response->assertHeader('X-Flash-Message');
+        $response->assertRedirect();
+        $this->assertNotNull($this->toast());
         $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
     }
 
@@ -846,7 +850,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->state([EventTrooper::ADDED_BY_TROOPER_ID => $trooper->id])
             ->create();
 
-        $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $friend_signup->id]), [
+        $this->actingAs($trooper)->post(route('events.signup-update', ['event_trooper' => $friend_signup->id]), [
             'status' => EventTrooperStatus::ATTENDED->value,
         ]);
 
@@ -858,7 +862,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         [$trooper, $event_trooper] = $this->goingTrooper();
         $event_trooper->event_shift->event->update([Event::TENTATIVE_SIGNUPS_ALLOWED => false]);
 
-        $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+        $this->actingAs($trooper)->post(route('events.signup-update', ['event_trooper' => $event_trooper->id]), [
             'status' => EventTrooperStatus::TENTATIVE->value,
         ]);
 
@@ -876,9 +880,9 @@ class SignUpUpdateHtmxControllerTest extends TestCase
 
         foreach ([EventTrooperStatus::TENTATIVE, EventTrooperStatus::CANCELLED] as $status)
         {
-            $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+            $this->actingAs($trooper)->post(route('events.signup-update', ['event_trooper' => $event_trooper->id]), [
                 'status' => $status->value,
-            ])->assertOk();
+            ])->assertRedirect();
 
             $this->assertSame($status, $event_trooper->fresh()->status);
         }
@@ -889,12 +893,12 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         config(['tracker.tentative_cutoff_days' => '7']);
         [$trooper, $event_trooper] = $this->goingTrooperOnEventStarting(now()->addDays(3));
 
-        $response = $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+        $response = $this->actingAs($trooper)->post(route('events.signup-update', ['event_trooper' => $event_trooper->id]), [
             'status' => EventTrooperStatus::TENTATIVE->value,
         ]);
 
-        $response->assertOk();
-        $response->assertHeader('X-Flash-Message');
+        $response->assertRedirect();
+        $this->assertNotNull($this->toast());
         $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
     }
 
@@ -903,12 +907,12 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         config(['tracker.tentative_cutoff_days' => '7']);
         [$trooper, $event_trooper] = $this->goingTrooperOnEventStarting(now()->addDays(10));
 
-        $response = $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+        $response = $this->actingAs($trooper)->post(route('events.signup-update', ['event_trooper' => $event_trooper->id]), [
             'status' => EventTrooperStatus::TENTATIVE->value,
         ]);
 
-        $response->assertOk();
-        $this->assertSame('success', json_decode((string) $response->headers->get('X-Flash-Message'), true)['type']);
+        $response->assertRedirect();
+        $this->assertSame('success', $this->toastType());
         $this->assertSame(EventTrooperStatus::TENTATIVE, $event_trooper->fresh()->status);
     }
 
@@ -917,7 +921,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         config(['tracker.tentative_cutoff_days' => null]);
         [$trooper, $event_trooper] = $this->goingTrooperOnEventStarting(now()->addDay());
 
-        $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+        $this->actingAs($trooper)->post(route('events.signup-update', ['event_trooper' => $event_trooper->id]), [
             'status' => EventTrooperStatus::TENTATIVE->value,
         ]);
 
@@ -930,11 +934,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         [$trooper, $event_trooper] = $this->goingTrooperOnEventStarting(now()->addDays(3));
         $event_trooper->update([EventTrooper::STATUS => EventTrooperStatus::TENTATIVE]);
 
-        $response = $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+        $response = $this->actingAs($trooper)->post(route('events.signup-update', ['event_trooper' => $event_trooper->id]), [
             'status' => EventTrooperStatus::GOING->value,
         ]);
 
-        $this->assertSame('success', json_decode((string) $response->headers->get('X-Flash-Message'), true)['type']);
+        $this->assertSame('success', $this->toastType());
 
         $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
     }
@@ -945,7 +949,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         $event_trooper->event_shift->event->update([Event::STATUS => EventStatus::MANUAL_SELECTION]);
         $administrator = Trooper::factory()->asSystemOwner()->asActive()->withVerifiedEmail()->create();
 
-        $this->actingAs($administrator)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+        $this->actingAs($administrator)->post(route('events.signup-update', ['event_trooper' => $event_trooper->id]), [
             'status' => EventTrooperStatus::STAND_BY->value,
         ]);
 
@@ -957,13 +961,17 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         [$trooper, $event_trooper] = $this->goingTrooper();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['status' => EventTrooperStatus::CANCELLED->value]
         );
 
-        $response->assertOk();
+        $response->assertRedirect(route('events.display', ['event' => $event_trooper->event_shift->event_id]));
         $this->assertSame(EventTrooperStatus::CANCELLED, $event_trooper->fresh()->status);
-        $response->assertSee('Sign up again');
+
+        $this->get(route('events.display', ['event' => $event_trooper->event_shift->event_id]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shifts.0.cancelled.0.id', $event_trooper->id)
+                ->where('shifts.0.cancelled.0.actions.sign_up_again', fn (?string $how) => $how !== null));
     }
 
     /**
@@ -1020,13 +1028,12 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         $event_trooper->update([EventTrooper::ORGANIZATION_ID => $organization->id]);
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['backup_costume_id' => $costume->id]
         );
 
-        $response->assertOk();
-        $response->assertSee('id="shift-container-'.$event_trooper->event_shift_id.'"', false);
-        $this->assertSame('Saved.', json_decode((string) $response->headers->get('X-Flash-Message'), true)['message']);
+        $response->assertRedirect(route('events.display', ['event' => $event_trooper->event_shift->event_id]));
+        $this->assertSame('Saved.', $this->toast());
         $this->assertSame($costume->id, $event_trooper->fresh()->backup_costume_id);
     }
 
@@ -1035,12 +1042,12 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         [$trooper, $event_trooper] = $this->goingTrooper();
 
         $response = $this->actingAs($trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['status' => EventTrooperStatus::CANCELLED->value]
         );
 
-        $response->assertOk();
-        $this->assertSame('Sign-up cancelled.', json_decode((string) $response->headers->get('X-Flash-Message'), true)['message']);
+        $response->assertRedirect();
+        $this->assertSame('Sign-up cancelled.', $this->toast());
         $this->assertSame(EventTrooperStatus::CANCELLED, $event_trooper->fresh()->status);
     }
 }

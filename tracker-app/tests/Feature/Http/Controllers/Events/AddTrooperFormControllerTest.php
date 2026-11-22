@@ -17,7 +17,7 @@ use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class AddTrooperFormHtmxControllerTest extends TestCase
+class AddTrooperFormControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -30,12 +30,12 @@ class AddTrooperFormHtmxControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee(__('events.Sign up :name', ['name' => $friend->display_name]));
-        $response->assertSee("id=\"friend-costume-picker-{$event_shift->id}\"", false);
-        $this->assertMatchesRegularExpression("/<option value=\"{$costume->id}\"\\s+selected>Friend Armor<\\/option>/", $response->getContent());
-        $response->assertSee(__('events.Attending without a costume'));
-        $response->assertDontSee("id=\"friend-station-picker-{$event_shift->id}\"", false);
-        $response->assertDontSee("id=\"add-org-confirm-{$event_shift->id}\"", false);
+        $response->assertJsonPath('trooper.name', $friend->display_name);
+        $response->assertJsonPath('requires_costume', true);
+        $response->assertJsonPath('costumes', [['value' => (string) $costume->id, 'label' => 'Friend Armor']]);
+        $response->assertJsonPath('default_costume', (string) $costume->id);
+        $response->assertJsonPath('stations', []);
+        $response->assertJsonPath('organizations', []);
     }
 
     public function test_invoke_asks_for_a_station_when_the_shift_has_stations(): void
@@ -48,8 +48,7 @@ class AddTrooperFormHtmxControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee("id=\"friend-station-picker-{$event_shift->id}\"", false);
-        $response->assertSee($station->name);
+        $response->assertJsonPath('stations', [['value' => $station->id, 'label' => $station->name]]);
     }
 
     public function test_invoke_says_which_organization_when_the_event_limits_it(): void
@@ -61,8 +60,8 @@ class AddTrooperFormHtmxControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee("id=\"add-org-confirm-{$event_shift->id}\"", false);
-        $response->assertSee(__('events.Trooping as :organization', ['organization' => 'Friend Garrison']));
+        $response->assertJsonPath('organizations.0.label', 'Friend Garrison');
+        $response->assertJsonCount(1, 'organizations');
     }
 
     public function test_invoke_requires_authentication(): void

@@ -30,9 +30,9 @@ class MissionBriefRequirementTest extends TestCase
         ]);
         $event_shift = EventShift::factory()->forEvent($event)->create();
 
-        $response = $this->actingAs($trooper)->post(route('events.signup-htmx', ['event_shift' => $event_shift->id]));
+        $response = $this->actingAs($trooper)->post(route('events.signup', ['event_shift' => $event_shift->id]));
 
-        $response->assertOk();
+        $response->assertRedirect(route('events.display', ['event' => $event]));
 
         $this->assertDatabaseMissing('tt_event_troopers', [
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
@@ -60,9 +60,9 @@ class MissionBriefRequirementTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        $response = $this->actingAs($trooper)->post(route('events.signup-htmx', ['event_shift' => $event_shift->id]));
+        $response = $this->actingAs($trooper)->post(route('events.signup', ['event_shift' => $event_shift->id]));
 
-        $response->assertOk();
+        $response->assertRedirect(route('events.display', ['event' => $event]));
 
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,

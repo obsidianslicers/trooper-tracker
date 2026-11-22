@@ -15,12 +15,14 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
+use Tests\Concerns\ReadsToasts;
 
 class UploadImageControllerTest extends TestCase
 {
+    use ReadsToasts;
     use RefreshDatabase;
 
-    public function test_mission_review_upload_stores_image_and_returns_flash_header(): void
+    public function test_mission_review_upload_stores_image_and_says_so(): void
     {
         Storage::fake('public');
 
@@ -36,9 +38,8 @@ class UploadImageControllerTest extends TestCase
                 'images' => [$file],
             ]);
 
-        $response->assertOk();
-        $response->assertHeader('X-Flash-Message');
-        $response->assertSee('event-uploads', false);
+        $response->assertRedirect(route('events.display', ['event' => $event]));
+        $this->assertSame('success', $this->toastType());
 
         $upload = EventUpload::query()->firstOrFail();
 
@@ -58,8 +59,7 @@ class UploadImageControllerTest extends TestCase
 
         $response = $this->postImage($trooper, $event, []);
 
-        $response->assertOk();
-        $response->assertSee('admin-event-uploads', false);
+        $response->assertRedirect(route('events.display', ['event' => $event]));
         $this->assertTrue(EventUpload::query()->firstOrFail()->is_administrative);
     }
 
@@ -72,7 +72,7 @@ class UploadImageControllerTest extends TestCase
 
         $response = $this->postImage($trooper, $event, ['upload_type' => 'troop']);
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertFalse(EventUpload::query()->firstOrFail()->is_administrative);
     }
 
@@ -85,11 +85,11 @@ class UploadImageControllerTest extends TestCase
 
         $response = $this->postImage($trooper, $event, ['upload_type' => 'instructional']);
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertTrue(EventUpload::query()->firstOrFail()->is_administrative);
     }
 
-    public function test_oversized_image_returns_visible_htmx_error(): void
+    public function test_oversized_image_says_why(): void
     {
         Storage::fake('public');
 
@@ -105,9 +105,9 @@ class UploadImageControllerTest extends TestCase
                 'images' => [$file],
             ]);
 
-        $response->assertUnprocessable();
-        $response->assertHeader('X-Flash-Message');
-        $this->assertStringContainsString('50MB', (string) $response->headers->get('X-Flash-Message'));
+        $response->assertRedirect();
+        $this->assertSame('danger', $this->toastType());
+        $this->assertStringContainsString('50MB', (string) $this->toast());
         $this->assertSame(0, EventUpload::query()->count());
     }
 
@@ -156,10 +156,10 @@ class UploadImageControllerTest extends TestCase
                 'images' => [$file],
             ]);
 
-        $response->assertUnprocessable();
-        $response->assertHeader('X-Flash-Message');
-        $this->assertStringContainsString('failed to upload', (string) $response->headers->get('X-Flash-Message'));
-        $this->assertStringNotContainsString('images.0', (string) $response->headers->get('X-Flash-Message'));
+        $response->assertRedirect();
+        $this->assertSame('danger', $this->toastType());
+        $this->assertStringContainsString('failed to upload', (string) $this->toast());
+        $this->assertStringNotContainsString('images.0', (string) $this->toast());
         $this->assertSame(0, EventUpload::query()->count());
     }
 
@@ -182,9 +182,9 @@ class UploadImageControllerTest extends TestCase
         // The fake file's bytes are not a real HEIC image, so conversion fails
         // gracefully after passing validation rather than being rejected as an
         // unsupported format up front.
-        $response->assertUnprocessable();
-        $response->assertHeader('X-Flash-Message');
-        $this->assertStringContainsString('No images were uploaded', (string) $response->headers->get('X-Flash-Message'));
+        $response->assertRedirect();
+        $this->assertSame('danger', $this->toastType());
+        $this->assertStringContainsString('No images were uploaded', (string) $this->toast());
         $this->assertSame(0, EventUpload::query()->count());
     }
 
@@ -212,12 +212,12 @@ class UploadImageControllerTest extends TestCase
                 'images' => $files,
             ]);
 
-        $response->assertOk();
-        $response->assertHeader('X-Flash-Message');
-        $flash = (string) $response->headers->get('X-Flash-Message');
+        $response->assertRedirect();
+        $this->assertNotNull($this->toast());
+        $flash = (string) $this->toast();
         $this->assertStringContainsString('1 image uploaded', $flash);
         $this->assertStringContainsString('1 image failed', $flash);
-        $this->assertStringContainsString('warning', $flash);
+        $this->assertSame('warning', $this->toastType());
     }
 
     public function test_invoke_requires_authentication(): void

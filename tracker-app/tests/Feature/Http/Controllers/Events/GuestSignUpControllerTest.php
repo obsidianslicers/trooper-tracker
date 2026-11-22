@@ -15,7 +15,7 @@ use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class GuestSignUpHtmxControllerTest extends TestCase
+class GuestSignUpControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -45,12 +45,12 @@ class GuestSignUpHtmxControllerTest extends TestCase
         EventTrooper::factory()->forEventShift($this->event_shift)->forTrooper($this->trooper)->asGoing()->create();
 
         $response = $this->actingAs($this->trooper)->post(
-            route('events.guest-signup-htmx', ['event_shift' => $this->event_shift->id]),
+            route('events.guest-signup', ['event_shift' => $this->event_shift->id]),
             ['guest_names' => 'Leia Organa\\n\\n Han Solo \\n']
         );
 
-        $response->assertOk();
-        $response->assertHeader('HX-Trigger', 'event-shift-guest-added');
+        $response->assertRedirect(route('events.display', ['event' => $this->event_shift->event_id]));
+        $response->assertSessionHas('toast.success', 'Guest added.');
 
         $this->assertDatabaseHas('tt_event_guests', [
             EventGuest::EVENT_SHIFT_ID => $this->event_shift->id,
@@ -79,14 +79,14 @@ class GuestSignUpHtmxControllerTest extends TestCase
         $payload = ['guest_names' => 'Chewbacca\\nChewbacca'];
 
         $this->actingAs($this->trooper)->post(
-            route('events.guest-signup-htmx', ['event_shift' => $this->event_shift->id]),
+            route('events.guest-signup', ['event_shift' => $this->event_shift->id]),
             $payload
-        )->assertOk();
+        )->assertRedirect();
 
         $this->actingAs($this->trooper)->post(
-            route('events.guest-signup-htmx', ['event_shift' => $this->event_shift->id]),
+            route('events.guest-signup', ['event_shift' => $this->event_shift->id]),
             $payload
-        )->assertOk();
+        )->assertRedirect();
 
         $this->assertSame(
             1,
@@ -97,7 +97,7 @@ class GuestSignUpHtmxControllerTest extends TestCase
     public function test_invoke_requires_authentication(): void
     {
         $response = $this->post(
-            route('events.guest-signup-htmx', ['event_shift' => $this->event_shift->id]),
+            route('events.guest-signup', ['event_shift' => $this->event_shift->id]),
             ['guest_names' => 'Lando Calrissian']
         );
 
@@ -107,9 +107,9 @@ class GuestSignUpHtmxControllerTest extends TestCase
     public function test_invoke_does_not_create_guests_when_trooper_not_going(): void
     {
         $this->actingAs($this->trooper)->post(
-            route('events.guest-signup-htmx', ['event_shift' => $this->event_shift->id]),
+            route('events.guest-signup', ['event_shift' => $this->event_shift->id]),
             ['guest_names' => 'Lando Calrissian']
-        )->assertOk();
+        )->assertRedirect();
 
         $this->assertDatabaseMissing('tt_event_guests', [
             EventGuest::EVENT_SHIFT_ID => $this->event_shift->id,
@@ -120,7 +120,7 @@ class GuestSignUpHtmxControllerTest extends TestCase
     public function test_invoke_does_not_emit_trigger_when_trooper_not_going(): void
     {
         $response = $this->actingAs($this->trooper)->post(
-            route('events.guest-signup-htmx', ['event_shift' => $this->event_shift->id]),
+            route('events.guest-signup', ['event_shift' => $this->event_shift->id]),
             ['guest_names' => 'Lando Calrissian']
         );
 

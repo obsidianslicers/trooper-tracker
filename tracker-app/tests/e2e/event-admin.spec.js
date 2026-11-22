@@ -214,10 +214,13 @@ test.describe('reaching the troopers', () => {
         await page.goto('/events');
         await page.getByRole('link', { name: seeded.commandEvent }).first().click();
 
-        const broadcast = page.locator('#broadcast-message');
-        await broadcast.locator('textarea[name="message"]').fill('E2E broadcast: staging moved to dock B.');
-        await broadcast.getByRole('button', { name: 'Send Message' }).click();
-        await expect(broadcast.locator('textarea[name="message"]')).toHaveValue('');
+        const message = page.getByRole('textbox', { name: 'Message', exact: true });
+        await message.fill('E2E broadcast: staging moved to dock B.');
+        await page.getByRole('button', { name: 'Send Message' }).click();
+        // It can't be taken back, so the page asks first.
+        await page.locator('.modal.show').getByRole('button', { name: 'Send Message' }).click();
+        await expect(page.locator('.toast:visible').getByText('Message sent.').first()).toBeVisible();
+        await expect(message).toHaveValue('');
 
         const trooper = await browser.newContext({ storageState: { cookies: [], origins: [] } });
         const inbox = await trooper.newPage();
@@ -232,11 +235,10 @@ test.describe('reaching the troopers', () => {
         await page.getByRole('link', { name: seeded.commandEvent }).first().click();
 
         await page.getByRole('button', { name: 'Share roster' }).click();
-        const share = page.locator('#share-roster');
-        await expect(share.locator('input[name="recipient_email"]')).toBeVisible();
-        await share.locator('input[name="recipient_email"]').fill('coordinator@e2e.test');
+        const share = page.locator('.modal.show');
+        await share.getByLabel("Coordinator's email").fill('coordinator@e2e.test');
         await share.getByRole('button', { name: 'Send Roster Link' }).click();
-        await expect(share.getByText('Roster successfully sent.')).toBeVisible();
+        await expect(page.locator('.toast:visible').getByText('Roster successfully sent.').first()).toBeVisible();
 
         // The link goes out by email; read it back the way the email builds it.
         const url = tinker(`

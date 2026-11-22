@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Requests\Events;
 
-use App\Http\Requests\Events\BroadcastMessageHtmxRequest;
+use App\Http\Requests\Events\BroadcastMessageRequest;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -14,7 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
-class BroadcastMessageHtmxRequestTest extends TestCase
+class BroadcastMessageRequestTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -41,7 +41,7 @@ class BroadcastMessageHtmxRequestTest extends TestCase
     }
 
     private function setupMockedRoute(
-        BroadcastMessageHtmxRequest $request,
+        BroadcastMessageRequest $request,
         ?Event $event
     ): void {
         $mock_route = \Mockery::mock();
@@ -57,7 +57,7 @@ class BroadcastMessageHtmxRequestTest extends TestCase
 
     public function test_authorize_allows_moderator_to_update_event(): void
     {
-        $subject = new BroadcastMessageHtmxRequest;
+        $subject = new BroadcastMessageRequest;
         $subject->setUserResolver(fn() => $this->moderator);
         $this->setupMockedRoute($subject, $this->event);
 
@@ -69,7 +69,7 @@ class BroadcastMessageHtmxRequestTest extends TestCase
         $this->expectException(AuthorizationException::class);
         $this->expectExceptionMessage('Event not found or unauthorized.');
 
-        $subject = new BroadcastMessageHtmxRequest;
+        $subject = new BroadcastMessageRequest;
         $subject->setUserResolver(fn() => $this->moderator);
         $this->setupMockedRoute($subject, null);
 
@@ -78,7 +78,7 @@ class BroadcastMessageHtmxRequestTest extends TestCase
 
     public function test_rules_accepts_a_string_message(): void
     {
-        $subject = new BroadcastMessageHtmxRequest;
+        $subject = new BroadcastMessageRequest;
         $validator = Validator::make(
             ['message' => 'The event roster is ready.'],
             $subject->rules()
@@ -89,7 +89,7 @@ class BroadcastMessageHtmxRequestTest extends TestCase
 
     public function test_rules_rejects_a_missing_message(): void
     {
-        $subject = new BroadcastMessageHtmxRequest;
+        $subject = new BroadcastMessageRequest;
         $validator = Validator::make([], $subject->rules());
 
         $this->assertTrue($validator->fails());
@@ -98,7 +98,7 @@ class BroadcastMessageHtmxRequestTest extends TestCase
 
     public function test_rules_rejects_a_non_string_message(): void
     {
-        $subject = new BroadcastMessageHtmxRequest;
+        $subject = new BroadcastMessageRequest;
         $validator = Validator::make(
             ['message' => ['not', 'a', 'string']],
             $subject->rules()

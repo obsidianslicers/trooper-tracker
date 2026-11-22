@@ -1,6 +1,6 @@
 // The event page's "How sign-up works" tour, started from its button. The E2E run turns
 // starting by itself off (TRACKER_SIGNUP_TOUR=off in support/env.js) so it never covers other
-// tests; who it starts for is covered by SignUpTourTest and tests/js/events/signupTour.test.js.
+// tests; who it starts for is covered by SignUpTourTest and tests/js/svelte/events/vms/SignUpTourViewModel.test.ts.
 import { test, expect } from '@playwright/test';
 import { personas, seeded } from './support/personas.js';
 

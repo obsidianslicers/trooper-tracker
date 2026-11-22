@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Requests\Events;
 
-use App\Http\Requests\Events\ShareRosterHtmxRequest;
+use App\Http\Requests\Events\ShareRosterRequest;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -14,7 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
-class ShareRosterHtmxRequestTest extends TestCase
+class ShareRosterRequestTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -47,7 +47,7 @@ class ShareRosterHtmxRequestTest extends TestCase
     /**
      * Helper method to set up a mocked route parameter
      */
-    private function setupMockedRoute(ShareRosterHtmxRequest $request, ?Event $event): void
+    private function setupMockedRoute(ShareRosterRequest $request, ?Event $event): void
     {
         $mock_route = \Mockery::mock();
         $mock_route->shouldReceive('parameter')
@@ -61,7 +61,7 @@ class ShareRosterHtmxRequestTest extends TestCase
 
     public function test_authorize_returns_true_for_moderator(): void
     {
-        $subject = new ShareRosterHtmxRequest;
+        $subject = new ShareRosterRequest;
         $subject->setUserResolver(fn() => $this->moderator);
         $this->setupMockedRoute($subject, $this->event);
 
@@ -71,7 +71,7 @@ class ShareRosterHtmxRequestTest extends TestCase
     public function test_authorize_returns_false_for_regular_member(): void
     {
         $member = Trooper::factory()->asMember()->create();
-        $subject = new ShareRosterHtmxRequest;
+        $subject = new ShareRosterRequest;
         $subject->setUserResolver(fn() => $member);
         $this->setupMockedRoute($subject, $this->event);
 
@@ -83,7 +83,7 @@ class ShareRosterHtmxRequestTest extends TestCase
         $this->expectException(AuthorizationException::class);
         $this->expectExceptionMessage('Event not found or unauthorized.');
 
-        $subject = new ShareRosterHtmxRequest;
+        $subject = new ShareRosterRequest;
         $subject->setUserResolver(fn() => $this->moderator);
         $this->setupMockedRoute($subject, null);
 
@@ -92,7 +92,7 @@ class ShareRosterHtmxRequestTest extends TestCase
 
     public function test_rules_requires_recipient_email(): void
     {
-        $subject = new ShareRosterHtmxRequest;
+        $subject = new ShareRosterRequest;
         $this->setupMockedRoute($subject, $this->event);
         $rules = $subject->rules();
 
@@ -102,7 +102,7 @@ class ShareRosterHtmxRequestTest extends TestCase
 
     public function test_rules_validates_recipient_email_is_string(): void
     {
-        $subject = new ShareRosterHtmxRequest;
+        $subject = new ShareRosterRequest;
         $this->setupMockedRoute($subject, $this->event);
         $rules = $subject->rules();
 
@@ -111,7 +111,7 @@ class ShareRosterHtmxRequestTest extends TestCase
 
     public function test_rules_validates_recipient_email_format(): void
     {
-        $subject = new ShareRosterHtmxRequest;
+        $subject = new ShareRosterRequest;
         $this->setupMockedRoute($subject, $this->event);
 
         $validator = Validator::make(
@@ -127,7 +127,7 @@ class ShareRosterHtmxRequestTest extends TestCase
 
     public function test_rules_accepts_valid_email(): void
     {
-        $subject = new ShareRosterHtmxRequest;
+        $subject = new ShareRosterRequest;
         $this->setupMockedRoute($subject, $this->event);
 
         $validator = Validator::make(
@@ -142,7 +142,7 @@ class ShareRosterHtmxRequestTest extends TestCase
 
     public function test_rules_fails_when_recipient_email_is_missing(): void
     {
-        $subject = new ShareRosterHtmxRequest;
+        $subject = new ShareRosterRequest;
         $this->setupMockedRoute($subject, $this->event);
 
         $validator = Validator::make(
@@ -156,7 +156,7 @@ class ShareRosterHtmxRequestTest extends TestCase
 
     public function test_rules_accepts_email_with_subdomain(): void
     {
-        $subject = new ShareRosterHtmxRequest;
+        $subject = new ShareRosterRequest;
         $this->setupMockedRoute($subject, $this->event);
 
         $validator = Validator::make(

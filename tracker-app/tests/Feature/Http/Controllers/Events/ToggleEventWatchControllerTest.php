@@ -12,13 +12,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event as EventFacade;
 use Tests\TestCase;
 
-class ToggleEventWatchHtmxControllerTest extends TestCase
+class ToggleEventWatchControllerTest extends TestCase
 {
     use RefreshDatabase;
 
     public function test_invoke_creates_watch_for_unauthenticated_trooper(): void
     {
-        $response = $this->post(route('events.toggle-watch-htmx', Event::factory()->create()));
+        $response = $this->post(route('events.toggle-watch', Event::factory()->create()));
 
         $response->assertRedirect(route('auth.login'));
     }
@@ -28,9 +28,10 @@ class ToggleEventWatchHtmxControllerTest extends TestCase
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $event = Event::factory()->create();
 
-        $response = $this->actingAs($trooper)->post(route('events.toggle-watch-htmx', $event));
+        $response = $this->actingAs($trooper)->post(route('events.toggle-watch', $event));
 
-        $response->assertOk();
+        $response->assertRedirect(route('events.display', ['event' => $event]));
+        $response->assertSessionHas('toast.success', "You're watching this event.");
         $this->assertDatabaseHas('tt_event_watches', [
             'event_id' => $event->id,
             'trooper_id' => $trooper->id,
@@ -44,9 +45,10 @@ class ToggleEventWatchHtmxControllerTest extends TestCase
 
         EventWatch::create(['event_id' => $event->id, 'trooper_id' => $trooper->id]);
 
-        $response = $this->actingAs($trooper)->post(route('events.toggle-watch-htmx', $event));
+        $response = $this->actingAs($trooper)->post(route('events.toggle-watch', $event));
 
-        $response->assertOk();
+        $response->assertRedirect(route('events.display', ['event' => $event]));
+        $response->assertSessionHas('toast.success', "You're no longer watching this event.");
         $this->assertDatabaseMissing('tt_event_watches', [
             'event_id' => $event->id,
             'trooper_id' => $trooper->id,
@@ -60,7 +62,7 @@ class ToggleEventWatchHtmxControllerTest extends TestCase
 
         EventFacade::listen(EventWatchChanging::class, fn (EventWatchChanging $changing): bool => false);
 
-        $this->actingAs($trooper)->post(route('events.toggle-watch-htmx', $event))->assertOk();
+        $this->actingAs($trooper)->post(route('events.toggle-watch', $event))->assertRedirect();
 
         $this->assertDatabaseMissing('tt_event_watches', ['event_id' => $event->id, 'trooper_id' => $trooper->id]);
     }

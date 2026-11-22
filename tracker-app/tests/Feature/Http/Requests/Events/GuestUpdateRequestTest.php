@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Requests\Events;
 
 use App\Enums\EventGuestStatus;
-use App\Http\Requests\Events\GuestUpdateHtmxRequest;
+use App\Http\Requests\Events\GuestUpdateRequest;
 use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\Trooper;
@@ -14,7 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
-class GuestUpdateHtmxRequestTest extends TestCase
+class GuestUpdateRequestTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -39,7 +39,7 @@ class GuestUpdateHtmxRequestTest extends TestCase
         $this->actingAs($this->trooper);
     }
 
-    private function setupMockedRoute(GuestUpdateHtmxRequest $request, ?EventGuest $event_guest): void
+    private function setupMockedRoute(GuestUpdateRequest $request, ?EventGuest $event_guest): void
     {
         $mock_route = \Mockery::mock();
         $mock_route->shouldReceive('parameter')
@@ -54,7 +54,7 @@ class GuestUpdateHtmxRequestTest extends TestCase
 
     public function test_authorize_returns_true_for_own_guest_signup(): void
     {
-        $subject = new GuestUpdateHtmxRequest;
+        $subject = new GuestUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_guest);
 
@@ -66,7 +66,7 @@ class GuestUpdateHtmxRequestTest extends TestCase
         $this->expectException(AuthorizationException::class);
         $this->expectExceptionMessage('EventGuest not found or unauthorized.');
 
-        $subject = new GuestUpdateHtmxRequest;
+        $subject = new GuestUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, null);
 
@@ -77,7 +77,7 @@ class GuestUpdateHtmxRequestTest extends TestCase
     {
         $other_trooper = Trooper::factory()->asMember()->create();
 
-        $subject = new GuestUpdateHtmxRequest;
+        $subject = new GuestUpdateRequest;
         $subject->setUserResolver(fn() => $other_trooper);
         $this->setupMockedRoute($subject, $this->event_guest);
 
@@ -86,7 +86,7 @@ class GuestUpdateHtmxRequestTest extends TestCase
 
     public function test_rules_name_and_status_are_nullable(): void
     {
-        $subject = new GuestUpdateHtmxRequest;
+        $subject = new GuestUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_guest);
 
@@ -101,7 +101,7 @@ class GuestUpdateHtmxRequestTest extends TestCase
 
     public function test_rules_reject_invalid_status_value(): void
     {
-        $subject = new GuestUpdateHtmxRequest;
+        $subject = new GuestUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_guest);
 
@@ -115,7 +115,7 @@ class GuestUpdateHtmxRequestTest extends TestCase
 
     public function test_rules_accept_valid_status_value(): void
     {
-        $subject = new GuestUpdateHtmxRequest;
+        $subject = new GuestUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_guest);
 

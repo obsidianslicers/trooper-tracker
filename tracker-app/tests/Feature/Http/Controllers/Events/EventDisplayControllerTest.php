@@ -19,6 +19,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class EventDisplayControllerTest extends TestCase
@@ -33,9 +34,11 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.events.event-display');
-        $response->assertDontSee('Does not count toward troop totals', false);
-        $response->assertDontSee('not-counted-logo', false);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('events/Display')
+            ->where('event.id', $event->id)
+            ->where('event.not_counted_notice', null)
+            ->whereNot('event.header.logo_url', null));
     }
 
     public function test_invoke_marks_an_event_whose_type_does_not_count(): void
@@ -47,13 +50,11 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        //  the info icon takes the unit logo's place in the title bar; the sentence says why
-        $response->assertSee('not-counted-logo', false);
-        $response->assertDontSee('organization-32x32.png', false);
-        $response->assertDontSee('not-counted-pill', false);
-        $response->assertSee('Non-troop-credit event: Does not count toward troop totals.');
-        //  at the top of the details and again above the roster, where troopers sign up
-        $this->assertSame(2, substr_count($response->getContent(), 'not-counted-notice'));
+        //  the info icon takes the unit logo's place in the title bar; the sentence says why,
+        //  at the top of the details and again above the roster (NotCountedNotice.svelte)
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('event.header.logo_url', null)
+            ->where('event.not_counted_notice', 'Non-troop-credit event: Does not count toward troop totals.'));
     }
 
     public function test_invoke_shows_every_member_the_event_coordinator(): void
@@ -65,8 +66,9 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSeeInOrder(['Point of Contact', 'Event Coordinator', 'TK-421 Coordinator']);
-        $response->assertSee(route('service-records.trooper', ['trooper' => $coordinator->id]), false);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('event.coordinator.name', 'TK-421 Coordinator')
+            ->where('event.coordinator.url', route('service-records.trooper', ['trooper' => $coordinator->id])));
     }
 
     public function test_invoke_shows_the_picked_coordinator_instead_of_the_creator(): void
@@ -84,8 +86,7 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSeeInOrder(['Event Coordinator', 'TK-422 Picked']);
-        $response->assertDontSee('TK-421 Creator');
+        $response->assertInertia(fn (Assert $page) => $page->where('event.coordinator.name', 'TK-422 Picked'));
     }
 
     public function test_invoke_leaves_out_the_coordinator_when_the_event_has_none(): void
@@ -96,7 +97,7 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertDontSee('Event Coordinator');
+        $response->assertInertia(fn (Assert $page) => $page->where('event.coordinator', null));
     }
 
     public function test_invoke_keeps_a_tentative_sign_up_selected_inside_the_tentative_cutoff(): void
@@ -122,8 +123,9 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        //  the browser would otherwise show the first option, "Going"
-        $this->assertMatchesRegularExpression('/<option value="tentative"\s+selected>/', $response->getContent());
+        //  the row's plans picker keeps Tentative, rather than showing the first option, "Going"
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('shifts.0.going.0.editor.plans.value', EventTrooperStatus::TENTATIVE->value));
     }
 
     public function test_invoke_says_two_shifts_on_one_day_count_as_one_troop_before_and_after_signing_up(): void
@@ -147,15 +149,17 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        //  for everyone, once, at the top of the details; the shifts say it again where it matters
-        $this->assertSame(1, substr_count($response->getContent(), 'One troop per day: more than one shift on the same day counts as one troop.'));
+        //  for everyone, at the top of the details; the shifts say it again where it matters:
         //  at the afternoon and evening shifts, before signing up
-        $this->assertSame(2, substr_count($response->getContent(), 'same-day-notice--warning'));
-        $response->assertSeeInOrder([
-            'id="shift-container-'.$afternoon->id.'"',
-            'You&#039;re already signed up for '.$morning->compact_time_display.' on '.$day->format('l, M j').'.',
-            'This shift won&#039;t add another troop:',
-        ], false);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('event.one_troop_per_day_notice', 'One troop per day: more than one shift on the same day counts as one troop.')
+            ->where('shifts.0.same_day', null)
+            ->where('shifts.1.same_day', [
+                'is_warning' => true,
+                'times' => $morning->compact_time_display,
+                'day' => $day->format('l, M j'),
+            ])
+            ->where('shifts.2.same_day.is_warning', true));
 
         EventTrooper::factory()->forEventShift($afternoon)->forTrooper($trooper)->create([
             EventTrooper::STATUS => EventTrooperStatus::GOING,
@@ -164,15 +168,15 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         //  once signed up for both, each of them says they share the troop
-        $response->assertSeeInOrder([
-            'id="shift-container-'.$morning->id.'"',
-            'You&#039;re also signed up for '.$afternoon->compact_time_display,
-            'Together these shifts count as one troop.',
-            'id="shift-container-'.$afternoon->id.'"',
-            'You&#039;re also signed up for '.$morning->compact_time_display,
-            'id="shift-container-'.$evening->id.'"',
-            'You&#039;re already signed up for '.$morning->compact_time_display.' and '.$afternoon->compact_time_display,
-        ], false);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('shifts.0.id', $morning->id)
+            ->where('shifts.0.same_day.is_warning', false)
+            ->where('shifts.0.same_day.times', $afternoon->compact_time_display)
+            ->where('shifts.1.same_day.is_warning', false)
+            ->where('shifts.1.same_day.times', $morning->compact_time_display)
+            ->where('shifts.2.id', $evening->id)
+            ->where('shifts.2.same_day.is_warning', true)
+            ->where('shifts.2.same_day.times', $morning->compact_time_display.' and '.$afternoon->compact_time_display));
     }
 
     public function test_invoke_says_nothing_about_one_troop_per_day_without_two_shifts_on_a_day(): void
@@ -186,7 +190,7 @@ class EventDisplayControllerTest extends TestCase
         //  off
         $this->actingAs($trooper)->get(route('events.display', ['event' => $two_shift_event->id]))
             ->assertOk()
-            ->assertDontSee('One troop per day');
+            ->assertInertia(fn (Assert $page) => $page->where('event.one_troop_per_day_notice', null));
 
         //  on, but the shifts are on different days
         config(['tracker.count_as_one_troop_per_day' => true]);
@@ -196,8 +200,10 @@ class EventDisplayControllerTest extends TestCase
 
         $this->actingAs($trooper)->get(route('events.display', ['event' => $multi_day_event->id]))
             ->assertOk()
-            ->assertDontSee('One troop per day')
-            ->assertDontSee('same-day-notice', false);
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('event.one_troop_per_day_notice', null)
+                ->where('shifts.0.same_day', null)
+                ->where('shifts.1.same_day', null));
     }
 
     private function shiftAt(Event $event, \Carbon\Carbon $start): EventShift
@@ -222,9 +228,11 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSee('Charity');
-        $response->assertSee('Hours: 4');
-        $response->assertSee('Community service hours only');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->has('event.charity', 1)
+            ->where('event.charity.0.name', null)
+            ->where('event.charity.0.hours', 4)
+            ->where('event.charity.0.notes', 'Community service hours only'));
     }
 
     public function test_invoke_displays_station_count_from_visible_going_roster(): void
@@ -256,7 +264,10 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($viewer)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSeeTextInOrder(['Docking Bay', '2/3']);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('shifts.0.stations.0.name', 'Docking Bay')
+            ->where('shifts.0.stations.0.going', 2)
+            ->where('shifts.0.stations.0.limit', 3));
     }
 
     public function test_invoke_shows_trooping_as_label_when_trooper_has_single_eligible_org_with_limit(): void
@@ -284,7 +295,11 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSee('Trooping as ' . $organization->name);
+        //  one club with its own limit: the row's Edit says "Trooping as" it (RowEditor.svelte)
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('shifts.0.going.0.editor.organizations.options', [
+                ['value' => $organization->id, 'label' => $organization->name],
+            ]));
     }
 
     public function test_invoke_says_no_limits_when_no_club_is_limited(): void
@@ -298,8 +313,10 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSeeTextInOrder(['Trooper Quotas', 'No limits', 'Not open to', 'Sith Club']);
-        $response->assertDontSee('Troopers / Handlers');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('event.quotas.is_unlimited', true)
+            ->where('event.quotas.closed_names', fn ($names) => collect($names)->contains('Sith Club')
+                && !collect($names)->contains('Clone Club')));
     }
 
     public function test_invoke_lists_the_clubs_when_one_is_limited(): void
@@ -312,8 +329,10 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($member)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSeeTextInOrder(['Trooper Quotas', 'Troopers / Handlers', 'Clone Club', 'Rebel Club', '4']);
-        $response->assertDontSee('No limits');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('event.quotas.is_unlimited', false)
+            ->where('event.quotas.clubs', fn ($clubs) => collect($clubs)->firstWhere('name', 'Rebel Club')['troopers_allowed'] === 4
+                && collect($clubs)->firstWhere('name', 'Clone Club')['troopers_allowed'] === null));
     }
 
     public function test_invoke_offers_a_costume_on_your_row_when_the_event_type_needs_one(): void
@@ -323,8 +342,9 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSee('name="costume_id"', false);
-        $response->assertSee('data-tour-example="backup"', false);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->whereNot('shifts.0.going.0.editor.costumes', null)
+            ->where('tour.requires_costume', true));
     }
 
     public function test_invoke_leaves_out_costumes_when_the_event_type_needs_none(): void
@@ -334,11 +354,11 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertDontSee('name="costume_id"', false);
-        $response->assertDontSee('name="backup_costume_id"', false);
         //  the tour's "pick your costume" steps drop out with their example row
-        $response->assertDontSee('data-tour-example="backup"', false);
-        $response->assertDontSee('id="costume-picker-', false);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('shifts.0.going.0.editor.costumes', null)
+            ->where('shifts.0.going.0.costume', null)
+            ->where('tour.requires_costume', false));
     }
 
     public function test_invoke_offers_sign_up_without_a_costume_when_the_event_type_needs_none(): void
@@ -357,8 +377,10 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSee(route('events.signup-htmx', ['event_shift' => $event_shift->id]), false);
-        $response->assertDontSee('id="costume-picker-'.$event_shift->id.'"', false);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('shifts.0.sign_up.url', route('events.signup', ['event_shift' => $event_shift->id]))
+            ->where('shifts.0.sign_up.requires_costume', false)
+            ->where('shifts.0.sign_up.default_costume', 'none'));
     }
 
     /**
@@ -422,11 +444,13 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSee("You're not signed up for this event yet.");
-        $response->assertSee('id="costume-picker-'.$event_shift->id.'"', false);
-        $this->assertMatchesRegularExpression('/<option value="'.$second->id.'"\s+selected>/', $response->getContent());
-        $response->assertSee($first->name);
-        $response->assertSee('Attending without a costume');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('my_sign_ups.sign_ups', [])
+            ->where('my_sign_ups.has_open_shift', true)
+            ->where('shifts.0.id', $event_shift->id)
+            ->where('shifts.0.sign_up.requires_costume', true)
+            ->where('shifts.0.sign_up.default_costume', (string) $second->id)
+            ->where('shifts.0.sign_up.costumes', fn ($costumes) => collect($costumes)->pluck('label')->contains($first->name)));
     }
 
     public function test_invoke_shows_your_sign_up_as_your_roster_row_with_an_edit_area(): void
@@ -443,18 +467,20 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSee('id="my-signup-summary"', false);
-        $response->assertSee('roster-row--mine', false);
-        $response->assertSee('Cancel my sign-up');
-        //  your row has the Edit area, with the only costume picker; someone else's row has neither
-        $response->assertSee('id="roster-row-editor-'.$mine->id.'"', false);
-        $response->assertDontSee('id="roster-row-editor-'.$theirs->id.'"', false);
-        $this->assertSame(1, substr_count($response->getContent(), 'name="costume_id"'));
-        //  signed up, so no Sign Up form on that shift
-        $response->assertDontSee('id="costume-picker-'.$event_shift->id.'"', false);
-        $response->assertDontSee('<option value="cancelled"', false);
-        //  the summary's Change link opens your row
-        $response->assertSee('data-edit-row="'.$mine->id.'"', false);
+        //  your row has the Edit area, with Cancel; someone else's row has none.
+        //  Signed up, so no Sign Up form on that shift; the summary's Change opens your row
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('my_sign_ups.sign_ups.0.id', $mine->id)
+            ->where('my_sign_ups.sign_ups.0.can_change', true)
+            ->where('shifts.0.going', function ($rows) use ($mine, $theirs): bool
+            {
+                $my_row = collect($rows)->firstWhere('id', $mine->id);
+                $their_row = collect($rows)->firstWhere('id', $theirs->id);
+
+                return $my_row['is_mine'] && $my_row['editor']['can_cancel']
+                    && !$their_row['is_mine'] && $their_row['editor'] === null;
+            })
+            ->where('shifts.0.sign_up', null));
     }
 
     public function test_invoke_gives_the_friends_and_guests_you_brought_an_edit_link(): void
@@ -464,11 +490,11 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSee('id="roster-row-editor-'.$friend_sign_up->id.'"', false);
-        $response->assertSee('id="roster-guest-editor-'.$guest->id.'"', false);
-        //  two costume pickers, yours and your friend's, each in its row's Edit area
-        $this->assertSame(2, substr_count($response->getContent(), 'name="costume_id"'));
-        $this->assertSame(1, substr_count($response->getContent(), route('events.guest-update-htmx', ['event_guest' => $guest->id])));
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('shifts.0.going', fn ($rows) => collect($rows)->firstWhere('id', $friend_sign_up->id)['editor']['costumes'] !== null)
+            ->where('shifts.0.guests.0.id', $guest->id)
+            ->where('shifts.0.guests.0.can_cancel', true)
+            ->where('shifts.0.guests.0.update_url', route('events.guest-update', ['event_guest' => $guest->id])));
     }
 
     public function test_invoke_gives_no_edit_link_on_someone_elses_friends_and_guests(): void
@@ -479,9 +505,10 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($other)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertDontSee('id="roster-row-editor-'.$friend_sign_up->id.'"', false);
-        $response->assertDontSee('id="roster-guest-editor-'.$guest->id.'"', false);
-        $response->assertSee('Wookiee Guest');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('shifts.0.going', fn ($rows) => collect($rows)->firstWhere('id', $friend_sign_up->id)['editor'] === null)
+            ->where('shifts.0.guests.0.name', 'Wookiee Guest')
+            ->where('shifts.0.guests.0.can_cancel', false));
     }
 
     public function test_invoke_lists_stand_by_on_its_own_in_sign_up_order(): void
@@ -498,15 +525,15 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSeeInOrder([
-            $going->display_name,
-            __('events.Stand-by, in sign-up order'),
-            $first_in_line->display_name,
-            $second_in_line->display_name,
-        ]);
         //  full, so Sign up joins stand-by, third in line
-        $response->assertSee(__('events.Join stand-by'));
-        $response->assertSee(__('events.Full. You\'d be #:place on stand-by, and move up in order if someone going cancels.', ['place' => 3]));
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('shifts.0.going.0.trooper.name', $going->display_name)
+            ->where('shifts.0.stand_by.0.trooper.name', $first_in_line->display_name)
+            ->where('shifts.0.stand_by.0.number', 1)
+            ->where('shifts.0.stand_by.1.trooper.name', $second_in_line->display_name)
+            ->where('shifts.0.stand_by.1.number', 2)
+            ->where('shifts.0.sign_up.is_full', true)
+            ->where('shifts.0.sign_up.hint', __('events.Full. You\'d be #:place on stand-by, and move up in order if someone going cancels.', ['place' => 3])));
     }
 
     public function test_invoke_says_how_many_spots_are_left(): void
@@ -517,9 +544,11 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSee('2 spots left');
-        $response->assertSee('1 of 3 going');
-        $response->assertDontSee(__('events.Join stand-by'));
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('shifts.0.sign_up.hint', '2 spots left')
+            ->where('shifts.0.sign_up.is_full', false)
+            ->where('shifts.0.fullness.spots_left', 2)
+            ->where('shifts.0.fullness.limit', 3));
     }
 
     /**
@@ -577,20 +606,12 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $this->assertStringContainsString('class="collapse show"', $this->shiftHtml($response->getContent(), $my_shift));
-        $this->assertStringNotContainsString('class="collapse show"', $this->shiftHtml($response->getContent(), $other_shift));
-    }
-
-    /**
-     * One shift's part of the event page, up to the next shift.
-     */
-    private function shiftHtml(string $html, EventShift $event_shift): string
-    {
-        $start = strpos($html, 'id="shift-container-'.$event_shift->id.'"');
-        $this->assertNotFalse($start);
-        $end = strpos($html, 'id="shift-container-', $start + 1);
-
-        return substr($html, $start, $end === false ? null : $end - $start);
+        //  the page opens the shifts the trooper is on (EventDisplayViewModel)
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('shifts.0.id', $other_shift->id)
+            ->where('shifts.0.is_mine', false)
+            ->where('shifts.1.id', $my_shift->id)
+            ->where('shifts.1.is_mine', true));
     }
 
     private function clubOnEvent(Event $event, string $name, bool $can_attend, ?int $troopers_allowed = null): void

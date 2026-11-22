@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Requests\Events;
 
 use App\Enums\EventTrooperStatus;
-use App\Http\Requests\Events\SignupUpdateHtmxRequest;
+use App\Http\Requests\Events\SignUpUpdateRequest;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
@@ -21,7 +21,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
-class SignupUpdateHtmxRequestTest extends TestCase
+class SignUpUpdateRequestTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -83,7 +83,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
     /**
      * Helper method to set up a mocked route parameter
      */
-    private function setupMockedRoute(SignupUpdateHtmxRequest $request, ?EventTrooper $event_trooper): void
+    private function setupMockedRoute(SignUpUpdateRequest $request, ?EventTrooper $event_trooper): void
     {
         $mock_route = \Mockery::mock();
         $mock_route->shouldReceive('parameter')
@@ -97,7 +97,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
 
     public function test_authorize_returns_true_for_own_signup(): void
     {
-        $subject = new SignupUpdateHtmxRequest;
+        $subject = new SignUpUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_trooper);
 
@@ -110,7 +110,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
         $this->expectException(AuthorizationException::class);
         $this->expectExceptionMessage('EventTrooper not found or unauthorized.');
 
-        $subject = new SignupUpdateHtmxRequest;
+        $subject = new SignUpUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, null);
 
@@ -119,7 +119,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
 
     public function test_rules_status_is_nullable(): void
     {
-        $subject = new SignupUpdateHtmxRequest;
+        $subject = new SignUpUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_trooper);
         $rules = $subject->rules();
@@ -130,7 +130,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
 
     public function test_rules_validates_status_is_valid_enum(): void
     {
-        $subject = new SignupUpdateHtmxRequest;
+        $subject = new SignUpUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_trooper);
 
@@ -147,7 +147,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
 
     public function test_rules_accepts_approved_status(): void
     {
-        $subject = new SignupUpdateHtmxRequest;
+        $subject = new SignUpUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_trooper);
 
@@ -163,7 +163,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
 
     public function test_rules_costume_id_is_nullable(): void
     {
-        $subject = new SignupUpdateHtmxRequest;
+        $subject = new SignUpUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_trooper);
         $rules = $subject->rules();
@@ -174,7 +174,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
 
     public function test_rules_backup_costume_id_is_nullable(): void
     {
-        $subject = new SignupUpdateHtmxRequest;
+        $subject = new SignUpUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_trooper);
         $rules = $subject->rules();
@@ -185,7 +185,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
 
     public function test_rules_accepts_none_sentinel_for_attending_without_costume(): void
     {
-        $subject = new SignupUpdateHtmxRequest;
+        $subject = new SignUpUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_trooper);
 
@@ -200,7 +200,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
     public function test_rules_restricts_costumes_to_allowed_organizations(): void
     {
         $other_costume = Costume::factory()->create(); // Different organization
-        $subject = new SignupUpdateHtmxRequest;
+        $subject = new SignUpUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_trooper);
 
@@ -217,7 +217,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
 
     public function test_rules_accepts_valid_costume_from_allowed_organization(): void
     {
-        $subject = new SignupUpdateHtmxRequest;
+        $subject = new SignUpUpdateRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_trooper);
 
@@ -278,7 +278,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
             ->state([EventTrooper::ORGANIZATION_ID => $this->organization->id])
             ->create();
 
-        $subject = new SignupUpdateHtmxRequest;
+        $subject = new SignUpUpdateRequest;
         $subject->setUserResolver(fn() => $authenticated_trooper);
         $this->setupMockedRoute($subject, $event_trooper);
 

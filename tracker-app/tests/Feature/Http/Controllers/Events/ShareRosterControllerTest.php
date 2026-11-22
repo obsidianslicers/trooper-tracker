@@ -9,7 +9,7 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class ShareRosterHtmxControllerTest extends TestCase
+class ShareRosterControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -18,7 +18,7 @@ class ShareRosterHtmxControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $event = Event::factory()->create();
 
-        $response = $this->actingAs($trooper)->post(route('events.share-roster-htmx', ['event' => $event->id]), [
+        $response = $this->actingAs($trooper)->post(route('events.share-roster', ['event' => $event->id]), [
             'recipient_email' => 'recipient@example.com',
         ]);
 
@@ -29,7 +29,7 @@ class ShareRosterHtmxControllerTest extends TestCase
     {
         $event = Event::factory()->create();
 
-        $response = $this->post(route('events.share-roster-htmx', ['event' => $event->id]), [
+        $response = $this->post(route('events.share-roster', ['event' => $event->id]), [
             'recipient_email' => 'recipient@example.com',
         ]);
 

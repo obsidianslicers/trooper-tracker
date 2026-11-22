@@ -32,7 +32,7 @@ class ToggleEventUploadTagControllerTest extends TestCase
             'event_upload' => $upload->id,
         ]));
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertTrue($upload->fresh()->troopers()->where('tt_troopers.id', $trooper->id)->exists());
 
         // Second call: should untag the trooper
@@ -40,7 +40,7 @@ class ToggleEventUploadTagControllerTest extends TestCase
             'event_upload' => $upload->id,
         ]));
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertFalse($upload->fresh()->troopers()->where('tt_troopers.id', $trooper->id)->exists());
     }
 

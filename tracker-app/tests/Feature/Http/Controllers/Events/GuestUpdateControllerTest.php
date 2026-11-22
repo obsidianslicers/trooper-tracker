@@ -14,7 +14,7 @@ use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class GuestUpdateHtmxControllerTest extends TestCase
+class GuestUpdateControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -49,11 +49,11 @@ class GuestUpdateHtmxControllerTest extends TestCase
     public function test_invoke_updates_status_for_owner(): void
     {
         $response = $this->actingAs($this->trooper)->post(
-            route('events.guest-update-htmx', ['event_guest' => $this->event_guest->id]),
+            route('events.guest-update', ['event_guest' => $this->event_guest->id]),
             ['status' => EventGuestStatus::CANCELLED->value]
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
 
         $this->assertDatabaseHas('tt_event_guests', [
             EventGuest::ID => $this->event_guest->id,
@@ -64,11 +64,11 @@ class GuestUpdateHtmxControllerTest extends TestCase
     public function test_invoke_updates_name_for_owner(): void
     {
         $response = $this->actingAs($this->trooper)->post(
-            route('events.guest-update-htmx', ['event_guest' => $this->event_guest->id]),
+            route('events.guest-update', ['event_guest' => $this->event_guest->id]),
             ['name' => 'Wedge Antilles']
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
 
         $this->assertDatabaseHas('tt_event_guests', [
             EventGuest::ID => $this->event_guest->id,
@@ -79,7 +79,7 @@ class GuestUpdateHtmxControllerTest extends TestCase
     public function test_invoke_requires_authentication(): void
     {
         $response = $this->post(
-            route('events.guest-update-htmx', ['event_guest' => $this->event_guest->id]),
+            route('events.guest-update', ['event_guest' => $this->event_guest->id]),
             ['status' => EventGuestStatus::CANCELLED->value]
         );
 
@@ -98,7 +98,7 @@ class GuestUpdateHtmxControllerTest extends TestCase
             ->create();
 
         $response = $this->actingAs($other_trooper)->post(
-            route('events.guest-update-htmx', ['event_guest' => $this->event_guest->id]),
+            route('events.guest-update', ['event_guest' => $this->event_guest->id]),
             ['status' => EventGuestStatus::CANCELLED->value]
         );
 
@@ -108,10 +108,10 @@ class GuestUpdateHtmxControllerTest extends TestCase
     public function test_invoke_ignores_request_with_no_recognised_field(): void
     {
         $response = $this->actingAs($this->trooper)->post(
-            route('events.guest-update-htmx', ['event_guest' => $this->event_guest->id]),
+            route('events.guest-update', ['event_guest' => $this->event_guest->id]),
             ['unrecognised_field' => 'some_value']
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
     }
 }
