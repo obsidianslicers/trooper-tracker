@@ -14,7 +14,6 @@ use App\Policies\TrooperRequestPolicy;
 use App\Services\BreadCrumbService;
 use App\View\Composers\EventTypeOptionsComposer;
 use App\View\Composers\NavbarNotificationsComposer;
-use App\View\Composers\ShiftAddTrooperComposer;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -170,7 +169,6 @@ class AppServiceProvider extends ServiceProvider
         //
         //  VIEW COMPOSERS
         //
-        View::composer('pages.events.inc.shift-add-trooper', ShiftAddTrooperComposer::class);
         View::composer('pages.admin.events.inc.header', EventTypeOptionsComposer::class);
         View::composer('partials.inc.navbar-notifications', NavbarNotificationsComposer::class);
 

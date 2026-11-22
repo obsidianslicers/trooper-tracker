@@ -9,6 +9,9 @@ export type Trooper = {
     email: string;
 };
 
+/** "friends" lists the troopers they've brought before until they type a search. */
+export type TrooperPickerMode = "admin" | "friends" | null;
+
 export interface TrooperPickerOptions {
     label: string | null;
     placeholder: string | null;
@@ -19,7 +22,7 @@ export interface TrooperPickerOptions {
     disabled: boolean;
     errors: string | string[];
     clearable: boolean;
-    mode: "admin" | null;
+    mode: TrooperPickerMode;
     onSelected: ((trooper: Trooper) => void) | null;
 }
 
@@ -130,7 +133,9 @@ export class TrooperPickerViewModel extends ViewModel {
     }
 
     async runSearch(query: string): Promise<void> {
-        if (query.trim().length < 3) {
+        const lists_friends = this.options.mode === "friends" && query.trim().length === 0;
+
+        if (query.trim().length < 3 && !lists_friends) {
             return;
         }
 

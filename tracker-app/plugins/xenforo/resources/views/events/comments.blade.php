@@ -66,10 +66,10 @@
         @endif
 
         @if($hasThread)
-            <form hx-post="{{ route('events.forum-reply-htmx', compact('event')) }}"
-                  hx-target="#forum-comments"
-                  hx-swap="outerHTML"
-                  hx-on::after-request="if(event.detail.successful) this.querySelector('textarea').value = ''">
+            {{-- sent by the event page (PluginSlot.svelte) without reloading it --}}
+            <form method="POST"
+                  action="{{ route('events.forum-reply', compact('event')) }}"
+                  data-inertia-form>
                 @csrf
                 <div class="row mb-2">
                     <div class="col">
@@ -84,7 +84,28 @@
                 </div>
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2">
                     <div class="d-flex flex-wrap align-items-center gap-3">
-                        <x-smilies-picker :smilies="$smilies ?? []" targetId="forum-reply-message" targetType="textarea" class="m-0" />
+                        @if(!empty($smilies))
+                            <details class="forum-reply-smilies">
+                                <summary class="btn btn-sm btn-outline-secondary">
+                                    <i class="far fa-smile me-1"></i>{{ __('components.Smilies') }}
+                                </summary>
+                                <div class="mt-2 p-2 border rounded"
+                                     style="max-height: 180px; overflow-y: auto; line-height: 2.2;">
+                                    @foreach($smilies as $smiley)
+                                        @php $code = $smiley['smilie_text'][0] ?? ''; @endphp
+                                        @if($code !== '' && !empty($smiley['image_url']))
+                                            <img src="{{ $smiley['image_url'] }}"
+                                                 alt="{{ $smiley['title'] }}"
+                                                 title="{{ $smiley['title'] }} — {{ $code }}"
+                                                 class="forum-smiley me-1"
+                                                 style="height:1.6rem; cursor:pointer;"
+                                                 data-code="{{ $code }}"
+                                                 onclick="const t = document.getElementById('forum-reply-message'); t.setRangeText(this.dataset.code, t.selectionStart, t.selectionEnd, 'end'); t.focus();" />
+                                        @endif
+                                    @endforeach
+                                </div>
+                            </details>
+                        @endif
                         <div class="form-check mb-0">
                             <input class="form-check-input"
                                    type="checkbox"
