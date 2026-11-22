@@ -4,8 +4,8 @@
 
 @section('content')
     <div class="row justify-content-center gy-4">
-        {{-- Above the image, so it's on screen without scrolling at any width --}}
-        <div class="col-12 col-sm-10 col-md-6 col-lg-4 d-grid">
+        {{-- Phones only, where Login is hidden in the collapsed navbar; above the image so it's on screen --}}
+        <div class="col-12 col-sm-10 d-grid d-md-none">
             <a href="{{ $login_url }}"
                class="btn btn-primary btn-lg py-3 fs-4"
                data-test="home-login">
