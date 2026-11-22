@@ -146,12 +146,30 @@ class TrooperAssignmentObserverTest extends TestCase
         $assignment = TrooperAssignment::factory()
             ->forTrooper($trooper)
             ->forOrganization($region)
+            ->asMember()
             ->make();
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Visitors can only join top-level organizations.');
 
         $subject->saving($assignment);
+    }
+
+    public function test_saving_lets_a_visitor_get_notifications_from_a_sub_organization(): void
+    {
+        $trooper = Trooper::factory()->create([
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::VISITOR,
+        ]);
+
+        $root = Organization::factory()->asOrganization()->create();
+        $region = Organization::factory()->asRegion()->withParent($root)->create();
+
+        $assignment = TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($region)
+            ->create([TrooperAssignment::SHOULD_NOTIFY => true, TrooperAssignment::IS_MEMBER => false]);
+
+        $this->assertTrue($assignment->exists);
     }
 
     public function test_saving_passes_for_visitor_assigned_to_top_level_org(): void
