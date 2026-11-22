@@ -1,0 +1,186 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Events\Commands;
+
+use App\Enums\EventTrooperStatus;
+use App\Enums\FlashType;
+use App\Http\Controllers\PageController;
+use App\Messages\Events\Commands\UpdateEventTrooper;
+use App\Messages\Events\Commands\Verification\RequestTroopCredit;
+use App\Models\EventTrooper;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+use ValueError;
+
+/**
+ * Updates a trooper's event shift status based on an encrypted link.
+ *
+ * This controller processes status update links (typically from emails) that
+ * allow troopers to update their attendance status by clicking encrypted URLs.
+ * The status is decrypted from the URL and applied to the event trooper record.
+ */
+class CompleteShiftController extends PageController
+{
+    public const VERIFICATION_MESSAGE = 'Thanks, trooper! A moderator will confirm this troop '
+        .'before it shows on your service record.';
+
+    /**
+     * @return array<int, string>
+     */
+    private function attendedMessages(): array
+    {
+        return [
+            __('events.Excellent work trooper! Imperial records now reflect your heroic presence.'),
+            __('events.Your dedication has been logged in the Imperial archives.'),
+            __('events.Another successful mission completed. The Empire salutes you.'),
+            __('events.Your presence was felt across the sector. Well done.'),
+            __('events.Your armor shines brighter in the records today.'),
+            __('events.The Emperor himself acknowledges your contribution.'),
+            __("events.Your actions strengthen the Empire's grip on the galaxy."),
+            __('events.Your service brings stability to the Outer Rim.'),
+            __('events.Your discipline is noted and appreciated.'),
+            __('events.Your efforts echo through the Imperial halls.'),
+            __('events.Your loyalty has been recorded with precision.'),
+            __('events.Your mission performance has exceeded expectations.'),
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function absentMessages(): array
+    {
+        return [
+            __('events.The dark side sensed your effort.'),
+            __('events.Your signal was faint, trooper. The Empire noticed.'),
+            __('events.Your armor remained cold this time. Perhaps next mission.'),
+            __('events.The Emperor felt a disturbance... your absence.'),
+            __('events.Your squad marched on without you.'),
+            __('events.Imperial scanners reported no movement from your position.'),
+            __('events.Your presence was missed on the battlefield.'),
+            __('events.The mission proceeded, though your post was empty.'),
+            __('events.Your absence has been logged in the archives.'),
+            __('events.The Empire awaits your return.'),
+            __('events.Your squadmates carried the banner without you.'),
+            __('events.The mission concluded, but your armor remained untouched.'),
+        ];
+    }
+
+    protected function initialized(): void
+    {
+        $this->crumbs->addRoute(__('events.Events'), 'events.list');
+    }
+
+    /**
+     * Handle the incoming request to update a trooper's event status
+     *
+     * Decrypts the status parameter from the URL, updates the event trooper's
+     * status, and displays a confirmation page.
+     *
+     * @param  Request  $request  The incoming request
+     * @param  EventTrooper  $event_trooper  The event trooper assignment to update
+     * @param  string  $status  Encrypted status value to apply
+     * @return View The status update confirmation page
+     */
+    public function __invoke(Request $request, EventTrooper $event_trooper, string $status): View
+    {
+        try
+        {
+            $trooper_status = EventTrooperStatus::from(Crypt::decryptString($status));
+        }
+        catch (DecryptException|ValueError $e)
+        {
+            abort(404);
+        }
+
+        if ($event_trooper->isAwaitingVerification())
+        {
+            $message = __('events.'.self::VERIFICATION_MESSAGE);
+
+            return view('pages.events.shift-complete', compact('event_trooper', 'message'));
+        }
+
+        $message = '';
+
+        if ($event_trooper->event_shift->event->can_update_trooper_status)
+        {
+            $valid_data = [
+                EventTrooper::STATUS => $trooper_status,
+            ];
+
+            if ($trooper_status === EventTrooperStatus::ATTENDED)
+            {
+                $parent_organizations = $event_trooper->getEligibleCreditParentOrganizations();
+
+                if ($parent_organizations->count() > 1)
+                {
+                    return view('pages.events.shift-complete-club-select', [
+                        'event_trooper' => $event_trooper,
+                        'organizations' => $parent_organizations,
+                        'encrypted_status' => $status,
+                    ]);
+                }
+
+                if (empty($event_trooper->costume_organization_ids))
+                {
+                    $eligible_orgs = $event_trooper->getEligibleCreditOrganizations();
+                    if ($eligible_orgs->isNotEmpty())
+                    {
+                        $valid_data[EventTrooper::COSTUME_ORGANIZATION_IDS] = $eligible_orgs->pluck('id')->values()->all();
+                    }
+                }
+            }
+
+            if ($trooper_status === EventTrooperStatus::ATTENDED && $event_trooper->trooper->is_untrusted)
+            {
+                $this->requestVerification($event_trooper, $valid_data);
+                $message = __('events.'.self::VERIFICATION_MESSAGE);
+
+                return view('pages.events.shift-complete', compact('event_trooper', 'message'));
+            }
+
+            UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
+
+            $message = $this->getMessageForStatus($trooper_status);
+        }
+        else
+        {
+            FlashType::danger(__('events.Status updates for this event are no longer permitted. Please reach out to your administrator for further help.'));
+        }
+
+        return view('pages.events.shift-complete', compact('event_trooper', 'message'));
+    }
+
+    /**
+     * @param  array<string, mixed>  $valid_data
+     */
+    private function requestVerification(EventTrooper $event_trooper, array $valid_data): void
+    {
+        $organization_ids = $valid_data[EventTrooper::COSTUME_ORGANIZATION_IDS]
+            ?? $event_trooper->creditedOrgIds();
+
+        if (empty($organization_ids))
+        {
+            $organization_ids = [$event_trooper->event_shift->event->organization_id];
+        }
+
+        RequestTroopCredit::call(event_trooper: $event_trooper, organization_ids: $organization_ids);
+    }
+
+    private function getMessageForStatus(EventTrooperStatus $status): string
+    {
+        $day = now()->day;
+        $index = ($day - 1) % 12;
+
+        if ($status == EventTrooperStatus::ATTENDED)
+        {
+            return $this->attendedMessages()[$index];
+        }
+
+        return $this->absentMessages()[$index];
+    }
+}

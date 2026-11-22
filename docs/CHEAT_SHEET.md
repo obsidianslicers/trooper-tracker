@@ -9,7 +9,7 @@ Scaffold new classes with `make` commands:
 | Command | Description |
 |---|---|
 | `php artisan make:model Trooper -mf` | Creates a `Trooper` model (`-m` also creates a migration, `-f` creates a factory). |
-| `php artisan make:controller LoginSubmitController --invokable` | Creates a single-action controller, perfect for the ADR pattern. |
+| `php artisan make:controller LoginTrooperController --invokable` | Creates a single-action controller, perfect for the ADR pattern. |
 | `php artisan make:request StoreTrooperRequest` | Creates a new form request class for validation in `app/Http/Requests`. |
 | `php artisan make:migration create_squads_table` | Creates a new database migration file. |
 | `php artisan make:factory SquadFactory` | Creates a new model factory. |

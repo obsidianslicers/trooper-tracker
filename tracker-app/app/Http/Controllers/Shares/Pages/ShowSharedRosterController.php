@@ -1,0 +1,45 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Shares\Pages;
+
+use App\Http\Controllers\PageController;
+use App\Messages\Events\Queries\GetSharedEventRoster;
+use App\Models\EventShare;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
+
+/**
+ * Displays a shared event roster via EventShare token.
+ *
+ * Renders a read-only roster view for an `Event` that was shared via an
+ * `EventShare` token. Increments the share's view count and retrieves the
+ * roster data. The view layer conditionally displays content based on the
+ * share's viewability status (revocation and expiry).
+ */
+class ShowSharedRosterController extends PageController
+{
+    /**
+     * Handle the incoming request and return the roster for a share token.
+     *
+     * Increments the share's `view_count` and retrieves the event roster data
+     * via `GetSharedEventRoster`. Returns the roster view which will
+     * conditionally display content based on the share's viewability (revoked
+     * and expiry status are checked in the view layer).
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @param  EventShare  $share  The `EventShare` model instance bound by share_token
+     * @return View The rendered roster sharing page view
+     */
+    public function __invoke(Request $request, EventShare $share): View
+    {
+        $share->increment('view_count');
+
+        $event = GetSharedEventRoster::call(event_share: $share);
+
+        $data = compact('share', 'event');
+
+        return view('pages.shares.roster', $data);
+    }
+}

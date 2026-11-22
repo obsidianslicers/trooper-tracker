@@ -275,14 +275,14 @@ Leaving both undecided is what keeps (or puts) a trooper on `PENDING` instead of
 | Path | Behavior |
 |---|---|
 | Initial sign-up (`SignUpEventTrooper`) | Would-be `GOING` is downgraded to `PENDING` when undecided. Capacity-driven `STAND_BY` is unaffected. |
-| Status change / manual-selection approval (`SignUpUpdateController`, `status` branch) | Requesting `GOING` while undecided is silently saved as `PENDING` instead. |
-| Re-sign-up (`SignUpUpdateController`, `resign_up` branch) | Same downgrade as initial sign-up. |
+| Status change / manual-selection approval (`UpdateTrooperSignUpController`, `status` branch) | Requesting `GOING` while undecided is silently saved as `PENDING` instead. |
+| Re-sign-up (`UpdateTrooperSignUpController`, `resign_up` branch) | Same downgrade as initial sign-up. |
 | Stand-by promotion (`PromoteNextInLineEventTrooper`) | Undecided candidates are skipped — see [Standby Promotion Flow](#standby-promotion-flow). |
-| Costume dropdown submit (`SignUpUpdateController`, `costume_id` branch, via `resolveCostumeDecision()`) | Deciding while `PENDING` promotes to `GOING` (or `STAND_BY` if capacity is now full); clearing the decision while `GOING` demotes back to `PENDING`. |
+| Costume dropdown submit (`UpdateTrooperSignUpController`, `costume_id` branch, via `resolveCostumeDecision()`) | Deciding while `PENDING` promotes to `GOING` (or `STAND_BY` if capacity is now full); clearing the decision while `GOING` demotes back to `PENDING`. |
 
 **UI:** The costume `<select>` in `resources/svelte/pages/events/components/display/RowEditor.svelte` includes a `none` sentinel option ("Attending without a costume") ahead of the real costume list. A `PENDING` trooper sees a hint prompting them to make a choice instead of the normal status dropdown.
 
-**Source:** `app/Models/EventTrooper.php` (`needsCostumeBeforeGoing()`), `app/Http/Controllers/Events/SignUpUpdateController.php` (`resolveCostumeDecision()`), `database/migrations/2026_07_24_160615_add_attending_without_costume_to_event_troopers_table.php`
+**Source:** `app/Models/EventTrooper.php` (`needsCostumeBeforeGoing()`), `app/Http/Controllers/Events/Commands/UpdateTrooperSignUpController.php` (`resolveCostumeDecision()`), `database/migrations/2026_07_24_160615_add_attending_without_costume_to_event_troopers_table.php`
 
 ---
 

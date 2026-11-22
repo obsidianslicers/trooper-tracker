@@ -173,8 +173,8 @@ The multi-org path uses `SUBSTRING_INDEX(node_path, ':', 1)` to extract the root
 | Concern | File |
 |---|---|
 | Forum-thread sync for roster lifecycle changes | `app/Models/Observers/EventTrooperObserver.php` |
-| Attendance credit assignment (self-service) | `app/Http/Controllers/Events/ShiftCompleteController.php` |
-| Multi-club selection | `app/Http/Controllers/Events/ShiftCompleteClubController.php` |
+| Attendance credit assignment (self-service) | `app/Http/Controllers/Events/Commands/CompleteShiftController.php` |
+| Multi-club selection | `app/Http/Controllers/Events/Commands/CompleteShiftWithClubController.php` |
 | Admin roster credit override | `app/Http/Controllers/Admin/Events/UpdateTroopersSubmitController.php` |
 | Shift-complete scenario generation | `app/Console/Commands/SimulateShiftCompleteCommand.php` |
 | PHP troop count + org annotation | `app/Messages/Concerns/HasOrgCreditAnnotation.php` |

@@ -142,21 +142,21 @@ The `app/Http/Controllers/` directory is organized by feature area:
 ```
 app/Http/Controllers/
 ├── Account/               # User account management
-├── Admin/                 # Administrative interfaces
-│   ├── Awards/           # Award management
-│   ├── Events/           # Event administration
-│   ├── Notices/          # Notice management
-│   ├── Organizations/    # Organization management
-│   ├── Reports/          # Administrative reports
-│   └── Troopers/         # Trooper management
-├── Auth/                  # Authentication controllers
-├── Dashboard/             # Dashboard widgets (HTMX)
-├── Events/                # Public event controllers
-├── Pickers/               # HTMX picker components
-├── Widgets/               # Reusable HTMX widgets
-├── HomeController.php     # Homepage
-├── PageController.php     # Base controller with breadcrumbs
-└── ShareEventController.php # Event sharing
+│   ├── Commands/         # Changes something (database, login), whatever the HTTP verb
+│   └── Pages/            # Changes nothing (pages, downloads, JSON, HTMX)
+├── Admin/                 # Administrative interfaces (not yet split into Commands/Pages)
+├── Api/Pages/             # Public JSON API
+├── Auth/                  # Login, logout, registration, OAuth (Commands/, Pages/)
+├── Events/                # Public event pages and sign-ups (Commands/, Pages/, Concerns/)
+├── Home/Pages/            # Home page and FAQ
+├── Pickers/Pages/         # Trooper and organization pickers
+├── Search/Pages/          # Search
+├── ServiceRecords/Pages/  # Service records, leaderboards, awards
+├── Shares/Pages/          # Share pages and share images
+├── Verifications/         # Email verification (Commands/, Pages/)
+├── Widgets/Pages/         # HTMX widgets
+├── Controller.php         # Base controller
+└── PageController.php     # Base controller with breadcrumbs
 ```
 
 ### Controller Pattern
