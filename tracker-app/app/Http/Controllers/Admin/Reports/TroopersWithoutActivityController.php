@@ -4,37 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Messages\Reports\Queries\GetTroopersWithoutActivity;
-use Illuminate\Contracts\View\View;
+use App\Messages\Reports\PageData\TroopersWithoutActivityPageData;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
- * Controller for displaying troopers without recent activity.
- *
- * Shows active troopers who have not attended events within
- * the lookback period (12 months by default).
+ * Shows the Troopers Without Activity report.
  */
 class TroopersWithoutActivityController extends BaseReportsController
 {
-    /**
-     * Display the troopers without activity report
-     *
-     * Retrieves active troopers moderated by the authenticated trooper
-     * who have no ATTENDED event signups within the last 12 months.
-     *
-     * @param  Request  $request  The HTTP request
-     * @return View The troopers without activity report view
-     */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): Response
     {
-        $trooper = $request->user();
-
-        $lookback = now()->subMonths(12);
-
-        $troopers = GetTroopersWithoutActivity::call(moderator: $trooper, lookback: $lookback);
-
-        $data = compact('troopers', 'lookback');
-
-        return view('pages.admin.reports.troopers-without-activity', $data);
+        return Inertia::render('admin/reports/TroopersWithoutActivity', TroopersWithoutActivityPageData::call($request));
     }
 }
