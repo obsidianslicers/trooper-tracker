@@ -3,6 +3,8 @@
     import InputError from "./InputError.svelte";
     interface Props {
         label?: string | null;
+        /** The field's name, for forms that submit the browser's way. */
+        name?: string | null;
         value?: string;
         checked?: boolean;
         errors?: string | string[];
@@ -16,6 +18,7 @@
 
     let {
         label,
+        name = null,
         value = "1",
         checked = $bindable(false),
         errors = [],
@@ -32,6 +35,7 @@
             "form-check-input",
             errors && errors.length > 0 ? "is-invalid" : "",
         ]}
+        {name}
         {value}
         {disabled}
         {id}

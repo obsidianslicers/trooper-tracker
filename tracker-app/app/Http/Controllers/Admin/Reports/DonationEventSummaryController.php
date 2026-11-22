@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
+use App\Messages\Reports\PageData\DonationEventSummaryPageData;
 use App\Messages\Reports\Queries\GetDonationEventSummary;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DonationEventSummaryController extends BaseReportsController
 {
-    public function __invoke(Request $request): View|StreamedResponse
+    public function __invoke(Request $request): Response|StreamedResponse
     {
         $trooper = $request->user();
 
@@ -91,9 +93,16 @@ class DonationEventSummaryController extends BaseReportsController
             accessible_org_ids: $accessible_org_ids,
         );
 
-        $data = compact('events', 'date_start', 'date_end', 'charity_only', 'sort', 'dir', 'filter_orgs', 'selected_ids');
-
-        return view('pages.admin.reports.donation-event-summary', $data);
+        return Inertia::render('admin/reports/DonationEventSummary', DonationEventSummaryPageData::call(
+            events: $events,
+            filter_orgs: $filter_orgs,
+            selected_ids: $selected_ids,
+            date_start: $date_start,
+            date_end: $date_end,
+            charity_only: $charity_only,
+            sort: $sort,
+            dir: $dir,
+        ));
     }
 
     private function streamCsv(
