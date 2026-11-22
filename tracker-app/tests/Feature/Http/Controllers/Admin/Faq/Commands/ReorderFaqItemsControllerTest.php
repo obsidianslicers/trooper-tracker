@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Faq;
+namespace Tests\Feature\Http\Controllers\Admin\Faq\Commands;
 
 use App\Models\Faq;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class ReorderItemsSubmitControllerTest extends TestCase
+class ReorderFaqItemsControllerTest extends TestCase
 {
     use RefreshDatabase;
 

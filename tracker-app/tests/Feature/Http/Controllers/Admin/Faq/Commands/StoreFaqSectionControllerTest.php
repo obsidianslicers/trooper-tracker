@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Faq;
+namespace Tests\Feature\Http\Controllers\Admin\Faq\Commands;
 
 use App\Models\FaqSection;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class CreateSectionSubmitControllerTest extends TestCase
+class StoreFaqSectionControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -17,7 +17,7 @@ class CreateSectionSubmitControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $this->actingAs($trooper)->post(route('admin.faq.sections.create'), [
+        $this->actingAs($trooper)->post(route('admin.faq.sections.store'), [
             FaqSection::LABEL => 'Registration',
             FaqSection::ICON => 'circle-question',
         ]);
@@ -31,7 +31,7 @@ class CreateSectionSubmitControllerTest extends TestCase
 
     public function test_invoke_requires_authentication(): void
     {
-        $response = $this->post(route('admin.faq.sections.create'), [
+        $response = $this->post(route('admin.faq.sections.store'), [
             FaqSection::LABEL => 'Registration',
             FaqSection::ICON => 'circle-question',
         ]);

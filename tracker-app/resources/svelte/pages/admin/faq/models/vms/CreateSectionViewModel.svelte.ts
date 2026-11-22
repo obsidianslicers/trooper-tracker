@@ -22,7 +22,7 @@ export class CreateSectionViewModel
     submit = (e: Event) => {
         e.preventDefault();
 
-        const url = getRoute("admin.faq.sections.create");
+        const url = getRoute("admin.faq.sections.store");
 
         this.form.post(url);
     };

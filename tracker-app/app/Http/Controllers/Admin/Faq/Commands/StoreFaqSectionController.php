@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Faq;
+namespace App\Http\Controllers\Admin\Faq\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
@@ -12,13 +12,13 @@ use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
-class CreateSectionSubmitController extends Controller
+class StoreFaqSectionController extends Controller
 {
     public function __invoke(CreateSectionRequest $request): InertiaResponse|SymfonyResponse
     {
         $section = CreateFaqSection::call($request);
 
-        $url = route('admin.faq.sections.update', compact('section'));
+        $url = route('admin.faq.sections.edit', compact('section'));
 
         FlashType::created($section);
 

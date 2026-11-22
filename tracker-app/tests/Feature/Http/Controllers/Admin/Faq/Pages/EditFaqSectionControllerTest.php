@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Faq;
+namespace Tests\Feature\Http\Controllers\Admin\Faq\Pages;
 
 use App\Models\FaqSection;
 use App\Models\Trooper;
@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class UpdateSectionControllerTest extends TestCase
+class EditFaqSectionControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -20,11 +20,11 @@ class UpdateSectionControllerTest extends TestCase
         $section = FaqSection::factory()->create();
 
         $response = $this->actingAs($trooper)->get(
-            route('admin.faq.sections.update', ['section' => $section->id])
+            route('admin.faq.sections.edit', ['section' => $section->id])
         );
 
         $response->assertOk();
-        $response->assertInertia(fn(Assert $page) => $page
+        $response->assertInertia(fn (Assert $page) => $page
             ->component('admin/faq/UpdateSection')
             ->where('section.id', $section->id)
         );
@@ -34,7 +34,7 @@ class UpdateSectionControllerTest extends TestCase
     {
         $section = FaqSection::factory()->create();
 
-        $response = $this->get(route('admin.faq.sections.update', ['section' => $section->id]));
+        $response = $this->get(route('admin.faq.sections.edit', ['section' => $section->id]));
 
         $response->assertRedirect(route('auth.login'));
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Faq;
+namespace Tests\Feature\Http\Controllers\Admin\Faq\Commands;
 
 use App\Models\Faq;
 use App\Models\FaqSection;
@@ -10,7 +10,7 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class UpdateItemSubmitControllerTest extends TestCase
+class UpdateFaqItemControllerTest extends TestCase
 {
     use RefreshDatabase;
 

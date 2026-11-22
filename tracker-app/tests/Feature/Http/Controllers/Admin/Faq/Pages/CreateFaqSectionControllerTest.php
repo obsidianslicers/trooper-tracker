@@ -2,30 +2,30 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Faq;
+namespace Tests\Feature\Http\Controllers\Admin\Faq\Pages;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class IndexControllerTest extends TestCase
+class CreateFaqSectionControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_displays_faq_index_for_admin(): void
+    public function test_invoke_displays_create_section_page_for_admin(): void
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.faq.index'));
+        $response = $this->actingAs($trooper)->get(route('admin.faq.sections.create'));
 
         $response->assertOk();
-        $response->assertInertia(fn(Assert $page) => $page->component('admin/faq/Index'));
+        $response->assertInertia(fn (Assert $page) => $page->component('admin/faq/CreateSection'));
     }
 
     public function test_invoke_requires_authentication(): void
     {
-        $response = $this->get(route('admin.faq.index'));
+        $response = $this->get(route('admin.faq.sections.create'));
 
         $response->assertRedirect(route('auth.login'));
     }

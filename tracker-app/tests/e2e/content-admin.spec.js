@@ -81,7 +81,7 @@ test.describe('awards', () => {
         await page.goto(`/admin/awards?search_term=${encodeURIComponent(seeded.newAward)}`);
         await expect(rowFor(page, `${seeded.newAward} 2026`)).toContainText('501st Legion');
 
-        const award = await rowFor(page, seeded.newAward).locator('a[href$="/update"]').first().getAttribute('href');
+        const award = await rowFor(page, seeded.newAward).locator('a[href$="/edit"]').first().getAttribute('href');
         await page.goto(award.replace(/\/update$/, '/troopers'));
         await page.getByRole('link', { name: 'Award Trooper' }).click();
         await pickTrooper(page, personas.trooper.name);
@@ -129,7 +129,7 @@ test.describe('notices', () => {
 
         await page.goto('/admin/notices?scope=future');
         const copy = rowFor(page, `${seeded.newNotice} (next month)`);
-        await page.goto(await copy.locator('a[href$="/update"]').getAttribute('href'));
+        await page.goto(await copy.locator('a[href$="/edit"]').getAttribute('href'));
         await page.getByLabel('Title').fill(`${seeded.newNotice} (rescheduled)`);
         await page.getByRole('button', { name: 'Update', exact: true }).click();
         await expect(page).toHaveURL(/\/admin\/notices$/);
@@ -159,13 +159,13 @@ test.describe('organizations', () => {
 
         await page.goto('/admin/organizations');
         const unit = rowFor(page, seeded.newUnit);
-        await page.goto(await unit.locator('a[href$="/update"]').getAttribute('href'));
+        await page.goto(await unit.locator('a[href$="/edit"]').getAttribute('href'));
         await page.getByLabel('Name').fill(`${seeded.newUnit} Prime`);
         await page.getByRole('button', { name: 'Update', exact: true }).click();
         await expect(page).toHaveURL(/\/admin\/organizations$/);
 
         await page.goto('/admin/organizations');
-        await page.goto(await rowFor(page, `${seeded.newUnit} Prime`).locator('a[href$="/update"]').getAttribute('href'));
+        await page.goto(await rowFor(page, `${seeded.newUnit} Prime`).locator('a[href$="/edit"]').getAttribute('href'));
 
         const logo = page.getByAltText('Organization Logo');
         const before = await logo.getAttribute('src');
@@ -182,9 +182,9 @@ test.describe('FAQ', () => {
         await page.getByLabel('Label').fill(seeded.faqSection);
         await page.getByLabel('Icon').fill('fa-star');
         await page.getByRole('button', { name: 'Create', exact: true }).click();
-        await expect(page).toHaveURL(/\/admin\/faq\/sections\/\d+\/update$/);
+        await expect(page).toHaveURL(/\/admin\/faq\/sections\/\d+\/edit$/);
 
-        await page.goto('/admin/faq/index');
+        await page.goto('/admin/faq');
         const section = rowFor(page, seeded.faqSection);
         await section.getByRole('button', { name: 'Toggle section items' }).click();
         await page.locator('a[href*="/items/create"]').first().click();
@@ -192,7 +192,7 @@ test.describe('FAQ', () => {
         await page.getByLabel('Title').fill(seeded.faqQuestion);
         await typeMarkdown(page, 'Bring water and a **cooling vest**.');
         await page.getByRole('button', { name: 'Create', exact: true }).click();
-        await expect(page).toHaveURL(/\/items\/\d+\/update$/);
+        await expect(page).toHaveURL(/\/items\/\d+\/edit$/);
 
         const member = await browser.newContext({ storageState: personas.member.storageState });
         const reader = await member.newPage();
@@ -201,7 +201,7 @@ test.describe('FAQ', () => {
         await reader.getByText(seeded.faqQuestion).first().click();
         await expect(reader.getByText('cooling vest').first()).toBeVisible();
 
-        await page.goto('/admin/faq/index');
+        await page.goto('/admin/faq');
         await rowFor(page, seeded.faqSection).getByRole('button', { name: 'Toggle section items' }).click();
         const item = rowFor(page, seeded.faqQuestion);
         await item.getByRole('button', { name: 'Actions' }).click();
@@ -210,7 +210,7 @@ test.describe('FAQ', () => {
         await expect(rowFor(page, seeded.faqQuestion)).toHaveCount(0);
 
         // A section's actions only show while its questions are folded away.
-        await page.goto('/admin/faq/index');
+        await page.goto('/admin/faq');
         const emptied = rowFor(page, seeded.faqSection);
         await emptied.getByRole('button', { name: 'Actions' }).click();
         await emptied.getByRole('button', { name: 'Delete' }).click();

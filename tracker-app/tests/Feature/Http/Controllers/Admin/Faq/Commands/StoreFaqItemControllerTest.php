@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Faq;
+namespace Tests\Feature\Http\Controllers\Admin\Faq\Commands;
 
 use App\Models\Faq;
 use App\Models\FaqSection;
@@ -10,7 +10,7 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class CreateItemSubmitControllerTest extends TestCase
+class StoreFaqItemControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -19,7 +19,7 @@ class CreateItemSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $section = FaqSection::factory()->create();
 
-        $this->actingAs($trooper)->post(route('admin.faq.items.create'), [
+        $this->actingAs($trooper)->post(route('admin.faq.items.store'), [
             Faq::SECTION_ID => $section->id,
             Faq::TITLE => 'How do I register?',
             Faq::DESCRIPTION => 'Visit the registration page.',
@@ -36,7 +36,7 @@ class CreateItemSubmitControllerTest extends TestCase
     {
         $section = FaqSection::factory()->create();
 
-        $response = $this->post(route('admin.faq.items.create'), [
+        $response = $this->post(route('admin.faq.items.store'), [
             Faq::SECTION_ID => $section->id,
             Faq::TITLE => 'How do I register?',
         ]);

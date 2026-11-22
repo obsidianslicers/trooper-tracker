@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Faq;
+namespace App\Http\Controllers\Admin\Faq\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
@@ -13,7 +13,7 @@ use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
-class DeleteSectionSubmitController extends Controller
+class DestroyFaqSectionController extends Controller
 {
     public function __invoke(DeleteSectionRequest $request, FaqSection $section): InertiaResponse|SymfonyResponse
     {

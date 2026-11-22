@@ -35,7 +35,7 @@ export class CreateItemViewModel
     submit = (e: Event) => {
         e.preventDefault();
 
-        const url = getRoute("admin.faq.items.create");
+        const url = getRoute("admin.faq.items.store");
 
         this.form.post(url);
     };
