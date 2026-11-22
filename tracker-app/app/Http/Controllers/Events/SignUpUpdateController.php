@@ -6,51 +6,51 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Enums\FlashType;
 use App\Enums\RosterAction;
+use App\Http\Controllers\Events\Concerns\AnswersWithEventPage;
 use App\Http\Controllers\PageController;
-use App\Http\Requests\Events\SignupUpdateHtmxRequest;
+use App\Http\Requests\Events\SignUpUpdateRequest;
 use App\Jobs\SendEventRosterActivityNotificationsJob;
 use App\Messages\Events\Commands\ChangeEventTrooperStation;
 use App\Messages\Events\Commands\PromoteNextInLineEventTrooper;
 use App\Messages\Events\Commands\UpdateEventTrooper;
-use App\Messages\Events\Queries\GetEventShiftDisplay;
 use App\Models\Costume;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
-use App\Models\Trooper;
 use App\Notifications\Events\ManualSelectionApprovedNotification;
 use App\Notifications\Events\ManualSelectionStandByNotification;
 use App\Services\EventRosterCapacityService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Handles HTMX-driven updates to event trooper sign-up details.
+ * Changes a sign-up from the event page: its plans, club, station, costume, or cancelling
+ * and signing up again. Each change goes back to the page with a toast.
  */
-class SignUpUpdateHtmxController extends PageController
+class SignUpUpdateController extends PageController
 {
+    use AnswersWithEventPage;
+
     public function __invoke(
-        SignupUpdateHtmxRequest $request,
+        SignUpUpdateRequest $request,
         EventTrooper $event_trooper,
         EventRosterCapacityService $capacity,
-    ): Response {
+    ): RedirectResponse|Response {
         try
         {
             $request->validateInputs();
         }
         catch (ValidationException $exception)
         {
-            //  a redirect with session errors would re-render every row's
-            //  identically-named inputs as errored and cleared; re-render the
-            //  shift container as-is and surface the message as a flash
-            return $this->shiftContainerView($event_trooper->event_shift, Auth::user())
-                ->header('X-Flash-Message', json_encode([
-                    'message' => collect($exception->errors())->flatten()->first(),
-                    'type' => 'danger',
-                    'focus' => true,
-                    'fadeOut' => 5000,
-                ]));
+            //  the page's pickers save one at a time, so the message is a toast, not field errors
+            return $this->backToEvent(
+                $event_trooper->event_shift->event,
+                collect($exception->errors())->flatten()->first(),
+                FlashType::DANGER,
+            );
         }
 
         if ($request->has('status'))
@@ -83,13 +83,11 @@ class SignUpUpdateHtmxController extends PageController
 
             if (!$canModerateEvent && !$isOfferedStatus)
             {
-                return $this->shiftContainerView($event_shift, $authTrooper)
-                    ->header('X-Flash-Message', json_encode([
-                        'message' => __('events.That status is not available for this event.'),
-                        'type' => 'danger',
-                        'focus' => true,
-                        'fadeOut' => 5000,
-                    ]));
+                return $this->backToEvent(
+                    $event,
+                    __('events.That status is not available for this event.'),
+                    FlashType::DANGER,
+                );
             }
 
             if (
@@ -97,7 +95,7 @@ class SignUpUpdateHtmxController extends PageController
                 && $event_trooper->event_shift_station_id !== null
                 && $event_shift->stationMaxed($event_trooper->event_shift_station_id, $event_trooper->id)
             ) {
-                return response(__('events.Station is full'), 409);
+                return $this->backToEvent($event, __('events.Station is full'), FlashType::DANGER);
             }
 
             $isCancelFromStandBy = $requestedStatus === EventTrooperStatus::CANCELLED
@@ -110,7 +108,11 @@ class SignUpUpdateHtmxController extends PageController
 
             if ($isManualApproval && $event_trooper->needsCostumeBeforeGoing())
             {
-                return response(__('events.Trooper must select a costume before being approved'), 409);
+                return $this->backToEvent(
+                    $event,
+                    __('events.Trooper must select a costume before being approved'),
+                    FlashType::DANGER,
+                );
             }
 
             if ($requestedStatus === EventTrooperStatus::GOING && $event_trooper->needsCostumeBeforeGoing())
@@ -172,7 +174,7 @@ class SignUpUpdateHtmxController extends PageController
                 default => __('events.Saved.'),
             };
 
-            return $this->savedView($event_shift, $authTrooper, $event_trooper, $saved);
+            return $this->saved($event_shift, $event_trooper, $saved);
         }
         elseif ($request->has('organization_id'))
         {
@@ -191,15 +193,11 @@ class SignUpUpdateHtmxController extends PageController
                 && $event_trooper->intendsToGo()
                 && $event_shift->orgTroopersMaxed($new_org_id, $event_trooper->is_handler)
             ) {
-                $message = json_encode([
-                    'message' => __('events.That organization is already at capacity.'),
-                    'type' => 'danger',
-                    'focus' => true,
-                    'fadeOut' => 5000,
-                ]);
-
-                return $this->shiftContainerView($event_shift, $auth_trooper)
-                    ->header('X-Flash-Message', $message);
+                return $this->backToEvent(
+                    $event_shift->event,
+                    __('events.That organization is already at capacity.'),
+                    FlashType::DANGER,
+                );
             }
 
             $valid_data = [
@@ -210,7 +208,7 @@ class SignUpUpdateHtmxController extends PageController
 
             UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
 
-            return $this->savedView($event_shift, $auth_trooper, $event_trooper, __('events.Saved.'));
+            return $this->saved($event_shift, $event_trooper, __('events.Saved.'));
         }
         elseif ($request->has('event_shift_station_id'))
         {
@@ -231,7 +229,7 @@ class SignUpUpdateHtmxController extends PageController
                 event_shift_station_id: $new_station_id,
             );
 
-            return $this->savedView($event_shift, $auth_trooper, $event_trooper, __('events.Saved.'));
+            return $this->saved($event_shift, $event_trooper, __('events.Saved.'));
         }
         elseif ($request->has('resign_up'))
         {
@@ -271,7 +269,7 @@ class SignUpUpdateHtmxController extends PageController
 
             dispatch(new SendEventRosterActivityNotificationsJob($event_trooper, RosterAction::RESIGNED_UP));
 
-            return $this->savedView($event_shift, $authTrooper, $event_trooper, __('events.Signed up again.'));
+            return $this->saved($event_shift, $event_trooper, __('events.Signed up again.'));
         }
         elseif ($request->has('costume_id'))
         {
@@ -341,7 +339,7 @@ class SignUpUpdateHtmxController extends PageController
 
             $this->resolveCostumeDecision($event_trooper, $previous_status, $capacity);
 
-            return $this->savedView($event_shift, $auth_trooper, $event_trooper, __('events.Saved.'));
+            return $this->saved($event_shift, $event_trooper, __('events.Saved.'));
         }
         elseif ($request->has('backup_costume_id'))
         {
@@ -351,35 +349,28 @@ class SignUpUpdateHtmxController extends PageController
 
             UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
 
-            return $this->savedView($event_trooper->event_shift, Auth::user(), $event_trooper, __('events.Saved.'));
+            return $this->saved($event_trooper->event_shift, $event_trooper, __('events.Saved.'));
         }
 
-        return response('ok', 200);
+        return $this->backToEvent($event_trooper->event_shift->event);
     }
 
     /**
-     * The refreshed shift with a short confirmation, so a change that saves on its own still
-     * says it did. When the change moved the sign-up somewhere the trooper didn't pick (stand-by,
-     * or still needing a costume), the message says so.
+     * A short confirmation, so a change that saves on its own still says it did. When the
+     * change moved the sign-up somewhere the trooper didn't pick (stand-by, or still needing
+     * a costume), the message says so.
      */
-    private function savedView(EventShift $event_shift, Trooper $auth_trooper, EventTrooper $event_trooper, string $message): Response
+    private function saved(EventShift $event_shift, EventTrooper $event_trooper, string $message): RedirectResponse
     {
-        $status = $event_trooper->fresh()?->status;
-
-        $message = match ($status)
+        $message = match ($event_trooper->fresh()?->status)
         {
             EventTrooperStatus::STAND_BY => $message.' '.__('events.This sign-up is on the stand-by list.'),
-            EventTrooperStatus::PENDING => $message.' '.__('events.Select a costume, or mark attending without one, to confirm your spot.'),
+            EventTrooperStatus::PENDING => $message.' '
+                .__('events.Select a costume, or mark attending without one, to confirm your spot.'),
             default => $message,
         };
 
-        return $this->shiftContainerView($event_shift, $auth_trooper)
-            ->header('X-Flash-Message', json_encode([
-                'message' => $message,
-                'type' => 'success',
-                'focus' => false,
-                'fadeOut' => 4000,
-            ]));
+        return $this->backToEvent($event_shift->event, $message);
     }
 
     /**
@@ -432,22 +423,5 @@ class SignUpUpdateHtmxController extends PageController
             $event_trooper->status = EventTrooperStatus::PENDING;
             $event_trooper->save();
         }
-    }
-
-    /**
-     * Render the refreshed shift container partial after a roster change.
-     */
-    private function shiftContainerView(EventShift $event_shift, Trooper $trooper): Response
-    {
-        $event_shift = GetEventShiftDisplay::call(event_shift: $event_shift, trooper: $trooper);
-        $event = $event_shift->event;
-
-        $can_moderate = $trooper->isModeratorForOrganization($event->organization);
-        $count_of_shifts = $event->event_shifts()->count();
-
-        $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
-        $data['open'] = true;
-
-        return response()->view('pages.events.inc.shift-container', $data);
     }
 }

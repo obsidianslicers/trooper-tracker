@@ -5,19 +5,25 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Events\EventWatchChanging;
+use App\Http\Controllers\Events\Concerns\AnswersWithEventPage;
 use App\Models\Event;
 use App\Models\EventWatch;
 use App\Models\Trooper;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event as EventFacade;
 
-class ToggleEventWatchHtmxController
+/**
+ * Watches or stops watching an event from its page.
+ */
+class ToggleEventWatchController
 {
+    use AnswersWithEventPage;
+
     public function __invoke(
         Request $request,
         Event $event,
-    ): Response {
+    ): RedirectResponse {
         /** @var Trooper $trooper */
         $trooper = $request->user();
 
@@ -29,27 +35,27 @@ class ToggleEventWatchHtmxController
         {
             if (!$this->mayChange($event, $trooper, false))
             {
-                return response()->view('pages.events.inc.watch-toggle', ['event' => $event, 'is_watching' => true]);
+                return $this->backToEvent($event);
             }
 
             $existing->delete();
-            $is_watching = false;
+
+            return $this->backToEvent($event, __("events.You're no longer watching this event."));
         }
         else
         {
             if (!$this->mayChange($event, $trooper, true))
             {
-                return response()->view('pages.events.inc.watch-toggle', ['event' => $event, 'is_watching' => false]);
+                return $this->backToEvent($event);
             }
 
             EventWatch::create([
                 'event_id' => $event->id,
                 'trooper_id' => $trooper->id,
             ]);
-            $is_watching = true;
         }
 
-        return response()->view('pages.events.inc.watch-toggle', compact('event', 'is_watching'));
+        return $this->backToEvent($event, __("events.You're watching this event."));
     }
 
     /**

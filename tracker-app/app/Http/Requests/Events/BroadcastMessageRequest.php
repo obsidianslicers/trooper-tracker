@@ -14,7 +14,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * This request validates the coordinator email when sharing an event's
  * roster. The user must have permission to update the event.
  */
-class ShareRosterHtmxRequest extends FormRequest
+class BroadcastMessageRequest extends FormRequest
 {
     use HtmxValidation;
 
@@ -40,17 +40,17 @@ class ShareRosterHtmxRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * Validates that a recipient_email is provided in valid email format.
+     * Validates that a message is provided in valid email format.
      *
      * @return array<string, array<int, string>> The validation rules for the request
      */
     public function rules(): array
     {
         return [
-            'recipient_email' => [
+            'message' => [
                 'required',
                 'string',
-                'email',
+                'min:5',
             ],
         ];
     }

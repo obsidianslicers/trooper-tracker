@@ -19,7 +19,7 @@ use Illuminate\Validation\Rule;
  * their attendance status and costume selection. The costume selection is restricted
  * to costumes from organizations that are allowed to attend the event.
  */
-class SignupUpdateHtmxRequest extends FormRequest
+class SignUpUpdateRequest extends FormRequest
 {
     use HtmxValidation;
 

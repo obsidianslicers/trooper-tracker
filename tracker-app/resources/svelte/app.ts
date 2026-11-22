@@ -45,7 +45,8 @@ function handleMessages(event: CustomEvent): void {
         to_messages(flash.warning).forEach((m) => flashState.warning(m));
         to_messages(flash.info).forEach((m) => flashState.info(m));
     }
-    else if (pg.props.toast) {
+
+    if (pg.props.toast) {
         const toast = pg.props.toast as InertiaFlashProps;
 
         to_messages(toast.success).forEach((m) => toastState.success(m));

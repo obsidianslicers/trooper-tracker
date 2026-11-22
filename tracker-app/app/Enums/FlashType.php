@@ -115,6 +115,15 @@ enum FlashType: string
     }
 
     /**
+     * A short message the page shows as a toast, beside what the trooper just did, rather than
+     * at the top of the page.
+     */
+    public function toast(string $message): void
+    {
+        session()->flash('toast.'.$this->value, $message);
+    }
+
+    /**
      * "Costume \"Vader\" was created successfully." in the current language. The model's
      * name comes from lang/<locale>/models.php when that file has it.
      */

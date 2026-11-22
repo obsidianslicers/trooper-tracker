@@ -6,29 +6,28 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
+use App\Http\Controllers\Events\Concerns\AnswersWithEventPage;
 use App\Http\Controllers\PageController;
-use App\Http\Requests\Events\GuestUpdateHtmxRequest;
+use App\Http\Requests\Events\GuestUpdateRequest;
 use App\Messages\Events\Commands\UpdateEventGuest;
-use App\Messages\Events\Queries\GetEventShiftDisplay;
 use App\Models\EventGuest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Handles HTMX-driven updates to event guest details.
- *
- * Processes validated guest update payloads and dispatches an
- * {@see UpdateEventGuest} through the magic bus.
+ * Changes a guest from the event page: cancelling them, signing them up again, or
+ * approving and rejecting them on manual-selection events.
  */
-class GuestUpdateHtmxController extends PageController
+class GuestUpdateController extends PageController
 {
+    use AnswersWithEventPage;
+
     /**
-     * Processes an HTMX guest update request.
-     *
      * Validates the incoming payload and updates either the guest status or
      * guest name based on the provided input key.
      */
-    public function __invoke(GuestUpdateHtmxRequest $request, EventGuest $event_guest): Response
+    public function __invoke(GuestUpdateRequest $request, EventGuest $event_guest): RedirectResponse|Response
     {
         $request->validateInputs();
 
@@ -64,21 +63,9 @@ class GuestUpdateHtmxController extends PageController
 
             UpdateEventGuest::call(event_guest: $event_guest, valid_data: $valid_data);
 
-            $trooper = $authTrooper;
-
-            $event_shift = GetEventShiftDisplay::call(event_shift: $event_shift, trooper: $trooper);
-
-            $event = $event_shift->event;
-
-            $can_moderate = $trooper->isModeratorForOrganization($event->organization);
-
-            $count_of_shifts = $event->event_shifts()->count();
-
-            $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
-
-            $data['open'] = true;
-
-            return response()->view('pages.events.inc.shift-container', $data);
+            return $this->backToEvent($event, $requestedStatus === EventGuestStatus::CANCELLED
+                ? __('events.Sign-up cancelled.')
+                : __('events.Saved.'));
         }
         elseif ($request->has('name'))
         {
@@ -91,6 +78,6 @@ class GuestUpdateHtmxController extends PageController
             UpdateEventGuest::call(event_guest: $event_guest, valid_data: $valid_data);
         }
 
-        return response('ok', 200);
+        return $this->backToEvent($event_guest->event_shift->event, __('events.Saved.'));
     }
 }

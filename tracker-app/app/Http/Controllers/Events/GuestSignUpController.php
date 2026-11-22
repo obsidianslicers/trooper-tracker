@@ -6,28 +6,27 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
+use App\Http\Controllers\Events\Concerns\AnswersWithEventPage;
 use App\Http\Controllers\PageController;
-use App\Messages\Events\Queries\GetEventShiftDisplay;
 use App\Models\EventGuest;
 use App\Models\EventShift;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 /**
- * Handles HTMX-driven guest signups for an event shift.
+ * Adds guests (people without a tracker account) to a shift from the event page.
  *
  * Creates guest records for non-empty names submitted in the
  * newline-delimited guest_names payload.
  */
-class GuestSignUpHtmxController extends PageController
+class GuestSignUpController extends PageController
 {
+    use AnswersWithEventPage;
+
     /**
-     * Processes an HTMX guest sign-up request.
-     *
-     * Creates new guest entries for the current trooper and returns the
-     * updated shift container partial with an HX trigger header.
+     * Creates new guest entries for the current trooper and goes back to the event page.
      */
-    public function __invoke(Request $request, EventShift $event_shift): Response
+    public function __invoke(Request $request, EventShift $event_shift): RedirectResponse
     {
         $trooper = $request->user();
 
@@ -37,19 +36,19 @@ class GuestSignUpHtmxController extends PageController
 
         if ($event->require_mission_brief_ack && !$event->hasMissionBriefAcknowledgementFor($trooper))
         {
-            return $this->shiftContainerResponse($event_shift, $trooper, $can_moderate);
+            return $this->backToEvent($event);
         }
 
         $grace_period_moderator_add = $can_moderate && $event->is_within_grace_period;
 
         if (!$event_shift->is_open && !$grace_period_moderator_add)
         {
-            return $this->shiftContainerResponse($event_shift, $trooper, $can_moderate);
+            return $this->backToEvent($event);
         }
 
         if (!$can_moderate && !$event_shift->isGoing($trooper))
         {
-            return $this->shiftContainerResponse($event_shift, $trooper, $can_moderate);
+            return $this->backToEvent($event);
         }
 
         $guestStatus = $event->status === EventStatus::MANUAL_SELECTION
@@ -76,20 +75,6 @@ class GuestSignUpHtmxController extends PageController
             }
         }
 
-        $response = $this->shiftContainerResponse($event_shift, $trooper, $can_moderate);
-
-        return $response->header('HX-Trigger', 'event-shift-guest-added');
-    }
-
-    private function shiftContainerResponse(EventShift $event_shift, $trooper, bool $can_moderate): Response
-    {
-        $event_shift = GetEventShiftDisplay::call(event_shift: $event_shift, trooper: $trooper);
-        $event = $event_shift->event;
-        $count_of_shifts = $event->event_shifts()->count();
-
-        $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
-        $data['open'] = true;
-
-        return response()->view('pages.events.inc.shift-container', $data);
+        return $this->backToEvent($event, __('events.Guest added.'));
     }
 }

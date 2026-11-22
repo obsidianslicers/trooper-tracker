@@ -6,38 +6,40 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Enums\FlashType;
+use App\Http\Controllers\Events\Concerns\AnswersWithEventPage;
 use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\SignUpEventTrooper;
-use App\Messages\Events\Queries\GetEventShiftDisplay;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 /**
- * Handles HTMX-driven event shift sign-up creation.
+ * Signs a trooper (or a friend they bring) up for a shift from the event page.
  *
  * This controller processes a trooper's sign-up for a specific event shift.
  * It automatically determines if the trooper should be placed on the main roster
- * or the standby list based on shift capacity, and returns the updated shift
- * container view for dynamic page updates.
+ * or the standby list based on shift capacity, and goes back to the event page with a toast
+ * saying where the sign-up landed.
  */
-class SignUpHtmxController extends PageController
+class SignUpController extends PageController
 {
+    use AnswersWithEventPage;
+
     /**
-     * Handle the incoming HTMX request to sign up a trooper for an event shift
+     * Handle the incoming request to sign up a trooper for an event shift
      *
      * Creates a new EventTrooper record for the specified or authenticated trooper,
      * automatically determining their status (GOING or STAND_BY) based on the shift's
      * capacity limits. Supports moderators signing up other troopers via trooper_id
-     * parameter. Returns the updated shift container view.
+     * parameter.
      *
      * @param  Request  $request  The incoming request (may contain optional trooper_id for moderator signups)
      * @param  EventShift  $event_shift  The event shift the trooper is signing up for
-     * @return Response The rendered shift container with updated trooper list
      */
-    public function __invoke(Request $request, EventShift $event_shift): Response
+    public function __invoke(Request $request, EventShift $event_shift): RedirectResponse
     {
         $trooper = $request->user();
 
@@ -73,13 +75,11 @@ class SignUpHtmxController extends PageController
 
             if (!$event_shift->isValidStationChoice($event_shift_station_id))
             {
-                return $this->shiftContainerResponse($event_shift, $auth_trooper, $trooper, $can_moderate)
-                    ->header('X-Flash-Message', json_encode([
-                        'message' => __('events.Select a station before signing up.'),
-                        'type' => 'danger',
-                        'focus' => true,
-                        'fadeOut' => 5000,
-                    ]));
+                return $this->backToEvent(
+                    $event_shift->event,
+                    __('events.Select a station before signing up.'),
+                    FlashType::DANGER,
+                );
             }
 
             $organization_id = $request->input('organization_id') ? (int) $request->input('organization_id') : null;
@@ -134,7 +134,7 @@ class SignUpHtmxController extends PageController
             $signed_up = true;
         }
 
-        return $this->shiftContainerResponse($event_shift, $auth_trooper, $trooper, $can_moderate, $signed_up);
+        return $this->answer($event_shift, $auth_trooper, $trooper, $signed_up);
     }
 
     /**
@@ -162,69 +162,37 @@ class SignUpHtmxController extends PageController
         };
     }
 
-    private function shiftContainerResponse(EventShift $event_shift, Trooper $auth_trooper, Trooper $trooper, bool $can_moderate, bool $signed_up = true): Response
+    private function answer(EventShift $event_shift, Trooper $auth_trooper, Trooper $trooper, bool $signed_up): RedirectResponse
     {
-        $event_shift = GetEventShiftDisplay::call(event_shift: $event_shift, trooper: $auth_trooper);
-
         $event = $event_shift->event;
 
-        $count_of_shifts = $event->event_shifts()->count();
+        if (!$signed_up)
+        {
+            $is_maxed = $event->shifts_allowed !== null
+                && $event->getShiftCountFor($trooper) >= $event->shifts_allowed;
 
-        $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
+            return $this->backToEvent(
+                $event,
+                $is_maxed ? __('events.You have reached the maximum number of shift sign-ups allowed.') : null,
+                FlashType::DANGER,
+            );
+        }
 
-        $data['open'] = true;
-
-        $response = response()->view('pages.events.inc.shift-container', $data);
-
-        $same_day_shifts = $signed_up && $trooper->id === $auth_trooper->id
+        $same_day_shifts = $trooper->id === $auth_trooper->id
             ? $event->sameDayShiftsFor($event_shift, $trooper)
             : collect();
-
-        if ($signed_up && $same_day_shifts->isEmpty())
-        {
-            $response = $response->header('X-Flash-Message', json_encode([
-                'message' => $this->signedUpMessage($event_shift, $trooper, $trooper->id === $auth_trooper->id),
-                'type' => 'success',
-                'focus' => false,
-                'fadeOut' => 6000,
-            ]));
-        }
 
         if ($same_day_shifts->isNotEmpty())
         {
             //  "one troop per day": said again the moment they sign up for a second shift that day
-            $count = $same_day_shifts->count() + 1;
-
-            $response = $response->header('X-Flash-Message', json_encode([
-                'message' => __(
-                    "events.You're signed up. This troop counts as one troop for the day. You're currently signed up for :count shifts that day.",
-                    ['count' => $count]
-                ),
-                'type' => 'info',
-                'focus' => true,
-                'fadeOut' => 8000,
-            ]));
+            return $this->backToEvent($event, __(
+                "events.You're signed up. This troop counts as one troop for the day. You're currently signed up for :count shifts that day.",
+                ['count' => $same_day_shifts->count() + 1]
+            ), FlashType::INFO);
         }
 
-        if (!$signed_up)
-        {
-            $count = $event_shift->event->getShiftCountFor($trooper);
+        $event_shift->load('event_troopers');
 
-            if ($event_shift->event->shifts_allowed !== null && $count >= $event_shift->event->shifts_allowed)
-            {
-                //  handle the case where the trooper has maxed out their allowed shifts
-
-                $message = json_encode([
-                    'message' => __('events.You have reached the maximum number of shift sign-ups allowed.'),
-                    'type' => 'danger',
-                    'focus' => true,
-                    'fadeOut' => 5000,
-                ]);
-
-                $response = $response->header('X-Flash-Message', $message);
-            }
-        }
-
-        return $response;
+        return $this->backToEvent($event, $this->signedUpMessage($event_shift, $trooper, $trooper->id === $auth_trooper->id));
     }
 }

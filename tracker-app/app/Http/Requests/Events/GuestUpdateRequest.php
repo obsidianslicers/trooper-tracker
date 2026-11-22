@@ -18,7 +18,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * their attendance status and costume selection. The costume selection is restricted
  * to costumes from organizations that are allowed to attend the event.
  */
-class GuestUpdateHtmxRequest extends FormRequest
+class GuestUpdateRequest extends FormRequest
 {
     use HtmxValidation;
 
