@@ -27,7 +27,7 @@ use Hyperdrive\Message;
  * Creates an EventTrooper record linking a trooper to a specific event shift.
  * Tracks who added the trooper (for admin sign-ups vs self sign-ups).
  *
- * @method static void call(EventShift $event_shift, Trooper $trooper, Trooper $added_by_trooper, ?int $organization_id = null, bool $is_handler = false, ?int $costume_id = null, ?int $event_shift_station_id = null)
+ * @method static void call(EventShift $event_shift, Trooper $trooper, Trooper $added_by_trooper, ?int $organization_id = null, bool $is_handler = false, ?int $costume_id = null, ?int $event_shift_station_id = null, bool $is_attending_without_costume = false, bool $is_tentative = false, ?int $backup_costume_id = null)
  */
 final class SignUpEventTrooper extends Message
 {
@@ -40,6 +40,10 @@ final class SignUpEventTrooper extends Message
      * @param  Trooper  $trooper  The trooper signing up for the event.
      * @param  Trooper  $added_by_trooper  The trooper who added this sign-up (may be same as $trooper).
      * @param  int|null  $organization_id  The top-level organization the trooper is trooping for.
+     * @param  bool  $is_attending_without_costume  They chose "Attending without a costume" while signing up.
+     * @param  bool  $is_tentative  They signed up as Tentative (the caller checks the event allows it).
+     * @param  int|null  $backup_costume_id  Their backup costume, picked while signing up (the caller
+     *                                       checks it's one of theirs).
      */
     public function __construct(
         private readonly EventShift $event_shift,
@@ -49,6 +53,9 @@ final class SignUpEventTrooper extends Message
         private readonly bool $is_handler = false,
         private readonly ?int $costume_id = null,
         private readonly ?int $event_shift_station_id = null,
+        private readonly bool $is_attending_without_costume = false,
+        private readonly bool $is_tentative = false,
+        private readonly ?int $backup_costume_id = null,
     ) {}
 
     public function handle(EventRosterCapacityService $capacity): void
@@ -71,14 +78,20 @@ final class SignUpEventTrooper extends Message
         $event_trooper->is_handler = $costume !== null ? $costume->countsAsHandler() : $this->is_handler;
         $event_trooper->signed_up_at = now();
         $event_trooper->added_by_trooper_id = $this->added_by_trooper->id == $this->trooper->id ? null : $this->added_by_trooper->id;
+        $event_trooper->is_attending_without_costume = $costume === null && $this->is_attending_without_costume;
         $status = EventTrooperStatus::GOING;
 
         if ($this->event_shift->event->status === EventStatus::MANUAL_SELECTION)
         {
             $status = EventTrooperStatus::STAND_BY;
         }
+        elseif ($this->is_tentative)
+        {
+            //  not a claim on a spot, so no capacity check (same as switching to Tentative later)
+            $status = EventTrooperStatus::TENTATIVE;
+        }
 
-        if ($status !== EventTrooperStatus::STAND_BY)
+        if ($status === EventTrooperStatus::GOING)
         {
             $can_go = $capacity->canGo(
                 $this->event_shift,
@@ -99,6 +112,11 @@ final class SignUpEventTrooper extends Message
             $event_trooper->costume_id = $costume->id;
             $org_ids = $costume->approvedOrgIdsForTrooper($this->trooper->id);
             $event_trooper->costume_organization_ids = !empty($org_ids) ? $org_ids : null;
+        }
+
+        if ($this->backup_costume_id !== null)
+        {
+            $event_trooper->backup_costume_id = $this->backup_costume_id;
         }
 
         if ($status === EventTrooperStatus::GOING && $event_trooper->needsCostumeBeforeGoing())

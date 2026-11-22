@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\SignUpEventTrooper;
 use App\Messages\Events\Queries\GetEventShiftDisplay;
 use App\Models\EventShift;
+use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -83,19 +86,80 @@ class SignUpHtmxController extends PageController
 
             $is_handler = (bool) $request->input('is_handler', $trooper->is_handler ? 1 : 0);
 
+            //  the Sign Up form, and Add a Friend's, carry the costume of whoever is signing up (or
+            //  "attending without a costume"). A costume that isn't one of theirs is ignored, which
+            //  leaves them on the shift needing a costume, as before. Tentative is the trooper's
+            //  own choice, where the event allows it.
+            $costume_id = null;
+            $is_attending_without_costume = false;
+            $costume_options = $event_shift->costumeOptionsFor($trooper, $organization_id);
+
+            $raw_costume_id = $request->input('costume_id');
+
+            if ($raw_costume_id === 'none')
+            {
+                $is_attending_without_costume = true;
+                $is_handler = false;
+            }
+            elseif (is_numeric($raw_costume_id) && array_key_exists((int) $raw_costume_id, $costume_options))
+            {
+                $costume_id = (int) $raw_costume_id;
+            }
+
+            //  the backup costume, optional, checked against their costumes the same way
+            $raw_backup_costume_id = $request->input('backup_costume_id');
+            $backup_costume_id = $event_shift->event->requiresCostume()
+                && is_numeric($raw_backup_costume_id)
+                && array_key_exists((int) $raw_backup_costume_id, $costume_options)
+                ? (int) $raw_backup_costume_id
+                : null;
+
+            $is_tentative = !$is_friend_add
+                && $request->input('status') === EventTrooperStatus::TENTATIVE->value
+                && array_key_exists(EventTrooperStatus::TENTATIVE->value, $event_shift->event->planStatusOptions());
+
             SignUpEventTrooper::call(
                 event_shift: $event_shift,
                 trooper: $trooper,
                 added_by_trooper: $auth_trooper,
                 organization_id: $organization_id,
                 is_handler: $is_handler,
+                costume_id: $costume_id,
                 event_shift_station_id: $event_shift_station_id,
+                is_attending_without_costume: $is_attending_without_costume,
+                is_tentative: $is_tentative,
+                backup_costume_id: $backup_costume_id,
             );
 
             $signed_up = true;
         }
 
         return $this->shiftContainerResponse($event_shift, $auth_trooper, $trooper, $can_moderate, $signed_up);
+    }
+
+    /**
+     * What the shift says right after a sign-up, depending on where it landed.
+     */
+    private function signedUpMessage(EventShift $event_shift, Trooper $trooper, bool $is_self): string
+    {
+        $status = $event_shift->event_troopers->firstWhere(EventTrooper::TROOPER_ID, $trooper->id)?->status;
+        $name = $trooper->display_name;
+
+        return match (true)
+        {
+            $status === EventTrooperStatus::STAND_BY && $event_shift->event->status === EventStatus::MANUAL_SELECTION => $is_self
+                ? __("events.You're signed up. Command staff picks who goes to this event; you're on the stand-by list until then.")
+                : __('events.:name is signed up and on the stand-by list until command staff picks who goes.', ['name' => $name]),
+            $status === EventTrooperStatus::STAND_BY => $is_self
+                ? __("events.This shift is full, so you're on the stand-by list. You'll move up if a spot opens.")
+                : __('events.This shift is full, so :name is on the stand-by list.', ['name' => $name]),
+            $status === EventTrooperStatus::PENDING => $is_self
+                ? __("events.You're on the shift.").' '.__('events.Select a costume, or mark attending without one, to confirm your spot.')
+                : __('events.:name is on the shift. Pick their costume on their row to confirm the spot.', ['name' => $name]),
+            default => $is_self
+                ? __("events.You're signed up.")
+                : __('events.:name is signed up.', ['name' => $name]),
+        };
     }
 
     private function shiftContainerResponse(EventShift $event_shift, Trooper $auth_trooper, Trooper $trooper, bool $can_moderate, bool $signed_up = true): Response
@@ -115,6 +179,16 @@ class SignUpHtmxController extends PageController
         $same_day_shifts = $signed_up && $trooper->id === $auth_trooper->id
             ? $event->sameDayShiftsFor($event_shift, $trooper)
             : collect();
+
+        if ($signed_up && $same_day_shifts->isEmpty())
+        {
+            $response = $response->header('X-Flash-Message', json_encode([
+                'message' => $this->signedUpMessage($event_shift, $trooper, $trooper->id === $auth_trooper->id),
+                'type' => 'success',
+                'focus' => false,
+                'fadeOut' => 6000,
+            ]));
+        }
 
         if ($same_day_shifts->isNotEmpty())
         {

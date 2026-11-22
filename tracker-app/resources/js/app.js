@@ -73,6 +73,7 @@ window.Sortable = Sortable;
 //  custom 
 import './custom/bootstrap-events.js';
 import './custom/forms.js';
+import './custom/hash-link-collapse.js';
 import './custom/htmx-csrf.js';
 import './custom/htmx-date-picker.js';
 import './custom/htmx-easymde.js';

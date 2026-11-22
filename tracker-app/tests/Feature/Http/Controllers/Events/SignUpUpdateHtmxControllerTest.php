@@ -908,7 +908,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         ]);
 
         $response->assertOk();
-        $response->assertHeaderMissing('X-Flash-Message');
+        $this->assertSame('success', json_decode((string) $response->headers->get('X-Flash-Message'), true)['type']);
         $this->assertSame(EventTrooperStatus::TENTATIVE, $event_trooper->fresh()->status);
     }
 
@@ -930,9 +930,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         [$trooper, $event_trooper] = $this->goingTrooperOnEventStarting(now()->addDays(3));
         $event_trooper->update([EventTrooper::STATUS => EventTrooperStatus::TENTATIVE]);
 
-        $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
+        $response = $this->actingAs($trooper)->post(route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]), [
             'status' => EventTrooperStatus::GOING->value,
-        ])->assertHeaderMissing('X-Flash-Message');
+        ]);
+
+        $this->assertSame('success', json_decode((string) $response->headers->get('X-Flash-Message'), true)['type']);
 
         $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
     }
@@ -948,6 +950,20 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         ]);
 
         $this->assertSame(EventTrooperStatus::STAND_BY, $event_trooper->fresh()->status);
+    }
+
+    public function test_invoke_cancel_offers_sign_up_again(): void
+    {
+        [$trooper, $event_trooper] = $this->goingTrooper();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['status' => EventTrooperStatus::CANCELLED->value]
+        );
+
+        $response->assertOk();
+        $this->assertSame(EventTrooperStatus::CANCELLED, $event_trooper->fresh()->status);
+        $response->assertSee('Sign up again');
     }
 
     /**
@@ -988,5 +1004,43 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         ]);
 
         return [$trooper, $event_trooper];
+    }
+
+    public function test_invoke_backup_costume_change_returns_the_shift_and_says_saved(): void
+    {
+        [$trooper, $event_trooper] = $this->goingTrooper();
+        $organization = $event_trooper->event_shift->event->organization;
+        $costume = Costume::factory()->state(['name' => 'Sandtrooper'])->create();
+        $organization_costume = OrganizationCostume::factory()
+            ->state([OrganizationCostume::ORGANIZATION_ID => $organization->id, OrganizationCostume::COSTUME_ID => $costume->id])
+            ->create();
+        TrooperCostume::factory()
+            ->state([TrooperCostume::TROOPER_ID => $trooper->id, TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id])
+            ->create();
+        $event_trooper->update([EventTrooper::ORGANIZATION_ID => $organization->id]);
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['backup_costume_id' => $costume->id]
+        );
+
+        $response->assertOk();
+        $response->assertSee('id="shift-container-'.$event_trooper->event_shift_id.'"', false);
+        $this->assertSame('Saved.', json_decode((string) $response->headers->get('X-Flash-Message'), true)['message']);
+        $this->assertSame($costume->id, $event_trooper->fresh()->backup_costume_id);
+    }
+
+    public function test_invoke_cancel_says_the_sign_up_is_cancelled(): void
+    {
+        [$trooper, $event_trooper] = $this->goingTrooper();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['status' => EventTrooperStatus::CANCELLED->value]
+        );
+
+        $response->assertOk();
+        $this->assertSame('Sign-up cancelled.', json_decode((string) $response->headers->get('X-Flash-Message'), true)['message']);
+        $this->assertSame(EventTrooperStatus::CANCELLED, $event_trooper->fresh()->status);
     }
 }

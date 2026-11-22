@@ -306,6 +306,29 @@ class EventShiftTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function test_sign_up_for_returns_the_troopers_own_sign_up(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $subject = EventShift::factory()->create();
+        EventTrooper::factory()->forEventShift($subject)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($subject)
+            ->forTrooper($trooper)
+            ->create();
+
+        $result = $subject->signUpFor($trooper);
+
+        $this->assertSame($event_trooper->id, $result?->id);
+    }
+
+    public function test_sign_up_for_returns_null_when_trooper_not_signed_up(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $subject = EventShift::factory()->create();
+
+        $this->assertNull($subject->signUpFor($trooper));
+    }
+
     public function test_is_signed_up_returns_false_when_trooper_not_signed_up(): void
     {
         $trooper = Trooper::factory()->create();

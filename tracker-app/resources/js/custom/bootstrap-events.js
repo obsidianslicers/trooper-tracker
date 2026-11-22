@@ -1,17 +1,11 @@
-document.addEventListener('DOMContentLoaded', function () {
-    // Find all collapse elements inside cards
-    document.querySelectorAll('.card .collapse').forEach(collapseEl => {
-        const icon = collapseEl.closest('.card').querySelector('.collapse-icon');
-        if (!icon) return; // skip if no icon
+// The +/- on an accordion card's header follows its section. Delegated (Bootstrap's collapse
+// events bubble), so cards HTMX swaps in and sections opened from script flip it too.
+function setIcon(collapseEl, open) {
+    const icon = collapseEl.closest('.card')?.querySelector('.collapse-icon');
+    if (!icon) return;
+    icon.classList.toggle('fa-minus', open);
+    icon.classList.toggle('fa-plus', !open);
+}
 
-        collapseEl.addEventListener('show.bs.collapse', () => {
-            icon.classList.remove('fa-plus');
-            icon.classList.add('fa-minus');
-        });
-
-        collapseEl.addEventListener('hide.bs.collapse', () => {
-            icon.classList.remove('fa-minus');
-            icon.classList.add('fa-plus');
-        });
-    });
-});
+document.addEventListener('show.bs.collapse', (event) => setIcon(event.target, true));
+document.addEventListener('hide.bs.collapse', (event) => setIcon(event.target, false));
