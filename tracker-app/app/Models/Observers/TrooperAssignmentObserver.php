@@ -24,22 +24,20 @@ class TrooperAssignmentObserver
      */
     public function saving(TrooperAssignment $trooper_assignment): void
     {
-        if ($trooper_assignment->trooper->is_visitor)
-        {
-            $organization = $trooper_assignment->organization;
-
-            if ($organization && $organization->depth > 1)
-            {
-                throw new Exception('Visitors can only join top-level organizations.');
-            }
-        }
-
+        //  a non-member row only carries notification settings: joining is what visitors can't
+        //  do, and events notify the organization hosting them, usually below the top level
         if (!$trooper_assignment->is_member)
         {
             return;
         }
 
         $organization = $trooper_assignment->organization;
+
+        if ($trooper_assignment->trooper->is_visitor && $organization && $organization->depth > 1)
+        {
+            throw new Exception('Visitors can only join top-level organizations.');
+        }
+
         $node_path = $organization->node_path;
 
         $conflict_query = TrooperAssignment::query()

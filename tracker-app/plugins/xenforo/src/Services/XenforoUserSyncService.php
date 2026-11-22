@@ -27,6 +27,11 @@ class XenforoUserSyncService
      */
     public function syncTrooper(Trooper $trooper): void
     {
+        if ($this->isUnapproved($trooper))
+        {
+            return;
+        }
+
         $xenforoUserId = $this->xenforo->resolve_user_id_for_trooper($trooper->id);
 
         if ($xenforoUserId === null)
@@ -87,7 +92,7 @@ class XenforoUserSyncService
             'would_send' => false,
         ];
 
-        if ($xenforoUserId === null || $managedGroupIds->isEmpty())
+        if ($this->isUnapproved($trooper) || $xenforoUserId === null || $managedGroupIds->isEmpty())
         {
             return $base;
         }
@@ -113,6 +118,15 @@ class XenforoUserSyncService
             'computed_result' => $computed_result,
             'would_send' => $computed_result !== null,
         ]);
+    }
+
+    /**
+     * A trooper nobody has approved gets nothing on the forum from their tracker account.
+     * Once approved, the next sync picks them up.
+     */
+    private function isUnapproved(Trooper $trooper): bool
+    {
+        return in_array($trooper->membership_status, [MembershipStatus::PENDING, MembershipStatus::DENIED], true);
     }
 
     private function syncEmailFromXenforo(Trooper $trooper, int $xenforoUserId): void
