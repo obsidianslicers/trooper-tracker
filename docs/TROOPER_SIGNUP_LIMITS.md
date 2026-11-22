@@ -49,7 +49,7 @@ The code uses different capacity checks depending on the type of signup:
 
 If a shift has stations, a station is also required and its capacity is checked alongside the limits above — a stationed signup must fit the station, event, and organization limits at the same time. See [Station Signups](STATION_SIGNUPS.md) for the station-specific rules, display behavior, and standby promotion flow.
 
-When a signup cannot be completed because the trooper has reached the event’s shift limit, `SignUpHtmxController` returns the normal shift container plus an `X-Flash-Message` explaining that the maximum number of shift signups has been reached.
+When a signup cannot be completed because the trooper has reached the event’s shift limit, `SignUpController` sends the trooper back to the event page with a toast explaining that the maximum number of shift signups has been reached.
 
 The actual status assigned after a successful submit is decided by `SignUpEventTrooper` in [`tracker-app/app/Messages/Events/Commands/SignUpEventTrooper.php`](../tracker-app/app/Messages/Events/Commands/SignUpEventTrooper.php):
 
@@ -61,7 +61,7 @@ The actual status assigned after a successful submit is decided by `SignUpEventT
 
 ## Signing Up Another Trooper
 
-The HTMX signup controller accepts an optional `trooper_id` for moderator-driven signups in [`tracker-app/app/Http/Controllers/Events/SignUpHtmxController.php`](../tracker-app/app/Http/Controllers/Events/SignUpHtmxController.php).
+The signup controller accepts an optional `trooper_id` for moderator-driven signups in [`tracker-app/app/Http/Controllers/Events/SignUpController.php`](../tracker-app/app/Http/Controllers/Events/SignUpController.php).
 
 That path still uses the same `EventShift::canSignUp()` rules listed above. The controller only switches which trooper is being signed up.
 
@@ -85,13 +85,13 @@ Guest signup is limited by `EventShift::canSignUpGuest(Trooper $trooper)`:
 3. The trooper must already be signed up and going.
 4. The trooper must still have remaining guest slots when `guests_allowed` is set.
 
-The corresponding UI in [`tracker-app/resources/views/pages/events/inc/shift-add-trooper.blade.php`](../tracker-app/resources/views/pages/events/inc/shift-add-trooper.blade.php) also suppresses the add-trooper and add-guest controls unless the acting trooper is an adult and is already going, or a moderator is allowed to act on behalf of the event.
+The corresponding UI in [`ShiftLinks.svelte`](../tracker-app/resources/svelte/pages/events/components/display/ShiftLinks.svelte), fed by `EventDisplayShift`, also suppresses the add-trooper and add-guest controls unless the acting trooper is an adult and is already going, or a moderator is allowed to act on behalf of the event.
 
 ## Related Behavior
 
 1. `EventShift::canSignUp()` is the active self-signup gate.
 2. `Event::canSignUp()` exists only as a commented-out legacy method and is not the current decision point.
-3. `SignUpUpdateHtmxController` applies separate rules for changing existing sign-up status, costume, resignation, and re-signup. Those are update rules, not initial signup rules.
+3. `SignUpUpdateController` applies separate rules for changing existing sign-up status, costume, resignation, and re-signup. Those are update rules, not initial signup rules.
 
 ## Practical Summary
 
