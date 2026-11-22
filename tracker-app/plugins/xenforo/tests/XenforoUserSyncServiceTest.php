@@ -53,6 +53,34 @@ class XenforoUserSyncServiceTest extends TestCase
         $this->subject->syncTrooper($trooper);
     }
 
+    public function test_sync_trooper_leaves_the_forum_alone_until_the_trooper_is_approved(): void
+    {
+        $org = $this->createForumOrganization([OrganizationForum::ACTIVE_GROUP_ID => 10]);
+
+        foreach ([MembershipStatus::PENDING, MembershipStatus::DENIED] as $status)
+        {
+            $trooper = Trooper::factory()->create([Trooper::MEMBERSHIP_STATUS => $status->value]);
+            $trooper->organizations()->attach($org->id, ['membership_status' => 'active']);
+
+            $this->xenforo->shouldNotReceive('resolve_user_id_for_trooper');
+            $this->xenforo->shouldNotReceive('update_user');
+
+            $this->subject->syncTrooper($trooper);
+        }
+    }
+
+    public function test_debug_sync_reports_no_write_for_an_unapproved_trooper(): void
+    {
+        $org = $this->createForumOrganization([OrganizationForum::ACTIVE_GROUP_ID => 10]);
+        $trooper = Trooper::factory()->create([Trooper::MEMBERSHIP_STATUS => MembershipStatus::PENDING->value]);
+        $trooper->organizations()->attach($org->id, ['membership_status' => 'active']);
+
+        $this->xenforo->shouldReceive('resolve_user_id_for_trooper')->andReturn(999);
+        $this->xenforo->shouldNotReceive('getUserSecondaryGroupIds');
+
+        $this->assertFalse($this->subject->debugSync($trooper)['would_send']);
+    }
+
     public function test_sync_trooper_uses_retired_group_when_global_status_is_retired(): void
     {
         $org = $this->createForumOrganization([
