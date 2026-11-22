@@ -12,6 +12,7 @@ use App\Models\Trooper;
 use App\Models\TrooperRequest;
 use App\Services\SystemCheckResult;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
@@ -27,7 +28,12 @@ class AdminDisplayControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.display'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.display');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/Dashboard')
+            ->has('counts')
+            ->has('cards')
+            ->has('plugin_cards')
+        );
     }
 
     public function test_invoke_counts_pending_permission_requests_for_admins(): void
@@ -38,9 +44,10 @@ class AdminDisplayControllerTest extends TestCase
 
         $response = $this->actingAs($admin)->get(route('admin.display'));
 
-        $response->assertViewHas('pending_permission_requests', 1);
-        $response->assertSee('Permission Approvals');
-        $response->assertSee('1 permission request is waiting for review!');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('counts.pending_permission_requests', 1)
+            ->where('cards', fn ($cards) => collect($cards)->contains('key', 'permission-approvals'))
+        );
     }
 
     public function test_invoke_hides_permission_approvals_from_moderators(): void
@@ -50,10 +57,11 @@ class AdminDisplayControllerTest extends TestCase
 
         $response = $this->actingAs($moderator)->get(route('admin.display'));
 
-        $response->assertViewHas('pending_permission_requests', 0);
-        $response->assertSee('Request Permissions');
-        $response->assertDontSee('Permission Approvals');
-        $response->assertDontSee('waiting for review');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('counts.pending_permission_requests', 0)
+            ->where('cards', fn ($cards) => collect($cards)->contains('key', 'request-permissions')
+                && !collect($cards)->contains('key', 'permission-approvals'))
+        );
     }
 
     public function test_invoke_shows_system_check_problems_to_system_owners(): void
@@ -67,7 +75,7 @@ class AdminDisplayControllerTest extends TestCase
         $response = $this->actingAs($owner)->get(route('admin.display'));
 
         $response->assertOk();
-        $response->assertSee('2 checks need attention');
+        $response->assertInertia(fn (Assert $page) => $page->where('system_check_problems', 2));
         $response->assertDontSee('Last seen 12 minute(s) ago');
     }
 
@@ -79,8 +87,10 @@ class AdminDisplayControllerTest extends TestCase
         $response = $this->actingAs($owner)->get(route('admin.display'));
 
         $response->assertOk();
-        $response->assertSee('System Check');
-        $response->assertDontSee('need attention');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('system_check_problems', 0)
+            ->where('cards', fn ($cards) => collect($cards)->contains('key', 'system-check'))
+        );
     }
 
     public function test_invoke_skips_system_check_for_staff_officers(): void
@@ -115,7 +125,7 @@ class AdminDisplayControllerTest extends TestCase
 
         $response = $this->actingAs($admin)->get(route('admin.display'));
 
-        $response->assertViewHas('pending_join_requests', 1);
+        $response->assertInertia(fn (Assert $page) => $page->where('counts.pending_join_requests', 1));
     }
 
     public function test_invoke_does_not_count_pending_signup_join_requests_as_standalone_requests(): void
@@ -139,7 +149,9 @@ class AdminDisplayControllerTest extends TestCase
 
         $response = $this->actingAs($admin)->get(route('admin.display'));
 
-        $response->assertViewHas('not_approved', 1);
-        $response->assertViewHas('pending_join_requests', 1);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('counts.not_approved', 1)
+            ->where('counts.pending_join_requests', 1)
+        );
     }
 }

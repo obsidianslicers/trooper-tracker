@@ -6,6 +6,7 @@ namespace Tests\Feature\Admin\Troopers\Pages;
 
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\BuildsCostumeReviews;
 use Tests\TestCase;
 
@@ -155,6 +156,6 @@ class CostumeApprovalsControllerTest extends TestCase
         $this->actingAs($moderator)
             ->get(route('admin.display'))
             ->assertOk()
-            ->assertSee('1 costume awaiting review');
+            ->assertInertia(fn (Assert $page) => $page->where('counts.pending_costumes', 1));
     }
 }

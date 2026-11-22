@@ -10,6 +10,7 @@ use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\BuildsCostumeReviews;
 use Tests\TestCase;
 
@@ -95,7 +96,7 @@ class TroopVerificationsControllerTest extends TestCase
         $this->actingAs($moderator)
             ->get(route('admin.display'))
             ->assertOk()
-            ->assertSee('1 troop awaiting verification');
+            ->assertInertia(fn (Assert $page) => $page->where('counts.troops_awaiting_verification', 1));
     }
 
     /**
