@@ -19,7 +19,7 @@
                 <span class="text-muted">- ${goal}</span>
             </h5>
             {#if support.url}
-                <a href={support.url} target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">
+                <a href={support.url} target="_blank" rel="noopener" class="btn btn-sm btn-outline-success col-12 col-sm-auto">
                     {t("❤️ Support the Garrison")}
                     <i class="fa fa-fw fa-external-link"></i>
                 </a>
