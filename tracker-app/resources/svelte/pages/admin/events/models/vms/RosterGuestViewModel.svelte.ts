@@ -18,7 +18,7 @@ export class RosterGuestViewModel extends AutosaveViewModel<RosterGuestForm> {
     }
 
     protected url(): string {
-        return getRoute("admin.events.troopers", { event: this.event_id });
+        return getRoute("admin.events.troopers.update", { event: this.event_id });
     }
 
     protected payload(data: RosterGuestForm): Record<string, unknown> {

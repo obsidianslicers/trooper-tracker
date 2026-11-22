@@ -27,8 +27,8 @@ describe('ListEventsViewModel', () => {
     it('keeps the other filters when one changes', () => {
         const vm = listVm({ search_term: 'parade', organization_id: 4 });
 
-        expect(vm.listUrl({ status: 'open' })).toBe('/admin.events.list?search_term=parade&status=open&organization_id=4');
-        expect(vm.listUrl({ organization_id: null })).toBe('/admin.events.list?search_term=parade');
+        expect(vm.listUrl({ status: 'open' })).toBe('/admin.events.index?search_term=parade&status=open&organization_id=4');
+        expect(vm.listUrl({ organization_id: null })).toBe('/admin.events.index?search_term=parade');
     });
 
     it('creates an event for the organization being shown', () => {
@@ -42,7 +42,7 @@ describe('ListEventsViewModel', () => {
         vm.search_term = ' gala ';
         vm.search(new Event('submit'));
 
-        expect(visit).toHaveBeenLastCalledWith('/admin.events.list?search_term=gala&status=open');
+        expect(visit).toHaveBeenLastCalledWith('/admin.events.index?search_term=gala&status=open');
     });
 });
 
@@ -53,9 +53,9 @@ describe('CopyEventViewModel', () => {
         });
 
         expect(vm.form.name).toBe('COPY OF Parade');
-        expect(vm.cancel_url).toBe('/admin.events.update?event=7');
+        expect(vm.cancel_url).toBe('/admin.events.edit?event=7');
 
         vm.submit(new Event('submit'));
-        expect(formPost).toHaveBeenLastCalledWith('/admin.events.copy?event=7');
+        expect(formPost).toHaveBeenLastCalledWith('/admin.events.copy.store?event=7');
     });
 });

@@ -28,7 +28,7 @@
 
     let cancel_url = $derived(
         getRoute(
-            "admin.events.list",
+            "admin.events.index",
             vm.form.organization_id ? { organization_id: vm.form.organization_id } : {},
         ),
     );

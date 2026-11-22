@@ -118,7 +118,7 @@ class EventThreadsTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = Event::factory()->state([Event::STATUS => EventStatus::DRAFT])->create();
 
-        $this->actingAs($trooper)->post('/admin/events/'.$event->id.'/update', [
+        $this->actingAs($trooper)->post('/admin/events/'.$event->id, [
             'name' => 'Imperial Muster',
             Event::EVENT_TYPE_ID => EventType::idNamed('Regular'),
             'status' => EventStatus::DRAFT->value,
@@ -141,7 +141,7 @@ class EventThreadsTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $event = $this->linkThread(Event::factory()->create(), 321, 654);
 
-        $response = $this->actingAs($trooper)->get(route('admin.events.update', $event));
+        $response = $this->actingAs($trooper)->get(route('admin.events.edit', $event));
 
         $response->assertInertia(fn ($page) => $page
             ->where('overview.plugin_fields', fn (string $html): bool => str_contains($html, 'name="xenforo_thread_id"')
@@ -164,7 +164,7 @@ class EventThreadsTest extends TestCase
             ]]);
         });
 
-        $response = $this->actingAs($trooper)->get(route('admin.events.update', $event));
+        $response = $this->actingAs($trooper)->get(route('admin.events.edit', $event));
 
         $response->assertInertia(fn ($page) => $page
             ->where('overview.smilies', [[

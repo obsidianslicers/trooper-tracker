@@ -29,7 +29,7 @@ class UpdateControllerRosterTest extends TestCase
         $event = Event::factory()->create();
         EventShift::factory()->forEvent($event)->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.events.update', ['event' => $event->id]));
+        $response = $this->actingAs($trooper)->get(route('admin.events.edit', ['event' => $event->id]));
 
         $response->assertOk();
         $response->assertInertia(fn ($page) => $page
@@ -44,7 +44,7 @@ class UpdateControllerRosterTest extends TestCase
         $first_shift = EventShift::factory()->forEvent($event)->create();
         $second_shift = EventShift::factory()->forEvent($event)->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.events.update', compact('event')));
+        $response = $this->actingAs($admin)->get(route('admin.events.edit', compact('event')));
 
         $response->assertOk();
         $response->assertInertia(fn ($page) => $page
@@ -84,7 +84,7 @@ class UpdateControllerRosterTest extends TestCase
             ->asGoing()
             ->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.edit', ['event' => $event->id]));
 
         $response->assertOk();
 
@@ -120,7 +120,7 @@ class UpdateControllerRosterTest extends TestCase
             ->asGoing()
             ->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.edit', ['event' => $event->id]));
 
         $response->assertOk();
 
@@ -151,7 +151,7 @@ class UpdateControllerRosterTest extends TestCase
             ->create();
 
         $response = $this->actingAs($moderator)
-            ->get(route('admin.events.update', ['event' => $event->id]));
+            ->get(route('admin.events.edit', ['event' => $event->id]));
 
         $response->assertOk();
 
@@ -198,7 +198,7 @@ class UpdateControllerRosterTest extends TestCase
             ->asGoing()
             ->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.edit', ['event' => $event->id]));
 
         $response->assertOk();
 
@@ -228,7 +228,7 @@ class UpdateControllerRosterTest extends TestCase
             ->asGoing()
             ->create([EventTrooper::COSTUME_ID => null]);
 
-        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.edit', ['event' => $event->id]));
 
         $response->assertOk();
 
@@ -315,7 +315,7 @@ class UpdateControllerRosterTest extends TestCase
             ->asGoing()
             ->create([EventTrooper::ORGANIZATION_ID => null]);
 
-        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.edit', ['event' => $event->id]));
 
         $response->assertOk();
 
@@ -345,7 +345,7 @@ class UpdateControllerRosterTest extends TestCase
             ->asGoing()
             ->create([EventTrooper::COSTUME_ID => null]);
 
-        $response = $this->actingAs($moderator)->get(route('admin.events.update', ['event' => $event->id]));
+        $response = $this->actingAs($moderator)->get(route('admin.events.edit', ['event' => $event->id]));
 
         $response->assertOk();
 
@@ -371,7 +371,7 @@ class UpdateControllerRosterTest extends TestCase
             ->asAttended()
             ->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.edit', ['event' => $event->id]));
 
         $response->assertOk();
 
@@ -398,7 +398,7 @@ class UpdateControllerRosterTest extends TestCase
             ->asAttended()
             ->create([EventTrooper::COSTUME_ID => null]);
 
-        $response = $this->actingAs($admin)->get(route('admin.events.update', ['event' => $event->id]));
+        $response = $this->actingAs($admin)->get(route('admin.events.edit', ['event' => $event->id]));
 
         $response->assertOk();
 
@@ -411,7 +411,7 @@ class UpdateControllerRosterTest extends TestCase
     {
         $event = Event::factory()->create();
 
-        $response = $this->get(route('admin.events.update', ['event' => $event->id]));
+        $response = $this->get(route('admin.events.edit', ['event' => $event->id]));
 
         $response->assertRedirect(route('auth.login'));
     }

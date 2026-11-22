@@ -56,7 +56,7 @@ final class StatusChangeLogPageData extends Message
             'id' => $change->id,
             'changed_at' => $change->created_at->localFormat('D - M d, Y g:ia'),
             'event_name' => $event->name,
-            'event_url' => route('admin.events.update', ['event' => $event]),
+            'event_url' => route('admin.events.edit', ['event' => $event]),
             'shift' => $event_trooper->event_shift->time_display,
             'trooper_name' => $event_trooper->trooper->display_name,
             'trooper_url' => route('admin.troopers.profile', [

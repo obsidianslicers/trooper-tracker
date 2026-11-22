@@ -44,8 +44,8 @@
                     <hr class="dropdown-divider">
                 </li>
                 @role(['event_coordinator'])
-                    <x-nav-link :url="route('admin.events.list')"
-                                :active="request()->routeIs('admin.events.list')">
+                    <x-nav-link :url="route('admin.events.index')"
+                                :active="request()->routeIs('admin.events.index')">
                         <i class="fa fa-fw fa-clipboard-list fa-lg me-2"></i>
                         {{ __('layout.My Events') }}
                     </x-nav-link>

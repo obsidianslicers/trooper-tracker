@@ -126,9 +126,9 @@ class EventCoordinatorRouteAccessTest extends TestCase
 
         $own = $this->eventWithChildren($this->event_coordinator);
 
-        $this->actingAs($this->event_coordinator)->get(route('admin.events.list'))->assertForbidden();
+        $this->actingAs($this->event_coordinator)->get(route('admin.events.index'))->assertForbidden();
         $this->actingAs($this->event_coordinator)->get(route('admin.events.create'))->assertForbidden();
-        $this->actingAs($this->event_coordinator)->get(route('admin.events.update', $own))->assertForbidden();
+        $this->actingAs($this->event_coordinator)->get(route('admin.events.edit', $own))->assertForbidden();
     }
 
     /**
