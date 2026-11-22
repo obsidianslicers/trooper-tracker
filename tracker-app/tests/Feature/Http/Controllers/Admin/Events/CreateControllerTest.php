@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Events;
 
-use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class CreateControllerTest extends TestCase
@@ -21,96 +21,43 @@ class CreateControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.events.create'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.events.create');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/events/Create')
+            ->where('form.status', 'draft')
+            ->where('form.organization_id', null)
+            ->has('host_options')
+            ->has('organizations')
+            ->has('event_types')
+            ->has('status_options')
+            ->has('plugin_fields'));
     }
 
-    public function test_invoke_opens_the_yes_no_fields_as_before(): void
-    {
-        $trooper = Trooper::factory()->asSystemOwner()->create();
-
-        $event = $this->actingAs($trooper)->get(route('admin.events.create'))->viewData('event');
-
-        $this->assertTrue($event->tentative_signups_allowed);
-        $this->assertTrue($event->secure_staging_area);
-        $this->assertTrue($event->allow_blasters);
-        $this->assertTrue($event->allow_props);
-        $this->assertTrue($event->parking_available);
-        $this->assertTrue($event->accessible);
-        $this->assertFalse($event->require_mission_brief_ack);
-    }
-
-    public function test_invoke_keeps_old_input_over_the_defaults(): void
-    {
-        $trooper = Trooper::factory()->asSystemOwner()->create();
-
-        $event = $this->actingAs($trooper)
-            ->withSession(['_old_input' => ['name' => '', 'allow_blasters' => '0', 'venue' => 'Old Venue']])
-            ->get(route('admin.events.create'))
-            ->viewData('event');
-
-        $this->assertFalse($event->allow_blasters);
-        $this->assertSame('Old Venue', $event->venue);
-    }
-
-    public function test_invoke_defaults_can_attend_from_the_organization(): void
+    public function test_invoke_starts_with_the_host_from_the_organization_page(): void
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->asOrganization()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.events.create'));
-
-        $listed = $response->viewData('organizations')->firstWhere('id', $organization->id);
-        $this->assertTrue($listed->pivot->can_attend);
-    }
-
-    public function test_invoke_keeps_an_unchecked_can_attend_after_a_failed_submit(): void
-    {
-        $trooper = Trooper::factory()->asSystemOwner()->create();
-        $checked = Organization::factory()->asOrganization()->create();
-        $unchecked = Organization::factory()->asOrganization()->create();
-
-        //  An unchecked box isn't posted, so the old input only has the checked one.
         $response = $this->actingAs($trooper)
-            ->withSession(['_old_input' => [
-                'name' => '',
-                'organizations' => [$checked->id => ['can_attend' => '1']],
-            ]])
-            ->get(route('admin.events.create'));
+            ->get(route('admin.events.create', ['organization_id' => $organization->id]));
 
-        $organizations = $response->viewData('organizations');
-        $this->assertTrue($organizations->firstWhere('id', $checked->id)->pivot->can_attend);
-        $this->assertFalse($organizations->firstWhere('id', $unchecked->id)->pivot->can_attend);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('form.organization_id', $organization->id));
     }
 
-    public function test_invoke_lists_offered_types_in_order_with_their_help(): void
-    {
-        $trooper = Trooper::factory()->asSystemOwner()->create();
-        EventType::query()->update([EventType::SORT_ORDER => 50]);
-        EventType::where(EventType::NAME, 'Wedding')->update([EventType::SORT_ORDER => 1]);
-        EventType::where(EventType::NAME, 'Disney')->update([EventType::IS_ACTIVE => false]);
-
-        $response = $this->actingAs($trooper)->get(route('admin.events.create'));
-
-        $response->assertOk();
-        $wedding = EventType::idNamed('Wedding');
-        $response->assertSeeInOrder(['value="'.$wedding.'"', 'value="'.EventType::idNamed('Armor Party').'"'], false);
-        $response->assertDontSee('value="'.EventType::idNamed('Disney').'"', false);
-        $response->assertSee("x-data=\"{ event_type: '{$wedding}'", false);
-        $response->assertDontSee('@js(', false);
-        //  shown when a non-counting type is picked, in the words members see on the event
-        $response->assertSee(EventType::NOT_COUNTED_NOTICE);
-    }
-
-    public function test_invoke_preselects_regular_with_the_seeded_types(): void
+    public function test_invoke_refuses_a_host_the_trooper_cannot_host_for(): void
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.events.create'));
+        $this->actingAs($trooper)
+            ->get(route('admin.events.create', ['organization_id' => 999999]))
+            ->assertNotFound();
+    }
 
-        $response->assertOk();
-        $regular = EventType::idNamed('Regular');
-        $response->assertSee("x-data=\"{ event_type: '{$regular}'", false);
-        $response->assertSeeInOrder(['value="'.$regular.'"', 'value="'.EventType::idNamed('Armor Party').'"'], false);
+    public function test_invoke_forbids_a_member(): void
+    {
+        $trooper = Trooper::factory()->create();
+
+        $this->actingAs($trooper)->get(route('admin.events.create'))->assertForbidden();
     }
 
     public function test_invoke_requires_authentication(): void
