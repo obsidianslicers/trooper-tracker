@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace TroopTracker\Plugins\Xenforo\Http\Controllers;
 
+use App\Enums\FlashType;
 use App\Models\Event;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use TroopTracker\Plugins\Xenforo\Jobs\SendForumPostCommandStaffNotificationsJob;
 use TroopTracker\Plugins\Xenforo\Models\EventThread;
 use TroopTracker\Plugins\Xenforo\Services\XenforoService;
 
 class ForumReplyController
 {
-    public function __invoke(Request $request, Event $event, XenforoService $xenforo): Response
+    public function __invoke(Request $request, Event $event, XenforoService $xenforo): RedirectResponse
     {
         $thread = EventThread::linked($event->id);
 
@@ -43,15 +44,10 @@ class ForumReplyController
             SendForumPostCommandStaffNotificationsJob::dispatch($event, $request->user());
         }
 
-        $flashMessage = json_encode([
-            'message' => $success
-                ? __('xenforo::events.Reply posted!')
-                : __('xenforo::events.Failed to post reply.'),
-            'type' => $success ? 'success' : 'danger',
-        ]);
+        $success
+            ? FlashType::SUCCESS->toast(__('xenforo::events.Reply posted!'))
+            : FlashType::DANGER->toast(__('xenforo::events.Failed to post reply.'));
 
-        return response()
-            ->view('xenforo::events.comments', compact('event'))
-            ->header('X-Flash-Message', $flashMessage);
+        return redirect()->to(route('events.display', ['event' => $event]).'#forum-comments');
     }
 }
