@@ -6,7 +6,7 @@
     let { vm, event }: { vm: ListEventsViewModel; event: EventSummary } = $props();
 
     const header = $derived(event.is_locked ? "bg-secondary" : event.is_at_risk ? "bg-danger" : "bg-primary");
-    const my_status = $derived(vm.myStatusLabel(event));
+    const is_mine = $derived(vm.isMine(event));
     const show_dates = $derived(new Set(event.shifts.map((s) => s.date)).size > 1);
     const map_url = $derived(
         "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(event.venue_address ?? ""),
@@ -14,7 +14,7 @@
 </script>
 
 <div class="col">
-    <article class={["card h-100 shadow-sm event-card", { "border-success": my_status }]}>
+    <article class={["card h-100 shadow-sm event-card", { "border-success": is_mine }]}>
         <div class="card-header {header} d-flex align-items-center gap-2 text-white">
             {#if event.is_at_risk}
                 <i class="fa fa-fw fa-warning fa-2x"></i>
@@ -58,23 +58,19 @@
                             <i class="fa fa-fw fa-flag me-1"></i>{event.organization_name}
                         </div>
                     {/if}
-                    <div class="d-flex flex-wrap gap-1 mt-2">
-                        {#if my_status}
-                            <span class="badge text-bg-success">
-                                <i class="fa fa-fw fa-user-check"></i>
-                                {t("You: :status", { status: my_status })}
-                            </span>
-                        {/if}
-                        {#if event.is_at_risk}
-                            <span class="badge text-bg-danger">{t("Risk of cancellation")}</span>
-                        {/if}
-                        {#if event.is_locked}
-                            <span class="badge text-bg-secondary">
-                                <i class="fa fa-fw fa-lock"></i>
-                                {t("Sign-ups locked")}
-                            </span>
-                        {/if}
-                    </div>
+                    {#if event.is_at_risk || event.is_locked}
+                        <div class="d-flex flex-wrap gap-1 mt-2">
+                            {#if event.is_at_risk}
+                                <span class="badge text-bg-danger">{t("Risk of cancellation")}</span>
+                            {/if}
+                            {#if event.is_locked}
+                                <span class="badge text-bg-secondary">
+                                    <i class="fa fa-fw fa-lock"></i>
+                                    {t("Sign-ups locked")}
+                                </span>
+                            {/if}
+                        </div>
+                    {/if}
                 </div>
             </div>
 

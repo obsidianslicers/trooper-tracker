@@ -151,7 +151,6 @@ describe('ListEventsViewModel', () => {
 
         vm.toggleOnlyMine();
         expect(vm.filtered.map((e) => e.id)).toEqual([1]);
-        expect(vm.myStatusLabel(vm.filtered[0])).toBe('Going');
 
         vm.toggleOnlyMine();
         vm.toggleNeedsTroopers();

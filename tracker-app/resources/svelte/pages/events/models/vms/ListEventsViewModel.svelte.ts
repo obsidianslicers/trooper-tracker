@@ -91,10 +91,6 @@ export class ListEventsViewModel extends EventFiltersViewModel {
         return event.shifts.some((shift) => shift.my_status !== null);
     }
 
-    myStatusLabel(event: EventSummary): string | null {
-        return event.shifts.find((shift) => shift.my_status !== null)?.my_status_label ?? null;
-    }
-
     needsTroopers(event: EventSummary): boolean {
         return event.is_at_risk || event.shifts.some((shift) => this.shiftState(event, shift) === "empty");
     }
