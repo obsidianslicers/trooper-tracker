@@ -2,32 +2,32 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Reports;
+namespace Tests\Feature\Http\Controllers\Admin\Reports\Pages;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class EventSummaryControllerTest extends TestCase
+class ShowEventTypeCountControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_displays_event_summary_report(): void
+    public function test_invoke_displays_event_type_count_report(): void
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.reports.event-summary'));
+        $response = $this->actingAs($trooper)->get(route('admin.reports.event-type-count'));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
-            ->component('admin/reports/EventSummary')
-            ->where('days', 30)->has('events')->has('totals'));
+            ->component('admin/reports/EventTypeCount')
+            ->where('days', 30)->has('event_types')->has('totals'));
     }
 
     public function test_invoke_requires_authentication(): void
     {
-        $response = $this->get(route('admin.reports.event-summary'));
+        $response = $this->get(route('admin.reports.event-type-count'));
 
         $response->assertRedirect(route('auth.login'));
     }

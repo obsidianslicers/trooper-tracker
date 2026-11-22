@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Reports;
+namespace Tests\Feature\Http\Controllers\Admin\Reports\Pages;
 
 use App\Models\Event;
 use App\Models\EventShift;
@@ -13,7 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class DonationEventSummaryControllerTest extends TestCase
+class ShowDonationEventSummaryControllerTest extends TestCase
 {
     use RefreshDatabase;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Reports;
+namespace App\Http\Controllers\Admin\Reports\Pages;
 
 use App\Messages\Reports\PageData\StatusChangeLogPageData;
 use Illuminate\Http\Request;
@@ -12,7 +12,7 @@ use Inertia\Response;
 /**
  * Shows the Status Change Log report.
  */
-class StatusChangeLogController extends BaseReportsController
+class ShowStatusChangeLogController extends BaseReportsController
 {
     public function __invoke(Request $request): Response
     {

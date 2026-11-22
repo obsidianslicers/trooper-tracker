@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Reports;
+namespace App\Http\Controllers\Admin\Reports\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Messages\Reports\PageData\ReportsDashboardPageData;
@@ -13,7 +13,7 @@ use Inertia\Response;
 /**
  * Shows the Reports page: the operations dashboard and the list of reports.
  */
-class ReportDisplayController extends PageController
+class IndexReportsController extends PageController
 {
     protected function initialized(): void
     {

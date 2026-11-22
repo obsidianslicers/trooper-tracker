@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\ServiceRecords;
+namespace App\Http\Controllers\Admin\ServiceRecords\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
@@ -12,7 +12,7 @@ use App\Models\EventTrooper;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
-class AssignCreditController extends Controller
+class AssignEventTrooperCreditController extends Controller
 {
     public function __invoke(AssignCreditRequest $request, EventTrooper $event_trooper): InertiaResponse
     {

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Reports;
+namespace Tests\Feature\Http\Controllers\Admin\Reports\Pages;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class TrooperEventSummaryControllerTest extends TestCase
+class ShowTrooperEventSummaryControllerTest extends TestCase
 {
     use RefreshDatabase;
 
