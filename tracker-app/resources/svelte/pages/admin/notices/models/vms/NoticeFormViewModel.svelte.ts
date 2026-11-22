@@ -41,7 +41,7 @@ export class NoticeFormViewModel
     }
 
     get cancel_url(): string {
-        return getRoute("admin.notices.list", { organization_id: this.form.organization_id ?? undefined });
+        return getRoute("admin.notices.index", { organization_id: this.form.organization_id ?? undefined });
     }
 
     submit = (e: Event) => {
@@ -49,7 +49,7 @@ export class NoticeFormViewModel
 
         const url = this.is_update
             ? getRoute("admin.notices.update", { notice: this.notice_id! })
-            : getRoute("admin.notices.create");
+            : getRoute("admin.notices.store");
 
         this.form.post(url);
     };

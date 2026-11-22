@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Notices;
+namespace App\Http\Controllers\Admin\Notices\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Messages\Notices\PageData\CreateNoticePageData;
@@ -14,12 +14,12 @@ use Inertia\Response as InertiaResponse;
 /**
  * The create notice form, blank, copied from `copy_id`, or set to `organization_id`.
  */
-class CreateController extends PageController
+class CreateNoticeController extends PageController
 {
     protected function initialized(): void
     {
         $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.dashboard');
-        $this->crumbs->addRoute(__('admin.Notices'), 'admin.notices.list');
+        $this->crumbs->addRoute(__('admin.Notices'), 'admin.notices.index');
     }
 
     public function __invoke(Request $request): InertiaResponse

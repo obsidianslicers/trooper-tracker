@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Notices;
+namespace Tests\Feature\Http\Controllers\Admin\Notices\Commands;
 
 use App\Enums\NoticeType;
 use App\Models\Organization;
@@ -10,7 +10,7 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class CreateSubmitControllerTest extends TestCase
+class StoreNoticeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -19,7 +19,7 @@ class CreateSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create();
 
-        $response = $this->actingAs($trooper)->post('/admin/notices/create', [
+        $response = $this->actingAs($trooper)->post('/admin/notices', [
             'organization_id' => $organization->id,
             'title' => 'Operational Briefing',
             'type' => NoticeType::INFO->value,
@@ -28,7 +28,7 @@ class CreateSubmitControllerTest extends TestCase
             'message' => 'All troopers report to staging area.',
         ]);
 
-        $response->assertRedirect(route('admin.notices.list'));
+        $response->assertRedirect(route('admin.notices.index'));
         $this->assertDatabaseHas('tt_notices', [
             'title' => 'Operational Briefing',
             'organization_id' => $organization->id,
@@ -39,7 +39,7 @@ class CreateSubmitControllerTest extends TestCase
     {
         $organization = Organization::factory()->create();
 
-        $response = $this->post('/admin/notices/create', [
+        $response = $this->post('/admin/notices', [
             'organization_id' => $organization->id,
             'title' => 'Operational Briefing',
             'type' => NoticeType::INFO->value,

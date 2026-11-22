@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Notices;
+namespace App\Http\Controllers\Admin\Notices\Commands;
 
 use App\Enums\FlashType;
 use App\Enums\NoticeType;
@@ -12,7 +12,7 @@ use App\Messages\Notices\Commands\CreateNotice;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 
-class CreateSubmitController extends Controller
+class StoreNoticeController extends Controller
 {
     public function __invoke(CreateRequest $request): RedirectResponse
     {
@@ -27,6 +27,6 @@ class CreateSubmitController extends Controller
 
         FlashType::created($notice);
 
-        return redirect()->route('admin.notices.list');
+        return redirect()->route('admin.notices.index');
     }
 }

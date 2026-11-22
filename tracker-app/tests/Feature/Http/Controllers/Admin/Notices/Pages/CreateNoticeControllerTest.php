@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Notices;
+namespace Tests\Feature\Http\Controllers\Admin\Notices\Pages;
 
 use App\Models\Notice;
 use App\Models\Organization;
@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class CreateControllerTest extends TestCase
+class CreateNoticeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
