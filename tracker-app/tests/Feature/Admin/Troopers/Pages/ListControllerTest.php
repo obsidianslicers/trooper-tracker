@@ -6,6 +6,7 @@ namespace Tests\Feature\Admin\Troopers\Pages;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ListControllerTest extends TestCase
@@ -20,7 +21,28 @@ class ListControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.troopers.list'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.troopers.list');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/troopers/List')
+            ->has('troopers.data', 3)
+            ->where('filters.sort_col', 'display_name')
+            ->where('filters.sort_dir', 'asc'));
+    }
+
+    public function test_invoke_keeps_the_filters_and_ignores_an_unknown_sort(): void
+    {
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+
+        $response = $this->actingAs($trooper)->get(route('admin.troopers.list', [
+            'membership_role' => 'moderator',
+            'sort_col' => 'password',
+            'sort_dir' => 'desc',
+        ]));
+
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('filters.membership_role', 'moderator')
+            ->where('filters.sort_col', 'display_name')
+            ->where('filters.sort_dir', 'desc')
+            ->has('troopers.data', 0));
     }
 
     public function test_invoke_requires_authentication(): void

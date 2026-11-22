@@ -8,6 +8,7 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 /**
@@ -34,8 +35,10 @@ class RecruitControllerTest extends TestCase
         $response = $this->actingAs($moderator)->get(route('admin.troopers.recruit'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.troopers.recruit');
-        $response->assertViewHas('organizations_data');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/troopers/Recruit')
+            ->where('organization_options.0.value', $organization->id)
+            ->has("identifiers.{$organization->id}"));
     }
 
     public function test_invoke_renders_recruit_view_for_administrator(): void
@@ -45,6 +48,6 @@ class RecruitControllerTest extends TestCase
         $response = $this->actingAs($admin)->get(route('admin.troopers.recruit'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.troopers.recruit');
+        $response->assertInertia(fn (Assert $page) => $page->component('admin/troopers/Recruit'));
     }
 }
