@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Costumes;
+namespace App\Http\Controllers\Admin\Costumes\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
@@ -11,7 +11,7 @@ use App\Messages\Costumes\Commands\UpdateCostume;
 use App\Models\Costume;
 use Illuminate\Http\RedirectResponse;
 
-class UpdateSubmitController extends Controller
+class UpdateCostumeController extends Controller
 {
     public function __invoke(UpdateRequest $request, Costume $costume): RedirectResponse
     {
@@ -23,6 +23,6 @@ class UpdateSubmitController extends Controller
 
         FlashType::updated($costume);
 
-        return redirect()->route('admin.costumes.list');
+        return redirect()->route('admin.costumes.index');
     }
 }

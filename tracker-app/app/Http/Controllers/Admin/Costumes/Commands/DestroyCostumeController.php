@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Costumes;
+namespace App\Http\Controllers\Admin\Costumes\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
@@ -11,7 +11,7 @@ use App\Models\Costume;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class DeleteSubmitController extends Controller
+class DestroyCostumeController extends Controller
 {
     public function __invoke(Request $request, Costume $costume): RedirectResponse
     {
@@ -25,6 +25,6 @@ class DeleteSubmitController extends Controller
 
         FlashType::success(__("admin.Deleted costume ':name'", ['name' => $costume_name]));
 
-        return redirect()->route('admin.costumes.list');
+        return redirect()->route('admin.costumes.index');
     }
 }

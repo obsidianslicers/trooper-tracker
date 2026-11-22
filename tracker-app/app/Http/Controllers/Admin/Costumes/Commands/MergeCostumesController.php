@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Costumes;
+namespace App\Http\Controllers\Admin\Costumes\Commands;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Costumes\MergeCostumesRequest;
@@ -13,7 +13,7 @@ use Illuminate\Http\RedirectResponse;
 /**
  * Folds the selected duplicate costume into the costume being kept.
  */
-class MergeCostumesSubmitController extends Controller
+class MergeCostumesController extends Controller
 {
     public function __invoke(MergeCostumesRequest $request): RedirectResponse
     {
@@ -23,7 +23,7 @@ class MergeCostumesSubmitController extends Controller
         MergeCostumes::call(target_costume: $target_costume, source_costume: $source_costume);
 
         return redirect()
-            ->route('admin.costumes.merge')
+            ->route('admin.costumes.merge.create')
             ->withSuccess("Merged \"{$source_costume->name}\" into \"{$target_costume->name}\".");
     }
 }

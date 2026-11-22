@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Costumes;
+namespace Tests\Feature\Http\Controllers\Admin\Costumes\Commands;
 
 use App\Models\Costume;
 use App\Models\Event;
@@ -17,7 +17,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
-class DeleteSubmitControllerTest extends TestCase
+class DestroyCostumeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -30,7 +30,7 @@ class DeleteSubmitControllerTest extends TestCase
             ->withoutMiddleware(ValidateCsrfToken::class)
             ->post("/admin/costumes/{$costume->id}/delete");
 
-        $response->assertRedirect(route('admin.costumes.list'));
+        $response->assertRedirect(route('admin.costumes.index'));
         $this->assertSoftDeleted('tt_costumes', ['id' => $costume->id]);
     }
 

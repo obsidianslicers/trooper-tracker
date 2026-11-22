@@ -64,7 +64,7 @@ export class MergeCostumesViewModel extends SubmitableViewModel<
             return;
         }
 
-        this.form.post(getRoute("admin.costumes.merge"), {
+        this.form.post(getRoute("admin.costumes.merge.store"), {
             onSuccess: () => {
                 this.source_costume = null;
                 this.target_costume = null;

@@ -43,7 +43,7 @@ test.describe('costume list', () => {
 
         await page.getByLabel('Name').fill(seeded.newCostume);
         await page.getByRole('button', { name: 'Create' }).click();
-        await expect(page).toHaveURL(/\/admin\/costumes\/\d+\/update$/);
+        await expect(page).toHaveURL(/\/admin\/costumes\/\d+\/edit$/);
 
         await page.getByLabel('Rebel Legion').check();
         await page.getByRole('button', { name: 'Update' }).click();

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Costumes;
+namespace Tests\Feature\Http\Controllers\Admin\Costumes\Commands;
 
 use App\Models\Costume;
 use App\Models\Organization;
@@ -11,7 +11,7 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class UpdateSubmitControllerTest extends TestCase
+class UpdateCostumeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -22,7 +22,7 @@ class UpdateSubmitControllerTest extends TestCase
         $organization = Organization::factory()->create();
         $other_organization = Organization::factory()->create();
 
-        $response = $this->actingAs($trooper)->post('/admin/costumes/' . $costume->id . '/update', [
+        $response = $this->actingAs($trooper)->post('/admin/costumes/'.$costume->id, [
             'name' => 'New Name',
             'organizations' => [
                 $organization->id => ['selected' => '1'],
@@ -30,7 +30,7 @@ class UpdateSubmitControllerTest extends TestCase
             ],
         ]);
 
-        $response->assertRedirect(route('admin.costumes.list'));
+        $response->assertRedirect(route('admin.costumes.index'));
         $this->assertDatabaseHas('tt_costumes', [
             'id' => $costume->id,
             'name' => 'New Name',
@@ -50,14 +50,14 @@ class UpdateSubmitControllerTest extends TestCase
 
         $costume->organizations()->sync([$organization->id, $removed_organization->id]);
 
-        $response = $this->actingAs($trooper)->post('/admin/costumes/' . $costume->id . '/update', [
+        $response = $this->actingAs($trooper)->post('/admin/costumes/'.$costume->id, [
             'name' => 'New Name',
             'organizations' => [
                 $organization->id => ['selected' => '1'],
             ],
         ]);
 
-        $response->assertRedirect(route('admin.costumes.list'));
+        $response->assertRedirect(route('admin.costumes.index'));
         // Verify the selected organization still exists and is not deleted
         $this->assertDatabaseHas('tt_organization_costumes', [
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
@@ -79,7 +79,7 @@ class UpdateSubmitControllerTest extends TestCase
     {
         $costume = Costume::factory()->create();
 
-        $response = $this->post('/admin/costumes/' . $costume->id . '/update', [
+        $response = $this->post('/admin/costumes/'.$costume->id, [
             'name' => 'New Name',
         ]);
 

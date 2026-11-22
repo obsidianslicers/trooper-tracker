@@ -73,6 +73,6 @@ describe('UpdateViewModel', () => {
         vm.confirmDelete();
         vm.delete();
 
-        expect(post).toHaveBeenLastCalledWith('/admin.costumes.delete?costume=3', {}, expect.any(Object));
+        expect(post).toHaveBeenLastCalledWith('/admin.costumes.destroy?costume=3', {}, expect.any(Object));
     });
 });

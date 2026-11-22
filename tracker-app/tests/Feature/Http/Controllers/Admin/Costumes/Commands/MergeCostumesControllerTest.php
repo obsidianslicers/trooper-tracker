@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Costumes;
+namespace Tests\Feature\Http\Controllers\Admin\Costumes\Commands;
 
 use App\Messages\Costumes\Commands\Merge\MergeCostumes;
 use App\Models\Costume;
@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
-class MergeCostumesSubmitControllerTest extends TestCase
+class MergeCostumesControllerTest extends TestCase
 {
     use FakesMessages;
     use RefreshDatabase;
@@ -27,12 +27,12 @@ class MergeCostumesSubmitControllerTest extends TestCase
 
         $response = $this->actingAs($admin)
             ->withoutMiddleware(ValidateCsrfToken::class)
-            ->post(route('admin.costumes.merge'), [
+            ->post(route('admin.costumes.merge.store'), [
                 'source_costume_id' => $source->id,
                 'target_costume_id' => $target->id,
             ]);
 
-        $response->assertRedirect(route('admin.costumes.merge'));
+        $response->assertRedirect(route('admin.costumes.merge.create'));
         $response->assertSessionHas('success', 'Merged "TK Stormtroper" into "TK Stormtrooper".');
         $messages->assertCalled(
             MergeCostumes::class,
@@ -49,7 +49,7 @@ class MergeCostumesSubmitControllerTest extends TestCase
 
         $this->actingAs($admin)
             ->withoutMiddleware(ValidateCsrfToken::class)
-            ->post(route('admin.costumes.merge'), [
+            ->post(route('admin.costumes.merge.store'), [
                 'source_costume_id' => $source->id,
                 'target_costume_id' => $target->id,
             ]);
@@ -67,7 +67,7 @@ class MergeCostumesSubmitControllerTest extends TestCase
 
         $response = $this->actingAs($admin)
             ->withoutMiddleware(ValidateCsrfToken::class)
-            ->post(route('admin.costumes.merge'), [
+            ->post(route('admin.costumes.merge.store'), [
                 'source_costume_id' => $costume->id,
                 'target_costume_id' => $costume->id,
             ]);
@@ -86,7 +86,7 @@ class MergeCostumesSubmitControllerTest extends TestCase
 
         $this->actingAs($moderator)
             ->withoutMiddleware(ValidateCsrfToken::class)
-            ->post(route('admin.costumes.merge'), [
+            ->post(route('admin.costumes.merge.store'), [
                 'source_costume_id' => $source->id,
                 'target_costume_id' => $target->id,
             ]);

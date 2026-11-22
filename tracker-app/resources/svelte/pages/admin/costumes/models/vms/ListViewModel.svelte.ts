@@ -19,11 +19,11 @@ export class ListViewModel extends ViewModel {
 
         const term = this.search_term.trim();
 
-        router.visit(getRoute("admin.costumes.list", term.length > 0 ? { search_term: term } : {}));
+        router.visit(getRoute("admin.costumes.index", term.length > 0 ? { search_term: term } : {}));
     };
 
     updateUrl(costume: CostumeRow): string {
-        return getRoute("admin.costumes.update", { costume: costume.id });
+        return getRoute("admin.costumes.edit", { costume: costume.id });
     }
 
     deleteUrl(costume: CostumeRow): string {
