@@ -363,12 +363,29 @@ npm run build    # Production build
 
 ## Commit Messages
 
-Format: `<type>: <short all lower case message>`, where type is `fix`, `feature`, `chore`,
-`style`, etc.
+Format: `<type>: <short all lower case message>`. PRs are squash-merged, so the PR title becomes
+the commit on `main`: give PR titles the same format.
+
+| Type | When |
+|------|------|
+| `feature` | Something new people can do or see |
+| `fix` | Something that behaved wrongly now behaves correctly |
+| `style` | UI layout or look only, with no logic changed: CSS, or classes and markup in a view or Svelte component |
+| `refactor` | Restructuring or renaming with no change in behaviour |
+| `perf` | Faster or lighter, same behaviour |
+| `test` | Tests only (PHPUnit, Vitest, Playwright) |
+| `docs` | Documentation only (`docs/`, CLAUDE.md, READMEs) |
+| `chore` | Everything else: dependencies, CI, build and tooling config, cleanup |
+
+- One spelling per type: `feature`, not `feat`; `fix`, not `bug`; `docs`, not `doc`.
+- A change that fits more than one type takes the one that matters most to users:
+  `feature` > `fix` > `perf` > `style` > `refactor` > `test` / `docs` > `chore`. A layout change
+  that also changes a condition, prop, PHP or TypeScript is a `fix` or `feature`, not `style`.
 
 ```
 fix: station capacity is a number input
 feature: create event in the events menu for everyone who can create events
+style: support the garrison button is full width on phones
 ```
 
 ---
