@@ -16,7 +16,7 @@ class UpdateSettingsController extends PageController
 {
     protected function initialized(): void
     {
-        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
+        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.dashboard');
         $this->crumbs->addRoute(__('admin.Plugins'), 'admin.plugins.list');
     }
 

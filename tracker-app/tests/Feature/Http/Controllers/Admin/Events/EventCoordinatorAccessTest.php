@@ -61,7 +61,7 @@ class EventCoordinatorAccessTest extends TestCase
     public function test_event_coordinator_has_no_command_staff_dashboard(): void
     {
         $this->actingAs($this->event_coordinator)
-            ->get(route('admin.display'))
+            ->get(route('admin.dashboard'))
             ->assertForbidden();
     }
 
@@ -72,7 +72,7 @@ class EventCoordinatorAccessTest extends TestCase
             ->assertOk()
             ->assertSee(route('admin.events.create'), false)
             ->assertSee('My Events')
-            ->assertDontSee('href="'.route('admin.display').'"', false);
+            ->assertDontSee('href="'.route('admin.dashboard').'"', false);
     }
 
     public function test_event_coordinator_can_host_for_organizations_they_belong_to(): void
@@ -153,7 +153,7 @@ class EventCoordinatorAccessTest extends TestCase
         //  no breadcrumb into the Command Staff dashboard they can't open
         $this->actingAs($this->event_coordinator)->get(route('admin.events.update', ['event' => $own]))
             ->assertOk()
-            ->assertDontSee('href="'.route('admin.display').'"', false);
+            ->assertDontSee('href="'.route('admin.dashboard').'"', false);
         $this->actingAs($this->event_coordinator)->get(route('admin.events.update', ['event' => $others]))->assertForbidden();
     }
 

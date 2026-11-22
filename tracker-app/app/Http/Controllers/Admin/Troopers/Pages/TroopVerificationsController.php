@@ -14,7 +14,7 @@ class TroopVerificationsController extends PageController
 {
     protected function initialized(): void
     {
-        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
+        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.dashboard');
     }
 
     public function __invoke(Request $request): Response

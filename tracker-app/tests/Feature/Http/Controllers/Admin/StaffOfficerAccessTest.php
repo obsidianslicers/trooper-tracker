@@ -35,7 +35,7 @@ class StaffOfficerAccessTest extends TestCase
     public static function administratorRoutes(): array
     {
         return [
-            'command staff' => ['admin.display'],
+            'command staff' => ['admin.dashboard'],
             'permission approvals' => ['admin.troopers.permissions.approvals'],
             'faq' => ['admin.faq.index'],
             'costumes' => ['admin.costumes.list'],
@@ -80,7 +80,7 @@ class StaffOfficerAccessTest extends TestCase
     {
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
 
-        $response = $this->actingAs($staff_officer)->get(route('admin.display'));
+        $response = $this->actingAs($staff_officer)->get(route('admin.dashboard'));
 
         $response->assertOk();
         $cards = $this->cardKeys($response);
@@ -96,7 +96,7 @@ class StaffOfficerAccessTest extends TestCase
     {
         $administrator = Trooper::factory()->asSystemOwner()->create();
 
-        $response = $this->actingAs($administrator)->get(route('admin.display'));
+        $response = $this->actingAs($administrator)->get(route('admin.dashboard'));
 
         $cards = $this->cardKeys($response);
         $this->assertContains('system-check', $cards);

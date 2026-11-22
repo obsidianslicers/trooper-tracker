@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Messages\System\PageData\CommandStaffDashboardPageData;
@@ -13,7 +13,7 @@ use Inertia\Response;
 /**
  * Shows the Command Staff dashboard.
  */
-class AdminDisplayController extends PageController
+class ShowDashboardController extends PageController
 {
     public function __invoke(Request $request): Response
     {

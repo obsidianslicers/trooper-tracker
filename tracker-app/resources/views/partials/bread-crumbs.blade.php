@@ -2,7 +2,7 @@
 
 {{-- Event coordinators use the event pages under admin/ but not the Command Staff dashboard --}}
 @php($trail = collect($crumbs->getCrumbs())->reject(
-    fn ($crumb) => $crumb->url === route('admin.display') && Auth::user()?->is_event_coordinator
+    fn ($crumb) => $crumb->url === route('admin.dashboard') && Auth::user()?->is_event_coordinator
 ))
 
 @if ($trail->isNotEmpty())

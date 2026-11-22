@@ -40,7 +40,7 @@
                 @include('partials.inc.navbar-notifications')
                 @pluginSlot('navbar.member-links')
                 @role(['system_owner', 'staff_officer', 'moderator'])
-                    <x-nav-link :url="route('admin.display')"
+                    <x-nav-link :url="route('admin.dashboard')"
                                 :active="request()->routeIs('admin.*')">
                         <span class="text-warning">
                             {{ __('layout.Command Staff') }}
