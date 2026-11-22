@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Awards;
+namespace App\Http\Controllers\Admin\Awards\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
@@ -11,7 +11,7 @@ use App\Messages\Awards\Commands\RenameAward;
 use App\Models\Award;
 use Illuminate\Http\RedirectResponse;
 
-class UpdateSubmitController extends Controller
+class UpdateAwardController extends Controller
 {
     public function __invoke(UpdateRequest $request, Award $award): RedirectResponse
     {
@@ -19,6 +19,6 @@ class UpdateSubmitController extends Controller
 
         FlashType::updated($award);
 
-        return redirect()->route('admin.awards.list');
+        return redirect()->route('admin.awards.index');
     }
 }

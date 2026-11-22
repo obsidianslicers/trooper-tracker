@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Awards;
+namespace Tests\Feature\Http\Controllers\Admin\Awards\Pages;
 
-use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class CreateControllerTest extends TestCase
+class CreateAwardControllerTest extends TestCase
 {
     use RefreshDatabase;
 

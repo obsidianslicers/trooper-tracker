@@ -73,7 +73,7 @@ test.describe('awards', () => {
         await page.getByLabel('Frequency').selectOption({ label: 'Annually' });
         await page.getByLabel('Name').fill(seeded.newAward);
         await page.getByRole('button', { name: 'Create', exact: true }).click();
-        await expect(page).toHaveURL(/\/admin\/awards\/\d+\/update$/);
+        await expect(page).toHaveURL(/\/admin\/awards\/\d+\/edit$/);
 
         await page.getByLabel('Name').fill(`${seeded.newAward} 2026`);
         await page.getByRole('button', { name: 'Update', exact: true }).click();

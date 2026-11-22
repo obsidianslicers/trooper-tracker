@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Awards;
+namespace Tests\Feature\Http\Controllers\Admin\Awards\Commands;
 
 use App\Events\AwardRevoked;
 use App\Models\Award;
@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event as EventFacade;
 use Tests\TestCase;
 
-class RemoveTrooperControllerTest extends TestCase
+class DestroyAwardTrooperControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -27,11 +27,11 @@ class RemoveTrooperControllerTest extends TestCase
             AwardTrooper::TROOPER_ID => $recipient->id,
         ]);
 
-        $response = $this->actingAs($admin)->post('/admin/awards/'.$award->id.'/troopers', [
+        $response = $this->actingAs($admin)->post('/admin/awards/'.$award->id.'/troopers/delete', [
             'remove_trooper_id' => $award_trooper->id,
         ]);
 
-        $response->assertRedirect(route('admin.awards.list-troopers', $award));
+        $response->assertRedirect(route('admin.awards.troopers.index', $award));
 
         $this->assertSoftDeleted('tt_award_troopers', [
             'id' => $award_trooper->id,
@@ -48,7 +48,7 @@ class RemoveTrooperControllerTest extends TestCase
             AwardTrooper::TROOPER_ID => $recipient->id,
         ]);
 
-        $response = $this->post('/admin/awards/'.$award->id.'/troopers', [
+        $response = $this->post('/admin/awards/'.$award->id.'/troopers/delete', [
             'remove_trooper_id' => $award_trooper->id,
         ]);
 
@@ -69,7 +69,7 @@ class RemoveTrooperControllerTest extends TestCase
             AwardTrooper::TROOPER_ID => Trooper::factory()->asMember()->create()->id,
         ]);
 
-        $this->actingAs($admin)->post('/admin/awards/'.$award->id.'/troopers', [
+        $this->actingAs($admin)->post('/admin/awards/'.$award->id.'/troopers/delete', [
             'remove_trooper_id' => $award_trooper->id,
         ]);
 

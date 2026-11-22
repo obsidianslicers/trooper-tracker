@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Awards;
+namespace Tests\Feature\Http\Controllers\Admin\Awards\Commands;
 
 use App\Models\Award;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class UpdateSubmitControllerTest extends TestCase
+class UpdateAwardControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -18,11 +18,11 @@ class UpdateSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $award = Award::factory()->create();
 
-        $response = $this->actingAs($trooper)->post('/admin/awards/' . $award->id . '/update', [
+        $response = $this->actingAs($trooper)->post('/admin/awards/'.$award->id, [
             'name' => 'Updated Medal Name',
         ]);
 
-        $response->assertRedirect(route('admin.awards.list'));
+        $response->assertRedirect(route('admin.awards.index'));
         $this->assertDatabaseHas('tt_awards', [
             'id' => $award->id,
             'name' => 'Updated Medal Name',
@@ -33,7 +33,7 @@ class UpdateSubmitControllerTest extends TestCase
     {
         $award = Award::factory()->create();
 
-        $response = $this->post('/admin/awards/' . $award->id . '/update', [
+        $response = $this->post('/admin/awards/'.$award->id, [
             'name' => 'Updated Medal Name',
         ]);
 

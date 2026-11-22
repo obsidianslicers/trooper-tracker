@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Awards;
+namespace App\Http\Controllers\Admin\Awards\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
@@ -13,7 +13,7 @@ use App\Models\Trooper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 
-class AssignTrooperSubmitController extends Controller
+class StoreAwardTrooperController extends Controller
 {
     public function __invoke(AssignTrooperRequest $request, Award $award): RedirectResponse
     {
@@ -29,6 +29,6 @@ class AssignTrooperSubmitController extends Controller
 
         FlashType::success(__('admin.... and the Award goes to :name', ['name' => $trooper->display_name]));
 
-        return redirect()->route('admin.awards.list-troopers', $award);
+        return redirect()->route('admin.awards.troopers.index', $award);
     }
 }

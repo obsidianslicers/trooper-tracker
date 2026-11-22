@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Awards;
+namespace Tests\Feature\Http\Controllers\Admin\Awards\Commands;
 
 use App\Events\AwardGranted;
 use App\Models\Award;
@@ -11,7 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event as EventFacade;
 use Tests\TestCase;
 
-class AssignTrooperSubmitControllerTest extends TestCase
+class StoreAwardTrooperControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -21,12 +21,12 @@ class AssignTrooperSubmitControllerTest extends TestCase
         $recipient = Trooper::factory()->asMember()->create();
         $award = Award::factory()->create();
 
-        $response = $this->actingAs($admin)->post('/admin/awards/'.$award->id.'/assign-trooper', [
+        $response = $this->actingAs($admin)->post('/admin/awards/'.$award->id.'/troopers', [
             'trooper_id' => $recipient->id,
             'award_date' => now()->toDateString(),
         ]);
 
-        $response->assertRedirect(route('admin.awards.list-troopers', $award));
+        $response->assertRedirect(route('admin.awards.troopers.index', $award));
         $this->assertDatabaseHas('tt_award_troopers', [
             'award_id' => $award->id,
             'trooper_id' => $recipient->id,
@@ -38,7 +38,7 @@ class AssignTrooperSubmitControllerTest extends TestCase
         $recipient = Trooper::factory()->asMember()->create();
         $award = Award::factory()->create();
 
-        $response = $this->post('/admin/awards/'.$award->id.'/assign-trooper', [
+        $response = $this->post('/admin/awards/'.$award->id.'/troopers', [
             'trooper_id' => $recipient->id,
             'award_date' => now()->toDateString(),
         ]);
@@ -53,7 +53,7 @@ class AssignTrooperSubmitControllerTest extends TestCase
         $recipient = Trooper::factory()->asMember()->create();
         $award = Award::factory()->create();
 
-        $this->actingAs($admin)->post('/admin/awards/'.$award->id.'/assign-trooper', [
+        $this->actingAs($admin)->post('/admin/awards/'.$award->id.'/troopers', [
             'trooper_id' => $recipient->id,
             'award_date' => now()->toDateString(),
         ]);

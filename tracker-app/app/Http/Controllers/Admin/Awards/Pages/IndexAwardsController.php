@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Awards;
+namespace App\Http\Controllers\Admin\Awards\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Messages\Awards\PageData\ListAwardsPageData;
@@ -14,7 +14,7 @@ use Inertia\Response as InertiaResponse;
 /**
  * Lists the awards the trooper may moderate, by search term and organization.
  */
-class ListController extends PageController
+class IndexAwardsController extends PageController
 {
     protected function initialized(): void
     {
