@@ -9,7 +9,7 @@ use App\Http\Requests\Admin\EventTypes\ReorderRequest;
 use App\Messages\EventTypes\Commands\ReorderEventTypes;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
-class ReorderSubmitController extends Controller
+class ReorderEventTypesController extends Controller
 {
     public function __invoke(ReorderRequest $request): SymfonyResponse
     {

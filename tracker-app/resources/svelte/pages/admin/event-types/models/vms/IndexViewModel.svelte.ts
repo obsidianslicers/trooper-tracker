@@ -30,7 +30,7 @@ export class IndexViewModel extends ViewModel {
 
         this.event_types = pageData.event_types.map((t) => ({
             ...t,
-            update_route: getRoute("admin.event-types.update", { event_type: t.id }),
+            update_route: getRoute("admin.event-types.edit", { event_type: t.id }),
         }));
     }
 
@@ -60,7 +60,7 @@ export class IndexViewModel extends ViewModel {
         this.deleting = true;
 
         const id = this.delete_event_type.id;
-        const url = getRoute("admin.event-types.delete", { event_type: id });
+        const url = getRoute("admin.event-types.destroy", { event_type: id });
 
         const options = createPartialReloadOptions({
             onFinish: () => {

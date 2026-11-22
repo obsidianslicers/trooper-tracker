@@ -11,7 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class UpdateControllerTest extends TestCase
+class EditEventTypeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -22,7 +22,7 @@ class UpdateControllerTest extends TestCase
         Event::factory()->count(2)->create([Event::EVENT_TYPE_ID => $event_type->id]);
 
         $response = $this->actingAs($trooper)
-            ->get(route('admin.event-types.update', ['event_type' => $event_type]));
+            ->get(route('admin.event-types.edit', ['event_type' => $event_type]));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page

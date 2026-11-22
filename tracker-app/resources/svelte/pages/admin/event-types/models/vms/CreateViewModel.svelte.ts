@@ -26,6 +26,6 @@ export class CreateViewModel
     submit = (e: Event) => {
         e.preventDefault();
 
-        this.form.post(getRoute("admin.event-types.create"));
+        this.form.post(getRoute("admin.event-types.store"));
     };
 }

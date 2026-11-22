@@ -2,25 +2,26 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Admin\EventTypes\Commands\CreateSubmitController;
-use App\Http\Controllers\Admin\EventTypes\Commands\DeleteSubmitController;
-use App\Http\Controllers\Admin\EventTypes\Commands\ReorderSubmitController;
-use App\Http\Controllers\Admin\EventTypes\Commands\UpdateSubmitController;
-use App\Http\Controllers\Admin\EventTypes\Pages\CreateController;
-use App\Http\Controllers\Admin\EventTypes\Pages\IndexController;
-use App\Http\Controllers\Admin\EventTypes\Pages\UpdateController;
+use App\Http\Controllers\Admin\EventTypes\Commands\DestroyEventTypeController;
+use App\Http\Controllers\Admin\EventTypes\Commands\ReorderEventTypesController;
+use App\Http\Controllers\Admin\EventTypes\Commands\StoreEventTypeController;
+use App\Http\Controllers\Admin\EventTypes\Commands\UpdateEventTypeController;
+use App\Http\Controllers\Admin\EventTypes\Pages\CreateEventTypeController;
+use App\Http\Controllers\Admin\EventTypes\Pages\EditEventTypeController;
+use App\Http\Controllers\Admin\EventTypes\Pages\IndexEventTypesController;
 use Illuminate\Support\Facades\Route;
 
+//  ADMIN/EVENT TYPES
 Route::prefix('admin/event-types')
     ->name('admin.event-types.')
     ->middleware(['auth', 'check.role:staff_officer,system_owner'])
     ->group(function ()
     {
-        Route::get('/', IndexController::class)->name('index');
-        Route::get('/create', CreateController::class)->name('create');
-        Route::post('/create', CreateSubmitController::class);
-        Route::post('/reorder', ReorderSubmitController::class)->name('reorder');
-        Route::get('/{event_type}/update', UpdateController::class)->name('update');
-        Route::post('/{event_type}/update', UpdateSubmitController::class);
-        Route::post('/{event_type}/delete', DeleteSubmitController::class)->name('delete');
+        Route::get('/', IndexEventTypesController::class)->name('index');
+        Route::get('/create', CreateEventTypeController::class)->name('create');
+        Route::post('/', StoreEventTypeController::class)->name('store');
+        Route::post('/reorder', ReorderEventTypesController::class)->name('reorder');
+        Route::get('/{event_type}/edit', EditEventTypeController::class)->name('edit');
+        Route::post('/{event_type}', UpdateEventTypeController::class)->name('update');
+        Route::post('/{event_type}/delete', DestroyEventTypeController::class)->name('destroy');
     });
