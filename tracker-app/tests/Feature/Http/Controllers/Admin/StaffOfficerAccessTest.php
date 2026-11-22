@@ -25,7 +25,7 @@ class StaffOfficerAccessTest extends TestCase
             'plugins' => ['admin.plugins.list'],
             'system check' => ['admin.system-check'],
             'merge troopers' => ['admin.troopers.merge'],
-            'merge costumes' => ['admin.costumes.merge'],
+            'merge costumes' => ['admin.costumes.merge.create'],
         ];
     }
 
@@ -38,7 +38,7 @@ class StaffOfficerAccessTest extends TestCase
             'command staff' => ['admin.dashboard'],
             'permission approvals' => ['admin.troopers.permissions.approvals'],
             'faq' => ['admin.faq.index'],
-            'costumes' => ['admin.costumes.list'],
+            'costumes' => ['admin.costumes.index'],
         ];
     }
 

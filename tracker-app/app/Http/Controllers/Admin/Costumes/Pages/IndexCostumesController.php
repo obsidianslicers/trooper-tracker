@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Costumes;
+namespace App\Http\Controllers\Admin\Costumes\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Messages\Costumes\PageData\ListCostumesPageData;
@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
-class ListController extends PageController
+class IndexCostumesController extends PageController
 {
     protected function initialized(): void
     {

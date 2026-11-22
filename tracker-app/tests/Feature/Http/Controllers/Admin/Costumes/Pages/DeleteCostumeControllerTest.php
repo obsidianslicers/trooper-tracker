@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Costumes;
+namespace Tests\Feature\Http\Controllers\Admin\Costumes\Pages;
 
 use App\Models\Costume;
 use App\Models\Trooper;
@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class DeleteControllerTest extends TestCase
+class DeleteCostumeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
