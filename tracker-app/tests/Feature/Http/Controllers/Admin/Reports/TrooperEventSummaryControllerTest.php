@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Reports;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class TrooperEventSummaryControllerTest extends TestCase
@@ -19,7 +20,14 @@ class TrooperEventSummaryControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.reports.trooper-event-summary'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.reports.trooper-event-summary');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/reports/TrooperEventSummary')
+            ->has('troopers.data')
+            ->has('organizations')
+            ->has('filters')
+            ->has('sorts')
+            ->has('csv_url')
+        );
     }
 
     public function test_invoke_requires_authentication(): void

@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class DonationEventSummaryControllerTest extends TestCase
@@ -23,7 +24,14 @@ class DonationEventSummaryControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.reports.donation-event-summary'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.reports.donation-event-summary');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/reports/DonationEventSummary')
+            ->has('events.data')
+            ->has('clubs')
+            ->has('sort_options')
+            ->has('filters')
+            ->has('csv_url')
+        );
     }
 
     public function test_invoke_streams_donation_event_summary_csv(): void

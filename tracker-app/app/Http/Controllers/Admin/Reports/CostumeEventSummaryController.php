@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
+use App\Messages\Reports\PageData\CostumeEventSummaryPageData;
 use App\Messages\Reports\Queries\GetCostumeEventSummary;
 use App\Models\Organization;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CostumeEventSummaryController extends BaseReportsController
 {
-    public function __invoke(Request $request): View|StreamedResponse
+    public function __invoke(Request $request): Response|StreamedResponse
     {
         $trooper = $request->user();
 
@@ -60,7 +62,7 @@ class CostumeEventSummaryController extends BaseReportsController
             return $this->streamCsv($all, $date_start, $date_end, $organization?->name);
         }
 
-        $costume_events = GetCostumeEventSummary::call(
+        $costumes = GetCostumeEventSummary::call(
             moderator: $trooper,
             date_start: $date_start,
             date_end: $date_end,
@@ -71,9 +73,15 @@ class CostumeEventSummaryController extends BaseReportsController
             accessible_org_ids: $accessible_org_ids,
         );
 
-        $data = compact('costume_events', 'date_start', 'date_end', 'organizations', 'organization_id', 'sort', 'dir');
-
-        return view('pages.admin.reports.costume-event-summary', $data);
+        return Inertia::render('admin/reports/CostumeEventSummary', CostumeEventSummaryPageData::call(
+            costumes: $costumes,
+            organizations: $organizations,
+            organization_id: $organization?->id,
+            date_start: $date_start,
+            date_end: $date_end,
+            sort: $sort,
+            dir: $dir,
+        ));
     }
 
     private function streamCsv(LengthAwarePaginator $costume_events, ?Carbon $date_start, ?Carbon $date_end, ?string $organization_name): StreamedResponse
