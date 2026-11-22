@@ -79,7 +79,8 @@ test.describe('finding a troop', () => {
 
     test('completed troops are listed apart from open ones', async ({ page }) => {
         await page.goto('/events/closed');
-        await expect(page.getByText(seeded.pastParade).first()).toBeVisible();
+        //  in the page, not the bell, which also lists it while it's waiting for "did you make it?"
+        await expect(page.locator('#app').getByText(seeded.pastParade).first()).toBeVisible();
 
         await page.goto('/events');
         await expect(page.getByRole('link', { name: seeded.pastParade })).toHaveCount(0);

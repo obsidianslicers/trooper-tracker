@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
-use App\Http\Controllers\Events\Commands\CompleteShiftController;
+use App\Enums\ShiftAttendanceOutcome;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -27,7 +27,7 @@ class ShiftCompleteVerificationTest extends TestCase
         $response = $this->confirm($trooper, $event_trooper, EventTrooperStatus::ATTENDED);
 
         $response->assertOk();
-        $response->assertSee(CompleteShiftController::VERIFICATION_MESSAGE);
+        $response->assertSee(ShiftAttendanceOutcome::VERIFICATION_MESSAGE);
         $fresh = $event_trooper->fresh();
         $this->assertSame(EventTrooperStatus::AWAITING_VERIFICATION, $fresh->status);
         $this->assertSame([$organization->id], $fresh->requested_organization_ids);

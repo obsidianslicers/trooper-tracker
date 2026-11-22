@@ -1153,6 +1153,11 @@ html body .btn.btn-secondary-action {
     overflow-y: auto;
 }
 
+//  "Made It" and "Missed It" under a troop in the bell: half the width each
+.troop-answers .btn {
+    flex: 1 1 0;
+}
+
 //  the event page's sign-up tour (pages/events/inc/signup-tour.blade.php)
 .signup-tour-example {
     border-style: dashed;

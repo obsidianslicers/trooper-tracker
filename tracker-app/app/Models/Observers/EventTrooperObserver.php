@@ -6,6 +6,7 @@ namespace App\Models\Observers;
 
 use App\Enums\EventTrooperStatus;
 use App\Events\TrooperSignupStatusChanged;
+use App\Messages\Events\Commands\ForgetAttendanceReminders;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -22,6 +23,7 @@ class EventTrooperObserver
     public function updated(EventTrooper $event_trooper): void
     {
         $this->dispatchStatusChange($event_trooper);
+        $this->forgetAnsweredReminders($event_trooper);
 
         $still_eligible = in_array($event_trooper->status, Event::COORDINATOR_STATUSES, true)
             && !$event_trooper->trashed()
@@ -36,6 +38,28 @@ class EventTrooperObserver
     public function deleted(EventTrooper $event_trooper): void
     {
         $this->releaseCoordinator($event_trooper);
+        ForgetAttendanceReminders::call(event_trooper: $event_trooper);
+    }
+
+    /**
+     * Once a sign-up is answered (attended, couldn't make it, sent for verification) or changed
+     * by a moderator, its "did you make it?" reminder has nothing left to ask.
+     */
+    private function forgetAnsweredReminders(EventTrooper $event_trooper): void
+    {
+        $moved = $event_trooper->wasChanged([EventTrooper::EVENT_SHIFT_ID, EventTrooper::TROOPER_ID]);
+
+        if (!$moved && !$event_trooper->wasChanged([EventTrooper::STATUS, EventTrooper::REQUESTED_ORGANIZATION_IDS]))
+        {
+            return;
+        }
+
+        if (!$moved && $event_trooper->intendsToGo() && !$event_trooper->isAwaitingVerification())
+        {
+            return;
+        }
+
+        ForgetAttendanceReminders::call(event_trooper: $event_trooper);
     }
 
     /**
