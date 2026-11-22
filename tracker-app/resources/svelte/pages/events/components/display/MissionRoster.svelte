@@ -38,7 +38,7 @@
 
 <div id="mission-roster" class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
     <SectionTitle classes="mb-0">{t("Mission Roster")}</SectionTitle>
-    <div class="d-flex flex-wrap align-items-center gap-3">
+    <div class="d-flex flex-wrap justify-content-end align-items-center gap-3 ms-auto">
         {#if tools.roster_csv_url}
             <a class="btn btn-link btn-sm p-0 text-muted d-none d-md-inline" href={tools.roster_csv_url}>
                 {t("Download CSV (All Shifts)")}

@@ -369,7 +369,7 @@ input.searching {
     column-gap: 0.75rem;
     display: grid;
     //  who and costume as wide as their widest entry (capped), the spare room before the status
-    grid-template-columns: 1.25rem fit-content(40%) fit-content(40%) minmax(0, 1fr) auto;
+    grid-template-columns: minmax(1.25rem, auto) fit-content(40%) fit-content(40%) minmax(0, 1fr) fit-content(16rem);
     margin-bottom: 0.5rem;
 }
 
@@ -410,6 +410,7 @@ input.searching {
 .roster-row__number {
     font-size: 0.875rem;
     text-align: end;
+    white-space: nowrap;
 }
 
 .roster-row__status,
@@ -440,7 +441,7 @@ input.searching {
 //  across the full width under them (the status column would otherwise squeeze it)
 @media (max-width: 575.98px) {
     .roster {
-        grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+        grid-template-columns: minmax(1.25rem, auto) minmax(0, 1fr) fit-content(45%);
     }
 
     .roster-row__main {
@@ -528,6 +529,7 @@ html body .btn.btn-secondary-action {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem 1rem;
+    justify-content: flex-end;
 }
 
 //  the backup costume: a link beside Going/Tentative until they want one, then the picker
@@ -634,6 +636,27 @@ html body .btn.btn-secondary-action {
 
         .shift-signup-primary__status {
             flex: 0 0 9rem;
+        }
+
+        //  Confirm on the pickers' line, the backup costume on its own line under them
+        .shift-signup__confirm {
+            flex: none;
+            flex-wrap: nowrap;
+            order: 1;
+        }
+
+        .shift-signup__backup {
+            flex: 0 0 100%;
+            order: 2;
+
+            .form-select {
+                flex: 0 1 24rem;
+            }
+        }
+
+        .shift-signup__hint {
+            flex-basis: 100%;
+            order: 3;
         }
     }
 }

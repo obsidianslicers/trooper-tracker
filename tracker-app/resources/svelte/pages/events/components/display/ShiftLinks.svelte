@@ -95,10 +95,10 @@
                         <button type="button" class="btn btn-link btn-sm text-muted" onclick={friend.reset}>
                             {t("Never mind")}
                         </button>
-                        {#if friend.friend.requires_costume && friend.form.costume_id === ""}
-                            <span class="small text-muted">{t("Pick their costume, then press Confirm.")}</span>
-                        {/if}
                     </div>
+                    {#if friend.friend.requires_costume && friend.form.costume_id === ""}
+                        <span class="small text-muted shift-signup__hint">{t("Pick their costume, then press Confirm.")}</span>
+                    {/if}
                 </div>
             </div>
         {/if}
