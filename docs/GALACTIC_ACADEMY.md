@@ -96,7 +96,7 @@ email clears `guardian_id`.
 | `app/Messages/Troopers/Commands/CreateTrooper.php` | Sets `guardian_id` and `date_of_birth` |
 | `app/Http/Controllers/Auth/Commands/RegisterTrooperController.php` | Sends `GuardianAwareness` email |
 | `app/Mail/Auth/GuardianAwareness.php` | Guardian awareness mailable |
-| `app/Http/Controllers/Admin/Troopers/GuardianController.php` | Admin GET — guardian edit tab |
-| `app/Http/Controllers/Admin/Troopers/GuardianSubmitController.php` | Admin POST — save DOB + guardian |
+| `app/Http/Controllers/Admin/Troopers/Pages/ShowTrooperController.php` | Admin GET — trooper profile, including the guardian tab |
+| `app/Http/Controllers/Admin/Troopers/Commands/UpdateTrooperGuardianController.php` | Admin POST — save DOB + guardian |
 | `app/Http/Requests/Admin/Troopers/GuardianRequest.php` | Validation for admin guardian form |
 | `app/Http/Controllers/Account/MinorsController.php` | Account > Minors read-only view |
