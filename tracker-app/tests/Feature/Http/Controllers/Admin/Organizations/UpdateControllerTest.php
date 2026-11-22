@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Organizations;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class UpdateControllerTest extends TestCase
@@ -21,7 +22,9 @@ class UpdateControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.organizations.update', ['organization' => $organization->id]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.organizations.update');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/organizations/Update')
+            ->where('organization.name', $organization->name));
     }
 
     public function test_invoke_requires_authentication(): void
@@ -42,9 +45,12 @@ class UpdateControllerTest extends TestCase
 
         $this->actingAs($trooper)
             ->get(route('admin.organizations.update', ['organization' => $organization->id]))
-            ->assertSee('Roster sync:')
-            ->assertSee('Rebel Legion')
-            ->assertSee('from-a-disabled-plugin (not available)');
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('organization.synchronizer', 'from-a-disabled-plugin')
+                ->where('synchronizer_options', fn ($options) => collect($options)->pluck('label')
+                    ->contains('Rebel Legion')
+                    && collect($options)->pluck('label')
+                        ->contains('from-a-disabled-plugin (not available)')));
     }
 
     public function test_invoke_hides_the_roster_sync_choice_for_a_region(): void
@@ -54,6 +60,6 @@ class UpdateControllerTest extends TestCase
 
         $this->actingAs($trooper)
             ->get(route('admin.organizations.update', ['organization' => $organization->id]))
-            ->assertDontSee('Roster sync:');
+            ->assertInertia(fn (Assert $page) => $page->where('synchronizer_options', null));
     }
 }

@@ -5,55 +5,20 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Organizations;
 
 use App\Enums\FlashType;
-use App\Enums\OrganizationType;
-use App\Http\Controllers\PageController;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Organizations\CreateRequest;
+use App\Messages\Organizations\Commands\CreateSubOrganization;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
-use InvalidArgumentException;
 
-/**
- * Class CreateSubmitController
- *
- * Handles the submission of the form for creating a new organization.
- */
-class CreateSubmitController extends PageController
+class CreateSubmitController extends Controller
 {
-    /**
-     * Handle the incoming request to create a new organization
-     *
-     * Validates the request, creates a new organization under the given parent,
-     * determines its type, saves it, and then redirects with a success message.
-     *
-     * @param  CreateRequest  $request  The validated request containing the new organization's data
-     * @param  Organization  $parent  The parent organization
-     * @return RedirectResponse A redirect response to the organization list
-     *
-     * @throws InvalidArgumentException If parent type doesn't allow child organizations
-     */
     public function __invoke(CreateRequest $request, Organization $parent): RedirectResponse
     {
-        $organization = new Organization;
-
-        $organization->parent_id = $parent->id;
-        $organization->name = $request->validated('name');
-
-        if ($parent->type == OrganizationType::ORGANIZATION)
-        {
-            $organization->type = OrganizationType::REGION;
-        }
-        elseif ($parent->type == OrganizationType::REGION)
-        {
-            $organization->type = OrganizationType::UNIT;
-        }
-        else
-        {
-            throw new InvalidArgumentException('Cannot create a sub-organization under the specified parent type.');
-        }
-
-        $organization->save();
-
-        Organization::resequenceAll();
+        $organization = CreateSubOrganization::call(
+            parent: $parent,
+            name: $request->validated('name'),
+        );
 
         FlashType::created($organization);
 
