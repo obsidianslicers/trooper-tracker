@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Awards;
+namespace Tests\Feature\Http\Controllers\Admin\Awards\Pages;
 
 use App\Models\Award;
 use App\Models\AwardTrooper;
@@ -11,7 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class ListTroopersControllerTest extends TestCase
+class IndexAwardTroopersControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -23,7 +23,7 @@ class ListTroopersControllerTest extends TestCase
 
         AwardTrooper::factory()->forAward($award)->forTrooper($recipient)->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.awards.list-troopers', ['award' => $award->id]));
+        $response = $this->actingAs($admin)->get(route('admin.awards.troopers.index', ['award' => $award->id]));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -37,7 +37,7 @@ class ListTroopersControllerTest extends TestCase
     {
         $award = Award::factory()->create();
 
-        $response = $this->get(route('admin.awards.list-troopers', ['award' => $award->id]));
+        $response = $this->get(route('admin.awards.troopers.index', ['award' => $award->id]));
 
         $response->assertRedirect(route('auth.login'));
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Awards;
+namespace App\Http\Controllers\Admin\Awards\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
@@ -11,7 +11,7 @@ use App\Messages\Awards\Commands\RevokeTrooperAward;
 use App\Models\Award;
 use Illuminate\Http\RedirectResponse;
 
-class RemoveTrooperController extends Controller
+class DestroyAwardTrooperController extends Controller
 {
     public function __invoke(RemoveTrooperRequest $request, Award $award): RedirectResponse
     {
@@ -27,6 +27,6 @@ class RemoveTrooperController extends Controller
             FlashType::success(__('admin.Removed award from :name', ['name' => $trooper_name]));
         }
 
-        return redirect()->route('admin.awards.list-troopers', $award);
+        return redirect()->route('admin.awards.troopers.index', $award);
     }
 }

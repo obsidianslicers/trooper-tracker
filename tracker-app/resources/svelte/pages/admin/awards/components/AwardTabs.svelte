@@ -10,8 +10,8 @@
     let { award_id, active }: Props = $props();
 
     const tabs = $derived([
-        { key: "overview", label: t("Overview"), href: getRoute("admin.awards.update", { award: award_id }) },
-        { key: "troopers", label: t("Troopers Awarded"), href: getRoute("admin.awards.list-troopers", { award: award_id }) },
+        { key: "overview", label: t("Overview"), href: getRoute("admin.awards.edit", { award: award_id }) },
+        { key: "troopers", label: t("Troopers Awarded"), href: getRoute("admin.awards.troopers.index", { award: award_id }) },
     ]);
 </script>
 

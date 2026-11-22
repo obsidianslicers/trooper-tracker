@@ -38,7 +38,7 @@ describe('ListViewModel', () => {
         vm.search_term = ' year ';
         vm.search(new Event('submit'));
 
-        expect(visit).toHaveBeenLastCalledWith('/admin.awards.list?search_term=year&organization_id=4');
+        expect(visit).toHaveBeenLastCalledWith('/admin.awards.index?search_term=year&organization_id=4');
     });
 });
 
@@ -53,7 +53,7 @@ describe('TroopersViewModel', () => {
         vm.remove();
 
         expect(post).toHaveBeenLastCalledWith(
-            '/admin.awards.remove-trooper?award=5',
+            '/admin.awards.troopers.destroy?award=5',
             { remove_trooper_id: 9 },
             expect.any(Object),
         );
@@ -77,6 +77,6 @@ describe('AssignTrooperViewModel', () => {
         vm.submit(new Event('submit'));
 
         expect(vm.form.trooper_id).toBe(12);
-        expect(formPost).toHaveBeenLastCalledWith('/admin.awards.assign-trooper?award=5');
+        expect(formPost).toHaveBeenLastCalledWith('/admin.awards.troopers.store?award=5');
     });
 });

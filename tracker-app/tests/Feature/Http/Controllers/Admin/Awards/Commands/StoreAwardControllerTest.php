@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Awards;
+namespace Tests\Feature\Http\Controllers\Admin\Awards\Commands;
 
 use App\Enums\AwardFrequency;
 use App\Models\Organization;
@@ -10,7 +10,7 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class CreateSubmitControllerTest extends TestCase
+class StoreAwardControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -19,7 +19,7 @@ class CreateSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $organization = Organization::factory()->create();
 
-        $response = $this->actingAs($trooper)->post('/admin/awards/create', [
+        $response = $this->actingAs($trooper)->post('/admin/awards', [
             'organization_id' => $organization->id,
             'name' => 'Medal of Valor',
             'frequency' => AwardFrequency::ONCE->value,
@@ -36,7 +36,7 @@ class CreateSubmitControllerTest extends TestCase
     {
         $organization = Organization::factory()->create();
 
-        $response = $this->post('/admin/awards/create', [
+        $response = $this->post('/admin/awards', [
             'organization_id' => $organization->id,
             'name' => 'Medal of Valor',
             'frequency' => AwardFrequency::ONCE->value,

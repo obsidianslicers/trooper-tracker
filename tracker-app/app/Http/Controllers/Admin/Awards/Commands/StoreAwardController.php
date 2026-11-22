@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Awards;
+namespace App\Http\Controllers\Admin\Awards\Commands;
 
 use App\Enums\AwardFrequency;
 use App\Enums\FlashType;
@@ -11,7 +11,7 @@ use App\Http\Requests\Admin\Awards\CreateRequest;
 use App\Messages\Awards\Commands\CreateAward;
 use Illuminate\Http\RedirectResponse;
 
-class CreateSubmitController extends Controller
+class StoreAwardController extends Controller
 {
     public function __invoke(CreateRequest $request): RedirectResponse
     {
@@ -23,6 +23,6 @@ class CreateSubmitController extends Controller
 
         FlashType::created($award);
 
-        return redirect()->route('admin.awards.update', compact('award'));
+        return redirect()->route('admin.awards.edit', compact('award'));
     }
 }

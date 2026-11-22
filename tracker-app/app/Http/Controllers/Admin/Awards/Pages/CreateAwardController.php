@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Awards;
+namespace App\Http\Controllers\Admin\Awards\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Messages\Awards\PageData\CreateAwardPageData;
@@ -14,12 +14,12 @@ use Inertia\Response as InertiaResponse;
 /**
  * The create award form, blank, copied from `copy_id`, or set to `organization_id`.
  */
-class CreateController extends PageController
+class CreateAwardController extends PageController
 {
     protected function initialized(): void
     {
         $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.dashboard');
-        $this->crumbs->addRoute(__('admin.Awards'), 'admin.awards.list');
+        $this->crumbs->addRoute(__('admin.Awards'), 'admin.awards.index');
     }
 
     public function __invoke(Request $request): InertiaResponse

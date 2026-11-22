@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Awards;
+namespace Tests\Feature\Http\Controllers\Admin\Awards\Pages;
 
 use App\Models\Award;
 use App\Models\Trooper;
@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class ListControllerTest extends TestCase
+class IndexAwardsControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -19,7 +19,7 @@ class ListControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         Award::factory()->count(2)->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.awards.list'));
+        $response = $this->actingAs($trooper)->get(route('admin.awards.index'));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -32,7 +32,7 @@ class ListControllerTest extends TestCase
 
     public function test_invoke_requires_authentication(): void
     {
-        $response = $this->get(route('admin.awards.list'));
+        $response = $this->get(route('admin.awards.index'));
 
         $response->assertRedirect(route('auth.login'));
     }

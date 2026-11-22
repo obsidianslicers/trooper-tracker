@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Awards;
+namespace Tests\Feature\Http\Controllers\Admin\Awards\Pages;
 
 use App\Models\Award;
 use App\Models\Trooper;
@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class UpdateControllerTest extends TestCase
+class EditAwardControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -19,7 +19,7 @@ class UpdateControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $award = Award::factory()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.awards.update', ['award' => $award->id]));
+        $response = $this->actingAs($trooper)->get(route('admin.awards.edit', ['award' => $award->id]));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -33,7 +33,7 @@ class UpdateControllerTest extends TestCase
     {
         $award = Award::factory()->create();
 
-        $response = $this->get(route('admin.awards.update', ['award' => $award->id]));
+        $response = $this->get(route('admin.awards.edit', ['award' => $award->id]));
 
         $response->assertRedirect(route('auth.login'));
     }
