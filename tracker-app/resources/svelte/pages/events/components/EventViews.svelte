@@ -20,7 +20,7 @@
             { key: "map", route: "events.map", icon: "fa-map", label: t("Map") },
             { key: "closed", route: "events.closed", icon: "fa-circle-check", label: t("Completed") },
             { key: "cancelled", route: "events.cancelled", icon: "fa-ban", label: t("Cancelled") },
-        ].filter((view) => view.key !== "map" || has_map),
+        ].filter((view) => view.key !== "map" || has_map || active === "map"),
     );
 
     const current = $derived(views.find((view) => view.key === active) ?? views[0]);
