@@ -46,12 +46,13 @@ async function typeMarkdown(page, text) {
 }
 
 // Date-time fields take typed text ("2030-06-01 1:00PM") as well as the calendar popup.
-async function setDate(page, selector, date) {
+async function setDate(page, field, date) {
     const pad = (n) => String(n).padStart(2, '0');
     const hour = date.getHours() % 12 || 12;
     const text = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
         + `${hour}:${pad(date.getMinutes())}${date.getHours() >= 12 ? 'PM' : 'AM'}`;
-    await page.locator(selector).fill(text);
+    const input = typeof field === 'string' ? page.locator(field) : field;
+    await input.fill(text);
 }
 
 function rowFor(page, text) {
@@ -105,30 +106,33 @@ test.describe('notices', () => {
         const next_month = new Date(Date.now() + 30 * 86400000);
 
         await page.goto('/admin/notices/create');
-        await pick(page, 'organization_id', 'E2E Garrison');
-        await page.locator('#type').selectOption({ index: 2 });
-        await page.locator('#title').fill(seeded.newNotice);
-        await setDate(page, '#starts_at', today);
-        await setDate(page, '#ends_at', next_week);
+        await pickOrganization(page, 'E2E Garrison');
+        await page.getByLabel('Type').selectOption({ index: 2 });
+        await page.getByLabel('Title').fill(seeded.newNotice);
+        await setDate(page, page.getByLabel('Starts'), today);
+        await setDate(page, page.getByLabel('Ends'), next_week);
         await typeMarkdown(page, 'Muster at the north gate.');
         await page.getByRole('button', { name: 'Create', exact: true }).click();
+        await expect(page).toHaveURL(/\/admin\/notices$/);
 
         await page.goto('/admin/notices?scope=active');
         const posted = rowFor(page, seeded.newNotice);
         await expect(posted).toContainText('E2E Garrison');
 
         await page.goto(await posted.locator('a[href*="copy_id="]').getAttribute('href'));
-        await expect(page.locator('#title')).toHaveValue(`${seeded.newNotice} (Copy)`);
-        await page.locator('#title').fill(`${seeded.newNotice} (next month)`);
-        await setDate(page, '#starts_at', next_week);
-        await setDate(page, '#ends_at', next_month);
+        await expect(page.getByLabel('Title')).toHaveValue(`${seeded.newNotice} (Copy)`);
+        await page.getByLabel('Title').fill(`${seeded.newNotice} (next month)`);
+        await setDate(page, page.getByLabel('Starts'), next_week);
+        await setDate(page, page.getByLabel('Ends'), next_month);
         await page.getByRole('button', { name: 'Create', exact: true }).click();
+        await expect(page).toHaveURL(/\/admin\/notices$/);
 
         await page.goto('/admin/notices?scope=future');
         const copy = rowFor(page, `${seeded.newNotice} (next month)`);
         await page.goto(await copy.locator('a[href$="/update"]').getAttribute('href'));
-        await page.locator('#title').fill(`${seeded.newNotice} (rescheduled)`);
+        await page.getByLabel('Title').fill(`${seeded.newNotice} (rescheduled)`);
         await page.getByRole('button', { name: 'Update', exact: true }).click();
+        await expect(page).toHaveURL(/\/admin\/notices$/);
 
         await page.goto('/admin/notices?scope=future');
         await expect(rowFor(page, `${seeded.newNotice} (rescheduled)`)).toBeVisible();
