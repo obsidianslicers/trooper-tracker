@@ -60,7 +60,7 @@
                                 <ActionMenuLink
                                     label={t("Notices")}
                                     icon="fa-circle-info"
-                                    href={getRoute("admin.notices.list", { organization_id: organization.id })}
+                                    href={getRoute("admin.notices.index", { organization_id: organization.id })}
                                 />
                             </ActionMenu>
                         {/if}

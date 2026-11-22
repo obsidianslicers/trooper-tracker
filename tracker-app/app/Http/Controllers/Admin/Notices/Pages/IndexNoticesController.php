@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Notices;
+namespace App\Http\Controllers\Admin\Notices\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Messages\Notices\PageData\ListNoticesPageData;
@@ -14,7 +14,7 @@ use Inertia\Response as InertiaResponse;
 /**
  * Lists the notices the trooper may moderate, by scope (active, past, future) and organization.
  */
-class ListController extends PageController
+class IndexNoticesController extends PageController
 {
     protected function initialized(): void
     {

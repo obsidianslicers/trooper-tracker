@@ -100,7 +100,7 @@ final class CommandStaffDashboardPageData extends Message
             'request-permissions' => ['admin.troopers.permissions.request', true],
             'permission-approvals' => ['admin.troopers.permissions.approvals', $administrator],
             'merge-troopers' => ['admin.troopers.merge', $owner],
-            'notices' => ['admin.notices.list', true],
+            'notices' => ['admin.notices.index', true],
             'events' => ['admin.events.index', true],
             'event-types' => ['admin.event-types.index', $trooper->can('viewAny', EventType::class)],
             'awards' => ['admin.awards.index', true],

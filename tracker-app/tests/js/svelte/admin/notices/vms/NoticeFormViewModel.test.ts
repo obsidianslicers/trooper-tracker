@@ -35,7 +35,7 @@ describe('NoticeFormViewModel', () => {
         vm.submit(new Event('submit'));
 
         expect(vm.is_update).toBe(false);
-        expect(post).toHaveBeenLastCalledWith('/admin.notices.create?');
+        expect(post).toHaveBeenLastCalledWith('/admin.notices.store?');
     });
 
     it('updates a notice that has an id', () => {
@@ -48,6 +48,6 @@ describe('NoticeFormViewModel', () => {
     });
 
     it('cancels back to the list for the notice organization', () => {
-        expect(new NoticeFormViewModel(pageData(null)).cancel_url).toBe('/admin.notices.list?organization_id=4');
+        expect(new NoticeFormViewModel(pageData(null)).cancel_url).toBe('/admin.notices.index?organization_id=4');
     });
 });

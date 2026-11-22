@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Notices;
+namespace Tests\Feature\Http\Controllers\Admin\Notices\Pages;
 
 use App\Models\Notice;
 use App\Models\Trooper;
@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class UpdateControllerTest extends TestCase
+class EditNoticeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -19,7 +19,7 @@ class UpdateControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $notice = Notice::factory()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.notices.update', ['notice' => $notice->id]));
+        $response = $this->actingAs($trooper)->get(route('admin.notices.edit', ['notice' => $notice->id]));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -35,7 +35,7 @@ class UpdateControllerTest extends TestCase
     {
         $notice = Notice::factory()->create();
 
-        $response = $this->get(route('admin.notices.update', ['notice' => $notice->id]));
+        $response = $this->get(route('admin.notices.edit', ['notice' => $notice->id]));
 
         $response->assertRedirect(route('auth.login'));
     }

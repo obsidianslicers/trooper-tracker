@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Notices;
+namespace Tests\Feature\Http\Controllers\Admin\Notices\Pages;
 
 use App\Models\Notice;
 use App\Models\Organization;
@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class ListControllerTest extends TestCase
+class IndexNoticesControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -21,7 +21,7 @@ class ListControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         Notice::factory()->count(2)->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.notices.list'));
+        $response = $this->actingAs($trooper)->get(route('admin.notices.index'));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -40,7 +40,7 @@ class ListControllerTest extends TestCase
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($club)->asModerator()->create();
         $notice = Notice::factory()->forOrganization($garrison)->asActive()->create();
 
-        $response = $this->actingAs($moderator)->get(route('admin.notices.list'));
+        $response = $this->actingAs($moderator)->get(route('admin.notices.index'));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -63,7 +63,7 @@ class ListControllerTest extends TestCase
             Notice::ENDS_AT => now()->addWeeks(2),
         ]);
 
-        $response = $this->actingAs($trooper)->get(route('admin.notices.list', [
+        $response = $this->actingAs($trooper)->get(route('admin.notices.index', [
             'scope' => 'future',
             'organization_id' => $garrison->id,
         ]));
@@ -77,7 +77,7 @@ class ListControllerTest extends TestCase
 
     public function test_invoke_requires_authentication(): void
     {
-        $response = $this->get(route('admin.notices.list'));
+        $response = $this->get(route('admin.notices.index'));
 
         $response->assertRedirect(route('auth.login'));
     }
