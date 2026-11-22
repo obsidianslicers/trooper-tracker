@@ -4,38 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Messages\Reports\Queries\GetStatusChangeLog;
-use Illuminate\Contracts\View\View;
+use App\Messages\Reports\PageData\StatusChangeLogPageData;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
- * Controller for displaying status change log report.
- *
- * Shows event trooper status changes where a moderator marked
- * a trooper as ATTENDED within the lookback period.
+ * Shows the Status Change Log report.
  */
 class StatusChangeLogController extends BaseReportsController
 {
-    /**
-     * Display the status change log report
-     *
-     * Retrieves EventTrooper records marked as ATTENDED by moderators
-     * (not self-updated) within the lookback period for troopers
-     * moderated by the authenticated trooper.
-     *
-     * @param  Request  $request  The HTTP request
-     * @return View The status change log report view
-     */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): Response
     {
-        $trooper = $request->user();
-
-        $lookback = 30;
-
-        $changes = GetStatusChangeLog::call(moderator: $trooper, lookback: $lookback);
-
-        $data = compact('changes', 'lookback');
-
-        return view('pages.admin.reports.status-change-log', $data);
+        return Inertia::render('admin/reports/StatusChangeLog', StatusChangeLogPageData::call($request));
     }
 }

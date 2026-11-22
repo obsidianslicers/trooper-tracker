@@ -5,15 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Reports;
 
 use App\Http\Controllers\PageController;
-use App\Messages\Reports\Queries\GetDashboardMetrics;
-use Illuminate\Contracts\View\View;
+use App\Messages\Reports\PageData\ReportsDashboardPageData;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
- * Controller for displaying the reports menu.
- *
- * Shows the main reports landing page with links to various
- * administrative reports.
+ * Shows the Reports page: the operations dashboard and the list of reports.
  */
 class ReportDisplayController extends PageController
 {
@@ -22,20 +20,10 @@ class ReportDisplayController extends PageController
         $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
     }
 
-    /**
-     * Display the reports menu page
-     *
-     * @param  Request  $request  The HTTP request
-     * @return View The reports menu view
-     */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): Response
     {
         $days = (int) $request->query('days', '30');
 
-        $dashboard = GetDashboardMetrics::call(lookback: $days);
-
-        $data = compact('dashboard', 'days');
-
-        return view('pages.admin.reports.display', $data);
+        return Inertia::render('admin/reports/Display', ReportsDashboardPageData::call(days: $days));
     }
 }
