@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Awards;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class CreateControllerTest extends TestCase
@@ -20,7 +21,12 @@ class CreateControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.awards.create'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.awards.create');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/awards/Create')
+            ->where('award.id', null)
+            ->where('award.frequency', 'once')
+            ->has('frequency_options', 5)
+            ->has('organization_options'));
     }
 
     public function test_invoke_requires_authentication(): void

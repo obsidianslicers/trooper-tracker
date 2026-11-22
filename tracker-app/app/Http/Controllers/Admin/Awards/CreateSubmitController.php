@@ -4,40 +4,25 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
+use App\Enums\AwardFrequency;
 use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Awards\CreateRequest;
-use App\Models\Award;
+use App\Messages\Awards\Commands\CreateAward;
 use Illuminate\Http\RedirectResponse;
 
-/**
- * Handles the submission of the form for creating a new award.
- */
-class CreateSubmitController extends PageController
+class CreateSubmitController extends Controller
 {
-    /**
-     * Handle the request to create a new award.
-     *
-     * Validates the request, creates a new award with the provided data,
-     * saves it, and then redirects with a success message.
-     *
-     * @param  CreateRequest  $request  The validated request containing the new award's data.
-     * @return RedirectResponse A redirect response to the award update page.
-     */
     public function __invoke(CreateRequest $request): RedirectResponse
     {
-        $award = new Award;
-
-        $award->organization_id = $request->validated('organization_id');
-        $award->name = $request->validated('name');
-        $award->frequency = $request->validated('frequency');
-
-        $award->save();
+        $award = CreateAward::call(
+            organization_id: (int) $request->validated('organization_id'),
+            name: $request->validated('name'),
+            frequency: AwardFrequency::from($request->validated('frequency')),
+        );
 
         FlashType::created($award);
 
-        $data = compact('award');
-
-        return redirect()->route('admin.awards.update', $data);
+        return redirect()->route('admin.awards.update', compact('award'));
     }
 }
