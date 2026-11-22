@@ -528,6 +528,7 @@ html body .btn.btn-secondary-action {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem 1rem;
+    justify-content: flex-end;
 }
 
 //  the backup costume: a link beside Going/Tentative until they want one, then the picker
