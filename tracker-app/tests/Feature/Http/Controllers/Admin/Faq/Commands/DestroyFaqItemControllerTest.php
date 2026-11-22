@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Faq;
+namespace Tests\Feature\Http\Controllers\Admin\Faq\Commands;
 
 use App\Models\Faq;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class DeleteItemSubmitControllerTest extends TestCase
+class DestroyFaqItemControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -19,11 +19,11 @@ class DeleteItemSubmitControllerTest extends TestCase
         $faq = Faq::factory()->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('admin.faq.items.delete', ['item' => $faq->id])
+            route('admin.faq.items.destroy', ['item' => $faq->id])
         );
 
         $response->assertOk();
-        $response->assertInertia(fn($page) => $page->component('admin/faq/Index'));
+        $response->assertInertia(fn ($page) => $page->component('admin/faq/Index'));
         $this->assertSoftDeleted('tt_faq', [Faq::ID => $faq->id]);
     }
 
@@ -31,7 +31,7 @@ class DeleteItemSubmitControllerTest extends TestCase
     {
         $faq = Faq::factory()->create();
 
-        $response = $this->post(route('admin.faq.items.delete', ['item' => $faq->id]));
+        $response = $this->post(route('admin.faq.items.destroy', ['item' => $faq->id]));
 
         $response->assertRedirect(route('auth.login'));
     }

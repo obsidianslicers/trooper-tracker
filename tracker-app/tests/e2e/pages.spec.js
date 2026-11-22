@@ -42,7 +42,7 @@ const STAFF_PAGES = [
     '/admin/troopers/permissions/approvals',
     '/admin/costumes',
     '/admin/costumes/create',
-    '/admin/faq/index',
+    '/admin/faq',
     '/admin/event-types',
     '/admin/event-types/create',
 ];

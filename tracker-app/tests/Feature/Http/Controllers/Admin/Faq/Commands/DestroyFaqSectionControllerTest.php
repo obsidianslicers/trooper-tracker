@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Faq;
+namespace Tests\Feature\Http\Controllers\Admin\Faq\Commands;
 
 use App\Models\Faq;
 use App\Models\FaqSection;
@@ -10,7 +10,7 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class DeleteSectionSubmitControllerTest extends TestCase
+class DestroyFaqSectionControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -20,11 +20,11 @@ class DeleteSectionSubmitControllerTest extends TestCase
         $section = FaqSection::factory()->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('admin.faq.sections.delete', ['section' => $section->id])
+            route('admin.faq.sections.destroy', ['section' => $section->id])
         );
 
         $response->assertOk();
-        $response->assertInertia(fn($page) => $page->component('admin/faq/Index'));
+        $response->assertInertia(fn ($page) => $page->component('admin/faq/Index'));
         $this->assertSoftDeleted('tt_faq_sections', [FaqSection::ID => $section->id]);
     }
 
@@ -35,11 +35,11 @@ class DeleteSectionSubmitControllerTest extends TestCase
         Faq::factory()->withSection($section)->create();
 
         $response = $this->actingAs($trooper)->post(
-            route('admin.faq.sections.delete', ['section' => $section->id])
+            route('admin.faq.sections.destroy', ['section' => $section->id])
         );
 
         $response->assertOk();
-        $response->assertInertia(fn($page) => $page->component('admin/faq/Index'));
+        $response->assertInertia(fn ($page) => $page->component('admin/faq/Index'));
         $this->assertNotSoftDeleted('tt_faq_sections', [FaqSection::ID => $section->id]);
     }
 
@@ -47,7 +47,7 @@ class DeleteSectionSubmitControllerTest extends TestCase
     {
         $section = FaqSection::factory()->create();
 
-        $response = $this->post(route('admin.faq.sections.delete', ['section' => $section->id]));
+        $response = $this->post(route('admin.faq.sections.destroy', ['section' => $section->id]));
 
         $response->assertRedirect(route('auth.login'));
     }

@@ -2,49 +2,50 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Admin\Faq\CreateItemController;
-use App\Http\Controllers\Admin\Faq\CreateItemSubmitController;
-use App\Http\Controllers\Admin\Faq\CreateSectionController;
-use App\Http\Controllers\Admin\Faq\CreateSectionSubmitController;
-use App\Http\Controllers\Admin\Faq\DeleteItemSubmitController;
-use App\Http\Controllers\Admin\Faq\DeleteSectionSubmitController;
-use App\Http\Controllers\Admin\Faq\IndexController;
-use App\Http\Controllers\Admin\Faq\ReorderItemsSubmitController;
-use App\Http\Controllers\Admin\Faq\ReorderSectionsSubmitController;
-use App\Http\Controllers\Admin\Faq\UpdateItemController;
-use App\Http\Controllers\Admin\Faq\UpdateItemSubmitController;
-use App\Http\Controllers\Admin\Faq\UpdateSectionController;
-use App\Http\Controllers\Admin\Faq\UpdateSectionSubmitController;
+use App\Http\Controllers\Admin\Faq\Commands\DestroyFaqItemController;
+use App\Http\Controllers\Admin\Faq\Commands\DestroyFaqSectionController;
+use App\Http\Controllers\Admin\Faq\Commands\ReorderFaqItemsController;
+use App\Http\Controllers\Admin\Faq\Commands\ReorderFaqSectionsController;
+use App\Http\Controllers\Admin\Faq\Commands\StoreFaqItemController;
+use App\Http\Controllers\Admin\Faq\Commands\StoreFaqSectionController;
+use App\Http\Controllers\Admin\Faq\Commands\UpdateFaqItemController;
+use App\Http\Controllers\Admin\Faq\Commands\UpdateFaqSectionController;
+use App\Http\Controllers\Admin\Faq\Pages\CreateFaqItemController;
+use App\Http\Controllers\Admin\Faq\Pages\CreateFaqSectionController;
+use App\Http\Controllers\Admin\Faq\Pages\EditFaqItemController;
+use App\Http\Controllers\Admin\Faq\Pages\EditFaqSectionController;
+use App\Http\Controllers\Admin\Faq\Pages\IndexFaqController;
 use Illuminate\Support\Facades\Route;
 
+//  ADMIN/FAQ
 Route::prefix('admin/faq')
     ->name('admin.faq.')
     ->middleware(['auth', 'check.role:staff_officer,system_owner'])
     ->group(function ()
     {
-        Route::get('/index', IndexController::class)->name('index');
+        Route::get('/', IndexFaqController::class)->name('index');
 
         Route::prefix('sections')
             ->name('sections.')
             ->group(function ()
             {
-                Route::get('/create', CreateSectionController::class)->name('create');
-                Route::post('/create', CreateSectionSubmitController::class);
-                Route::post('/reorder', ReorderSectionsSubmitController::class)->name('reorder');
-                Route::get('/{section}/update', UpdateSectionController::class)->name('update');
-                Route::post('/{section}/update', UpdateSectionSubmitController::class);
-                Route::post('/{section}/delete', DeleteSectionSubmitController::class)->name('delete');
+                Route::get('/create', CreateFaqSectionController::class)->name('create');
+                Route::post('/', StoreFaqSectionController::class)->name('store');
+                Route::post('/reorder', ReorderFaqSectionsController::class)->name('reorder');
+                Route::get('/{section}/edit', EditFaqSectionController::class)->name('edit');
+                Route::post('/{section}', UpdateFaqSectionController::class)->name('update');
+                Route::post('/{section}/delete', DestroyFaqSectionController::class)->name('destroy');
             });
 
         Route::prefix('items')
             ->name('items.')
             ->group(function ()
             {
-                Route::get('/create', CreateItemController::class)->name('create');
-                Route::post('/create', CreateItemSubmitController::class);
-                Route::post('/reorder', ReorderItemsSubmitController::class)->name('reorder');
-                Route::get('/{item}/update', UpdateItemController::class)->name('update');
-                Route::post('/{item}/update', UpdateItemSubmitController::class);
-                Route::post('/{item}/delete', DeleteItemSubmitController::class)->name('delete');
+                Route::get('/create', CreateFaqItemController::class)->name('create');
+                Route::post('/', StoreFaqItemController::class)->name('store');
+                Route::post('/reorder', ReorderFaqItemsController::class)->name('reorder');
+                Route::get('/{item}/edit', EditFaqItemController::class)->name('edit');
+                Route::post('/{item}', UpdateFaqItemController::class)->name('update');
+                Route::post('/{item}/delete', DestroyFaqItemController::class)->name('destroy');
             });
     });

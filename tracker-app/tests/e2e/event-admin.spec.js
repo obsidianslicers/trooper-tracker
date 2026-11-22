@@ -16,7 +16,7 @@ function adminRow(page, name) {
 
 async function openAdmin(page, name, tab = 'overview') {
     await page.goto(`/admin/events?search_term=${encodeURIComponent(name)}`);
-    const href = await adminRow(page, name).first().locator('a[href$="/update"]').getAttribute('href');
+    const href = await adminRow(page, name).first().locator('a[href$="/edit"]').getAttribute('href');
 
     await page.goto(`${href}?tab=${tab}`);
 }
