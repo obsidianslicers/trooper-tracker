@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Account\Commands;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\AddCostumeRequest;
 use App\Messages\Account\Resources\TrooperCostumeCollection;
-use App\Messages\Troopers\Commands\Costumes\AddCostumeToTrooper;
+use App\Messages\Troopers\Commands\Costumes\AddTrooperCostume;
 use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumes;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -31,7 +31,7 @@ class AddCostumeController extends Controller
     {
         $trooper = $request->user();
 
-        AddCostumeToTrooper::call(
+        AddTrooperCostume::call(
             trooper: $trooper,
             costume_id: $request->validated('costume_id'),
             organization_ids: $request->validated('organization_ids')

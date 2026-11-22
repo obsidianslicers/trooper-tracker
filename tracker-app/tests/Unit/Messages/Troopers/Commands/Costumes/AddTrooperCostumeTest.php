@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Messages\Troopers\Commands\Costumes;
 
 use App\Jobs\SendCostumeRequestNotificationsJob;
-use App\Messages\Troopers\Commands\Costumes\AddCostumeToTrooper;
+use App\Messages\Troopers\Commands\Costumes\AddTrooperCostume;
 use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
@@ -16,7 +16,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
-class AddCostumeToTrooperTest extends TestCase
+class AddTrooperCostumeTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -32,7 +32,7 @@ class AddCostumeToTrooperTest extends TestCase
             ->forCostume($costume)
             ->create();
 
-        $subject = new AddCostumeToTrooper($trooper, $costume->id, [$organization->id]);
+        $subject = new AddTrooperCostume($trooper, $costume->id, [$organization->id]);
 
         $subject->handle();
 
@@ -63,7 +63,7 @@ class AddCostumeToTrooperTest extends TestCase
             ->create();
         $trooper_costume->delete();
 
-        $subject = new AddCostumeToTrooper($trooper, $costume->id, [$organization->id]);
+        $subject = new AddTrooperCostume($trooper, $costume->id, [$organization->id]);
 
         $subject->handle();
 
@@ -88,7 +88,7 @@ class AddCostumeToTrooperTest extends TestCase
 
         $approved = TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($first)->create();
 
-        $subject = new AddCostumeToTrooper($trooper, $costume->id, [$first_club->id, $second_club->id]);
+        $subject = new AddTrooperCostume($trooper, $costume->id, [$first_club->id, $second_club->id]);
 
         $subject->handle();
 
@@ -117,7 +117,7 @@ class AddCostumeToTrooperTest extends TestCase
             ->create();
         $revoked->delete();
 
-        $subject = new AddCostumeToTrooper($trooper, $costume->id, [$organization->id]);
+        $subject = new AddTrooperCostume($trooper, $costume->id, [$organization->id]);
 
         $subject->handle();
 
@@ -132,7 +132,7 @@ class AddCostumeToTrooperTest extends TestCase
         Queue::fake();
         [$trooper, $organization, $costume, $organization_costume] = $this->singleClubCostume();
 
-        $subject = new AddCostumeToTrooper($trooper, $costume->id, [$organization->id]);
+        $subject = new AddTrooperCostume($trooper, $costume->id, [$organization->id]);
         $subject->handle();
 
         $added = TrooperCostume::withPending()
@@ -155,7 +155,7 @@ class AddCostumeToTrooperTest extends TestCase
             ->pending()
             ->create();
 
-        $subject = new AddCostumeToTrooper($trooper, $costume->id, [$organization->id]);
+        $subject = new AddTrooperCostume($trooper, $costume->id, [$organization->id]);
         $subject->handle();
 
         Queue::assertNotPushed(SendCostumeRequestNotificationsJob::class);
@@ -171,7 +171,7 @@ class AddCostumeToTrooperTest extends TestCase
             ->create();
         $approved->delete();
 
-        $subject = new AddCostumeToTrooper($trooper, $costume->id, [$organization->id]);
+        $subject = new AddTrooperCostume($trooper, $costume->id, [$organization->id]);
         $subject->handle();
 
         Queue::assertNotPushed(SendCostumeRequestNotificationsJob::class);

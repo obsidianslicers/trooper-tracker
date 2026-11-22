@@ -15,7 +15,7 @@ use Hyperdrive\Message;
  *
  * @method static void call(Trooper $trooper, Notice $notice)
  */
-final class UpdateNoticeAsRead extends Message
+final class MarkNoticeAsRead extends Message
 {
     public function __construct(
         private readonly Trooper $trooper,

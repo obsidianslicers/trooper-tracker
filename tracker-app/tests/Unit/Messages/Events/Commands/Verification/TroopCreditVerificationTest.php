@@ -8,7 +8,7 @@ use App\Enums\EventTrooperStatus;
 use App\Jobs\SendTroopVerificationNotificationsJob;
 use App\Messages\Events\Commands\Verification\ApproveTroopCredit;
 use App\Messages\Events\Commands\Verification\RejectTroopCredit;
-use App\Messages\Events\Commands\Verification\RequestTroopVerification;
+use App\Messages\Events\Commands\Verification\RequestTroopCredit;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -26,7 +26,7 @@ class TroopCreditVerificationTest extends TestCase
     {
         [$event_trooper, $organization] = $this->eventTrooper();
 
-        (new RequestTroopVerification($event_trooper, [$organization->id]))->handle();
+        (new RequestTroopCredit($event_trooper, [$organization->id]))->handle();
         (new ApproveTroopCredit($event_trooper, $organization->id))->handle();
 
         $fresh = $event_trooper->fresh();
@@ -39,7 +39,7 @@ class TroopCreditVerificationTest extends TestCase
         Queue::fake();
         [$event_trooper, $organization] = $this->eventTrooper();
 
-        (new RequestTroopVerification($event_trooper, [$organization->id]))->handle();
+        (new RequestTroopCredit($event_trooper, [$organization->id]))->handle();
 
         Queue::assertPushed(
             SendTroopVerificationNotificationsJob::class,
@@ -50,7 +50,7 @@ class TroopCreditVerificationTest extends TestCase
     public function test_approve_refuses_a_club_that_was_not_requested(): void
     {
         [$event_trooper, $organization] = $this->eventTrooper();
-        (new RequestTroopVerification($event_trooper, [$organization->id]))->handle();
+        (new RequestTroopCredit($event_trooper, [$organization->id]))->handle();
 
         $this->expectException(RuntimeException::class);
 

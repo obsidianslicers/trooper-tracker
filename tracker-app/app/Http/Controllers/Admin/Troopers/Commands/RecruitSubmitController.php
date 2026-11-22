@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Http\Controllers\PageController;
-use App\Messages\Troopers\Commands\DirectAddTrooper;
+use App\Messages\Troopers\Commands\AddTrooperDirectly;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
@@ -18,7 +18,7 @@ use Illuminate\Validation\Rule;
  * Handles submission of the recruit form.
  *
  * Validates trooper and organization, authorizes against the organization
- * (not the trooper being added), then dispatches DirectAddTrooper.
+ * (not the trooper being added), then dispatches AddTrooperDirectly.
  */
 class RecruitSubmitController extends PageController
 {
@@ -48,7 +48,7 @@ class RecruitSubmitController extends PageController
             'identifier' => $this->buildIdentifierRules($organization, $subject),
         ]);
 
-        DirectAddTrooper::call(
+        AddTrooperDirectly::call(
             trooper: $subject,
             organization: $organization,
             identifier: $request->filled('identifier') ? $request->string('identifier')->toString() : null,

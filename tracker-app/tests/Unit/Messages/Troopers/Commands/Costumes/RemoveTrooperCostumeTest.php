@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Troopers\Commands\Costumes;
 
-use App\Messages\Troopers\Commands\Costumes\RemoveCostumeFromTrooper;
+use App\Messages\Troopers\Commands\Costumes\RemoveTrooperCostume;
 use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
@@ -13,7 +13,7 @@ use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class RemoveCostumeFromTrooperTest extends TestCase
+class RemoveTrooperCostumeTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -51,7 +51,7 @@ class RemoveCostumeFromTrooperTest extends TestCase
             ->forOrganizationCostume($matching_org_costume)
             ->create();
 
-        $subject = new RemoveCostumeFromTrooper($trooper, $costume->id);
+        $subject = new RemoveTrooperCostume($trooper, $costume->id);
 
         $subject->handle();
 

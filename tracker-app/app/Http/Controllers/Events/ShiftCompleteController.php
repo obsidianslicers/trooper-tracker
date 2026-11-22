@@ -8,7 +8,7 @@ use App\Enums\EventTrooperStatus;
 use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\UpdateEventTrooper;
-use App\Messages\Events\Commands\Verification\RequestTroopVerification;
+use App\Messages\Events\Commands\Verification\RequestTroopCredit;
 use App\Models\EventTrooper;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\View\View;
@@ -168,7 +168,7 @@ class ShiftCompleteController extends PageController
             $organization_ids = [$event_trooper->event_shift->event->organization_id];
         }
 
-        RequestTroopVerification::call(event_trooper: $event_trooper, organization_ids: $organization_ids);
+        RequestTroopCredit::call(event_trooper: $event_trooper, organization_ids: $organization_ids);
     }
 
     private function getMessageForStatus(EventTrooperStatus $status): string

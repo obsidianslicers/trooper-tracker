@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Notices\Commands;
 
-use App\Messages\Notices\Commands\UpdateNoticeAsRead;
+use App\Messages\Notices\Commands\MarkNoticeAsRead;
 use App\Models\Notice;
 use App\Models\NoticeTrooper;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class UpdateNoticeAsReadTest extends TestCase
+class MarkNoticeAsReadTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -20,7 +20,7 @@ class UpdateNoticeAsReadTest extends TestCase
         $trooper = Trooper::factory()->create();
         $notice = Notice::factory()->create();
 
-        $subject = new UpdateNoticeAsRead($trooper, $notice);
+        $subject = new MarkNoticeAsRead($trooper, $notice);
 
         $subject->handle();
 
@@ -49,7 +49,7 @@ class UpdateNoticeAsReadTest extends TestCase
             ->asUnread()
             ->create();
 
-        $subject = new UpdateNoticeAsRead($trooper, $notice);
+        $subject = new MarkNoticeAsRead($trooper, $notice);
 
         $subject->handle();
 

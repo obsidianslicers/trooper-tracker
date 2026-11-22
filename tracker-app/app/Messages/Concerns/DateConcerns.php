@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Commands\Merge;
+namespace App\Messages\Concerns;
 
 trait DateConcerns
 {

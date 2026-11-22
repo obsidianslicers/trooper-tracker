@@ -260,7 +260,7 @@ Visitors can only be assigned to organizations at `depth 0` (primary clubs). The
 | Deny join request | `app/Messages/Troopers/Commands/Membership/DenyTrooperRequest.php` |
 | Remove membership | `app/Messages/Troopers/Commands/RemoveTrooperMembership.php` |
 | Update assignment picker | `app/Messages/Troopers/Commands/UpdateTrooperMemberships.php` |
-| Direct admin add | `app/Messages/Troopers/Commands/DirectAddTrooper.php` |
+| Direct admin add | `app/Messages/Troopers/Commands/AddTrooperDirectly.php` |
 | Membership page query | `app/Messages/Troopers/Queries/Membership/GetTrooperOrganizationMemberships.php` |
 | Assignment observer | `app/Models/Observers/TrooperAssignmentObserver.php` |
 | Membership page view | `resources/views/pages/admin/troopers/membership.blade.php` |

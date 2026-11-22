@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Auth\Commands;
 
-use App\Messages\Auth\Commands\Login;
+use App\Messages\Auth\Commands\LoginTrooper;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Mockery;
 use Tests\TestCase;
 
-class LoginTest extends TestCase
+class LoginTrooperTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -29,7 +29,7 @@ class LoginTest extends TestCase
                 return $login_trooper->is($trooper);
             }), true);
 
-        $result = (new Login($trooper->email, 'password123', true))->handle();
+        $result = (new LoginTrooper($trooper->email, 'password123', true))->handle();
 
         $this->assertInstanceOf(Trooper::class, $result);
         $this->assertSame($trooper->id, $result->id);
@@ -44,7 +44,7 @@ class LoginTest extends TestCase
 
         Auth::shouldReceive('login')->never();
 
-        $result = (new Login($trooper->email, 'wrong-password', false))->handle();
+        $result = (new LoginTrooper($trooper->email, 'wrong-password', false))->handle();
 
         $this->assertNull($result);
     }
@@ -53,7 +53,7 @@ class LoginTest extends TestCase
     {
         Auth::shouldReceive('login')->never();
 
-        $result = (new Login('missing@example.com', 'password123', false))->handle();
+        $result = (new LoginTrooper('missing@example.com', 'password123', false))->handle();
 
         $this->assertNull($result);
     }
