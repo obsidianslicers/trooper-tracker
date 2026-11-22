@@ -5,6 +5,7 @@
     import {
         TrooperPickerViewModel,
         type Trooper,
+        type TrooperPickerMode,
     } from "$lib/components/models/TrooperPickerViewModel.svelte";
     import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
@@ -20,7 +21,9 @@
         disabled?: boolean;
         errors?: string | string[];
         clearable?: boolean;
-        mode?: "admin" | null;
+        mode?: TrooperPickerMode;
+        /** A plain button that opens the search, in place of the field. */
+        as_button?: boolean;
         onSelected?: ((trooper: Trooper) => void) | null;
     }
 
@@ -38,6 +41,7 @@
         errors = [],
         clearable = true,
         mode = null,
+        as_button = false,
         onSelected = null,
     }: Props = $props();
 
@@ -67,6 +71,11 @@
 
         if (query.length === 0) {
             vm.resetSearchForEmptyQuery();
+
+            if (mode === "friends") {
+                void vm.runSearch("");
+            }
+
             return;
         }
 
@@ -78,6 +87,16 @@
     });
 </script>
 
+{#if as_button}
+    <button
+        type="button"
+        class="btn btn-sm btn-outline-secondary btn-secondary-action"
+        disabled={vm.options.disabled}
+        onclick={() => vm.openModal()}
+    >
+        {vm.options.button_label}
+    </button>
+{:else}
 <div>
     <div class="input-group">
         <div class="form-floating flex-grow-1">
@@ -118,6 +137,7 @@
 
     <InputError errors={vm.options.errors} />
 </div>
+{/if}
 
 <Modal
     bind:show={vm.show_modal}
