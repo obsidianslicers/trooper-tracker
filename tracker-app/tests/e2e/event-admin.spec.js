@@ -115,7 +115,7 @@ test.describe('event details', () => {
         await page.getByRole('link', { name: 'Copy' }).first().click();
         await expect(page).toHaveURL(/\/admin\/events\/\d+\/copy$/);
 
-        await page.locator('#name').fill('E2E Copied Troop');
+        await page.getByLabel('Name', { exact: true }).fill('E2E Copied Troop');
         await page.getByRole('button', { name: /^(Copy|Create|Save)$/ }).click();
 
         await expect(page).toHaveURL(/\/admin\/events\/\d+\/update$/);
