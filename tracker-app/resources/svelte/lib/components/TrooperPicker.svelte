@@ -1,5 +1,6 @@
 <script lang="ts">
     import { t } from "$lib/i18n";
+    import { untrack } from "svelte";
     import InputError from "$lib/components/form/InputError.svelte";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import {
@@ -61,29 +62,36 @@
 
     const floating_label = $derived(vm.options.label ?? "Trooper");
 
+    // Only opening the modal, the search text and the mode start a search. The view model
+    // reads and writes its own loading state, so its calls run untracked: otherwise a search
+    // re-runs this effect, which starts another search, without end.
     $effect(() => {
-        if (!vm.show_modal) {
-            vm.clearPendingSearch();
-            return;
-        }
-
+        const open = vm.show_modal;
         const query = vm.term.trim();
+        const lists_friends = mode === "friends";
 
-        if (query.length === 0) {
-            vm.resetSearchForEmptyQuery();
-
-            if (mode === "friends") {
-                void vm.runSearch("");
+        return untrack(() => {
+            if (!open) {
+                vm.clearPendingSearch();
+                return;
             }
 
-            return;
-        }
+            if (query.length === 0) {
+                vm.resetSearchForEmptyQuery();
 
-        vm.scheduleSearch(query);
+                if (lists_friends) {
+                    void vm.runSearch("");
+                }
 
-        return () => {
-            vm.clearPendingSearch();
-        };
+                return;
+            }
+
+            vm.scheduleSearch(query);
+
+            return () => {
+                vm.clearPendingSearch();
+            };
+        });
     });
 </script>
 

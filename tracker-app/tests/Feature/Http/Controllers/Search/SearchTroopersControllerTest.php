@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\Search;
 
 use App\Messages\Troopers\PageData\SearchTroopersPageData;
 use App\Models\Trooper;
+use App\Models\TrooperFriend;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Mockery;
@@ -54,6 +55,21 @@ class SearchTroopersControllerTest extends TestCase
         $response->assertOk();
         $response->assertJson($payload);
         $response->assertHeader('content-type', 'application/json');
+    }
+
+    public function test_invoke_lists_friends_when_the_search_term_is_empty(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $friend = Trooper::factory()->asActive()->withVerifiedEmail()->create([
+            Trooper::SETUP_COMPLETED_AT => now(),
+        ]);
+        TrooperFriend::factory()->forTrooper($trooper)->forFriend($friend)->create();
+
+        $response = $this->actingAs($trooper)
+            ->get(route('search.troopers', ['search_term' => '', 'search_mode' => 'friends']));
+
+        $response->assertOk();
+        $response->assertJsonPath('0.'.Trooper::ID, $friend->id);
     }
 
     protected function tearDown(): void
