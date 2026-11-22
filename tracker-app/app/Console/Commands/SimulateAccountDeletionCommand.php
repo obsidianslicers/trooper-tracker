@@ -6,7 +6,7 @@ namespace App\Console\Commands;
 
 use App\Enums\AchievementType;
 use App\Enums\EventTrooperStatus;
-use App\Messages\Troopers\Commands\ExecuteAccountDeletion;
+use App\Messages\Troopers\Commands\ExecuteTrooperDeletion;
 use App\Messages\Troopers\Commands\RequestTrooperDeletion;
 use App\Models\Event;
 use App\Models\EventMissionAck;
@@ -157,7 +157,7 @@ class SimulateAccountDeletionCommand extends Command
             ]
         );
 
-        ExecuteAccountDeletion::call(trooper: $trooper);
+        ExecuteTrooperDeletion::call(trooper: $trooper);
 
         $fresh = Trooper::withTrashed()->find($id);
 

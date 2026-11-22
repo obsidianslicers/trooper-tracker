@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Messages\Troopers\Commands\Merge;
+namespace Tests\Unit\Messages\Concerns;
 
-use App\Messages\Troopers\Commands\Merge\DateConcerns;
+use App\Messages\Concerns\DateConcerns;
 use Carbon\Carbon;
 use Tests\TestCase;
 

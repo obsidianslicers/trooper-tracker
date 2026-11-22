@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Account\Commands;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\RemoveCostumeRequest;
 use App\Messages\Account\Resources\TrooperCostumeCollection;
-use App\Messages\Troopers\Commands\Costumes\RemoveCostumeFromTrooper;
+use App\Messages\Troopers\Commands\Costumes\RemoveTrooperCostume;
 use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumes;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -31,7 +31,7 @@ class RemoveCostumeController extends Controller
     {
         $trooper = $request->user();
 
-        RemoveCostumeFromTrooper::call(
+        RemoveTrooperCostume::call(
             trooper: $trooper,
             costume_id: $request->validated('costume_id')
         );

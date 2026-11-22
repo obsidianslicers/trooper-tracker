@@ -7,7 +7,7 @@ namespace Tests\Feature\Http\Controllers\Auth;
 use App\Contracts\LoginProvider;
 use App\Facades\TroopTracker;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Messages\Auth\Commands\Login;
+use App\Messages\Auth\Commands\LoginTrooper;
 use App\Models\Trooper;
 use Hyperdrive\MessageDispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -57,7 +57,7 @@ class LoginSubmitControllerTest extends TestCase
 
         $login_calls = array_values(array_filter(
             $dispatcher->calls,
-            static fn (array $call): bool => $call[0] === Login::class
+            static fn (array $call): bool => $call[0] === LoginTrooper::class
         ));
 
         $this->assertCount(1, $login_calls);
@@ -100,7 +100,7 @@ class LoginSubmitControllerTest extends TestCase
 
         $login_calls = array_values(array_filter(
             $dispatcher->calls,
-            static fn (array $call): bool => $call[0] === Login::class
+            static fn (array $call): bool => $call[0] === LoginTrooper::class
         ));
 
         $this->assertSame([], $login_calls);
@@ -140,7 +140,7 @@ class LoginSubmitControllerTest extends TestCase
 
         $login_calls = array_values(array_filter(
             $dispatcher->calls,
-            static fn (array $call): bool => $call[0] === Login::class
+            static fn (array $call): bool => $call[0] === LoginTrooper::class
         ));
 
         $this->assertCount(1, $login_calls);

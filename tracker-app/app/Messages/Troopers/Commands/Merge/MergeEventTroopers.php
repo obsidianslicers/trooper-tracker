@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\Troopers\Commands\Merge;
 
 use App\Enums\EventTrooperStatus;
+use App\Messages\Concerns\DateConcerns;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Hyperdrive\Message;

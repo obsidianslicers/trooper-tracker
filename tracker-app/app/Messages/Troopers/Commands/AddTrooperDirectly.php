@@ -21,7 +21,7 @@ use Hyperdrive\Message;
  *
  * @method static void call(Trooper $trooper, Organization $organization, ?string $identifier)
  */
-final class DirectAddTrooper extends Message
+final class AddTrooperDirectly extends Message
 {
     /**
      * @param  Trooper  $trooper  The trooper being added to the organization

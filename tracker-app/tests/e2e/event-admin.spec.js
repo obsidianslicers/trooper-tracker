@@ -231,7 +231,9 @@ test.describe('reaching the troopers', () => {
         await page.goto('/events');
         await page.getByRole('link', { name: seeded.commandEvent }).first().click();
 
+        await page.getByRole('button', { name: 'Share roster' }).click();
         const share = page.locator('#share-roster');
+        await expect(share.locator('input[name="recipient_email"]')).toBeVisible();
         await share.locator('input[name="recipient_email"]').fill('coordinator@e2e.test');
         await share.getByRole('button', { name: 'Send Roster Link' }).click();
         await expect(share.getByText('Roster successfully sent.')).toBeVisible();

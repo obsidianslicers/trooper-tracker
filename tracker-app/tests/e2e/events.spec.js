@@ -16,6 +16,19 @@ function shift(page) {
     return page.locator('[id^="shift-container-"]').first();
 }
 
+// The "Your sign-up" card at the top (the phone bar below it is hidden at this width)
+function summary(page) {
+    return page.locator('#my-signup-summary .my-signup-summary');
+}
+
+async function collapseShift(page) {
+    // The header toggles once the deferred Bootstrap bundle has run
+    await page.waitForLoadState('load');
+    await shift(page).locator('.card-header').click();
+    // Hidden only once the animation ends; Bootstrap ignores show() until then.
+    await expect(shift(page).locator('[id^="shift-card-"]')).toBeHidden();
+}
+
 // Each select posts with HTMX and swaps the shift in place; wait for the new one.
 async function choose(page, name, option) {
     await htmxSettled(page);
@@ -64,39 +77,99 @@ test.describe('finding a troop', () => {
 });
 
 test.describe('signing up', () => {
-    test('a trooper signs up, picks a costume, brings a guest and a friend, then cancels', async ({ page }) => {
+    test("the summary's Sign up opens a collapsed shift", async ({ page }) => {
         await openEvent(page, seeded.signupEvent);
+        const signUp = shift(page).getByRole('button', { name: 'Sign Up' });
+        await collapseShift(page);
+        await expect(signUp).toBeHidden();
 
+        await summary(page).getByRole('link', { name: 'Sign up' }).click();
+        await expect(signUp).toBeVisible();
+        await expect(shift(page).locator('.collapse-icon')).toHaveClass(/fa-minus/);
+    });
+
+    test('a trooper signs up in a costume, brings a guest and a friend, then cancels', async ({ page }) => {
+        await openEvent(page, seeded.signupEvent);
+        await expect(page.getByText("You're not signed up for this event yet.")).toBeVisible();
+
+        // Sign Up shows the choices; Confirm sends them, the costume with it.
         await shift(page).getByRole('button', { name: 'Sign Up' }).click();
-        await expect(shift(page).getByText('Select a costume, or mark attending without one')).toBeVisible();
+        const form = shift(page).locator('.shift-signup .shift-signup-primary--form');
+        await form.locator('select[name="costume_id"]').selectOption({ label: seeded.trooperCostume });
+        const confirm = form.getByRole('button', { name: 'Confirm' });
+        await expect(confirm).toBeEnabled();
+        await htmxSettled(page);
+        const signedUp = page.waitForResponse((r) => r.url().includes('/events/signup/') && r.request().method() === 'POST');
+        await confirm.click();
+        await signedUp;
+        await expect(shift(page).getByText('1 of 10 going')).toBeVisible();
+        const myRow = shift(page).locator('.roster-row--mine');
+        await expect(myRow).toContainText('Going');
+        await expect(page.locator('#my-signup-summary')).toContainText(seeded.trooperCostume);
 
-        await choose(page, 'costume_id', { label: seeded.trooperCostume });
-        await expect(shift(page).getByText('1 / 10 going')).toBeVisible();
-        await expect(shift(page).locator('select[name="status"]')).toHaveValue('going');
+        // "Change" in the summary opens the shift again when it was collapsed, and your row's Edit area.
+        await collapseShift(page);
+        await expect(myRow).toBeHidden();
+        await summary(page).getByRole('link', { name: 'Change' }).click();
+        await expect(myRow.locator('select[name="costume_id"]')).toBeVisible();
 
+        // The backup costume waits behind its button; picking one saves and says so, and the Edit
+        // area stays open after the shift is redrawn.
+        await myRow.getByRole('button', { name: 'Add a backup costume' }).click();
         await choose(page, 'backup_costume_id', { label: seeded.trooperCostume });
+        await expect(page.locator('.toast:visible').getByText('Saved.').first()).toBeVisible();
+        await expect(shift(page).locator('.roster-row--mine select[name="costume_id"]')).toBeVisible();
 
-        // A guest, by name.
-        await shift(page).getByRole('button', { name: 'Add a Guest' }).click();
-        const guests = page.getByRole('dialog');
-        await guests.locator('textarea[name="guest_names"]').fill('E2E Guest Wookiee');
-        await guests.getByRole('button', { name: 'Save Guests' }).click();
-        await expect(shift(page).getByText('E2E Guest Wookiee')).toBeVisible();
+        // A guest, by name, in the same kind of box as Sign Up; their row gets an Edit button.
+        await shift(page).getByRole('button', { name: 'Add a guest' }).click();
+        await shift(page).getByPlaceholder("Guest's name").fill('E2E Guest Wookiee');
+        await htmxSettled(page);
+        await shift(page).locator('.shift-links .shift-signup-primary--form').getByRole('button', { name: 'Confirm' }).click();
+        const guestRow = () => shift(page).locator('.roster-row[id^="roster-guest-"]');
+        await expect(guestRow()).toContainText('E2E Guest Wookiee');
+        await expect(guestRow().getByRole('button', { name: 'Edit' })).toBeVisible();
 
-        // A friend from the tracker.
-        await shift(page).getByRole('button', { name: 'Add a Friend' }).click();
+        // A friend from the tracker, the same way: pick them, then their costume (their only one is
+        // preselected) and Confirm.
+        await shift(page).getByRole('button', { name: 'Add a friend' }).click();
         const picker = page.getByRole('dialog');
+        // The picker loads into the dialog with HTMX; typing before it settles sends no search.
+        await expect(picker.getByRole('textbox')).toBeVisible();
+        await htmxSettled(page);
         await picker.getByRole('textbox').fill('E2E Trooper Friend');
         await picker.getByRole('listitem').filter({ hasText: seeded.friend.name }).click();
-        await expect(shift(page).getByRole('link', { name: seeded.friend.name })).toBeVisible();
-
-        // Backing out.
+        const friendForm = shift(page).locator('[id^="add-trooper-step2-"] .shift-signup-primary--form');
+        await expect(friendForm).toContainText(`Sign up ${seeded.friend.name}`);
+        await expect(friendForm.locator('select[name="costume_id"] option:checked')).toHaveText(seeded.friendCostume);
         await htmxSettled(page);
-        const own = shift(page).locator('.row').filter({ has: page.getByRole('link', { name: personas.trooper.name, exact: true }) });
+        const friendSignedUp = page.waitForResponse((r) => r.url().includes('/events/signup/') && r.request().method() === 'POST');
+        await friendForm.getByRole('button', { name: 'Confirm' }).click();
+        await friendSignedUp;
+        // Going straight away, not waiting on a costume.
+        await expect(shift(page).getByText('2 of 10 going')).toBeVisible();
+        // Their row shows their costume; its pickers wait behind Edit, like yours.
+        const friendRow = shift(page).locator('.roster-row').filter({ hasText: seeded.friend.name });
+        await expect(friendRow.locator('select[name="costume_id"]')).toBeHidden();
+        await friendRow.getByRole('button', { name: 'Edit' }).click();
+        await expect(friendRow.locator('select[name="costume_id"] option:checked')).toHaveText(seeded.friendCostume);
+
+        // Cancelling the guest, from their Edit area.
+        await guestRow().getByRole('button', { name: 'Edit' }).click();
+        await htmxSettled(page);
+        page.once('dialog', (dialog) => dialog.accept());
+        const guestCancelled = page.waitForResponse((r) => r.url().includes('/guest') && r.url().includes('/events/update/') && r.request().method() === 'POST');
+        await guestRow().getByRole('button', { name: 'Cancel their sign-up' }).click();
+        await guestCancelled;
+        await expect(guestRow().getByRole('button', { name: 'Sign up again' })).toBeVisible();
+
+        // Backing out: a button in your Edit area that asks first, not an option in a dropdown.
+        await htmxSettled(page);
+        page.once('dialog', (dialog) => dialog.accept());
         const response = page.waitForResponse((r) => r.url().includes('/events/update/') && r.request().method() === 'POST');
-        await own.locator('select[name="status"]').selectOption('cancelled');
+        await shift(page).locator('.roster-row--mine').getByRole('button', { name: 'Cancel my sign-up' }).click();
         await response;
         await expect(shift(page).locator('.trooper-status-cancelled')).toContainText(personas.trooper.name);
+        await expect(shift(page).locator('.trooper-status-cancelled').getByRole('button', { name: 'Sign up again' })).toBeVisible();
     });
 
     test('a troop with a required brief opens sign-up once it is acknowledged', async ({ page }) => {
@@ -196,7 +269,7 @@ test.describe('after the troop', () => {
         await shift(page).getByRole('link', { name: 'Made It' }).click();
 
         await openEvent(page, seeded.pastParade, '/events/closed');
-        await expect(shift(page).getByText('Attended')).toBeVisible();
+        await expect(shift(page).locator('.roster-row--mine')).toContainText('Attended');
     });
 });
 

@@ -17,7 +17,7 @@ use RuntimeException;
  *
  * @method static void call(Actor $actor, TrooperCostume $trooper_costume)
  */
-final class UndoRevokeTrooperCostume extends Message
+final class UnrevokeTrooperCostume extends Message
 {
     use ShouldBeTransactional;
 

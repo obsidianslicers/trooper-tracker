@@ -28,7 +28,7 @@ class SignUpTourTest extends TestCase
         $response->assertOk();
         $response->assertSee('data-autostart="true"', false);
         $response->assertSee('How sign-up works');
-        $response->assertSeeInOrder(['Example shift', 'How signing up works', 'Sign up for each shift', 'Then pick your costume', 'After the troop']);
+        $response->assertSeeInOrder(['Example shift', 'How signing up works', 'Sign up for each shift', "Then it's your sign-up", 'After the troop']);
         $response->assertDontSee('Read the mission brief first');
     }
 

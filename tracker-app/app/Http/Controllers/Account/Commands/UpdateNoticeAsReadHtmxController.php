@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account\Commands;
 
 use App\Http\Controllers\Controller;
-use App\Messages\Notices\Commands\UpdateNoticeAsRead;
+use App\Messages\Notices\Commands\MarkNoticeAsRead;
 use App\Models\Notice;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,11 +15,11 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * This controller follows the Action-Domain-Responder (ADR) pattern:
  * - **Action (Controller):** Receives HTMX request with notice route parameter
- * - **Domain (Message):** Uses UpdateNoticeAsRead command to mark notice as read
+ * - **Domain (Message):** Uses MarkNoticeAsRead command to mark notice as read
  * - **Responder:** Returns HTML button fragment for HTMX swap
  *
  * When a trooper clicks the "Mark as Read" button in the notices list, this endpoint:
- * 1. Calls UpdateNoticeAsRead command to create/update NoticeTrooper pivot record
+ * 1. Calls MarkNoticeAsRead command to create/update NoticeTrooper pivot record
  * 2. Sets is_read flag to true
  * 3. Returns "Read" button HTML for HTMX to swap into the DOM
  *
@@ -41,7 +41,7 @@ class UpdateNoticeAsReadHtmxController extends Controller
     {
         $trooper = $request->user();
 
-        UpdateNoticeAsRead::call(
+        MarkNoticeAsRead::call(
             trooper: $trooper,
             notice: $notice
         );

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Messages\Troopers\Commands\ExecuteAccountDeletion;
+use App\Messages\Troopers\Commands\ExecuteTrooperDeletion;
 use App\Models\Trooper;
 use Illuminate\Console\Command;
 
@@ -27,7 +27,7 @@ class ProcessAccountDeletionsCommand extends Command
 
         foreach ($pending as $trooper)
         {
-            ExecuteAccountDeletion::call(trooper: $trooper);
+            ExecuteTrooperDeletion::call(trooper: $trooper);
         }
 
         $this->info("Processed {$pending->count()} account deletion(s).");

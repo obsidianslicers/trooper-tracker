@@ -29,7 +29,7 @@ use Illuminate\Support\Str;
 /**
  * @method static void call(Trooper $trooper)
  */
-final class ExecuteAccountDeletion extends Message
+final class ExecuteTrooperDeletion extends Message
 {
     use ShouldBeTransactional;
 

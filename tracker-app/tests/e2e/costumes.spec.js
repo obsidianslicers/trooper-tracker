@@ -149,7 +149,7 @@ test.describe('troop verification', () => {
 
         await trooper.goto('/events/closed');
         await trooper.getByRole('link', { name: seeded.verifiedParade }).first().click();
-        await expect(trooper.locator('[id^="shift-container-"]').first().getByText('Attended')).toBeVisible();
+        await expect(trooper.locator('[id^="shift-container-"] .roster-row--mine').first()).toContainText('Attended');
 
         await trooper_context.close();
         await moderator_context.close();

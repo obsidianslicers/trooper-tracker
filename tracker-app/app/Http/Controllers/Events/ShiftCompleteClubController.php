@@ -8,7 +8,7 @@ use App\Enums\EventTrooperStatus;
 use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\UpdateEventTrooper;
-use App\Messages\Events\Commands\Verification\RequestTroopVerification;
+use App\Messages\Events\Commands\Verification\RequestTroopCredit;
 use App\Models\EventTrooper;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\View\View;
@@ -105,7 +105,7 @@ class ShiftCompleteClubController extends PageController
     {
         if (!$event_trooper->isAwaitingVerification())
         {
-            RequestTroopVerification::call(event_trooper: $event_trooper, organization_ids: $organization_ids);
+            RequestTroopCredit::call(event_trooper: $event_trooper, organization_ids: $organization_ids);
         }
 
         $message = __('events.'.ShiftCompleteController::VERIFICATION_MESSAGE);

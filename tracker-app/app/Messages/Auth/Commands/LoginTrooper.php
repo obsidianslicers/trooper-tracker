@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Hash;
  *
  * @method static Trooper|null call(string $email, string $password, bool $remember_me)
  */
-final class Login extends Message
+final class LoginTrooper extends Message
 {
     public function __construct(
         private readonly string $email,
