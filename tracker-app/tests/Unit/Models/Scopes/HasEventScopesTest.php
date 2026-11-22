@@ -18,7 +18,7 @@ class HasEventScopesTest extends TestCase
     {
         $query = Event::query()->active();
 
-        $this->assertStringContainsString('"status" in (?, ?, ?, ?)', $query->toBase()->toSql());
+        $this->assertStringContainsString('"status" in (?, ?, ?, ?)', $this->sql($query));
         $this->assertSame([
             EventStatus::OPEN->value,
             EventStatus::MANUAL_SELECTION->value,
@@ -31,16 +31,16 @@ class HasEventScopesTest extends TestCase
     {
         $query = Event::query()->upcoming();
 
-        $this->assertStringContainsString('"shift_ends_at" >= ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('"event_end" >= ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('order by "event_start" asc', $query->toBase()->toSql());
+        $this->assertStringContainsString('"shift_ends_at" >= ?', $this->sql($query));
+        $this->assertStringContainsString('"event_end" >= ?', $this->sql($query));
+        $this->assertStringContainsString('order by "event_start" asc', $this->sql($query));
     }
 
     public function test_search_for_wraps_term_with_wildcards(): void
     {
         $query = Event::query()->searchFor('charity');
 
-        $this->assertStringContainsString('"name" like ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"name" like ?', $this->sql($query));
         $this->assertSame(['%charity%'], $query->getBindings());
     }
 
@@ -48,8 +48,8 @@ class HasEventScopesTest extends TestCase
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $base_sql = Event::query()->toBase()->toSql();
-        $moderated_sql = Event::query()->moderatedBy($trooper)->toBase()->toSql();
+        $base_sql = $this->sql(Event::query());
+        $moderated_sql = $this->sql(Event::query()->moderatedBy($trooper));
 
         $this->assertSame($base_sql, $moderated_sql);
     }

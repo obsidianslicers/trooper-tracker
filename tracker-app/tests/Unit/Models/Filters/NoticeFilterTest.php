@@ -19,7 +19,7 @@ class NoticeFilterTest extends TestCase
 
         $query = $subject->apply(Notice::query());
 
-        $this->assertStringContainsString('"starts_at" <= ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"starts_at" <= ?', $this->sql($query));
     }
 
     public function test_apply_adds_organization_constraint_when_provided(): void
@@ -30,7 +30,7 @@ class NoticeFilterTest extends TestCase
 
         $query = $subject->apply(Notice::query());
 
-        $this->assertStringContainsString('"organization_id" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"organization_id" = ?', $this->sql($query));
         $this->assertContains(44, $query->getBindings());
     }
 }

@@ -14,7 +14,7 @@ class HasModelChangeScopesTest extends TestCase
     {
         $query = ModelChange::query()->recent(Carbon::parse('2026-03-01 00:00:00'));
 
-        $this->assertStringContainsString('"created_at" >= ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"created_at" >= ?', $this->sql($query));
         $this->assertCount(1, $query->getBindings());
     }
 }

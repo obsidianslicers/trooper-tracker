@@ -19,7 +19,7 @@ class AwardFilterTest extends TestCase
 
         $query = $subject->apply(Award::query());
 
-        $this->assertStringContainsString('"organization_id" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"organization_id" = ?', $this->sql($query));
         $this->assertSame([123], $query->getBindings());
     }
 }

@@ -41,7 +41,7 @@ class RemoveTrooperCostumeTest extends TestCase
             ->forOrganizationCostume($matching_org_costume)
             ->create();
 
-        TrooperCostume::factory()
+        $other_trooper_costume = TrooperCostume::factory()
             ->forTrooper($trooper)
             ->forOrganizationCostume($other_org_costume)
             ->create();
@@ -56,7 +56,7 @@ class RemoveTrooperCostumeTest extends TestCase
         $subject->handle();
 
         $this->assertSoftDeleted('tt_trooper_costumes', ['id' => $matching_trooper_costume->id]);
-        $this->assertDatabaseHas('tt_trooper_costumes', ['id' => $other_org_costume->id, 'deleted_at' => null]);
+        $this->assertDatabaseHas('tt_trooper_costumes', ['id' => $other_trooper_costume->id, 'deleted_at' => null]);
         $this->assertDatabaseHas('tt_trooper_costumes', ['trooper_id' => $other_trooper->id, 'organization_costume_id' => $matching_org_costume->id, 'deleted_at' => null]);
     }
 }

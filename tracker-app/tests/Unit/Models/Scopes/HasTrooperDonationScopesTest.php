@@ -14,8 +14,8 @@ class HasTrooperDonationScopesTest extends TestCase
     {
         $query = TrooperDonation::query()->byTrooper(99);
 
-        $this->assertStringContainsString('"trooper_id" = ?', $query->toBase()->toSql());
-        $this->assertStringContainsString('order by "created_at" desc', $query->toBase()->toSql());
+        $this->assertStringContainsString('"trooper_id" = ?', $this->sql($query));
+        $this->assertStringContainsString('order by "created_at" desc', $this->sql($query));
         $this->assertSame([99], $query->getBindings());
     }
 
@@ -23,7 +23,7 @@ class HasTrooperDonationScopesTest extends TestCase
     {
         $query = TrooperDonation::query()->forMonth(Carbon::parse('2026-02-10 12:00:00'));
 
-        $this->assertStringContainsString('"created_at" between ? and ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"created_at" between ? and ?', $this->sql($query));
         $this->assertCount(2, $query->getBindings());
     }
 }

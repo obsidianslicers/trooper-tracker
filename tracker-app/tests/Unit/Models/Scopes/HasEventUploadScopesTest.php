@@ -13,7 +13,7 @@ class HasEventUploadScopesTest extends TestCase
     {
         $query = EventUpload::query()->byEvent(9);
 
-        $this->assertStringContainsString('"event_id" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"event_id" = ?', $this->sql($query));
         $this->assertSame([9], $query->getBindings());
     }
 
@@ -21,7 +21,7 @@ class HasEventUploadScopesTest extends TestCase
     {
         $query = EventUpload::query()->byTrooper(12);
 
-        $this->assertStringContainsString('exists', $query->toBase()->toSql());
+        $this->assertStringContainsString('exists', $this->sql($query));
         $this->assertContains(12, $query->getBindings());
     }
 }
