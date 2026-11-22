@@ -110,7 +110,7 @@ final class CommandStaffDashboardPageData extends Message
             'reports' => ['admin.reports.display', true],
             'faq' => ['admin.faq.index', $administrator],
             'system-check' => ['admin.system-check', $owner],
-            'plugins' => ['admin.plugins.list', $owner],
+            'plugins' => ['admin.plugins.index', $owner],
         ];
 
         return collect($cards)

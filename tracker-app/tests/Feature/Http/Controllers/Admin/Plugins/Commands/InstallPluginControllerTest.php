@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Plugins;
+namespace Tests\Feature\Http\Controllers\Admin\Plugins\Commands;
 
 use App\Models\Trooper;
 use App\Plugins\PluginManager;
@@ -13,7 +13,7 @@ use Tests\Feature\Plugins\BuildsPluginArchives;
 use Tests\Feature\Plugins\UsesFixturePlugins;
 use Tests\TestCase;
 
-class InstallSubmitControllerTest extends TestCase
+class InstallPluginControllerTest extends TestCase
 {
     use BuildsPluginArchives;
     use RefreshDatabase;
@@ -43,7 +43,7 @@ class InstallSubmitControllerTest extends TestCase
     {
         $response = $this->postArchive($this->greeterFiles());
 
-        $response->assertRedirect(route('admin.plugins.list'));
+        $response->assertRedirect(route('admin.plugins.index'));
         $response->assertSessionHas('success');
         $this->assertFileExists($this->uploads_path.'/greeter/plugin.json');
         $this->assertFileExists($this->uploads_path.'/greeter/src/GreeterServiceProvider.php');
@@ -195,7 +195,7 @@ class InstallSubmitControllerTest extends TestCase
 
         $this->actingAs($trooper)
             ->post(route('admin.plugins.uninstall', ['slug' => 'greeter']))
-            ->assertRedirect(route('admin.plugins.list'));
+            ->assertRedirect(route('admin.plugins.index'));
 
         $this->assertDirectoryDoesNotExist($this->uploads_path.'/greeter');
         $this->assertNull($this->plugins->find('greeter'));
@@ -205,12 +205,12 @@ class InstallSubmitControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $this->actingAs($trooper)->get(route('admin.plugins.list'))
+        $this->actingAs($trooper)->get(route('admin.plugins.index'))
             ->assertInertia(fn (Assert $page) => $page->where('uploads.is_enabled', true));
 
         config(['plugins.uploads.enabled' => false]);
 
-        $this->actingAs($trooper)->get(route('admin.plugins.list'))
+        $this->actingAs($trooper)->get(route('admin.plugins.index'))
             ->assertInertia(fn (Assert $page) => $page->where('uploads.is_enabled', false));
     }
 

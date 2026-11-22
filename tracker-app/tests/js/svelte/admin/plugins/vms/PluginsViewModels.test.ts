@@ -134,6 +134,6 @@ describe('UpdateSettingsViewModel', () => {
     it('saves to the plugin settings', () => {
         vm.submit(new Event('submit'));
 
-        expect(formPost).toHaveBeenLastCalledWith('/admin.plugins.settings?slug=discord');
+        expect(formPost).toHaveBeenLastCalledWith('/admin.plugins.settings.update?slug=discord');
     });
 });

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Plugins;
+namespace Tests\Feature\Http\Controllers\Admin\Plugins\Commands;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -11,7 +11,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Feature\Plugins\UsesFixturePlugins;
 use Tests\TestCase;
 
-class UninstallSubmitControllerTest extends TestCase
+class UninstallPluginControllerTest extends TestCase
 {
     use RefreshDatabase;
     use UsesFixturePlugins;
@@ -27,7 +27,7 @@ class UninstallSubmitControllerTest extends TestCase
             ['slug' => 'hello'],
         ));
 
-        $response->assertRedirect(route('admin.plugins.list'));
+        $response->assertRedirect(route('admin.plugins.index'));
         $response->assertSessionHas('success');
         $this->assertFalse($plugins->isInstalled('hello'));
         $this->assertFalse(Schema::hasTable('tt_hello_greetings'));
@@ -49,7 +49,7 @@ class UninstallSubmitControllerTest extends TestCase
         $plugins = $this->useFixturePlugins();
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $this->actingAs($trooper)->get(route('admin.plugins.list'))
+        $this->actingAs($trooper)->get(route('admin.plugins.index'))
             ->assertInertia(fn (Assert $page) => $page->where(
                 'plugins',
                 fn ($rows) => collect($rows)->firstWhere('slug', 'hello')['is_installed'] === false,
@@ -57,7 +57,7 @@ class UninstallSubmitControllerTest extends TestCase
 
         $plugins->enable('hello');
 
-        $this->actingAs($trooper)->get(route('admin.plugins.list'))
+        $this->actingAs($trooper)->get(route('admin.plugins.index'))
             ->assertInertia(fn (Assert $page) => $page->where(
                 'plugins',
                 fn ($rows) => collect($rows)->firstWhere('slug', 'hello')['is_installed'] === true,

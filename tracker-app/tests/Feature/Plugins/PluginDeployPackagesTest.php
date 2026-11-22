@@ -110,7 +110,7 @@ class PluginDeployPackagesTest extends TestCase
         $this->writePlugin('sheets', ['acme/not-installed' => '^1.0']);
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $this->actingAs($trooper)->get(route('admin.plugins.list'))
+        $this->actingAs($trooper)->get(route('admin.plugins.index'))
             ->assertInertia(fn (Assert $page) => $page->where(
                 'plugins',
                 fn ($rows) => str_contains(collect($rows)->firstWhere('slug', 'sheets')['requirements']['text'], 'are installed by the next deploy after you enable it'),
@@ -120,7 +120,7 @@ class PluginDeployPackagesTest extends TestCase
             ->post(route('admin.plugins.enable', ['slug' => 'sheets']))
             ->assertSessionHas('info');
 
-        $this->actingAs($trooper)->get(route('admin.plugins.list'))
+        $this->actingAs($trooper)->get(route('admin.plugins.index'))
             ->assertInertia(fn (Assert $page) => $page->where(
                 'plugins',
                 fn ($rows) => collect($rows)->firstWhere('slug', 'sheets')['status']['label'] === 'Turns on at next deploy'

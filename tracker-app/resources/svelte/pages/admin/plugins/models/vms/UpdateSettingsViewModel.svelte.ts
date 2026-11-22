@@ -29,6 +29,6 @@ export class UpdateSettingsViewModel
     submit = (e: Event) => {
         e.preventDefault();
 
-        this.form.post(getRoute("admin.plugins.settings", { slug: this.plugin.slug }));
+        this.form.post(getRoute("admin.plugins.settings.update", { slug: this.plugin.slug }));
     };
 }

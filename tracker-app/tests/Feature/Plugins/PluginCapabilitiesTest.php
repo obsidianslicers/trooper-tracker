@@ -115,7 +115,7 @@ class PluginCapabilitiesTest extends TestCase
         $this->writePlugin('honest', ['middleware', 'login']);
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $this->actingAs($trooper)->get(route('admin.plugins.list'))
+        $this->actingAs($trooper)->get(route('admin.plugins.index'))
             ->assertInertia(fn (Assert $page) => $page->where(
                 'plugins',
                 fn ($rows) => collect($rows)->firstWhere('slug', 'honest')['capabilities'] === 'It runs on every page request and adds a way to sign in.'

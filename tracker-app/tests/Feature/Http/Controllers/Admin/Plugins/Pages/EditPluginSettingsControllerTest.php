@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\Plugins;
+namespace Tests\Feature\Http\Controllers\Admin\Plugins\Pages;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -10,7 +10,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Feature\Plugins\UsesFixturePlugins;
 use Tests\TestCase;
 
-class UpdateSettingsControllerTest extends TestCase
+class EditPluginSettingsControllerTest extends TestCase
 {
     use RefreshDatabase;
     use UsesFixturePlugins;
@@ -22,7 +22,7 @@ class UpdateSettingsControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($trooper)->get(route(
-            'admin.plugins.settings',
+            'admin.plugins.settings.edit',
             ['slug' => 'hello'],
         ));
 
@@ -41,7 +41,7 @@ class UpdateSettingsControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)->get(route(
-            'admin.plugins.settings',
+            'admin.plugins.settings.edit',
             ['slug' => 'nope'],
         ))->assertNotFound();
     }

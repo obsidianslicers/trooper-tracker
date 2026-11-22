@@ -181,7 +181,7 @@ class ReconcilePluginsTest extends TestCase
         $this->assertSame(['greeting' => 'Kept'], $this->record('keeper')->settings);
 
         $this->actingAs(Trooper::factory()->asSystemOwner()->create())
-            ->get(route('admin.plugins.list'))
+            ->get(route('admin.plugins.index'))
             ->assertInertia(fn (Assert $page) => $page->where('missing.0.slug', 'keeper'));
 
         (new Filesystem)->moveDirectory($moved, $folder);
@@ -324,7 +324,7 @@ class ReconcilePluginsTest extends TestCase
         $this->assertTrue(Schema::hasTable('tt_keeper_items'));
 
         $this->actingAs(Trooper::factory()->asSystemOwner()->create())
-            ->get(route('admin.plugins.list'))
+            ->get(route('admin.plugins.index'))
             ->assertInertia(fn (Assert $page) => $page->where(
                 'plugins',
                 fn ($rows) => collect($rows)->firstWhere('slug', 'keeper')['status']['label'] === 'Needs attention'

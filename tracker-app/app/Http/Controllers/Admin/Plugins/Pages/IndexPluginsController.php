@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Plugins;
+namespace App\Http\Controllers\Admin\Plugins\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Messages\Plugins\PageData\ListPluginsPageData;
@@ -12,7 +12,7 @@ use Inertia\Response;
 /**
  * Shows every discovered plugin and whether it is enabled.
  */
-class ListController extends PageController
+class IndexPluginsController extends PageController
 {
     protected function initialized(): void
     {
