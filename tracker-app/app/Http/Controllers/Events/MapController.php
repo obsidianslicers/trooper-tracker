@@ -5,58 +5,20 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Http\Controllers\PageController;
-use App\Messages\Organizations\Queries\GetOrganizations;
-use App\Models\Event;
-use Illuminate\Contracts\View\View;
+use App\Messages\Events\PageData\MapPageData;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
- * Displays the map view of upcoming events.
- *
- * This controller renders a geographic map showing upcoming events with geocoded
- * locations. Events are filtered to only include those with valid latitude/longitude
- * coordinates for proper map display.
+ * Upcoming events with a location, as pins on a map.
  */
 class MapController extends PageController
 {
-    /**
-     * Handle the incoming request to display the map page
-     *
-     * Retrieves all upcoming events with valid geocoded locations and renders
-     * them on an interactive map view. Each event includes its coordinates,
-     * name, dates, and a link to the event details page.
-     *
-     * @param  Request  $request  The incoming HTTP request
-     * @return View The rendered events map page with geocoded events
-     */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): InertiaResponse
     {
-        $columns = [
-            Event::ID,
-            Event::NAME,
-            Event::EVENT_START,
-            Event::EVENT_END,
-            Event::LATITUDE,
-            Event::LONGITUDE,
-        ];
+        $data = MapPageData::call($request);
 
-        $events = Event::select($columns)
-            ->upcoming()
-            ->whereNotNull(Event::LATITUDE)
-            ->whereNotNull(Event::LONGITUDE)
-            ->get()
-            ->each(function (Event $event)
-            {
-                $event->lng = $event->longitude;
-                $event->lat = $event->latitude;
-                $event->url = route('events.display', ['event' => $event->id]);
-                $event->date_range = $event->time_display;
-            });
-
-        $costume_organizations = GetOrganizations::call();
-
-        $data = compact('events', 'costume_organizations');
-
-        return view('pages.events.map', $data);
+        return Inertia::render('events/Map', $data);
     }
 }

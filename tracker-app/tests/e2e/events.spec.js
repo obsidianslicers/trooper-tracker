@@ -51,6 +51,16 @@ test.describe('finding a troop', () => {
         expect(map?.status()).toBe(200);
     });
 
+    test('the map has the same views menu and search as the other event views', async ({ page }) => {
+        // The map itself needs Google, which the test browser may not reach.
+        await page.goto('/events/map');
+        const menu = page.getByRole('button', { name: 'Event views' }).filter({ visible: true });
+        await expect(menu).toHaveText('Map');
+
+        await page.getByRole('searchbox', { name: 'Search events' }).fill('no event is called this');
+        await expect(page.getByText('0 events').filter({ visible: true })).toBeVisible();
+    });
+
     test('the views menu beside the search box switches between event views', async ({ page }) => {
         await page.goto('/events');
         const menu = page.getByRole('button', { name: 'Event views' }).filter({ visible: true });
