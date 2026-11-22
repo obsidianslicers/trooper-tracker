@@ -24,6 +24,22 @@ async function pick(page, property, name, search = false) {
 }
 
 // Markdown fields use an editor in place of the textarea.
+// The Svelte organization picker opens a searchable list of organizations.
+async function pickOrganization(page, name) {
+    await page.getByLabel('Organization', { exact: true }).click();
+    const picker = page.getByRole('dialog');
+    await picker.getByRole('textbox').fill(name);
+    await picker.getByRole('button', { name, exact: true }).click();
+}
+
+// The Svelte trooper picker searches as you type.
+async function pickTrooper(page, name) {
+    await page.getByLabel('Trooper', { exact: true }).click();
+    const picker = page.getByRole('dialog');
+    await picker.getByRole('textbox').fill(name);
+    await picker.getByRole('button').filter({ hasText: name }).first().click();
+}
+
 async function typeMarkdown(page, text) {
     await page.locator('.CodeMirror').first().click();
     await page.keyboard.type(text);
@@ -52,29 +68,30 @@ test.describe('awards', () => {
         await page.getByRole('button', { name: 'Create', exact: true }).click();
         await expect(form(page).getByText('The name field is required.')).toBeVisible();
 
-        await pick(page, 'organization_id', '501st Legion');
-        await page.locator('#frequency').selectOption({ label: 'Annually' });
-        await page.locator('#name').fill(seeded.newAward);
+        await pickOrganization(page, '501st Legion');
+        await page.getByLabel('Frequency').selectOption({ label: 'Annually' });
+        await page.getByLabel('Name').fill(seeded.newAward);
         await page.getByRole('button', { name: 'Create', exact: true }).click();
         await expect(page).toHaveURL(/\/admin\/awards\/\d+\/update$/);
 
-        await page.locator('#name').fill(`${seeded.newAward} 2026`);
+        await page.getByLabel('Name').fill(`${seeded.newAward} 2026`);
         await page.getByRole('button', { name: 'Update', exact: true }).click();
+        await expect(page).toHaveURL(/\/admin\/awards$/);
         await page.goto(`/admin/awards?search_term=${encodeURIComponent(seeded.newAward)}`);
         await expect(rowFor(page, `${seeded.newAward} 2026`)).toContainText('501st Legion');
 
         const award = await rowFor(page, seeded.newAward).locator('a[href$="/update"]').first().getAttribute('href');
         await page.goto(award.replace(/\/update$/, '/troopers'));
         await page.getByRole('link', { name: 'Award Trooper' }).click();
-        await pick(page, 'trooper_id', personas.trooper.name, true);
+        await pickTrooper(page, personas.trooper.name);
         await page.getByRole('button', { name: 'Submit' }).click();
 
         await expect(page).toHaveURL(/\/troopers$/);
         const awarded = rowFor(page, personas.trooper.name);
         await expect(awarded).toBeVisible();
 
-        page.once('dialog', (dialog) => dialog.accept());
-        await awarded.getByRole('button').last().click();
+        await awarded.getByRole('button', { name: 'Remove' }).click();
+        await page.getByRole('dialog').getByRole('button', { name: 'Remove' }).click();
         await expect(rowFor(page, personas.trooper.name)).toHaveCount(0);
     });
 });

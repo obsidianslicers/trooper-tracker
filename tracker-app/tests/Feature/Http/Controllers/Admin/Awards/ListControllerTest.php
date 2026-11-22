@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Awards;
 use App\Models\Award;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ListControllerTest extends TestCase
@@ -21,7 +22,12 @@ class ListControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.awards.list'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.awards.list');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/awards/List')
+            ->has('awards.data', 2)
+            ->where('awards.data.0.can_update', true)
+            ->where('awards.data.0.troopers_count', '0')
+            ->has('awards.meta.links'));
     }
 
     public function test_invoke_requires_authentication(): void

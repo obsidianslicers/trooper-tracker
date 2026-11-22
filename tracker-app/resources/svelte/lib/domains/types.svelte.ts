@@ -5,9 +5,17 @@ export type Option = { value: string | number | boolean | object, label: string 
 /** A smiley a plugin offers in the markdown editors; `code` is the text inserted. */
 export type Smiley = { title: string; code: string; image_url: string };
 
+export type PageLink = { url: string | null; label: string; active: boolean };
+
 export type Paginated<T> = {
     data: T[];
-    links: { url: string | null; label: string; active: boolean }[];
+    links: PageLink[];
+};
+
+/** A Laravel resource collection of one page of a paginator. */
+export type PaginatedResource<T> = {
+    data: T[];
+    meta: { links: PageLink[] };
 };
 
 export abstract class ViewModel {
