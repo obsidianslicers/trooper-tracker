@@ -4,17 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Organizations;
 
-use App\Enums\OrganizationType;
 use App\Http\Controllers\PageController;
 use App\Models\Organization;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
-/**
- * Class CreateController
- *
- * Handles displaying the form to create a new organization under a parent.
- */
 class CreateController extends PageController
 {
     protected function initialized(): void
@@ -23,36 +18,12 @@ class CreateController extends PageController
         $this->crumbs->addRoute(__('admin.Organizations'), 'admin.organizations.list');
     }
 
-    /**
-     * Handle the request to display the organization creation page
-     *
-     * Authorizes the user, sets up breadcrumbs, and returns the view
-     * containing the form to create a new sub-organization.
-     *
-     * @param  Request  $request  The incoming HTTP request object
-     * @param  Organization  $parent  The parent organization under which to create a new one
-     * @return View The rendered organization creation view
-     */
-    public function __invoke(Request $request, Organization $parent): View
+    public function __invoke(Request $request, Organization $parent): InertiaResponse
     {
         $this->authorize('update', $parent);
 
-        $organization = new Organization;
-
-        if ($parent->type == OrganizationType::ORGANIZATION)
-        {
-            $organization->type = OrganizationType::REGION;
-        }
-        elseif ($parent->type == OrganizationType::REGION)
-        {
-            $organization->type = OrganizationType::UNIT;
-        }
-
-        $data = [
-            'parent' => $parent,
-            'organization' => $organization,
-        ];
-
-        return view('pages.admin.organizations.create', $data);
+        return Inertia::render('admin/organizations/Create', [
+            'parent' => ['id' => $parent->id, 'name' => $parent->name],
+        ]);
     }
 }

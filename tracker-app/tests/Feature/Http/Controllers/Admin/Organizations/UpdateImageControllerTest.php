@@ -15,7 +15,7 @@ class UpdateImageControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_uploads_organization_logo_and_renders_partial(): void
+    public function test_invoke_uploads_organization_logo_and_returns_to_the_form(): void
     {
         Storage::fake('public');
 
@@ -27,8 +27,9 @@ class UpdateImageControllerTest extends TestCase
             'logo' => $logo,
         ]);
 
-        $response->assertOk();
-        $response->assertViewIs('pages.admin.organizations.image');
+        $response->assertRedirect(route('admin.organizations.update', ['organization' => $organization->id]));
+        Storage::disk('public')->assertExists("uploads/organizations/{$organization->id}-128x128.png");
+        Storage::disk('public')->assertExists("uploads/organizations/{$organization->id}-32x32.png");
     }
 
     public function test_invoke_requires_authentication(): void

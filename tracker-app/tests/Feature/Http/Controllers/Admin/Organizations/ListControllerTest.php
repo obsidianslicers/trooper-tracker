@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Organizations;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ListControllerTest extends TestCase
@@ -21,7 +22,9 @@ class ListControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.organizations.list'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.organizations.list');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/organizations/List')
+            ->has('organizations'));
     }
 
     public function test_invoke_requires_authentication(): void
