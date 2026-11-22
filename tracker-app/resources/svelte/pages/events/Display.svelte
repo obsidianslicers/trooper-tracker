@@ -38,8 +38,8 @@
     const slots = $derived(page.props.event_slots ?? {});
 </script>
 
-<div class="col-lg-8 col-md-9 col-sm-12 m-auto mb-5 p-0">
-    <div class="container my-4">
+<div class="col-12 col-xl-10 col-xxl-9 m-auto mb-5 p-0">
+    <div class="my-4">
         <div class="card">
             <EventHeader {event} />
             <div class="card-body">
