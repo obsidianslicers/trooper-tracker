@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\ServiceRecords;
+namespace App\Http\Controllers\Admin\ServiceRecords\Pages;
 
 use App\Http\Controllers\Controller;
 use App\Messages\ServiceRecords\PageData\MissingCreditsPageData;
@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
-class MissingCreditsController extends Controller
+class IndexMissingCreditsController extends Controller
 {
     public function __construct(private readonly BreadCrumbService $crumbs)
     {

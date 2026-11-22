@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\ServiceRecords;
+namespace Tests\Feature\Http\Controllers\Admin\ServiceRecords\Commands;
 
 use App\Models\Event;
 use App\Models\EventShift;
@@ -16,7 +16,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class AssignCreditControllerTest extends TestCase
+class AssignEventTrooperCreditControllerTest extends TestCase
 {
     use RefreshDatabase;
 

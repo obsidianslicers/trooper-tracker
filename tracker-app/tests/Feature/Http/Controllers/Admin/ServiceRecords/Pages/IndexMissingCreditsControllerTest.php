@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\ServiceRecords;
+namespace Tests\Feature\Http\Controllers\Admin\ServiceRecords\Pages;
 
 use App\Models\Event;
 use App\Models\EventShift;
@@ -14,7 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class MissingCreditsControllerTest extends TestCase
+class IndexMissingCreditsControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -22,7 +22,7 @@ class MissingCreditsControllerTest extends TestCase
     {
         $admin = Trooper::factory()->asSystemOwner()->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.service-records.missing-credits'));
+        $response = $this->actingAs($admin)->get(route('admin.service-records.missing-credits.index'));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page->component('admin/service-records/MissingCredits'));
@@ -32,7 +32,7 @@ class MissingCreditsControllerTest extends TestCase
     {
         $admin = Trooper::factory()->asSystemOwner()->create();
 
-        $response = $this->actingAs($admin)->get(route('admin.service-records.missing-credits'));
+        $response = $this->actingAs($admin)->get(route('admin.service-records.missing-credits.index'));
 
         $response->assertSee('<a href="'.route('admin.dashboard').'">Command Staff</a>', false);
     }
@@ -53,7 +53,7 @@ class MissingCreditsControllerTest extends TestCase
         TrooperAssignment::factory()->forTrooper($out_of_scope_trooper)->forOrganization($blocked_org)->asMember()->create();
         $this->makeAttendedEventTrooper($out_of_scope_trooper);
 
-        $response = $this->actingAs($moderator)->get(route('admin.service-records.missing-credits'));
+        $response = $this->actingAs($moderator)->get(route('admin.service-records.missing-credits.index'));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -70,7 +70,7 @@ class MissingCreditsControllerTest extends TestCase
 
         collect(range(1, 3))->each(fn () => $this->makeAttendedEventTrooper($trooper));
 
-        $response = $this->actingAs($admin)->get(route('admin.service-records.missing-credits', ['offset' => 1]));
+        $response = $this->actingAs($admin)->get(route('admin.service-records.missing-credits.index', ['offset' => 1]));
 
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -86,14 +86,14 @@ class MissingCreditsControllerTest extends TestCase
     {
         $member = Trooper::factory()->asActive()->create();
 
-        $response = $this->actingAs($member)->get(route('admin.service-records.missing-credits'));
+        $response = $this->actingAs($member)->get(route('admin.service-records.missing-credits.index'));
 
         $response->assertForbidden();
     }
 
     public function test_invoke_requires_authentication(): void
     {
-        $response = $this->get(route('admin.service-records.missing-credits'));
+        $response = $this->get(route('admin.service-records.missing-credits.index'));
 
         $response->assertRedirect(route('auth.login'));
     }

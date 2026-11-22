@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Reports;
+namespace App\Http\Controllers\Admin\Reports\Pages;
 
 use App\Messages\Reports\PageData\TrooperEventSummaryPageData;
 use App\Messages\Reports\Queries\GetTrooperEventSummary;
@@ -14,7 +14,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class TrooperEventSummaryController extends BaseReportsController
+class ShowTrooperEventSummaryController extends BaseReportsController
 {
     public function __invoke(Request $request): Response|StreamedResponse
     {

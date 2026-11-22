@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Admin\Reports;
+namespace App\Http\Controllers\Admin\Reports\Pages;
 
 use App\Messages\Reports\PageData\EventSummaryPageData;
 use Illuminate\Http\Request;
@@ -12,7 +12,7 @@ use Inertia\Response;
 /**
  * Shows the Event Summary report.
  */
-class EventSummaryController extends BaseReportsController
+class ShowEventSummaryController extends BaseReportsController
 {
     public function __invoke(Request $request): Response
     {
