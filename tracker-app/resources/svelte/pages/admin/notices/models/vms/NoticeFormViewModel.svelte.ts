@@ -40,11 +40,6 @@ export class NoticeFormViewModel
         return this.notice_id !== null;
     }
 
-    /** Only administrators get the "Everyone" choice (no organization). */
-    get can_post_to_everyone(): boolean {
-        return this.organization_options.some((option) => option.value === null);
-    }
-
     get cancel_url(): string {
         return getRoute("admin.notices.list", { organization_id: this.form.organization_id ?? undefined });
     }

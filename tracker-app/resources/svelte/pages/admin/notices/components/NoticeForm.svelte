@@ -5,6 +5,7 @@
     import InputMarkdown from "$lib/components/form/InputMarkdown.svelte";
     import InputSelect from "$lib/components/form/InputSelect.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
+    import OrganizationPicker from "$lib/components/OrganizationPicker.svelte";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
@@ -27,10 +28,8 @@
                 disabled={true}
             />
         {:else}
-            <InputSelect
-                label={t("Organization")}
+            <OrganizationPicker
                 options={vm.organization_options}
-                placeholder={vm.can_post_to_everyone ? null : t("Select an Organization")}
                 bind:value={vm.form.organization_id}
                 errors={vm.errors.organization_id}
             />

@@ -24,6 +24,14 @@ async function pick(page, property, name, search = false) {
 }
 
 // Markdown fields use an editor in place of the textarea.
+// The Svelte organization picker opens a searchable list of organizations.
+async function pickOrganization(page, name) {
+    await page.getByLabel('Organization', { exact: true }).click();
+    const picker = page.getByRole('dialog');
+    await picker.getByRole('textbox').fill(name);
+    await picker.getByRole('button', { name, exact: true }).click();
+}
+
 async function typeMarkdown(page, text) {
     await page.locator('.CodeMirror').first().click();
     await page.keyboard.type(text);
@@ -37,12 +45,6 @@ async function setDate(page, field, date) {
         + `${hour}:${pad(date.getMinutes())}${date.getHours() >= 12 ? 'PM' : 'AM'}`;
     const input = typeof field === 'string' ? page.locator(field) : field;
     await input.fill(text);
-}
-
-// Svelte organization lists indent each level ("— E2E Garrison"), so match on the name.
-async function selectContaining(select, text) {
-    const value = await select.locator('option', { hasText: text }).first().getAttribute('value');
-    await select.selectOption(value);
 }
 
 function rowFor(page, text) {
@@ -95,7 +97,7 @@ test.describe('notices', () => {
         const next_month = new Date(Date.now() + 30 * 86400000);
 
         await page.goto('/admin/notices/create');
-        await selectContaining(page.getByLabel('Organization'), 'E2E Garrison');
+        await pickOrganization(page, 'E2E Garrison');
         await page.getByLabel('Type').selectOption({ index: 2 });
         await page.getByLabel('Title').fill(seeded.newNotice);
         await setDate(page, page.getByLabel('Starts'), today);
