@@ -158,6 +158,6 @@ class CostumeApprovalsControllerTest extends TestCase
         $this->actingAs($moderator)
             ->get(route('admin.display'))
             ->assertOk()
-            ->assertSee('1 costume awaiting review');
+            ->assertInertia(fn (Assert $page) => $page->where('counts.pending_costumes', 1));
     }
 }
