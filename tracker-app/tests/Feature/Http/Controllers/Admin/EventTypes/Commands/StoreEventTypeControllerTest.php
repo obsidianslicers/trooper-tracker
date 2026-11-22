@@ -9,7 +9,7 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class CreateSubmitControllerTest extends TestCase
+class StoreEventTypeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -18,7 +18,7 @@ class CreateSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $last = EventType::max(EventType::SORT_ORDER);
 
-        $response = $this->actingAs($trooper)->post(route('admin.event-types.create'), [
+        $response = $this->actingAs($trooper)->post(route('admin.event-types.store'), [
             'name' => 'Squad Meeting',
             'description' => 'Business meetings, out of costume.',
             'is_counted' => false,
@@ -41,7 +41,7 @@ class CreateSubmitControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
-        $response = $this->actingAs($trooper)->post(route('admin.event-types.create'), [
+        $response = $this->actingAs($trooper)->post(route('admin.event-types.store'), [
             'name' => 'Charity',
             'is_counted' => true,
             'is_costume_required' => true,
@@ -55,7 +55,7 @@ class CreateSubmitControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asModerator()->create();
 
-        $response = $this->actingAs($trooper)->post(route('admin.event-types.create'), [
+        $response = $this->actingAs($trooper)->post(route('admin.event-types.store'), [
             'name' => 'Squad Meeting',
             'is_counted' => true,
             'is_costume_required' => true,

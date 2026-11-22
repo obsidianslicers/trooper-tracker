@@ -11,7 +11,7 @@ use App\Models\EventType;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
-class DeleteSubmitController extends Controller
+class DestroyEventTypeController extends Controller
 {
     public function __invoke(Request $request, EventType $event_type): SymfonyResponse
     {

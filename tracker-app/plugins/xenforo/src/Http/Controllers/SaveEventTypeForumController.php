@@ -32,6 +32,6 @@ class SaveEventTypeForumController extends Controller
 
         FlashType::success(__('xenforo::admin.Forums for ":type" saved.', ['type' => $event_type->name]));
 
-        return redirect()->route('admin.event-types.update', compact('event_type'));
+        return redirect()->route('admin.event-types.edit', compact('event_type'));
     }
 }

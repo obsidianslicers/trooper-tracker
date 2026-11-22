@@ -9,7 +9,7 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class ReorderSubmitControllerTest extends TestCase
+class ReorderEventTypesControllerTest extends TestCase
 {
     use RefreshDatabase;
 

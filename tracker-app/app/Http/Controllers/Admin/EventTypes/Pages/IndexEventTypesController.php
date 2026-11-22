@@ -5,27 +5,29 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\EventTypes\Pages;
 
 use App\Http\Controllers\PageController;
-use App\Messages\EventTypes\PageData\UpdatePageData;
+use App\Messages\EventTypes\PageData\IndexPageData;
 use App\Models\EventType;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
-class UpdateController extends PageController
+/**
+ * Lists the event types in the order the event form offers them.
+ */
+class IndexEventTypesController extends PageController
 {
     protected function initialized(): void
     {
         $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.dashboard');
-        $this->crumbs->addRoute(__('admin.Event Types'), 'admin.event-types.index');
     }
 
-    public function __invoke(Request $request, EventType $event_type): InertiaResponse|SymfonyResponse
+    public function __invoke(Request $request): InertiaResponse|SymfonyResponse
     {
-        $this->authorize('update', $event_type);
+        $this->authorize('viewAny', EventType::class);
 
-        $data = UpdatePageData::call(event_type: $event_type);
+        $data = IndexPageData::call();
 
-        return Inertia::render('admin/event-types/Update', $data);
+        return Inertia::render('admin/event-types/Index', $data);
     }
 }

@@ -11,7 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class IndexControllerTest extends TestCase
+class IndexEventTypesControllerTest extends TestCase
 {
     use RefreshDatabase;
 

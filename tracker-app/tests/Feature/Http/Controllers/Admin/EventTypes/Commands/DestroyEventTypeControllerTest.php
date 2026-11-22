@@ -10,7 +10,7 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class DeleteSubmitControllerTest extends TestCase
+class DestroyEventTypeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -20,7 +20,7 @@ class DeleteSubmitControllerTest extends TestCase
         $event_type = EventType::factory()->create();
 
         $response = $this->actingAs($trooper)
-            ->post(route('admin.event-types.delete', ['event_type' => $event_type]));
+            ->post(route('admin.event-types.destroy', ['event_type' => $event_type]));
 
         $response->assertRedirect(route('admin.event-types.index'));
         $this->assertDatabaseMissing('tt_event_types', [EventType::ID => $event_type->id]);
@@ -33,7 +33,7 @@ class DeleteSubmitControllerTest extends TestCase
         Event::factory()->create([Event::EVENT_TYPE_ID => $event_type->id]);
 
         $response = $this->actingAs($trooper)
-            ->post(route('admin.event-types.delete', ['event_type' => $event_type]));
+            ->post(route('admin.event-types.destroy', ['event_type' => $event_type]));
 
         $response->assertRedirect();
         $response->assertSessionHas('danger');

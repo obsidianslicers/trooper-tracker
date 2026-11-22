@@ -15,7 +15,7 @@ use App\Models\TrooperAchievement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class UpdateSubmitControllerTest extends TestCase
+class UpdateEventTypeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
