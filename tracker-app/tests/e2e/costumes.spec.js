@@ -54,7 +54,7 @@ test.describe('costume list', () => {
     });
 
     test('an administrator renames a costume; the new name must be unused', async ({ page }) => {
-        await openCostume(page, seeded.renamedCostume, 'update');
+        await openCostume(page, seeded.renamedCostume, 'edit');
 
         await page.getByLabel('Name').fill(seeded.keptCostume);
         await page.getByRole('button', { name: 'Update' }).click();
@@ -70,7 +70,7 @@ test.describe('costume list', () => {
     });
 
     test('deleting a costume warns that troopers will lose it', async ({ page }) => {
-        await openCostume(page, seeded.doomedCostume, 'update');
+        await openCostume(page, seeded.doomedCostume, 'edit');
         await page.getByRole('button', { name: 'Delete' }).click();
 
         const confirm = page.getByRole('dialog');
