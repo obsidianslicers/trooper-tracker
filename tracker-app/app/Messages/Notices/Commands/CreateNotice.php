@@ -6,8 +6,8 @@ namespace App\Messages\Notices\Commands;
 
 use App\Enums\NoticeType;
 use App\Models\Notice;
-use Illuminate\Support\Carbon;
 use Hyperdrive\Message;
+use Illuminate\Support\Carbon;
 
 /**
  * @method static Notice call(int|null $organization_id, string $title, NoticeType $type, Carbon $starts_at, Carbon $ends_at, string $message)

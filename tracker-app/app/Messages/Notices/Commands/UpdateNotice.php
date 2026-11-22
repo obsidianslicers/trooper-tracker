@@ -6,8 +6,8 @@ namespace App\Messages\Notices\Commands;
 
 use App\Enums\NoticeType;
 use App\Models\Notice;
-use Illuminate\Support\Carbon;
 use Hyperdrive\Message;
+use Illuminate\Support\Carbon;
 
 /**
  * Changes a notice's text, type and dates. Its organization never changes.
