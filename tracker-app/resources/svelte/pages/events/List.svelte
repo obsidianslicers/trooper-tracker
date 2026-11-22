@@ -33,7 +33,7 @@
             <p class="lead mb-0">{t("No upcoming events yet. Check back soon.")}</p>
         {:else}
             <p class="lead">{t("No events match your filters.")}</p>
-            <button type="button" class="btn btn-outline-secondary" onclick={vm.clearFilters}>
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-secondary-action" onclick={vm.clearFilters}>
                 {t("Clear Filters")}
             </button>
         {/if}

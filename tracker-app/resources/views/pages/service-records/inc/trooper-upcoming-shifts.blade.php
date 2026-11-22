@@ -3,7 +3,7 @@
     <!-- Toggle Button (Desktop Only) -->
     <div class="mb-3 d-none d-lg-block">
         <button x-on:click="toggleView()"
-                class="btn btn-outline-secondary btn-sm">
+                class="btn btn-sm btn-outline-secondary btn-secondary-action">
             <span x-show="view === 'cards'">{{ __('service-records.Switch to Table View') }}</span>
             <span x-show="view === 'table'">{{ __('service-records.Switch to Card View') }}</span>
         </button>

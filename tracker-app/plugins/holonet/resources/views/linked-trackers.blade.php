@@ -41,7 +41,7 @@
                                   action="{{ route('plugins.holonet.links.refresh', ['link' => $link]) }}">
                                 @csrf
                                 <button type="submit"
-                                        class="btn btn-outline-secondary btn-sm">{{ __('holonet::account.Refresh') }}</button>
+                                        class="btn btn-sm btn-outline-secondary btn-secondary-action">{{ __('holonet::account.Refresh') }}</button>
                             </form>
                         @endif
                         <form method="POST"

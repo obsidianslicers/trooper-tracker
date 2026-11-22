@@ -7,7 +7,7 @@
      {{ $attributes->merge(['class' => 'mt-2']) }}>
     @if(!$toolbar)
     <button type="button"
-            class="btn btn-sm btn-outline-secondary"
+            class="btn btn-sm btn-outline-secondary btn-secondary-action"
             x-on:click="open = !open">
         <i class="far fa-smile me-1"></i>
         {{ __('components.Smilies') }}

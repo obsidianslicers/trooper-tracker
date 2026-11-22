@@ -129,7 +129,7 @@
         {#if is_active && !show_stations}
             <button
                 type="button"
-                class="btn btn-sm btn-link text-muted px-0 mt-1"
+                class="btn btn-sm btn-outline-secondary btn-secondary-action mt-1"
                 onclick={openStations}
             >
                 <i class="fa fa-fw fa-plus me-1"></i>

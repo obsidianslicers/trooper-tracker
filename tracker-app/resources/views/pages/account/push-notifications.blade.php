@@ -15,7 +15,7 @@
                 <form method="POST" action="{{ route('account.push-notifications.clear') }}">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary btn-secondary-action">
                         {{ __('account.Clear all') }}
                     </button>
                 </form>

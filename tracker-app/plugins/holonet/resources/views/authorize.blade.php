@@ -47,7 +47,7 @@
                     <button type="submit"
                             name="allow"
                             value="0"
-                            class="btn btn-outline-secondary">
+                            class="btn btn-link text-muted">
                         {{ __('holonet::account.Cancel') }}
                     </button>
                 </form>

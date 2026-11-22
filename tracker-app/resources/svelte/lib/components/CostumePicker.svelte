@@ -86,7 +86,7 @@
         {#if selected}
             <button
                 type="button"
-                class="btn btn-outline-secondary"
+                class="btn btn-sm btn-outline-secondary btn-secondary-action"
                 disabled={vm.options.disabled}
                 onclick={() => (selected = vm.clearSelection())}
             >
