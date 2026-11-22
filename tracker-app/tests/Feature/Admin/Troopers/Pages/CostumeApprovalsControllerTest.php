@@ -6,6 +6,7 @@ namespace Tests\Feature\Admin\Troopers\Pages;
 
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\BuildsCostumeReviews;
 use Tests\TestCase;
 
@@ -31,9 +32,11 @@ class CostumeApprovalsControllerTest extends TestCase
         $response = $this->actingAs($moderator)->get(route('admin.troopers.costume-approvals'));
 
         $response->assertOk();
-        $response->assertSee($in_scope->display_name);
-        $response->assertSee('Emperor Palpatine');
-        $response->assertDontSee($out_of_scope->display_name);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/troopers/CostumeApprovals')
+            ->has('trooper_costumes', 1)
+            ->where('trooper_costumes.0.trooper.name', $in_scope->display_name)
+            ->where('trooper_costumes.0.costume', 'Emperor Palpatine'));
     }
 
     public function test_moderator_in_scope_approves(): void
