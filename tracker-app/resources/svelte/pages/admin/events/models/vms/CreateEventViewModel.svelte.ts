@@ -75,7 +75,7 @@ export class CreateEventViewModel extends EventFormViewModel<
 
         this.form
             .transform((data) => this.payload(data as CreateEventForm) as unknown as CreateEventForm)
-            .post(getRoute("admin.events.create"));
+            .post(getRoute("admin.events.store"));
     };
 
     private toField(field: string, value: unknown): unknown {

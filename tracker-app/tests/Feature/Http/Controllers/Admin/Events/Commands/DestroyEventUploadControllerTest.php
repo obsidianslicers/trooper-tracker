@@ -1,0 +1,104 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Http\Controllers\Admin\Events\Commands;
+
+use App\Models\Event;
+use App\Models\EventUpload;
+use App\Models\EventUploadTrooper;
+use App\Models\Trooper;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+class DestroyEventUploadControllerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_invoke_deletes_upload_and_returns_view(): void
+    {
+        Storage::fake('public');
+
+        $admin = Trooper::factory()->asSystemOwner()->create();
+        $event = Event::factory()->create();
+        $upload = EventUpload::factory()->for($event)->create([EventUpload::IS_ADMINISTRATIVE => false]);
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.events.uploads.destroy', ['event' => $event, 'event_upload' => $upload]));
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page->component('admin/events/Update'));
+        $this->assertDatabaseMissing('tt_event_uploads', [EventUpload::ID => $upload->id]);
+    }
+
+    public function test_invoke_returns_empty_state_when_last_upload_is_deleted(): void
+    {
+        Storage::fake('public');
+
+        $admin = Trooper::factory()->asSystemOwner()->create();
+        $event = Event::factory()->create();
+        $upload = EventUpload::factory()->for($event)->create([EventUpload::IS_ADMINISTRATIVE => false]);
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.events.uploads.destroy', ['event' => $event, 'event_upload' => $upload]));
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page->has('results.mission_review', 0));
+    }
+
+    public function test_invoke_deletes_admin_upload_and_answers_with_the_page(): void
+    {
+        Storage::fake('public');
+
+        $admin = Trooper::factory()->asSystemOwner()->create();
+        $event = Event::factory()->create();
+        $upload = EventUpload::factory()->for($event)->create([EventUpload::IS_ADMINISTRATIVE => true]);
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.events.uploads.destroy', ['event' => $event, 'event_upload' => $upload]));
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page->component('admin/events/Update'));
+        $this->assertDatabaseMissing('tt_event_uploads', [EventUpload::ID => $upload->id]);
+    }
+
+    public function test_invoke_deletes_tagged_pivot_rows(): void
+    {
+        Storage::fake('public');
+
+        $admin = Trooper::factory()->asSystemOwner()->create();
+        $event = Event::factory()->create();
+        $upload = EventUpload::factory()->for($event)->create();
+        $trooper = Trooper::factory()->create();
+        $pivot = EventUploadTrooper::factory()->forEventUpload($upload)->forTrooper($trooper)->create();
+
+        $this->actingAs($admin)
+            ->post(route('admin.events.uploads.destroy', ['event' => $event, 'event_upload' => $upload]));
+
+        $this->assertDatabaseMissing('tt_event_upload_troopers', [EventUploadTrooper::ID => $pivot->id]);
+    }
+
+    public function test_invoke_returns_403_when_upload_belongs_to_different_event(): void
+    {
+        $admin = Trooper::factory()->asSystemOwner()->create();
+        $event = Event::factory()->create();
+        $other_event = Event::factory()->create();
+        $upload = EventUpload::factory()->for($other_event)->create();
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.events.uploads.destroy', ['event' => $event, 'event_upload' => $upload]));
+
+        $response->assertForbidden();
+    }
+
+    public function test_invoke_requires_authentication(): void
+    {
+        $event = Event::factory()->create();
+        $upload = EventUpload::factory()->for($event)->create();
+
+        $response = $this->post(route('admin.events.uploads.destroy', compact('event') + ['event_upload' => $upload]));
+
+        $response->assertRedirect(route('auth.login'));
+    }
+}

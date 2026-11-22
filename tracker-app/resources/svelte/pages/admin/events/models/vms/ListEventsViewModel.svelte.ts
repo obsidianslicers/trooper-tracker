@@ -23,7 +23,7 @@ export class ListEventsViewModel extends ViewModel {
         if (filters.status) query.status = filters.status;
         if (filters.organization_id) query.organization_id = filters.organization_id;
 
-        return getRoute("admin.events.list", query);
+        return getRoute("admin.events.index", query);
     }
 
     get create_url(): string {

@@ -19,12 +19,12 @@ export class CopyEventViewModel
     }
 
     get cancel_url(): string {
-        return getRoute("admin.events.update", { event: this.event.id });
+        return getRoute("admin.events.edit", { event: this.event.id });
     }
 
     submit = (e: Event) => {
         e.preventDefault();
 
-        this.form.post(getRoute("admin.events.copy", { event: this.event.id }));
+        this.form.post(getRoute("admin.events.copy.store", { event: this.event.id }));
     };
 }

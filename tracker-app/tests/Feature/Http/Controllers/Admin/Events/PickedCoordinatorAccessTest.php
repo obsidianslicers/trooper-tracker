@@ -25,7 +25,7 @@ class PickedCoordinatorAccessTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const PAGES = ['update', 'shifts', 'charity', 'troopers', 'uploads', 'mission-review'];
+    private const PAGES = ['edit', 'shifts.edit', 'charity.edit', 'troopers.edit', 'uploads.index', 'mission-review'];
 
     private Organization $region;
 
@@ -74,7 +74,7 @@ class PickedCoordinatorAccessTest extends TestCase
     public function test_only_event_coordinators_and_up_are_offered(): void
     {
         $this->actingAs($this->admin)
-            ->get(route('admin.events.update', ['event' => $this->event]))
+            ->get(route('admin.events.edit', ['event' => $this->event]))
             ->assertOk()
             ->assertInertia(fn ($page) => $page->where(
                 'overview.coordinator_options',
@@ -108,12 +108,12 @@ class PickedCoordinatorAccessTest extends TestCase
         {
             $this->actingAs($this->picked)
                 ->get(route('admin.events.'.$page, ['event' => $this->event]))
-                ->assertStatus($page === 'update' ? 200 : 302);
+                ->assertStatus($page === 'edit' ? 200 : 302);
         }
 
         //  and it's under My Events
         $this->actingAs($this->picked)
-            ->get(route('admin.events.list'))
+            ->get(route('admin.events.index'))
             ->assertOk()
             ->assertSee('Coordinated Troop');
     }
@@ -123,7 +123,7 @@ class PickedCoordinatorAccessTest extends TestCase
         $this->pick($this->picked);
 
         $this->actingAs($this->picked)
-            ->get(route('admin.events.update', ['event' => $this->event]))
+            ->get(route('admin.events.edit', ['event' => $this->event]))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->where('overview.host_name', 'Home Region')
@@ -151,11 +151,11 @@ class PickedCoordinatorAccessTest extends TestCase
             EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
 
-        $this->actingAs($moderator)->get(route('admin.events.update', ['event' => $this->event]))->assertForbidden();
+        $this->actingAs($moderator)->get(route('admin.events.edit', ['event' => $this->event]))->assertForbidden();
 
         $this->pick($moderator);
 
-        $this->actingAs($moderator)->get(route('admin.events.update', ['event' => $this->event]))->assertOk();
+        $this->actingAs($moderator)->get(route('admin.events.edit', ['event' => $this->event]))->assertOk();
     }
 
     public function test_access_ends_when_the_coordinator_stops_going(): void
@@ -167,7 +167,7 @@ class PickedCoordinatorAccessTest extends TestCase
 
         $this->assertNull($this->event->fresh()->coordinator_trooper_id);
         $this->actingAs($this->picked)
-            ->get(route('admin.events.update', ['event' => $this->event]))
+            ->get(route('admin.events.edit', ['event' => $this->event]))
             ->assertForbidden();
     }
 
@@ -177,7 +177,7 @@ class PickedCoordinatorAccessTest extends TestCase
         $this->picked->update([Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER]);
 
         $this->actingAs($this->picked->fresh())
-            ->get(route('admin.events.update', ['event' => $this->event]))
+            ->get(route('admin.events.edit', ['event' => $this->event]))
             ->assertForbidden();
     }
 

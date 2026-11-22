@@ -46,7 +46,7 @@ class NavbarEventsMenuTest extends TestCase
         $this->actingAs(Trooper::factory()->asModerator()->create())
             ->get(route('faq'))
             ->assertOk()
-            ->assertDontSee(route('admin.events.list').'"', false);
+            ->assertDontSee(route('admin.events.index').'"', false);
     }
 
     public function test_members_do_not_get_create_event(): void

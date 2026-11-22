@@ -32,7 +32,7 @@ class DonationEventRowResource extends JsonResource
         return [
             'id' => $event->id,
             'name' => $event->name,
-            'url' => route('admin.events.update', ['event' => $event]),
+            'url' => route('admin.events.edit', ['event' => $event]),
             'organization_name' => $event->organization?->name,
             'date' => $event->event_start?->localFormat('M d, Y'),
             'shifts' => $shifts->map(fn (EventShift $shift): array => [

@@ -1,0 +1,324 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Http\Controllers\Admin\Events\Commands;
+
+use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
+use App\Enums\MembershipRole;
+use App\Jobs\SendEventCancelledNotificationsJob;
+use App\Jobs\SendEventCreatedNotificationsJob;
+use App\Models\Event;
+use App\Models\EventShift;
+use App\Models\EventTrooper;
+use App\Models\EventType;
+use App\Models\Organization;
+use App\Models\Trooper;
+use App\Models\TrooperAssignment;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
+use Tests\TestCase;
+
+class UpdateEventControllerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_invoke_returns_validation_errors_for_invalid_payload(): void
+    {
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+        $event = Event::factory()->create();
+
+        $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id, []);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors();
+    }
+
+    public function test_invoke_requires_authentication(): void
+    {
+        $event = Event::factory()->create();
+
+        $response = $this->post('/admin/events/'.$event->id, []);
+
+        $response->assertRedirect(route('auth.login'));
+    }
+
+    public function test_invoke_flows_status_to_shifts_when_transitioning_from_draft_to_open(): void
+    {
+        Queue::fake([SendEventCreatedNotificationsJob::class]);
+
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::DRAFT])->create();
+        $shift = EventShift::factory()->forEvent($event)
+            ->state([EventShift::STATUS => EventStatus::DRAFT])
+            ->create();
+
+        $event_start = now()->addDays(7);
+        $event_end = now()->addDays(7)->addHours(4);
+
+        $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id, [
+            'name' => 'Imperial Muster',
+            Event::EVENT_TYPE_ID => EventType::idNamed('Regular'),
+            'status' => EventStatus::OPEN->value,
+            'organization_id' => $event->organization_id,
+            'event_start' => $event_start->format('Y-m-d H:i:s'),
+            'event_end' => $event_end->format('Y-m-d H:i:s'),
+            'tentative_signups_allowed' => false,
+            'secure_staging_area' => false,
+            'allow_blasters' => false,
+            'allow_props' => false,
+            'parking_available' => false,
+            'accessible' => false,
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_shifts', [
+            'id' => $shift->id,
+            'status' => EventStatus::OPEN->value,
+        ]);
+    }
+
+    public function test_invoke_cancels_shifts_when_event_is_cancelled(): void
+    {
+        Queue::fake([SendEventCancelledNotificationsJob::class]);
+
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
+        $shift = EventShift::factory()->forEvent($event)
+            ->state([EventShift::STATUS => EventStatus::OPEN])
+            ->create();
+
+        $event_start = now()->addDays(7);
+        $event_end = now()->addDays(7)->addHours(4);
+
+        $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id, [
+            'name' => 'Imperial Muster',
+            Event::EVENT_TYPE_ID => EventType::idNamed('Regular'),
+            'status' => EventStatus::CANCELLED->value,
+            'organization_id' => $event->organization_id,
+            'event_start' => $event_start->format('Y-m-d H:i:s'),
+            'event_end' => $event_end->format('Y-m-d H:i:s'),
+            'tentative_signups_allowed' => false,
+            'secure_staging_area' => false,
+            'allow_blasters' => false,
+            'allow_props' => false,
+            'parking_available' => false,
+            'accessible' => false,
+        ]);
+
+        $response->assertOk();
+    }
+
+    public function test_invoke_cancels_active_event_troopers_when_event_is_cancelled(): void
+    {
+        Queue::fake([SendEventCancelledNotificationsJob::class]);
+
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
+        $shift = EventShift::factory()->forEvent($event)
+            ->state([EventShift::STATUS => EventStatus::OPEN])
+            ->create();
+        $event_trooper = EventTrooper::factory()->forEventShift($shift)->asGoing()->create();
+
+        $event_start = now()->addDays(7);
+        $event_end = now()->addDays(7)->addHours(4);
+
+        $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id, [
+            'name' => 'Imperial Muster',
+            Event::EVENT_TYPE_ID => EventType::idNamed('Regular'),
+            'status' => EventStatus::CANCELLED->value,
+            'organization_id' => $event->organization_id,
+            'event_start' => $event_start->format('Y-m-d H:i:s'),
+            'event_end' => $event_end->format('Y-m-d H:i:s'),
+            'tentative_signups_allowed' => false,
+            'secure_staging_area' => false,
+            'allow_blasters' => false,
+            'allow_props' => false,
+            'parking_available' => false,
+            'accessible' => false,
+        ]);
+
+        $response->assertOk();
+    }
+
+    public function test_invoke_reassigns_hosting_organization(): void
+    {
+        Queue::fake();
+
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
+        $new_host = Organization::factory()->create();
+
+        $event_start = now()->addDays(7);
+        $event_end = now()->addDays(7)->addHours(4);
+
+        $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id, [
+            'name' => 'Imperial Muster',
+            Event::EVENT_TYPE_ID => EventType::idNamed('Regular'),
+            'status' => EventStatus::OPEN->value,
+            'organization_id' => $new_host->id,
+            'event_start' => $event_start->format('Y-m-d H:i:s'),
+            'event_end' => $event_end->format('Y-m-d H:i:s'),
+            'tentative_signups_allowed' => false,
+            'secure_staging_area' => false,
+            'allow_blasters' => false,
+            'allow_props' => false,
+            'parking_available' => false,
+            'accessible' => false,
+        ]);
+
+        $response->assertOk();
+        $response->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('tt_events', [
+            'id' => $event->id,
+            'organization_id' => $new_host->id,
+            'primary_organization_id' => $new_host->getPrimaryClub()->id,
+        ]);
+    }
+
+    public function test_invoke_rejects_hosting_organization_not_moderated_by_user(): void
+    {
+        $organization = Organization::factory()->withNodePath('100.')->create();
+        $other_organization = Organization::factory()->withNodePath('200.')->create();
+
+        $trooper = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->asModerator()
+            ->create();
+
+        $event = Event::factory()
+            ->state([Event::ORGANIZATION_ID => $organization->id])
+            ->create();
+
+        $response = $this->actingAs($trooper)->post('/admin/events/'.$event->id, [
+            'name' => 'Imperial Muster',
+            Event::EVENT_TYPE_ID => EventType::idNamed('Regular'),
+            'status' => EventStatus::OPEN->value,
+            'organization_id' => $other_organization->id,
+            'event_start' => now()->addDays(7)->format('Y-m-d H:i:s'),
+            'event_end' => now()->addDays(7)->addHours(4)->format('Y-m-d H:i:s'),
+            'tentative_signups_allowed' => false,
+            'secure_staging_area' => false,
+            'allow_blasters' => false,
+            'allow_props' => false,
+            'parking_available' => false,
+            'accessible' => false,
+        ]);
+
+        $response->assertSessionHasErrors(Event::ORGANIZATION_ID);
+    }
+
+    public function test_invoke_keeps_an_event_type_hidden_since_the_event_was_made(): void
+    {
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+        $hidden = EventType::factory()->inactive()->create();
+        $other_hidden = EventType::factory()->inactive()->create();
+        $event = Event::factory()->state([Event::EVENT_TYPE_ID => $hidden->id])->create();
+
+        $this->actingAs($trooper)
+            ->post('/admin/events/'.$event->id, $this->typePayload($event, $hidden->id))
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($trooper)
+            ->post('/admin/events/'.$event->id, $this->typePayload($event, $other_hidden->id))
+            ->assertSessionHasErrors(Event::EVENT_TYPE_ID);
+
+        $this->assertSame($hidden->id, $event->fresh()->event_type_id);
+    }
+
+    public function test_invoke_picks_an_attendee_as_coordinator_after_the_event(): void
+    {
+        $admin = Trooper::factory()->asSystemOwner()->create();
+        $event = $this->pastEvent();
+        $attendee = $this->signUp($event, EventTrooperStatus::ATTENDED);
+
+        $this->actingAs($admin)
+            ->post('/admin/events/'.$event->id, $this->coordinatorPayload($event, $attendee->id))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame($attendee->id, $event->fresh()->coordinator_trooper_id);
+
+        $this->actingAs($admin)
+            ->post('/admin/events/'.$event->id, $this->coordinatorPayload($event, null))
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull($event->fresh()->coordinator_trooper_id);
+    }
+
+    public function test_invoke_refuses_a_coordinator_who_isnt_going_or_attended_or_is_below_event_coordinator(): void
+    {
+        $admin = Trooper::factory()->asSystemOwner()->create();
+        $event = $this->pastEvent();
+        $no_show = $this->signUp($event, EventTrooperStatus::NO_SHOW);
+        $stranger = Trooper::factory()->asEventCoordinator()->create();
+        $member = $this->signUp($event, EventTrooperStatus::ATTENDED);
+        $member->update([Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER]);
+
+        foreach ([$no_show, $stranger, $member] as $trooper)
+        {
+            $this->actingAs($admin)
+                ->post('/admin/events/'.$event->id, $this->coordinatorPayload($event, $trooper->id))
+                ->assertSessionHasErrors(Event::COORDINATOR_TROOPER_ID);
+        }
+
+        $this->assertNull($event->fresh()->coordinator_trooper_id);
+    }
+
+    private function pastEvent(): Event
+    {
+        return Event::factory()->create([
+            Event::STATUS => EventStatus::CLOSED,
+            Event::EVENT_START => now()->subDays(3),
+            Event::EVENT_END => now()->subDays(3)->addHours(4),
+        ]);
+    }
+
+    private function signUp(Event $event, EventTrooperStatus $status): Trooper
+    {
+        $shift = $event->event_shifts()->first()
+            ?? EventShift::factory()->forEvent($event)->create([
+                EventShift::STATUS => EventStatus::CLOSED,
+                EventShift::SHIFT_STARTS_AT => $event->event_start,
+                EventShift::SHIFT_ENDS_AT => $event->event_end,
+            ]);
+        $trooper = Trooper::factory()->asEventCoordinator()->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->create([EventTrooper::STATUS => $status]);
+
+        return $trooper;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function coordinatorPayload(Event $event, ?int $coordinator_id): array
+    {
+        return [
+            'name' => $event->name,
+            Event::EVENT_TYPE_ID => $event->event_type_id,
+            'status' => $event->status->value,
+            'organization_id' => $event->organization_id,
+            'event_start' => $event->event_start->format('Y-m-d H:i:s'),
+            'event_end' => $event->event_end->format('Y-m-d H:i:s'),
+            Event::COORDINATOR_TROOPER_ID => $coordinator_id,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function typePayload(Event $event, int $event_type_id): array
+    {
+        return [
+            'name' => 'Imperial Muster',
+            Event::EVENT_TYPE_ID => $event_type_id,
+            'status' => EventStatus::DRAFT->value,
+            'organization_id' => $event->organization_id,
+            'event_start' => now()->addDays(7)->format('Y-m-d H:i:s'),
+            'event_end' => now()->addDays(7)->addHours(4)->format('Y-m-d H:i:s'),
+        ];
+    }
+}

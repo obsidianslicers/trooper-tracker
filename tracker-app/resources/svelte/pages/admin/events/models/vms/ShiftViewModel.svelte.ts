@@ -117,7 +117,7 @@ export class ShiftViewModel extends AutosaveViewModel<ShiftForm, EventPageResult
         }
 
         router.post(
-            getRoute("admin.events.shifts.stations.remove", {
+            getRoute("admin.events.shifts.stations.destroy", {
                 event: this.event_id,
                 event_shift: this.shift_id,
                 event_shift_station: station.key,
@@ -150,7 +150,7 @@ export class ShiftViewModel extends AutosaveViewModel<ShiftForm, EventPageResult
     };
 
     protected url(): string {
-        return getRoute("admin.events.shifts", { event: this.event_id });
+        return getRoute("admin.events.shifts.update", { event: this.event_id });
     }
 
     protected payload(data: ShiftForm): Record<string, unknown> {
