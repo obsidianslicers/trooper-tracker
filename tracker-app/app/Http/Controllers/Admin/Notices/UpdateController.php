@@ -5,15 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Notices;
 
 use App\Http\Controllers\PageController;
+use App\Messages\Notices\PageData\NoticeFormPageData;
 use App\Models\Notice;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
-/**
- * Class UpdateController
- *
- * Handles displaying the form to update an existing notice.
- */
 class UpdateController extends PageController
 {
     protected function initialized(): void
@@ -22,24 +19,14 @@ class UpdateController extends PageController
         $this->crumbs->addRoute(__('admin.Notices'), 'admin.notices.list');
     }
 
-    /**
-     * Handle the request to display the notice update page
-     *
-     * Authorizes the user, sets up breadcrumbs, and returns the view
-     * containing the form to update an existing notice.
-     *
-     * @param  Request  $request  The incoming HTTP request object
-     * @param  Notice  $notice  The notice to be updated
-     * @return View The rendered notice update view
-     */
-    public function __invoke(Request $request, Notice $notice): View
+    public function __invoke(Request $request, Notice $notice): InertiaResponse
     {
         $this->authorize('update', $notice);
 
-        $data = [
-            'notice' => $notice,
-        ];
+        $notice->load('organization');
 
-        return view('pages.admin.notices.update', $data);
+        $data = NoticeFormPageData::call(actor: $request->user(), notice: $notice);
+
+        return Inertia::render('admin/notices/Update', $data);
     }
 }

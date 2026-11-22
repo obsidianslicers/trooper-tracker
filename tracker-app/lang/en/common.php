@@ -28,6 +28,7 @@ return [
     'No costumes matched your search.' => 'No costumes matched your search.',
     'No troopers matched your search.' => 'No troopers matched your search.',
     'Not saved' => 'Not saved',
+    'Pages' => 'Pages',
     'Pick Trooper' => 'Pick Trooper',
     'Please confirm' => 'Please confirm',
     'Saved' => 'Saved',
