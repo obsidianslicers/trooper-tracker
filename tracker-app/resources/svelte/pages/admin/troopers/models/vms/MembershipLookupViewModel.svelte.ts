@@ -34,7 +34,7 @@ export class MembershipLookupViewModel extends ViewModel {
     get existing_trooper_route(): string | null {
         if (this.lookup != null && this.lookup.existing_trooper_membership != null) {
             const params = { trooper: this.lookup.existing_trooper_membership.id };
-            return getRoute('admin.troopers.profile', params);
+            return getRoute('admin.troopers.show', params);
         }
         return null;
     }

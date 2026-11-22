@@ -23,8 +23,8 @@ const MEMBER_PAGES = [
 const MODERATOR_PAGES = [
     '/admin',
     '/admin/troopers',
-    '/admin/troopers/approvals/index',
-    '/admin/troopers/permissions',
+    '/admin/troopers/approvals',
+    '/admin/troopers/permissions/create',
     '/admin/troopers/recruit',
     '/admin/events',
     '/admin/events/create',

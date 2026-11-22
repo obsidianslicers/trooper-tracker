@@ -20,7 +20,7 @@ export class ProfileGuardianViewModel extends SubmitableViewModel<ProfileGuardia
     submit = (e: Event) => {
         e.preventDefault();
         this.form.post(
-            getRoute("admin.troopers.update-guardian", { trooper: this.trooper_id }),
+            getRoute("admin.troopers.guardian.update", { trooper: this.trooper_id }),
             createPartialReloadOptions(),
         );
     };

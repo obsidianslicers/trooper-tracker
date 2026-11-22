@@ -27,6 +27,6 @@ class DenyPermissionsController extends Controller
 
         FlashType::success(__('admin.Permission request denied.'));
 
-        return redirect()->route('admin.troopers.permissions.approvals');
+        return redirect()->route('admin.troopers.permissions.approvals.index');
     }
 }

@@ -32,6 +32,6 @@ class ApprovePermissionsController extends Controller
             FlashType::danger(__('admin.Nothing was changed: :error', ['error' => $e->getMessage()]));
         }
 
-        return redirect()->route('admin.troopers.permissions.approvals');
+        return redirect()->route('admin.troopers.permissions.approvals.index');
     }
 }

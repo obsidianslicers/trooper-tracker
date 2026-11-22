@@ -56,7 +56,7 @@ export class MergeTroopersViewModel extends SubmitableViewModel<MergeTroopersVie
     submit = async (e: Event) => {
         e.preventDefault();
 
-        const url = getRoute('admin.troopers.merge');
+        const url = getRoute('admin.troopers.merge.store');
 
         this.form.post(url, {});
     };

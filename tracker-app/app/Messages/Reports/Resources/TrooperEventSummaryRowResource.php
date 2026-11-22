@@ -26,7 +26,7 @@ class TrooperEventSummaryRowResource extends JsonResource
         return [
             'id' => $this->resource->id,
             'display_name' => $this->resource->display_name,
-            'profile_url' => route('admin.troopers.profile', ['trooper' => $this->resource]),
+            'profile_url' => route('admin.troopers.show', ['trooper' => $this->resource]),
             'events_count' => $this->count($this->resource->events_count),
             'event_shifts_count' => $this->count($this->resource->event_shifts_count),
         ];

@@ -20,7 +20,7 @@
 
     <p>
         Please review this request on the
-        <a href="{{ route('admin.troopers.permissions.approvals') }}">Permission Approvals page</a>.
+        <a href="{{ route('admin.troopers.permissions.approvals.index') }}">Permission Approvals page</a>.
     </p>
 
     @include(email_view('inc.signature'))

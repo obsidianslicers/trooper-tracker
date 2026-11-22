@@ -41,7 +41,7 @@
                             {{ __('service-records.Fix Missing Credit') }}
                         </a>
                     @endif
-                    <a href="{{ route('admin.troopers.profile', compact('trooper')) }}"
+                    <a href="{{ route('admin.troopers.show', compact('trooper')) }}"
                        class="btn btn-outline-warning">
                         <i class="fa fa-fw fa-edit"></i>
                         {{ __('service-records.Edit') }}

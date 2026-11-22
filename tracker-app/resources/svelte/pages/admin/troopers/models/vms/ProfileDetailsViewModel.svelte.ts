@@ -75,7 +75,7 @@ export class ProfileDetailsViewModel extends SubmitableViewModel<ProfileDetailsV
     submit = (e: Event) => {
         e.preventDefault();
         this.form.post(
-            getRoute("admin.troopers.update-profile", { trooper: this.trooper_id }),
+            getRoute("admin.troopers.profile.update", { trooper: this.trooper_id }),
             this.reloadOptions(),
         );
     };

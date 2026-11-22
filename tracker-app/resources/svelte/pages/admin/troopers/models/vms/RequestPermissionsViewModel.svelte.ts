@@ -244,7 +244,7 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
     submit = (e: Event) => {
         e.preventDefault();
 
-        const url = getRoute('admin.troopers.permissions.request');
+        const url = getRoute('admin.troopers.permissions.store');
 
         this.form.extensions = collectExtensionInputs(this.extensions_element);
 

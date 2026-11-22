@@ -112,7 +112,7 @@ class ReportPageDataTest extends TestCase
         $row = collect($result['troopers'])->firstWhere('id', $trooper->id);
 
         $this->assertSame('Never', $row['last_seen']);
-        $this->assertSame(route('admin.troopers.profile', ['trooper' => $trooper]), $row['profile_url']);
+        $this->assertSame(route('admin.troopers.show', ['trooper' => $trooper]), $row['profile_url']);
     }
 
     public function test_status_change_log_names_who_marked_the_troop(): void

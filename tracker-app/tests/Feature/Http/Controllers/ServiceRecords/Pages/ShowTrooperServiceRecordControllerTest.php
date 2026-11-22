@@ -156,7 +156,7 @@ class ShowTrooperServiceRecordControllerTest extends TestCase
             ->get(route('service-records.trooper', ['trooper' => $target_trooper]));
 
         $response->assertOk();
-        $response->assertSee(route('admin.troopers.profile', ['trooper' => $target_trooper]), false);
+        $response->assertSee(route('admin.troopers.show', ['trooper' => $target_trooper]), false);
         $response->assertSee('Edit');
     }
 
@@ -171,7 +171,7 @@ class ShowTrooperServiceRecordControllerTest extends TestCase
             ->get(route('service-records.trooper', ['trooper' => $target_trooper]));
 
         $response->assertOk();
-        $response->assertDontSee(route('admin.troopers.profile', ['trooper' => $target_trooper]), false);
+        $response->assertDontSee(route('admin.troopers.show', ['trooper' => $target_trooper]), false);
         $response->assertDontSee('Edit');
     }
 

@@ -35,7 +35,7 @@
                     {@const busy = vm.isWorking(`costume-${row.id}`)}
                     <tr>
                         <td>
-                            <a href={getRoute("admin.troopers.profile", { trooper: row.trooper.id, tab: "costumes" })}>
+                            <a href={getRoute("admin.troopers.show", { trooper: row.trooper.id, tab: "costumes" })}>
                                 {row.trooper.name}
                             </a>
                         </td>

@@ -43,7 +43,7 @@ describe('ListTroopersViewModel', () => {
         const vm = listVm({ search_term: 'fett', organization_id: 4 });
 
         expect(vm.listUrl({ membership_role: 'moderator' })).toBe(
-            '/admin.troopers.list?search_term=fett&membership_role=moderator&organization_id=4&sort_col=display_name&sort_dir=asc',
+            '/admin.troopers.index?search_term=fett&membership_role=moderator&organization_id=4&sort_col=display_name&sort_dir=asc',
         );
         expect(vm.listUrl({ organization_id: null })).not.toContain('organization_id');
     });
@@ -63,7 +63,7 @@ describe('ListTroopersViewModel', () => {
         vm.search_term = '  boba ';
         vm.search(new Event('submit'));
 
-        expect(visit).toHaveBeenLastCalledWith('/admin.troopers.list?search_term=boba&sort_col=display_name&sort_dir=asc');
+        expect(visit).toHaveBeenLastCalledWith('/admin.troopers.index?search_term=boba&sort_col=display_name&sort_dir=asc');
     });
 
     it('shows a group when one is picked, and does nothing when it is the same one', () => {
@@ -102,6 +102,6 @@ describe('RecruitViewModel', () => {
         vm.submit(new Event('submit'));
 
         expect(vm.form.trooper_id).toBe(12);
-        expect(formPost).toHaveBeenLastCalledWith('/admin.troopers.recruit?', expect.any(Object));
+        expect(formPost).toHaveBeenLastCalledWith('/admin.troopers.recruit.store?', expect.any(Object));
     });
 });
