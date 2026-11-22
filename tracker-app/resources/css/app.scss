@@ -354,13 +354,228 @@ input.searching {
     }
 }
 
-// Attendee-facing shift signup actions
-.shift-signup-actions {
-    align-items: stretch;
+//  a shift (pages/events/inc/shift-container.blade.php): how full it is, then the roster in
+//  sign-up order, numbered, with Sign up after it and the quieter actions as links under that
+.shift-header {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+//  a shift's roster: one grid, and every row a subgrid of it, so the columns (number, who,
+//  costume, status, Edit) line up from row to row whatever a row's status or costume says
+.roster {
+    column-gap: 0.75rem;
+    display: grid;
+    //  who and costume as wide as their widest entry (capped), the spare room before the status
+    grid-template-columns: 1.25rem fit-content(40%) fit-content(40%) minmax(0, 1fr) auto;
+    margin-bottom: 0.5rem;
+}
+
+//  the Sign up area sits inside the roster grid, across it
+.roster > .shift-signup-actions {
+    grid-column: 1 / -1;
+}
+
+.roster__heading {
+    border-bottom: 1px solid var(--bs-border-color);
+    color: var(--bs-secondary-color);
+    font-size: 0.8rem;
+    font-weight: 700;
+    grid-column: 1 / -1;
+    letter-spacing: 0.06em;
+    margin-top: 1rem;
+    padding-bottom: 0.25rem;
+    text-transform: uppercase;
+}
+
+//  the Edit area opens under the row, in place
+.roster-row {
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    padding: 0.6rem 0.5rem;
+    scroll-margin-top: 5rem;
+}
+
+.roster-row__main {
+    align-items: baseline;
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+}
+
+.roster-row__number {
+    font-size: 0.875rem;
+    text-align: end;
+}
+
+.roster-row__status,
+.roster-row__edit {
+    text-align: end;
+}
+
+//  wider screens: as much room after who and after the costume as before the status
+@media (min-width: 576px) {
+    .roster-row__who,
+    .roster-row__costume {
+        padding-right: 0.75rem;
+    }
+}
+
+.roster-row__editor {
+    grid-column: 2 / -1;
+    padding: 0.75rem 0 0.25rem;
+}
+
+//  the viewer's own row
+.roster-row--mine {
+    background: color-mix(in srgb, var(--bs-success) 8%, transparent);
+    border-radius: var(--bs-border-radius);
+}
+
+//  phones: number, who and status on the first line, Edit under the status, and the costume
+//  across the full width under them (the status column would otherwise squeeze it)
+@media (max-width: 575.98px) {
+    .roster {
+        grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+    }
+
+    .roster-row__main {
+        row-gap: 0.25rem;
+    }
+
+    .roster-row__number {
+        grid-row: 1;
+    }
+
+    .roster-row__who {
+        grid-column: 2;
+        grid-row: 1 / 3;
+    }
+
+    .roster-row__status {
+        grid-column: 3;
+        grid-row: 1;
+    }
+
+    .roster-row__costume {
+        grid-column: 2 / -1;
+        grid-row: 3;
+    }
+
+    .roster-row__edit {
+        grid-column: 3;
+        grid-row: 2;
+    }
+
+    .roster-row__editor {
+        grid-column: 1 / -1;
+    }
+
+    .roster-row__editor-actions {
+        > .d-flex {
+            align-items: stretch !important;
+            flex-direction: column;
+        }
+
+        .form-select {
+            width: 100% !important;
+        }
+    }
+}
+
+//  a secondary action: a small outline button in normal case. Quieter than the filled main action
+//  (Sign Up, Confirm) but plainly a button, since it does something rather than go somewhere. Meant
+//  for use site-wide; matches the theme's `body.theme-* .btn` weight and comes after it.
+html body .btn.btn-secondary-action {
+    //  the theme's outline-secondary is dark grey on dark, which reads as disabled; these come from
+    //  the theme's own text colours, so they hold in every theme
+    --bs-btn-color: var(--bs-body-color);
+    --bs-btn-border-color: color-mix(in srgb, var(--bs-body-color) 45%, transparent);
+    --bs-btn-hover-color: var(--bs-body-color);
+    --bs-btn-hover-bg: color-mix(in srgb, var(--bs-body-color) 10%, transparent);
+    --bs-btn-hover-border-color: var(--bs-body-color);
+    --bs-btn-active-color: var(--bs-body-color);
+    --bs-btn-active-bg: color-mix(in srgb, var(--bs-body-color) 16%, transparent);
+    --bs-btn-active-border-color: var(--bs-body-color);
+    font-family: inherit;
+    font-weight: 500;
+    letter-spacing: normal;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+//  the shift's link-style actions read as links, not as the theme's uppercase buttons (:is()
+//  takes the id's weight, enough to beat the theme's button rule)
+:is(#mission-roster, #mission-roster ~ *) {
+    .btn-link {
+        font-weight: 400;
+        letter-spacing: normal;
+        text-transform: none;
+    }
+}
+
+.shift-signup {
+    padding: 0.75rem 0;
+    scroll-margin-top: 5rem;
+}
+
+.shift-signup__start {
+    align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    justify-content: flex-end;
+    gap: 0.75rem 1rem;
+}
+
+//  the backup costume: a link beside Going/Tentative until they want one, then the picker
+.shift-signup__backup {
+    align-items: center;
+    display: flex;
+    flex: 1 1 12rem;
+
+    .form-select {
+        max-width: none;
+        width: 100%;
+    }
+}
+
+//  phones stack the form, so the wrapper's 12rem basis would become a 12rem height; the link stays
+//  a plain left-aligned link rather than a full-width button
+@media (max-width: 575.98px) {
+    .shift-signup-primary .shift-signup__backup {
+        flex: none;
+
+        .btn-link {
+            text-align: start !important;
+            width: auto;
+        }
+    }
+}
+
+.shift-signup__confirm {
+    align-items: center;
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+}
+
+.shift-links {
+    padding-top: 0.5rem;
+}
+
+.shift-links__row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.friend-signup-step:empty {
+    display: none;
 }
 
 .shift-signup-primary,
@@ -374,7 +589,8 @@ input.searching {
     justify-content: flex-end;
 }
 
-//  the Sign Up form (costume, plans, Sign Up) and, once signed up, "Your sign-up" in its place
+//  the Sign Up form's choices (costume, plans) and Confirm, once Sign up is pressed (and the
+//  sign-up tour's example box, pages/events/inc/signup-tour.blade.php)
 .shift-signup-primary--form,
 .my-shift-signup {
     background: color-mix(in srgb, var(--bs-success) 7%, var(--bs-card-bg));
@@ -397,7 +613,8 @@ input.searching {
             margin-right: 0;
         }
 
-        .form-select {
+        .form-select,
+        .form-control {
             flex: 1 1 12rem;
             max-width: none;
         }
@@ -408,37 +625,9 @@ input.searching {
     }
 }
 
-//  phones: "Your sign-up"'s dropdowns and buttons fill the panel, like the Sign Up form's
-@media (max-width: 575.98px) {
-    .my-shift-signup__actions {
-        > .d-flex {
-            align-items: stretch !important;
-            flex-direction: column;
-        }
-
-        .form-select,
-        .btn,
-        .input-group {
-            width: 100% !important;
-        }
-
-        .input-group > .btn {
-            flex: 1 1 0;
-        }
-    }
-}
-
 //  phones: toasts sit along the bottom, so lift them over the "Your sign-up" bar
 body:has(.my-signup-bar) .toast-container.bottom-0 {
     margin-bottom: calc(3rem + env(safe-area-inset-bottom));
-}
-
-//  the viewer's own roster row, which they change on "Your sign-up" instead
-.roster-row--mine {
-    background: color-mix(in srgb, var(--bs-primary) 6%, transparent);
-    border-radius: var(--bs-border-radius);
-    padding-bottom: 0.25rem;
-    padding-top: 0.25rem;
 }
 
 //  "You're bringing", under "Your sign-up": the friends and guests they added, then the Add buttons

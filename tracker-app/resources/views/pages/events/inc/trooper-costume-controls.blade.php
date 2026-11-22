@@ -1,10 +1,8 @@
 {{--
     A sign-up's station, organization, costume and backup costume: pickers when $event_trooper can
-    be changed by the viewer, otherwise what was picked. Used on roster rows
-    (pages/events/inc/trooper.blade.php) and on the trooper's own "Your sign-up" panel
-    (pages/events/inc/my-shift-signup.blade.php), which passes $labelled for labels above the pickers.
-    $read_only shows what was picked even to someone who could change it (their own roster row,
-    which they change on the panel instead).
+    be changed by the viewer, otherwise what was picked. A roster row (pages/events/inc/trooper.blade.php)
+    shows what was picked ($read_only), and its Edit area the pickers, with $labelled for labels
+    above them. The backup costume picker waits behind "Add a backup costume" until one is set.
 --}}
 @php
     $labelled = $labelled ?? false;
@@ -81,19 +79,29 @@
                     hx-target="{{ $shift_target }}"
                     hx-swap="outerHTML"
                     class="form-select-sm mt-2 mt-md-0" />
-    @if($labelled)
-        <label class="form-label small text-muted mb-1 mt-2">{{ __('events.Backup costume (optional)') }}</label>
-    @endif
-    <x-input-select :property="'backup_costume_id'"
-                    :options="$event_trooper->costumes"
-                    :value="$event_trooper->backup_costume_id"
-                    :placeholder="$labelled ? __('events.-- None --') : __('events.-- Select Backup Costume (optional) --')"
-                    hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
-                    hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
-                    hx-select="{{ $shift_target }}"
-                    hx-target="{{ $shift_target }}"
-                    hx-swap="outerHTML"
-                    class="form-select-sm mt-2 {{ $labelled ? 'mt-md-0' : '' }}" />
+    <div x-data="{ backup: @js($event_trooper->backup_costume_id !== null) }">
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary btn-secondary-action mt-2"
+                x-show="!backup"
+                @if($event_trooper->backup_costume_id !== null) x-cloak @endif
+                x-on:click="backup = true">
+            {{ __('events.Add a backup costume') }}
+        </button>
+        <div x-show="backup"
+             @if($event_trooper->backup_costume_id === null) x-cloak @endif>
+            <label class="form-label small text-muted mb-1 mt-2">{{ __('events.Backup costume (optional)') }}</label>
+            <x-input-select :property="'backup_costume_id'"
+                            :options="$event_trooper->costumes"
+                            :value="$event_trooper->backup_costume_id"
+                            :placeholder="__('events.-- None --')"
+                            hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                            hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                            hx-select="{{ $shift_target }}"
+                            hx-target="{{ $shift_target }}"
+                            hx-swap="outerHTML"
+                            class="form-select-sm" />
+        </div>
+    </div>
     @endif
 @elseif($with_costumes)
     @if($event_trooper->costume === null)
@@ -117,10 +125,8 @@
                                :planned="$event->status !== \App\Enums\EventStatus::CLOSED" />
     @endif
     @if($event_trooper->backup_costume != null)
-        <br />
-        <i class="small text-muted">
-            <i class="fa fa-fw fa-box-archive"></i>
-            {{ $event_trooper->backup_costume->name }}
-        </i>
+        <div class="small text-muted">
+            {{ __('events.Backup: :costume', ['costume' => $event_trooper->backup_costume->name]) }}
+        </div>
     @endif
 @endif

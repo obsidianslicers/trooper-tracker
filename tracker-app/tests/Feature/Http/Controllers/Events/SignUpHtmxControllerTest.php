@@ -333,6 +333,39 @@ class SignUpHtmxControllerTest extends TestCase
         ]);
     }
 
+    public function test_invoke_saves_the_backup_costume_picked_while_signing_up(): void
+    {
+        [$trooper, $event_shift, $costume] = $this->trooperWithCostumeAndShift();
+
+        $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['costume_id' => 'none', 'backup_costume_id' => $costume->id]
+        )->assertOk();
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::BACKUP_COSTUME_ID => $costume->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_invoke_ignores_a_backup_costume_that_is_not_theirs(): void
+    {
+        [$trooper, $event_shift, $costume] = $this->trooperWithCostumeAndShift();
+        $someone_elses = Costume::factory()->state(['name' => 'Someone Else\'s Costume'])->create();
+
+        $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['costume_id' => $costume->id, 'backup_costume_id' => $someone_elses->id]
+        )->assertOk();
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $costume->id,
+            EventTrooper::BACKUP_COSTUME_ID => null,
+        ]);
+    }
+
     public function test_invoke_ignores_a_costume_that_is_not_theirs(): void
     {
         [$trooper, $event_shift] = $this->trooperWithCostumeAndShift();
@@ -392,7 +425,7 @@ class SignUpHtmxControllerTest extends TestCase
         $response->assertOk();
         $response->assertSee('id="my-signup-summary"', false);
         $response->assertSee('hx-swap-oob="true"', false);
-        $response->assertSee('id="my-shift-signup-'.$event_shift->id.'"', false);
+        $response->assertSee('roster-row--mine', false);
         $response->assertSee('Cancel my sign-up');
         $response->assertDontSee('<option value="cancelled"', false);
     }

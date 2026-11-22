@@ -1,43 +1,29 @@
-<div class="row mb-3">
-    <div class="col-6">
-        <span class="text-muted">
-            {{ __('events.Shift Status:') }}
-        </span>
-        {{ $event_shift->status->label() }}
-    </div>
-    <div class="col-6 text-end">
-        @php($count_of_troopers = $event_shift->event_troopers->filter(fn($et) => $et->intendsToGo())->count())
-        @if($event_shift->is_open)
-            @if($event_shift->troopers_allowed != null && $count_of_troopers >= $event_shift->troopers_allowed)
-                <span class="text-success">
-                    {{ __('events.FULL TROOP') }}
-                    <i class="fa fa-fw fa-check-circle ms-2"></i>
-                </span>
-            @elseif($count_of_troopers == 0)
-                <span class="text-danger">
-                    {{ __('events.NOT ENOUGH!') }}
-                </span>
-            @else
-                {{ $count_of_troopers }}
-                @if($event->troopers_allowed !== null && $event->troopers_allowed > 0)
-                    / {{ $event->troopers_allowed }}
-                @endif
-                going
-            @endif
+{{-- The shift's status only when it isn't simply open, and how full it is --}}
+@php
+    $spots_left = $event_shift->trooperSpotsLeft();
+    $stand_by_count = $event_shift->standByCount();
+    $count_going = $event_shift->event_troopers->filter(fn ($event_trooper) => $event_trooper->status === \App\Enums\EventTrooperStatus::GOING)->count();
+    $count_tentative = $event_shift->event_troopers->filter(fn ($event_trooper) => $event_trooper->status === \App\Enums\EventTrooperStatus::TENTATIVE)->count();
+@endphp
+<div class="shift-header">
+    <span>
+        @if($event_shift->status !== \App\Enums\EventStatus::OPEN)
+            {{ $event_shift->status->label() }}
         @endif
-    </div>
+    </span>
+    @if($event_shift->is_open)
+        @if($spots_left === 0)
+            <span class="text-warning">
+                {{ __('events.Full') }}@if($stand_by_count > 0) · {{ trans_choice('events.:count on stand-by|:count on stand-by', $stand_by_count) }}@endif
+            </span>
+        @elseif($spots_left !== null)
+            {{-- counted the way the limit counts: troopers going, not handlers or tentative --}}
+            <span class="text-muted">{{ __('events.:count of :limit going', ['count' => $event->troopers_allowed - $spots_left, 'limit' => $event->troopers_allowed]) }}@if($count_tentative > 0) · {{ trans_choice('events.:count tentative|:count tentative', $count_tentative) }}@endif</span>
+        @else
+            <span class="text-muted">{{ trans_choice('events.:count going|:count going', $count_going) }}@if($count_tentative > 0) · {{ trans_choice('events.:count tentative|:count tentative', $count_tentative) }}@endif</span>
+        @endif
+    @endif
 </div>
-@if($can_moderate)
-    <div class="row mb-3">
-        <div class="col-12 text-end">
-            <a class="btn btn-sm btn-outline-secondary d-none d-md-inline"
-               href="{{ route('events.download-shift-roster-csv', ['event' => $event, 'event_shift' => $event_shift]) }}">
-                <i class="fa fa-fw fa-download me-1"></i>
-                {{ __('events.Download CSV (This Shift)') }}
-            </a>
-        </div>
-    </div>
-@endif
 @if($event_shift->usesStations())
     <div class="row mb-3">
         <div class="col-12">
@@ -65,39 +51,4 @@
             </div>
         </div>
     </div>
-@endif
-@if($event_shift->isSignedUp(Auth::user()))
-<div class="row mb-3">
-    <div class="col-12 text-end">
-        @php($link = $event_shift->createCalendarLink())
-        <x-button-group>
-            <div class="btn btn-sm btn-primary">
-                {{ __('events.Add to Calendar') }}
-            </div>
-            <a target="_blank"
-               class="btn btn-sm btn-outline-primary"
-               title="{{ __('events.Create Google Calendar Event') }}"
-               href="{{ $link->google() }}">
-                <i class="fa fa-brands fa-fw fa-google"></i>
-            </a>
-            <a target="_blank"
-               class="btn btn-sm btn-outline-primary"
-               title="{{ __('events.Create Yahoo Calendar Event') }}"
-               href="{{ $link->yahoo() }}">
-                <i class="fa fa-brands fa-fw fa-yahoo"></i>
-            </a>
-            <a target="_blank"
-               class="btn btn-sm btn-outline-primary"
-               title="{{ __('events.Create Outlook Calendar Event') }}"
-               href="{{ $link->webOutlook() }}">
-                <i class="fa fa-brands fa-fw fa-windows"></i>
-            </a>
-            <a class="btn btn-sm btn-outline-primary"
-               title="{{ __('events.Download ICS File') }}"
-               href="{{ route('events.download-shift-ics', ['event' => $event, 'event_shift' => $event_shift]) }}">
-                <i class="fa fa-fw fa-calendar"></i>
-            </a>
-        </x-button-group>
-    </div>
-</div>
 @endif

@@ -27,7 +27,7 @@ use Hyperdrive\Message;
  * Creates an EventTrooper record linking a trooper to a specific event shift.
  * Tracks who added the trooper (for admin sign-ups vs self sign-ups).
  *
- * @method static void call(EventShift $event_shift, Trooper $trooper, Trooper $added_by_trooper, ?int $organization_id = null, bool $is_handler = false, ?int $costume_id = null, ?int $event_shift_station_id = null, bool $is_attending_without_costume = false, bool $is_tentative = false)
+ * @method static void call(EventShift $event_shift, Trooper $trooper, Trooper $added_by_trooper, ?int $organization_id = null, bool $is_handler = false, ?int $costume_id = null, ?int $event_shift_station_id = null, bool $is_attending_without_costume = false, bool $is_tentative = false, ?int $backup_costume_id = null)
  */
 final class SignUpEventTrooper extends Message
 {
@@ -42,6 +42,8 @@ final class SignUpEventTrooper extends Message
      * @param  int|null  $organization_id  The top-level organization the trooper is trooping for.
      * @param  bool  $is_attending_without_costume  They chose "Attending without a costume" while signing up.
      * @param  bool  $is_tentative  They signed up as Tentative (the caller checks the event allows it).
+     * @param  int|null  $backup_costume_id  Their backup costume, picked while signing up (the caller
+     *                                       checks it's one of theirs).
      */
     public function __construct(
         private readonly EventShift $event_shift,
@@ -53,6 +55,7 @@ final class SignUpEventTrooper extends Message
         private readonly ?int $event_shift_station_id = null,
         private readonly bool $is_attending_without_costume = false,
         private readonly bool $is_tentative = false,
+        private readonly ?int $backup_costume_id = null,
     ) {}
 
     public function handle(EventRosterCapacityService $capacity): void
@@ -109,6 +112,11 @@ final class SignUpEventTrooper extends Message
             $event_trooper->costume_id = $costume->id;
             $org_ids = $costume->approvedOrgIdsForTrooper($this->trooper->id);
             $event_trooper->costume_organization_ids = !empty($org_ids) ? $org_ids : null;
+        }
+
+        if ($this->backup_costume_id !== null)
+        {
+            $event_trooper->backup_costume_id = $this->backup_costume_id;
         }
 
         if ($status === EventTrooperStatus::GOING && $event_trooper->needsCostumeBeforeGoing())

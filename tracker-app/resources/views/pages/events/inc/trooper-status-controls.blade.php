@@ -1,21 +1,55 @@
 {{--
-    A sign-up's status and what can be done with it: Going/Tentative, a Cancel button (with a
-    confirmation, not a "Cancelled" option in a dropdown), Sign up again, Made It / Missed It after
-    the troop, and Approve / Reject for moderators of manual-selection events. Used on roster rows
-    (pages/events/inc/trooper.blade.php) and on the trooper's own "Your sign-up" panel
-    (pages/events/inc/my-shift-signup.blade.php). $read_only shows only the status (their own
-    roster row, which they change on the panel); moderation buttons still show.
+    A roster row's status and what can be done with it (pages/events/inc/trooper.blade.php).
+    $part 'status', on the row itself: the status, plus the things that are worth a button right
+    there: Sign up again, Made It / Missed It after the troop, and Approve / Reject for moderators
+    of manual-selection events.
+    $part 'edit', under the row once Edit is pressed: Going/Tentative where the event allows it, and
+    Cancel (with a confirmation, not a "Cancelled" option in a dropdown).
 --}}
 @php
-    $read_only = $read_only ?? false;
-    $show_status = $show_status ?? true;
+    $part = $part ?? 'status';
     $viewer = Auth::user();
     $status = $event_trooper->status;
     $is_self = $event_trooper->trooper_id === $viewer->id;
     $shift_id = $event_trooper->event_shift->id;
     $update_url = route('events.signup-update-htmx', compact('event_trooper'));
 @endphp
-@if(
+@if($part === 'edit')
+    @if($event_shift->is_open && $status !== \App\Enums\EventTrooperStatus::CANCELLED && $event_trooper->canCancel($viewer))
+        @php
+            $plan_options = $event->planStatusOptions($status);
+            $can_change_plans = in_array($status, \App\Enums\EventTrooperStatus::intentToGoArray(), true)
+                && $event_trooper->canUpdateStatus($viewer)
+                && count($plan_options) > 1;
+        @endphp
+        <div class="d-flex flex-wrap gap-3 align-items-baseline justify-content-md-end">
+            @if($can_change_plans)
+                <x-input-select :property="'status'"
+                                :options="$plan_options"
+                                :value="$status->value"
+                                aria-label="{{ __('events.Your plans') }}"
+                                hx-post="{{ $update_url }}"
+                                hx-indicator="#transmission-bar-shift-{{ $shift_id }}"
+                                hx-select="#shift-container-{{ $shift_id }}"
+                                hx-target="#shift-container-{{ $shift_id }}"
+                                hx-swap="outerHTML"
+                                class="form-select-sm w-auto" />
+            @endif
+            <form hx-post="{{ $update_url }}"
+                  hx-confirm="{{ $is_self ? __('events.Cancel your sign-up for this shift?') : __('events.Cancel :name\'s sign-up for this shift?', ['name' => $event_trooper->trooper->display_name]) }}"
+                  hx-indicator="#transmission-bar-shift-{{ $shift_id }}"
+                  hx-select="#shift-container-{{ $shift_id }}"
+                  hx-target="#shift-container-{{ $shift_id }}"
+                  hx-swap="outerHTML">
+                @csrf
+                <input type="hidden" name="status" value="{{ \App\Enums\EventTrooperStatus::CANCELLED->value }}" />
+                <button type="submit" class="btn btn-link btn-sm p-0 text-danger">
+                    {{ $is_self ? __('events.Cancel my sign-up') : __('events.Cancel their sign-up') }}
+                </button>
+            </form>
+        </div>
+    @endif
+@elseif(
         $can_moderate
         && $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
         && $event_shift->is_open
@@ -39,8 +73,7 @@
                            name="status"
                            value="{{ \App\Enums\EventTrooperStatus::GOING->value }}" />
                     <button type="submit"
-                            class="btn btn-sm btn-success">
-                        <i class="fa fa-fw fa-check me-1"></i>
+                            class="btn btn-sm btn-outline-success">
                         {{ __('events.Approve') }}
                     </button>
                 </form>
@@ -57,19 +90,14 @@
                            value="{{ \App\Enums\EventTrooperStatus::STAND_BY->value }}" />
                     <button type="submit"
                             class="btn btn-sm btn-outline-danger">
-                        <i class="fa fa-fw fa-ban me-1"></i>
                         {{ __('events.Reject') }}
                     </button>
                 </form>
             @endif
         </div>
     @endif
-@elseif($read_only)
-    <x-sign-up-status :status="$status" />
 @elseif($event_shift->is_open && $status === \App\Enums\EventTrooperStatus::CANCELLED)
-    @if($show_status)
-        <x-sign-up-status :status="$status" :block="true" />
-    @endif
+    {{-- the row sits under "Cancelled", so no status word --}}
     @php
         //  limited events re-queue them by sign-up time; the others just set them back to going
         $can_sign_up_again = $event->hasLimits()
@@ -88,58 +116,14 @@
             @else
                 <input type="hidden" name="status" value="{{ \App\Enums\EventTrooperStatus::GOING->value }}" />
             @endif
-            <button type="submit" class="btn btn-sm btn-success">
-                <i class="fa fa-fw fa-redo me-1"></i>
+            <button type="submit" class="btn btn-sm btn-outline-secondary btn-secondary-action">
                 {{ __('events.Sign up again') }}
             </button>
         </form>
     @endif
-@elseif($event_shift->is_open && $event_trooper->canCancel($viewer))
-    @php
-        $plan_options = $event->planStatusOptions($status);
-        $can_change_plans = in_array($status, \App\Enums\EventTrooperStatus::intentToGoArray(), true)
-            && $event_trooper->canUpdateStatus($viewer)
-            && count($plan_options) > 1;
-    @endphp
-    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-md-end">
-        @if($can_change_plans)
-            <x-input-select :property="'status'"
-                            :options="$plan_options"
-                            :value="$status->value"
-                            aria-label="{{ __('events.Your plans') }}"
-                            hx-post="{{ $update_url }}"
-                            hx-indicator="#transmission-bar-shift-{{ $shift_id }}"
-                            hx-select="#shift-container-{{ $shift_id }}"
-                            hx-target="#shift-container-{{ $shift_id }}"
-                            hx-swap="outerHTML"
-                            class="form-select-sm w-auto" />
-        @elseif($show_status)
-            <x-sign-up-status :status="$status" />
-        @endif
-        <form hx-post="{{ $update_url }}"
-              hx-confirm="{{ $is_self ? __('events.Cancel your sign-up for this shift?') : __('events.Cancel :name\'s sign-up for this shift?', ['name' => $event_trooper->trooper->display_name]) }}"
-              hx-indicator="#transmission-bar-shift-{{ $shift_id }}"
-              hx-select="#shift-container-{{ $shift_id }}"
-              hx-target="#shift-container-{{ $shift_id }}"
-              hx-swap="outerHTML">
-            @csrf
-            <input type="hidden" name="status" value="{{ \App\Enums\EventTrooperStatus::CANCELLED->value }}" />
-            <button type="submit" class="btn btn-sm btn-outline-danger">
-                <i class="fa fa-fw fa-times me-1"></i>
-                {{ $is_self ? __('events.Cancel my sign-up') : __('events.Cancel') }}
-            </button>
-        </form>
-    </div>
-    @if($show_status && $status === \App\Enums\EventTrooperStatus::PENDING)
-        <i class="small text-muted d-block mt-1">
-            {{ __('events.Select a costume, or mark attending without one, to confirm your spot.') }}
-        </i>
-    @endif
 @elseif($event_shift->is_closed && $event_shift->shift_ends_at->isPast() && $event_trooper->isEligibleForAttendance() && ($can_moderate || $event_trooper->canMarkAttendance($viewer)))
     @if(in_array($status, [\App\Enums\EventTrooperStatus::ATTENDED, \App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND, \App\Enums\EventTrooperStatus::AWAITING_VERIFICATION], true))
-        @if($show_status)
-            <x-sign-up-status :status="$status" :block="true" />
-        @endif
+        <x-sign-up-status :status="$status" />
     @else
         <div class="input-group input-group-sm d-inline-flex w-auto">
             <a class="btn {{ $status === \App\Enums\EventTrooperStatus::ATTENDED ? 'btn-success' : 'btn-outline-success' }}"
@@ -152,27 +136,26 @@
             </a>
         </div>
     @endif
-@elseif($show_status)
+@else
     <x-sign-up-status :status="$status" />
     @if($status === \App\Enums\EventTrooperStatus::PENDING)
-        <br />
-        <i class="small text-muted">
+        <div class="small text-muted">
             {{ __('events.Select a costume, or mark attending without one, to confirm your spot.') }}
-        </i>
+        </div>
     @endif
 @endif
 
 @if(
-        $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
+        $part === 'status'
+        && $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
         && $status === \App\Enums\EventTrooperStatus::GOING
         && $event_trooper->updated_by !== null
     )
-    <br />
-    <i class="small text-muted">
+    <div class="small text-muted fst-italic">
         @if($event_trooper->updated_at)
             {{ __('events.Approved by :name on :date', ['name' => $event_trooper->updated_by->display_name, 'date' => $event_trooper->updated_at->localFormat('M j, Y g:ia')]) }}
         @else
             {{ __('events.Approved by :name', ['name' => $event_trooper->updated_by->display_name]) }}
         @endif
-    </i>
+    </div>
 @endif

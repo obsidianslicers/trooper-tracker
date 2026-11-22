@@ -92,6 +92,7 @@ class SignUpHtmxController extends PageController
             //  own choice, where the event allows it.
             $costume_id = null;
             $is_attending_without_costume = false;
+            $costume_options = $event_shift->costumeOptionsFor($trooper, $organization_id);
 
             $raw_costume_id = $request->input('costume_id');
 
@@ -100,11 +101,18 @@ class SignUpHtmxController extends PageController
                 $is_attending_without_costume = true;
                 $is_handler = false;
             }
-            elseif (is_numeric($raw_costume_id)
-                && array_key_exists((int) $raw_costume_id, $event_shift->costumeOptionsFor($trooper, $organization_id)))
+            elseif (is_numeric($raw_costume_id) && array_key_exists((int) $raw_costume_id, $costume_options))
             {
                 $costume_id = (int) $raw_costume_id;
             }
+
+            //  the backup costume, optional, checked against their costumes the same way
+            $raw_backup_costume_id = $request->input('backup_costume_id');
+            $backup_costume_id = $event_shift->event->requiresCostume()
+                && is_numeric($raw_backup_costume_id)
+                && array_key_exists((int) $raw_backup_costume_id, $costume_options)
+                ? (int) $raw_backup_costume_id
+                : null;
 
             $is_tentative = !$is_friend_add
                 && $request->input('status') === EventTrooperStatus::TENTATIVE->value
@@ -120,6 +128,7 @@ class SignUpHtmxController extends PageController
                 event_shift_station_id: $event_shift_station_id,
                 is_attending_without_costume: $is_attending_without_costume,
                 is_tentative: $is_tentative,
+                backup_costume_id: $backup_costume_id,
             );
 
             $signed_up = true;

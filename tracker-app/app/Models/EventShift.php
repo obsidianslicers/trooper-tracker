@@ -437,6 +437,40 @@ class EventShift extends BaseEventShift
         return $this->signUpFor($trooper) !== null;
     }
 
+    /**
+     * Trooper spots still open on this shift, counted from the loaded roster the way
+     * troopersMaxed() counts them (going, not handlers): null when the event has no limit.
+     *
+     * @return int|null The spots left, or null for no limit
+     */
+    public function trooperSpotsLeft(): ?int
+    {
+        $troopers_allowed = $this->event->troopers_allowed;
+
+        if ($troopers_allowed === null)
+        {
+            return null;
+        }
+
+        $going = $this->event_troopers
+            ->filter(fn (EventTrooper $event_trooper) => $event_trooper->status === EventTrooperStatus::GOING && !$event_trooper->is_handler)
+            ->count();
+
+        return max(0, $troopers_allowed - $going);
+    }
+
+    /**
+     * How many sign-ups are waiting on stand-by, from the loaded roster.
+     *
+     * @return int The stand-by count
+     */
+    public function standByCount(): int
+    {
+        return $this->event_troopers
+            ->filter(fn (EventTrooper $event_trooper) => $event_trooper->status === EventTrooperStatus::STAND_BY)
+            ->count();
+    }
+
     private function hasTrooperSignedUp(int $trooper_id): bool
     {
         return $this->event_troopers->where(EventTrooper::TROOPER_ID, $trooper_id)->isNotEmpty();

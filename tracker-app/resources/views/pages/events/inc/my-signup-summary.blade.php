@@ -1,7 +1,7 @@
 {{--
     "Your sign-up" near the top of the event page: where the trooper stands on each shift, with a
-    link down to that shift's panel (pages/events/inc/my-shift-signup.blade.php), or a Sign up
-    button that jumps to the roster. On phones the same answer sits in a bar along the bottom.
+    link down to their row in that shift's roster (opening its Edit), or a Sign up
+    link that jumps to the roster. On phones only the bar along the bottom shows it.
     Every shift change sends this again out of band (pages/events/inc/shift-container.blade.php),
     so it stays right without a reload.
 --}}
@@ -19,10 +19,9 @@
 <div id="my-signup-summary"
      @if($oob ?? false) hx-swap-oob="true" @endif>
     @if($my_signups->isNotEmpty())
-        <div class="my-signup-summary card mb-3">
+        <div class="my-signup-summary card mb-3 d-none d-md-block">
             <div class="card-body py-2">
                 <div class="fw-semibold mb-1">
-                    <i class="fa fa-fw fa-user-check me-1"></i>
                     {{ __('events.Your sign-up') }}
                 </div>
                 {{-- one grid for every shift (each row is a subgrid), so the times, statuses and
@@ -48,14 +47,13 @@
                                 @endif
                                 @if($event_trooper->backup_costume !== null)
                                     <span class="d-block text-muted small">
-                                        <i class="fa fa-fw fa-box-archive"></i>
-                                        {{ $event_trooper->backup_costume->name }}
+                                        {{ __('events.Backup: :costume', ['costume' => $event_trooper->backup_costume->name]) }}
                                     </span>
                                 @endif
                             </span>
                             <span class="my-signup-summary__change">
                                 @if($event_trooper->event_shift->is_open)
-                                    <a href="#my-shift-signup-{{ $event_trooper->event_shift_id }}"
+                                    <a href="#roster-row-{{ $event_trooper->id }}" data-edit-row="{{ $event_trooper->id }}"
                                        class="small">
                                         {{ __('events.Change') }}
                                     </a>
@@ -67,13 +65,12 @@
             </div>
         </div>
     @elseif($has_open_shift)
-        <div class="my-signup-summary card mb-3">
+        <div class="my-signup-summary card mb-3 d-none d-md-block">
             <div class="card-body py-2 d-flex flex-wrap align-items-center gap-2">
                 <span>{{ __('events.You\'re not signed up for this event yet.') }}</span>
                 <a href="#mission-roster"
                    data-expand="{{ $open_shift_cards }}"
-                   class="btn btn-sm btn-success ms-auto">
-                    <i class="fa fa-fw fa-plus-circle me-1"></i>
+                   class="btn btn-sm btn-outline-success ms-auto">
                     {{ __('events.Sign up') }}
                 </a>
             </div>
@@ -93,7 +90,7 @@
                         </span>
                     @endif
                 </span>
-                <a href="#my-shift-signup-{{ $first->event_shift_id }}"
+                <a href="#roster-row-{{ $first->id }}"
                    class="btn btn-sm btn-outline-primary">
                     {{ __('events.Your sign-up') }}
                 </a>
@@ -101,8 +98,7 @@
                 <span class="my-signup-bar__status text-muted">{{ __('events.Not signed up') }}</span>
                 <a href="#mission-roster"
                    data-expand="{{ $open_shift_cards }}"
-                   class="btn btn-sm btn-success">
-                    <i class="fa fa-fw fa-plus-circle me-1"></i>
+                   class="btn btn-sm btn-outline-success">
                     {{ __('events.Sign up') }}
                 </a>
             @endif
