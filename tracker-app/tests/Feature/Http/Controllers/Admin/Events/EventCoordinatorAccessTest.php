@@ -197,18 +197,21 @@ class EventCoordinatorAccessTest extends TestCase
 
         $this->actingAs($this->event_coordinator)->get(route('events.display', ['event' => $own]))
             ->assertOk()
-            ->assertSee(route('admin.events.update', ['event' => $own]), false)
-            ->assertSee(route('admin.events.copy', ['event' => $own]), false);
+            ->assertInertia(fn ($page) => $page
+                ->where('event.edit_url', route('admin.events.update', ['event' => $own]))
+                ->where('event.copy_url', route('admin.events.copy', ['event' => $own])));
 
         $this->actingAs($this->event_coordinator)->get(route('events.display', ['event' => $same_region]))
             ->assertOk()
-            ->assertDontSee(route('admin.events.update', ['event' => $same_region]), false)
-            ->assertSee(route('admin.events.copy', ['event' => $same_region]), false);
+            ->assertInertia(fn ($page) => $page
+                ->where('event.edit_url', null)
+                ->where('event.copy_url', route('admin.events.copy', ['event' => $same_region])));
 
         $this->actingAs($this->event_coordinator)->get(route('events.display', ['event' => $other_region]))
             ->assertOk()
-            ->assertDontSee(route('admin.events.update', ['event' => $other_region]), false)
-            ->assertDontSee(route('admin.events.copy', ['event' => $other_region]), false);
+            ->assertInertia(fn ($page) => $page
+                ->where('event.edit_url', null)
+                ->where('event.copy_url', null));
     }
 
     public function test_event_coordinator_copies_events_of_organizations_they_belong_to(): void

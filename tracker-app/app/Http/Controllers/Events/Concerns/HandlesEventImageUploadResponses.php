@@ -79,16 +79,4 @@ trait HandlesEventImageUploadResponses
 
         return trans_choice('events.Image Uploaded!|:count Images Uploaded!', $result->uploads);
     }
-
-    /**
-     * @return array{message: string, type: string, fadeOut: int}
-     */
-    private function eventImageUploadFlash(string $message, string $type): array
-    {
-        return [
-            'message' => $message,
-            'type' => $type,
-            'fadeOut' => 5000,
-        ];
-    }
 }

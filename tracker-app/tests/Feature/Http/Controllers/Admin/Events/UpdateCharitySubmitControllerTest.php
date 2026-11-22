@@ -86,8 +86,9 @@ class UpdateCharitySubmitControllerTest extends TestCase
 
         $this->actingAs($trooper)->get(route('events.display', compact('event')))
             ->assertOk()
-            ->assertSee('Direct Funds: $1,234.50')
-            ->assertSee('Indirect Funds: $300');
+            ->assertInertia(fn ($page) => $page
+                ->where('event.charity.0.direct_funds', '1,234.50')
+                ->where('event.charity.0.indirect_funds', '300'));
     }
 
     /**

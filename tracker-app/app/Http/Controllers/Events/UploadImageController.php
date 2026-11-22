@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Enums\FlashType;
+use App\Http\Controllers\Events\Concerns\AnswersWithEventPage;
 use App\Http\Controllers\Events\Concerns\HandlesEventImageUploadResponses;
 use App\Http\Controllers\PageController;
 use App\Models\Event;
 use App\Services\EventImageUploadService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -24,6 +26,7 @@ use Illuminate\Validation\ValidationException;
  */
 class UploadImageController extends PageController
 {
+    use AnswersWithEventPage;
     use HandlesEventImageUploadResponses;
 
     public function __construct(private readonly EventImageUploadService $uploads) {}
@@ -37,9 +40,9 @@ class UploadImageController extends PageController
      *
      * @param  Request  $request  The incoming HTTP request with 'images' file array
      * @param  Event  $event  The event to attach uploads to
-     * @return Response Response with updated upload display view and flash message header
+     * @return RedirectResponse Back to the event page, with a toast saying how it went
      */
-    public function __invoke(Request $request, Event $event)
+    public function __invoke(Request $request, Event $event): RedirectResponse
     {
         $trooper_id = $request->user()->id;
 
@@ -49,7 +52,7 @@ class UploadImageController extends PageController
         }
         catch (ValidationException $e)
         {
-            return $this->response($event, $this->eventImageUploadValidationMessage($e), 'danger', HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->backToEvent($event, $this->eventImageUploadValidationMessage($e), FlashType::DANGER);
         }
 
         $result = $this->uploads->upload(
@@ -59,12 +62,14 @@ class UploadImageController extends PageController
             $this->isInstructional($request, $event)
         );
 
-        return $this->response(
-            $event,
-            $this->eventImageUploadSuccessMessage($result),
-            $result->hasFailures() ? 'warning' : 'success',
-            $result->hasUploads() ? HttpResponse::HTTP_OK : HttpResponse::HTTP_UNPROCESSABLE_ENTITY
-        );
+        $type = match (true)
+        {
+            !$result->hasUploads() => FlashType::DANGER,
+            $result->hasFailures() => FlashType::WARNING,
+            default => FlashType::SUCCESS,
+        };
+
+        return $this->backToEvent($event, $this->eventImageUploadSuccessMessage($result), $type);
     }
 
     private function isInstructional(Request $request, Event $event): bool
@@ -75,17 +80,5 @@ class UploadImageController extends PageController
             'troop' => false,
             default => $event->uploadsDefaultToInstructional(),
         };
-    }
-
-    private function response(Event $event, string $message, string $type, int $status = HttpResponse::HTTP_OK)
-    {
-        $event->load(['event_uploads.troopers', 'event_uploads.trooper']);
-
-        $flash = json_encode($this->eventImageUploadFlash($message, $type));
-
-        return response()
-            ->view('pages.events.inc.uploads-panel', compact('event'))
-            ->setStatusCode($status)
-            ->header('X-Flash-Message', $flash);
     }
 }

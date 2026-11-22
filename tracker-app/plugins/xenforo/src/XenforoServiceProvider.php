@@ -182,7 +182,7 @@ class XenforoServiceProvider extends PluginServiceProvider
         );
 
         View::composer(
-            ['pages.admin.events.inc.miscellaneous', 'pages.events.event-display'],
+            'pages.admin.events.inc.miscellaneous',
             fn ($view) => $view->with('smilies', app(EventComments::class)->smilies()),
         );
     }
@@ -215,7 +215,7 @@ class XenforoServiceProvider extends PluginServiceProvider
             ->group(function (): void
             {
                 Route::post('/forum-reply/{event}', ForumReplyController::class)
-                    ->name('forum-reply-htmx');
+                    ->name('forum-reply');
                 Route::get(
                     '/forum-attachments/{attachment_id}',
                     ShowForumAttachmentController::class

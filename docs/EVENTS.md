@@ -58,7 +58,7 @@ Members hear about it before they sign up, not after:
 | Forum thread post (XenForo plugin) and Discord announcement | The same sentence, where an event that doesn't count shows its notice (`Event::troopCreditNotice()`) |
 | Service record history | "Same day, counted once" pill on each shift that didn't add a troop |
 
-**Source:** `app/Support/OneTroopPerDay.php`, `resources/views/pages/events/inc/same-day-shift-note.blade.php`
+**Source:** `app/Support/OneTroopPerDay.php`, `resources/svelte/pages/events/components/display/SameDayNote.svelte`
 
 ---
 
@@ -72,7 +72,7 @@ The picked coordinator can edit and run that event even when someone else create
 
 Picking a coordinator doesn't change who created the event, so the forum thread stays under the creator's name.
 
-**Source:** `app/Models/Event.php` (`eventCoordinator()`, `coordinatorCandidates()`), `app/Models/Scopes/HasEventScopes.php` (`scopeManagedBy()`), `routes/web/admin-events.php`, `resources/views/pages/events/inc/coordinator.blade.php`, `resources/views/pages/admin/events/inc/coordinator.blade.php`
+**Source:** `app/Models/Event.php` (`eventCoordinator()`, `coordinatorCandidates()`), `app/Models/Scopes/HasEventScopes.php` (`scopeManagedBy()`), `routes/web/admin-events.php`, `resources/svelte/pages/events/components/display/ContactSection.svelte`, `resources/views/pages/admin/events/inc/coordinator.blade.php`
 
 ---
 
@@ -196,7 +196,7 @@ The **How sign-up works** button above the roster replays it at any time. `TRACK
 
 Once a trooper finishes or closes it, the browser remembers (localStorage, per trooper), so it doesn't start by itself again on that browser. There's nothing stored on the server, so a new phone or a cleared browser shows it once more.
 
-**Source:** `app/Support/SignUpTour.php`, `resources/views/pages/events/inc/signup-tour.blade.php`, `resources/js/events/signupTour.js`
+**Source:** `app/Support/SignUpTour.php`, `resources/svelte/pages/events/components/display/SignUpTour.svelte`, `resources/svelte/pages/events/models/vms/SignUpTourViewModel.svelte.ts`
 
 ---
 
@@ -275,14 +275,14 @@ Leaving both undecided is what keeps (or puts) a trooper on `PENDING` instead of
 | Path | Behavior |
 |---|---|
 | Initial sign-up (`SignUpEventTrooper`) | Would-be `GOING` is downgraded to `PENDING` when undecided. Capacity-driven `STAND_BY` is unaffected. |
-| Status change / manual-selection approval (`SignUpUpdateHtmxController`, `status` branch) | Requesting `GOING` while undecided is silently saved as `PENDING` instead. |
-| Re-sign-up (`SignUpUpdateHtmxController`, `resign_up` branch) | Same downgrade as initial sign-up. |
+| Status change / manual-selection approval (`SignUpUpdateController`, `status` branch) | Requesting `GOING` while undecided is silently saved as `PENDING` instead. |
+| Re-sign-up (`SignUpUpdateController`, `resign_up` branch) | Same downgrade as initial sign-up. |
 | Stand-by promotion (`PromoteNextInLineEventTrooper`) | Undecided candidates are skipped — see [Standby Promotion Flow](#standby-promotion-flow). |
-| Costume dropdown submit (`SignUpUpdateHtmxController`, `costume_id` branch, via `resolveCostumeDecision()`) | Deciding while `PENDING` promotes to `GOING` (or `STAND_BY` if capacity is now full); clearing the decision while `GOING` demotes back to `PENDING`. |
+| Costume dropdown submit (`SignUpUpdateController`, `costume_id` branch, via `resolveCostumeDecision()`) | Deciding while `PENDING` promotes to `GOING` (or `STAND_BY` if capacity is now full); clearing the decision while `GOING` demotes back to `PENDING`. |
 
-**UI:** The costume `<select>` on `resources/views/pages/events/inc/trooper.blade.php` includes a `none` sentinel option ("Attending without a costume") ahead of the real costume list. A `PENDING` trooper sees a hint prompting them to make a choice instead of the normal status dropdown.
+**UI:** The costume `<select>` in `resources/svelte/pages/events/components/display/RowEditor.svelte` includes a `none` sentinel option ("Attending without a costume") ahead of the real costume list. A `PENDING` trooper sees a hint prompting them to make a choice instead of the normal status dropdown.
 
-**Source:** `app/Models/EventTrooper.php` (`needsCostumeBeforeGoing()`), `app/Http/Controllers/Events/SignUpUpdateHtmxController.php` (`resolveCostumeDecision()`), `database/migrations/2026_07_24_160615_add_attending_without_costume_to_event_troopers_table.php`
+**Source:** `app/Models/EventTrooper.php` (`needsCostumeBeforeGoing()`), `app/Http/Controllers/Events/SignUpUpdateController.php` (`resolveCostumeDecision()`), `database/migrations/2026_07_24_160615_add_attending_without_costume_to_event_troopers_table.php`
 
 ---
 

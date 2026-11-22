@@ -34,7 +34,7 @@ class ThreadWatchTest extends TestCase
 
         Http::fake();
 
-        $this->actingAs($trooper)->post(route('events.toggle-watch-htmx', $event))->assertOk();
+        $this->actingAs($trooper)->post(route('events.toggle-watch', $event))->assertRedirect();
 
         Http::assertNothingSent();
         $this->assertDatabaseHas(
@@ -50,7 +50,7 @@ class ThreadWatchTest extends TestCase
 
         Http::fake();
 
-        $this->actingAs($trooper)->post(route('events.toggle-watch-htmx', $event))->assertOk();
+        $this->actingAs($trooper)->post(route('events.toggle-watch', $event))->assertRedirect();
 
         Http::assertNothingSent();
         $this->assertDatabaseHas(
@@ -66,7 +66,7 @@ class ThreadWatchTest extends TestCase
 
         Http::fake();
 
-        $this->actingAs($trooper)->post(route('events.toggle-watch-htmx', $event))->assertOk();
+        $this->actingAs($trooper)->post(route('events.toggle-watch', $event))->assertRedirect();
 
         Http::assertNothingSent();
         $this->assertDatabaseHas(
@@ -82,7 +82,7 @@ class ThreadWatchTest extends TestCase
 
         $this->fakeWatchSuccess($trooper);
 
-        $this->actingAs($trooper)->post(route('events.toggle-watch-htmx', $event))->assertOk();
+        $this->actingAs($trooper)->post(route('events.toggle-watch', $event))->assertRedirect();
 
         Http::assertSent(function ($request)
         {
@@ -108,7 +108,7 @@ class ThreadWatchTest extends TestCase
 
         $this->fakeWatchSuccess($trooper);
 
-        $this->actingAs($trooper)->post(route('events.toggle-watch-htmx', $event))->assertOk();
+        $this->actingAs($trooper)->post(route('events.toggle-watch', $event))->assertRedirect();
 
         Http::assertSent(function ($request)
         {
@@ -139,7 +139,7 @@ class ThreadWatchTest extends TestCase
             500,
         )]);
 
-        $this->actingAs($trooper)->post(route('events.toggle-watch-htmx', $event))->assertOk();
+        $this->actingAs($trooper)->post(route('events.toggle-watch', $event))->assertRedirect();
 
         $this->assertDatabaseMissing(
             'tt_event_watches',
@@ -165,7 +165,7 @@ class ThreadWatchTest extends TestCase
             422,
         )]);
 
-        $this->actingAs($trooper)->post(route('events.toggle-watch-htmx', $event))->assertOk();
+        $this->actingAs($trooper)->post(route('events.toggle-watch', $event))->assertRedirect();
 
         $this->assertDatabaseHas(
             'tt_event_watches',

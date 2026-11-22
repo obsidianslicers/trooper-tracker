@@ -19,7 +19,7 @@ use Tests\TestCase;
 
 /**
  * Cancellation through the real production workflow: an HTTP POST to
- * events.signup-update-htmx as the record's owner, which dispatches
+ * events.signup-update as the record's owner, which dispatches
  * UpdateEventTrooper and then PromoteNextInLineEventTrooper
  * synchronously within the request (not via a queued job).
  *
@@ -78,11 +78,12 @@ class CancelEventTrooperCapacityTest extends TestCase
     private function cancelThroughWorkflow(EventTrooper $event_trooper): void
     {
         $response = $this->actingAs($event_trooper->trooper)->post(
-            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            route('events.signup-update', ['event_trooper' => $event_trooper->id]),
             ['status' => EventTrooperStatus::CANCELLED->value],
         );
 
-        $response->assertOk();
+        $response->assertRedirect();
+        $response->assertSessionHas('toast.success');
     }
 
     private function makeTrooper(

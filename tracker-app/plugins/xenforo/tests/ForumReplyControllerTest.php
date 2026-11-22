@@ -50,10 +50,6 @@ class ForumReplyControllerTest extends TestCase
             $mock->shouldReceive('create_post')
                 ->once()
                 ->andReturn(['status' => 200]);
-
-            $mock->shouldReceive('get_smilies')
-                ->once()
-                ->andReturn([]);
         });
     }
 
@@ -68,12 +64,30 @@ class ForumReplyControllerTest extends TestCase
 
         $this->mockXenforoSuccess($trooper, 42);
 
-        $this->actingAs($trooper)->post(route('events.forum-reply-htmx', compact('event')), [
+        $this->actingAs($trooper)->post(route('events.forum-reply', compact('event')), [
             'message' => 'Help needed from command staff!',
             'notify_command_staff' => 1,
         ]);
 
         Queue::assertPushed(SendForumPostCommandStaffNotificationsJob::class);
+    }
+
+    public function test_invoke_goes_back_to_the_event_page_saying_the_reply_was_posted(): void
+    {
+        Queue::fake();
+        $this->configureXenforo();
+
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = $this->linkThread(Event::factory()->create(), 42);
+
+        $this->mockXenforoSuccess($trooper, 42);
+
+        $response = $this->actingAs($trooper)->post(route('events.forum-reply', compact('event')), [
+            'message' => 'See you there!',
+        ]);
+
+        $response->assertRedirect(route('events.display', ['event' => $event]).'#forum-comments');
+        $response->assertSessionHas('toast.success', 'Reply posted!');
     }
 
     public function test_invoke_does_not_dispatch_job_when_checkbox_is_absent(): void
@@ -87,7 +101,7 @@ class ForumReplyControllerTest extends TestCase
 
         $this->mockXenforoSuccess($trooper, 42);
 
-        $this->actingAs($trooper)->post(route('events.forum-reply-htmx', compact('event')), [
+        $this->actingAs($trooper)->post(route('events.forum-reply', compact('event')), [
             'message' => 'Just a regular reply.',
         ]);
 
@@ -107,10 +121,9 @@ class ForumReplyControllerTest extends TestCase
         {
             $mock->shouldReceive('resolve_user_id_for_trooper')->once()->andReturn(99);
             $mock->shouldReceive('create_post')->once()->andReturn(['status' => 500]);
-            $mock->shouldReceive('get_smilies')->once()->andReturn([]);
         });
 
-        $this->actingAs($trooper)->post(route('events.forum-reply-htmx', compact('event')), [
+        $this->actingAs($trooper)->post(route('events.forum-reply', compact('event')), [
             'message' => 'Help needed!',
             'notify_command_staff' => 1,
         ]);
@@ -123,7 +136,7 @@ class ForumReplyControllerTest extends TestCase
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $event = $this->linkThread(Event::factory()->create(), 42);
 
-        $response = $this->actingAs($trooper)->post(route('events.forum-reply-htmx', compact('event')), [
+        $response = $this->actingAs($trooper)->post(route('events.forum-reply', compact('event')), [
             'message' => 'Hello!',
         ]);
 
@@ -137,7 +150,7 @@ class ForumReplyControllerTest extends TestCase
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $event = $this->linkThread(Event::factory()->create(), null);
 
-        $response = $this->actingAs($trooper)->post(route('events.forum-reply-htmx', compact('event')), [
+        $response = $this->actingAs($trooper)->post(route('events.forum-reply', compact('event')), [
             'message' => 'Hello!',
         ]);
 
@@ -148,7 +161,7 @@ class ForumReplyControllerTest extends TestCase
     {
         $event = Event::factory()->create();
 
-        $response = $this->post(route('events.forum-reply-htmx', compact('event')), [
+        $response = $this->post(route('events.forum-reply', compact('event')), [
             'message' => 'Hello!',
         ]);
 

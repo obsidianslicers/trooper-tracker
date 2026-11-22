@@ -4,24 +4,27 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Http\Controllers\Events\Concerns\AnswersWithEventPage;
 use App\Models\EventUpload;
 use App\Models\Trooper;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 /**
  * Toggle the current trooper's tag on an event upload photo.
  *
  * This controller lets troopers mark themselves as appearing in a given
  * event upload ("Tag me") or remove that association ("Untag me").
- * It returns the refreshed upload grid partial for HTMX updates.
+ * It goes back to the event page with a toast.
  */
 class ToggleEventUploadTagController
 {
+    use AnswersWithEventPage;
+
     /**
      * Toggle the authenticated trooper's tag on the given upload.
      */
-    public function __invoke(Request $request, EventUpload $event_upload): Response
+    public function __invoke(Request $request, EventUpload $event_upload): RedirectResponse
     {
         /** @var Trooper $trooper */
         $trooper = $request->user();
@@ -57,18 +60,8 @@ class ToggleEventUploadTagController
             $event_upload->troopers()->attach($trooper->id);
         }
 
-        // Reload uploads with trooper tags so the view can show updated state.
-        $event->load(['event_uploads.troopers', 'event_uploads.trooper']);
-
-        $flashMessage = json_encode([
-            'message' => $isTagged
-                ? __('events.You are no longer tagged in this photo.')
-                : __('events.You are now tagged in this photo.'),
-            'type' => 'success',
-        ]);
-
-        return response()
-            ->view('pages.events.inc.uploads-panel', compact('event'))
-            ->header('X-Flash-Message', $flashMessage);
+        return $this->backToEvent($event, $isTagged
+            ? __('events.You are no longer tagged in this photo.')
+            : __('events.You are now tagged in this photo.'));
     }
 }

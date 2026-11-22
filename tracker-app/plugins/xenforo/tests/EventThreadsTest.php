@@ -190,10 +190,18 @@ class EventThreadsTest extends TestCase
 
         $response = $this->actingAs($trooper)->get(route('events.display', $event));
 
-        $response->assertOk();
-        $response->assertSee('Forum Comments');
-        $response->assertSee('See you there');
-        $response->assertSee('https://forums.example.com/posts/654/', false);
-        $response->assertSee(route('events.forum-reply-htmx', $event), false);
+        $response->assertInertia(fn ($page) => $page
+            ->component('events/Display')
+            ->where('event_slots', function ($slots) use ($event): bool
+            {
+                $discussion = (string) collect($slots)->get('events.display.discussion');
+                $share = (string) collect($slots)->get('events.display.share-buttons');
+
+                return str_contains($discussion, 'Forum Comments')
+                    && str_contains($discussion, 'See you there')
+                    && str_contains($discussion, 'action="'.route('events.forum-reply', $event).'"')
+                    && str_contains($discussion, 'data-inertia-form')
+                    && str_contains($share, 'https://forums.example.com/posts/654/');
+            }));
     }
 }

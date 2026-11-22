@@ -159,5 +159,5 @@ If a shift has no stations, all station behavior is bypassed and legacy signup l
 | Domain commands | `app/Messages/Events/Commands/SignUpEventTrooper.php`, `app/Messages/Events/Commands/ChangeEventTrooperStation.php`, `app/Messages/Events/Commands/PromoteNextInLineEventTrooper.php`, `app/Messages/Events/Commands/ReconcileEventRoster.php`, `app/Messages/Events/Commands/UpdateEventShiftStations.php`, `app/Messages/Events/Commands/RemoveEventShiftStation.php`, `app/Messages/Events/Commands/ReorderEventShiftStations.php` |
 | Admin shift editor | `resources/views/pages/admin/events/shifts.blade.php`, `app/Http/Controllers/Admin/Events/UpdateShiftsSubmitController.php` |
 | Admin roster editor | `resources/views/pages/admin/events/troopers.blade.php`, `app/Http/Controllers/Admin/Events/UpdateTroopersSubmitController.php` |
-| Public signup/update | `app/Http/Controllers/Events/SignUpHtmxController.php`, `app/Http/Controllers/Events/SignUpUpdateHtmxController.php` |
-| Event display | `resources/views/pages/events/inc/shift-header.blade.php`, `resources/views/pages/events/inc/trooper.blade.php` |
+| Public signup/update | `app/Http/Controllers/Events/SignUpController.php`, `app/Http/Controllers/Events/SignUpUpdateController.php` |
+| Event display | `resources/svelte/pages/events/components/display/ShiftHeader.svelte`, `resources/svelte/pages/events/components/display/RosterRow.svelte` |
