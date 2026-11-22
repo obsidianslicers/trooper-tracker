@@ -13,7 +13,7 @@
 
     <p>
         Please check that they're approved for this costume, then review it on the
-        <a href="{{ route('admin.troopers.costume-approvals') }}">Costume Approvals</a> page.
+        <a href="{{ route('admin.troopers.costume-approvals.index') }}">Costume Approvals</a> page.
     </p>
 
     @include(email_view('inc.signature'))

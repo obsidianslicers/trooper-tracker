@@ -13,7 +13,7 @@
 
     <p>
         Please check the
-        <a href="{{ route('admin.troopers.troop-verifications') }}">Troop Verifications</a>
+        <a href="{{ route('admin.troopers.troop-verifications.index') }}">Troop Verifications</a>
         page, or ask the club's moderators to take a look.
     </p>
 

@@ -39,7 +39,7 @@ class PermissionRequestReviewedNotification extends BaseNotification
             'body' => $is_approved
                 ? __('notifications.Your permission request for :trooper was approved.', ['trooper' => $trooper])
                 : __('notifications.Your permission request for :trooper was denied.', ['trooper' => $trooper]),
-            'url' => '/admin/troopers/permissions',
+            'url' => '/admin/troopers/permissions/create',
         ];
     }
 

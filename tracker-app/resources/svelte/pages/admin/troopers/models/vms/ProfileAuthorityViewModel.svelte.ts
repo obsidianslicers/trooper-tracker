@@ -49,7 +49,7 @@ export class ProfileAuthorityViewModel extends SubmitableViewModel<ProfileAuthor
     submit = (e: Event) => {
         e.preventDefault();
         this.form.post(
-            getRoute("admin.troopers.update-authority", { trooper: this.trooper_id }),
+            getRoute("admin.troopers.authority.update", { trooper: this.trooper_id }),
             createPartialReloadOptions(),
         );
     };

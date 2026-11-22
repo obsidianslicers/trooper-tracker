@@ -2,7 +2,7 @@ import { getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
 import type { ProfileCostumesPageData } from "../profile-types";
 
-type CostumeReviewAction = "approve" | "deny" | "revoke" | "undo-revoke";
+type CostumeReviewAction = "approve" | "deny" | "revoke" | "unrevoke";
 
 export class ProfileCostumesViewModel {
     pending_id: number | null = $state(null);
@@ -15,11 +15,11 @@ export class ProfileCostumesViewModel {
     }
 
     get confirm_title(): string {
-        return this.pending_action === "undo-revoke" ? "Undo revoke" : "Revoke costume";
+        return this.pending_action === "unrevoke" ? "Undo revoke" : "Revoke costume";
     }
 
     get confirm_message(): string {
-        return this.pending_action === "undo-revoke"
+        return this.pending_action === "unrevoke"
             ? "Are you sure you want to undo the revoke of this costume?"
             : "Are you sure you want to revoke this costume?";
     }
@@ -30,7 +30,7 @@ export class ProfileCostumesViewModel {
 
     revoke = (trooper_costume_id: number) => this.ask(trooper_costume_id, "revoke");
 
-    undoRevoke = (trooper_costume_id: number) => this.ask(trooper_costume_id, "undo-revoke");
+    undoRevoke = (trooper_costume_id: number) => this.ask(trooper_costume_id, "unrevoke");
 
     confirm = () => {
         if (this.pending_id !== null && this.pending_action !== null) {

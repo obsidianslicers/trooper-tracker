@@ -44,7 +44,7 @@ export class RecruitViewModel
         e.preventDefault();
 
         this.form.trooper_id = this.trooper?.id ?? null;
-        this.form.post(getRoute("admin.troopers.recruit"), {
+        this.form.post(getRoute("admin.troopers.recruit.store"), {
             onSuccess: () => {
                 this.trooper = null;
                 this.form.reset();

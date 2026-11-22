@@ -39,7 +39,7 @@ final class TroopersWithoutActivityPageData extends Message
                 ->map(fn (Trooper $trooper): array => [
                     'id' => $trooper->id,
                     'display_name' => $trooper->display_name,
-                    'profile_url' => route('admin.troopers.profile', ['trooper' => $trooper]),
+                    'profile_url' => route('admin.troopers.show', ['trooper' => $trooper]),
                     'last_seen' => $trooper->last_active_at?->localFormat('M d, Y')
                         ?? __('admin.Never'),
                 ])

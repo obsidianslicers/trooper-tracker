@@ -59,7 +59,7 @@ final class StatusChangeLogPageData extends Message
             'event_url' => route('admin.events.edit', ['event' => $event]),
             'shift' => $event_trooper->event_shift->time_display,
             'trooper_name' => $event_trooper->trooper->display_name,
-            'trooper_url' => route('admin.troopers.profile', [
+            'trooper_url' => route('admin.troopers.show', [
                 'trooper' => $event_trooper->trooper,
                 'tab' => 'changes',
             ]),

@@ -33,7 +33,7 @@
                 {#each page.props.event_troopers as row (row.id)}
                     <tr>
                         <td>
-                            <a href={getRoute("admin.troopers.profile", { trooper: row.trooper.id, tab: "events" })}>
+                            <a href={getRoute("admin.troopers.show", { trooper: row.trooper.id, tab: "events" })}>
                                 {row.trooper.name}
                             </a>
                         </td>

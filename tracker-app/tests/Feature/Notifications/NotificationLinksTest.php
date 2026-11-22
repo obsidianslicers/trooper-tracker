@@ -56,8 +56,18 @@ class NotificationLinksTest extends TestCase
         $owner = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($owner)
-            ->get('/admin/troopers/approvals')
-            ->assertRedirect('/admin/troopers/approvals/index');
+            ->get('/admin/troopers/approvals/index')
+            ->assertRedirect('/admin/troopers/approvals');
+    }
+
+    public function test_old_permission_request_link_redirects_to_request_page(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+
+        $this->actingAs($moderator)
+            ->get('/admin/troopers/permissions')
+            ->assertStatus(301)
+            ->assertRedirect('/admin/troopers/permissions/create');
     }
 
     public function test_old_event_link_redirects_to_event_details(): void

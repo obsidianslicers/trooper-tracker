@@ -238,7 +238,7 @@ class ForumGroupRequestsTest extends TestCase
     private function submit(Trooper $trooper, array $groups): \Illuminate\Testing\TestResponse
     {
         return $this->actingAs(Trooper::factory()->asModerator()->create())
-            ->post(route('admin.troopers.permissions.request'), [
+            ->post(route('admin.troopers.permissions.store'), [
                 'trooper_id' => $trooper->id,
                 'extensions' => ['xenforo' => $groups],
             ]);

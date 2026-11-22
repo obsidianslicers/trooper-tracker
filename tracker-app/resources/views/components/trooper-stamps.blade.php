@@ -11,7 +11,7 @@
                     {{ __('components.soft deleted') }}
                     @isset($model->deleted_id)
                         {{ __('components.by') }}
-                        <a href="{{ route('admin.troopers.profile', ['trooper' => $model->deleted_id]) }}">
+                        <a href="{{ route('admin.troopers.show', ['trooper' => $model->deleted_id]) }}">
                             {{ $model->deleted_by->legal_name }}
                         </a>
                     @endisset
@@ -22,7 +22,7 @@
                     {{ __('components.created') }} {{ $model->created_id }}
                     @isset($model->created_id)
                         {{ __('components.by') }}
-                        <a href="{{ route('admin.troopers.profile', ['trooper' => $model->created_id]) }}">
+                        <a href="{{ route('admin.troopers.show', ['trooper' => $model->created_id]) }}">
                             {{ $model->created_by->legal_name }}
                         </a>
                     @endisset
@@ -33,7 +33,7 @@
                     {{ __('components.updated') }}
                     @isset($model->updated_id)
                         {{ __('components.by') }}
-                        <a href="{{ route('admin.troopers.profile', ['trooper' => $model->updated_id]) }}">
+                        <a href="{{ route('admin.troopers.show', ['trooper' => $model->updated_id]) }}">
                             {{ $model->updated_by->legal_name }}
                         </a>
                     @endisset

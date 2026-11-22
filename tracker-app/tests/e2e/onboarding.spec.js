@@ -71,7 +71,7 @@ test.describe('signing up', () => {
         // The squad's moderator now has them in the approval queue.
         const moderator = await browser.newContext({ storageState: personas.moderator.storageState });
         const queue = await moderator.newPage();
-        await queue.goto('/admin/troopers/approvals/index');
+        await queue.goto('/admin/troopers/approvals');
         await expect(queue.locator('.card').filter({ hasText: RECRUIT.displayName })).toBeVisible();
         await moderator.close();
     });

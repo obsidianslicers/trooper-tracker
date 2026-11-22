@@ -5,7 +5,7 @@ test.describe('membership approvals', () => {
     test.use({ storageState: personas.moderator.storageState });
 
     test('a moderator approves a pending recruit in their club', async ({ page }) => {
-        await page.goto('/admin/troopers/approvals/index');
+        await page.goto('/admin/troopers/approvals');
 
         const card = page.locator('.card').filter({ hasText: seeded.recruit.name });
         await expect(card).toBeVisible();

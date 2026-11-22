@@ -31,7 +31,7 @@ export class ProfileMembershipViewModel extends SubmitableViewModel<ProfileMembe
     submit = (e: Event) => {
         e.preventDefault();
         this.form.post(
-            getRoute("admin.troopers.update-membership", {
+            getRoute("admin.troopers.memberships.update", {
                 trooper: this.trooper_id,
                 organization: this.organization.id,
             }),
@@ -51,7 +51,7 @@ export class ProfileMembershipViewModel extends SubmitableViewModel<ProfileMembe
         this.pending_removal = false;
 
         router.post(
-            getRoute("admin.troopers.remove-membership", {
+            getRoute("admin.troopers.memberships.destroy", {
                 trooper: this.trooper_id,
                 organization: this.organization.id,
             }),
