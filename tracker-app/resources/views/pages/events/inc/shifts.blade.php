@@ -2,16 +2,6 @@
      class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
     <x-section-title class="mb-0">{{ __('events.Mission Roster') }}</x-section-title>
     <div class="d-flex flex-wrap align-items-center gap-3">
-        @auth
-            {{-- replays the sign-up tour (pages/events/inc/signup-tour.blade.php) --}}
-            <button type="button"
-                    class="btn btn-sm btn-outline-secondary btn-secondary-action"
-                    data-tour-replay
-                    x-data
-                    x-on:click="$dispatch('signup-tour:start')">
-                {{ __('events.How sign-up works') }}
-            </button>
-        @endauth
         @if($can_moderate)
             <a class="btn btn-link btn-sm p-0 text-muted d-none d-md-inline"
                href="{{ route('events.download-roster-csv', compact('event')) }}">
@@ -27,6 +17,16 @@
                 </button>
             @endif
         @endif
+        @auth
+            {{-- replays the sign-up tour (pages/events/inc/signup-tour.blade.php) --}}
+            <button type="button"
+                    class="btn btn-sm btn-outline-secondary btn-secondary-action"
+                    data-tour-replay
+                    x-data
+                    x-on:click="$dispatch('signup-tour:start')">
+                {{ __('events.How sign-up works') }}
+            </button>
+        @endauth
     </div>
 </div>
 

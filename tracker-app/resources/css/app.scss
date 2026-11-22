@@ -574,6 +574,19 @@ html body .btn.btn-secondary-action {
     gap: 0.5rem;
 }
 
+//  wider screens (where the CSV link shows): the buttons sit on the right, the shift's CSV link on
+//  the left; phones keep the buttons in order from the left
+@media (min-width: 768px) {
+    .shift-links__row {
+        justify-content: flex-end;
+    }
+
+    .shift-links__csv {
+        margin-right: auto;
+        order: -1;
+    }
+}
+
 .friend-signup-step:empty {
     display: none;
 }
@@ -861,6 +874,7 @@ body:has(.my-signup-bar) .toast-container.bottom-0 {
 
     .shift-signup-primary__label {
         margin-right: 0;
+        white-space: normal;
     }
 
     .shift-friend-trigger {

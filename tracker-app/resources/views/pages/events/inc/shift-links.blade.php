@@ -67,7 +67,7 @@
                 </div>
             @endif
             @if($can_moderate)
-                <a class="btn btn-link p-0 text-muted d-none d-md-inline"
+                <a class="btn btn-link p-0 text-muted d-none d-md-inline shift-links__csv"
                    href="{{ route('events.download-shift-roster-csv', ['event' => $event, 'event_shift' => $event_shift]) }}">
                     {{ __('events.Download this shift as CSV') }}
                 </a>
