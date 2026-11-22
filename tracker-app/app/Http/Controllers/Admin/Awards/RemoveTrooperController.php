@@ -5,41 +5,25 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Awards;
 
 use App\Enums\FlashType;
-use App\Events\AwardRevoked;
-use App\Http\Controllers\PageController;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Awards\RemoveTrooperRequest;
+use App\Messages\Awards\Commands\RevokeTrooperAward;
 use App\Models\Award;
-use App\Models\AwardTrooper;
 use Illuminate\Http\RedirectResponse;
 
-/**
- * Handles removing an award from a specific trooper.
- */
-class RemoveTrooperController extends PageController
+class RemoveTrooperController extends Controller
 {
-    /**
-     * Handle the request to remove an award from a trooper.
-     */
     public function __invoke(RemoveTrooperRequest $request, Award $award): RedirectResponse
     {
         $this->authorize('update', $award);
 
-        $award_trooper_id = $request->validated('remove_trooper_id');
+        $trooper_name = RevokeTrooperAward::call(
+            award: $award,
+            award_trooper_id: (int) $request->validated('remove_trooper_id'),
+        );
 
-        $award_trooper = AwardTrooper::query()
-            ->with('trooper:id,display_name')
-            ->where(AwardTrooper::ID, $award_trooper_id)
-            ->where(AwardTrooper::AWARD_ID, $award->id)
-            ->first();
-
-        if ($award_trooper !== null)
+        if ($trooper_name !== null)
         {
-            $trooper_name = $award_trooper->trooper?->display_name ?? 'trooper';
-
-            $award_trooper->delete();
-
-            AwardRevoked::dispatch($award_trooper);
-
             FlashType::success(__('admin.Removed award from :name', ['name' => $trooper_name]));
         }
 

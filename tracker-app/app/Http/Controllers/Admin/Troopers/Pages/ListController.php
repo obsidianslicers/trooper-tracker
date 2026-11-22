@@ -4,23 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers\Pages;
 
-use App\Enums\MembershipStatus;
 use App\Http\Controllers\PageController;
+use App\Messages\Troopers\PageData\Admin\ListTroopersPageData;
 use App\Models\Filters\TrooperFilter;
-use App\Models\Organization;
-use App\Models\Trooper;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
- * class ListController
- *
- * Handles the display of the main troopers list in the admin section.
- * This controller fetches and displays a list of troopers, filtering the results
- * based on the authenticated user's role. Administrators see all troopers, while
- * other roles see only the troopers they are assigned to moderate.
+ * The troopers a Command Staff member looks after: administrators see everyone, others the
+ * troopers in the organizations they moderate.
  */
 class ListController extends PageController
 {
@@ -29,112 +22,18 @@ class ListController extends PageController
         $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
     }
 
-    /**
-     * Handle the incoming request to display the troopers list page.
-     *
-     * @param  Request  $request  The incoming HTTP request
-     * @param  TrooperFilter  $filter  The filter service for applying query constraints
-     * @return View|RedirectResponse The rendered dashboard page view or a redirect response
-     */
-    public function __invoke(Request $request, TrooperFilter $filter): View|RedirectResponse
+    public function __invoke(Request $request, TrooperFilter $filter): Response
     {
-        $trooper = $request->user();
+        $data = ListTroopersPageData::call(
+            actor: $request->user(),
+            filter: $filter,
+            sort_col: $request->string('sort_col')->toString() ?: null,
+            sort_dir: $request->string('sort_dir')->toString() ?: null,
+            search_term: $request->string('search_term')->toString() ?: null,
+            membership_role: $request->string('membership_role')->toString() ?: null,
+            organization_id: $request->integer('organization_id') ?: null,
+        );
 
-        $sort_col = array_key_exists($request->query('sort_col'), $this->sortColumns())
-            ? $request->query('sort_col')
-            : Trooper::DISPLAY_NAME;
-
-        $sort_dir = in_array($request->query('sort_dir'), ['asc', 'desc'])
-            ? $request->query('sort_dir')
-            : 'asc';
-
-        $organizations = Organization::moderatedBy($trooper)->orderBy(Organization::SEQUENCE)->get();
-        $organization_id = $request->query('organization_id');
-        $selected_organization = $organization_id ? $organizations->find($organization_id) : null;
-
-        $data = [
-            'troopers' => $this->getTroopers($request, $filter, $sort_col, $sort_dir),
-            'membership_role' => $request->query('membership_role'),
-            'search_term' => $request->query('search_term'),
-            'sort_headers' => $this->buildSortHeaders($sort_col, $sort_dir),
-            'organizations' => $organizations,
-            'organization_id' => $organization_id,
-            'selected_organization' => $selected_organization,
-        ];
-
-        return view('pages.admin.troopers.list', $data);
-    }
-
-    /**
-     * Get the collection of troopers to be displayed.
-     *
-     * @param  Request  $request  The incoming HTTP request, containing potential filters.
-     * @param  TrooperFilter  $filter  The filter service for applying query constraints.
-     * @param  string  $sort_col  The column to sort by.
-     * @param  string  $sort_dir  The sort direction ('asc' or 'desc').
-     * @return LengthAwarePaginator A paginated list of troopers.
-     */
-    private function getTroopers(
-        Request $request,
-        TrooperFilter $filter,
-        string $sort_col,
-        string $sort_dir
-    ): LengthAwarePaginator {
-        $trooper = $request->user();
-
-        $build = fn () => Trooper::moderatedBy($trooper)
-            ->when(! $trooper->is_administrator, fn ($q) => $q->where(Trooper::MEMBERSHIP_STATUS, '!=', MembershipStatus::INVALID->value))
-            ->orderBy($sort_col, $sort_dir);
-
-        $troopers = $build()->filterWith($filter)->paginate(15)->withQueryString();
-
-        if ($troopers->isEmpty() && $filter->hasMultiWordSearchTerm())
-        {
-            $troopers = $build()->filterWith($filter->useLooseSearch())->paginate(15)->withQueryString();
-        }
-
-        return $troopers;
-    }
-
-    /**
-     * Build pre-computed sort header data for each sortable column.
-     *
-     * Each entry contains the label, icon class, and toggle URL for that column.
-     * Clicking the active column toggles direction; clicking another column sorts it ASC.
-     *
-     * @param  string  $sort_col  The currently active sort column.
-     * @param  string  $sort_dir  The currently active sort direction.
-     * @return array<string, array{label: string, icon: string, url: string}>
-     */
-    private function buildSortHeaders(string $sort_col, string $sort_dir): array
-    {
-        $headers = [];
-
-        foreach ($this->sortColumns() as $col => $label)
-        {
-            $active = $sort_col === $col;
-            $next_dir = ($active && $sort_dir === 'asc') ? 'desc' : 'asc';
-
-            $headers[$col] = [
-                'label' => $label,
-                'icon' => $active ? ($sort_dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort',
-                'url' => route('admin.troopers.list', qs(['sort_col' => $col, 'sort_dir' => $next_dir, 'page' => 1])),
-            ];
-        }
-
-        return $headers;
-    }
-
-    /**
-     * @return array<string, string> column => header label
-     */
-    private function sortColumns(): array
-    {
-        return [
-            Trooper::DISPLAY_NAME => __('admin.Name / Email'),
-            Trooper::MEMBERSHIP_ROLE => __('admin.Role'),
-            Trooper::MEMBERSHIP_STATUS => __('admin.Status'),
-            Trooper::LAST_ACTIVE_AT => __('admin.Last Seen'),
-        ];
+        return Inertia::render('admin/troopers/List', $data);
     }
 }

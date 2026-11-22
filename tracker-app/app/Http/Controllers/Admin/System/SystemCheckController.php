@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\System;
 
 use App\Http\Controllers\Controller;
-use App\Services\LogViewerService;
-use App\Services\SystemCheckService;
-use Illuminate\Contracts\View\View;
+use App\Messages\System\PageData\SystemCheckPageData;
+use Inertia\Inertia;
+use Inertia\Response;
 
+/**
+ * Shows the System Check page.
+ */
 class SystemCheckController extends Controller
 {
-    public function __invoke(SystemCheckService $service, LogViewerService $log_viewer): View
+    public function __invoke(): Response
     {
-        return view('pages.admin.system-check', [
-            'checks' => $service->run(),
-            'recent_errors' => $log_viewer->recentErrors(),
-        ]);
+        return Inertia::render('admin/SystemCheck', SystemCheckPageData::call());
     }
 }

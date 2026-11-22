@@ -8,6 +8,7 @@ use App\Models\Award;
 use App\Models\AwardTrooper;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ListTroopersControllerTest extends TestCase
@@ -25,7 +26,11 @@ class ListTroopersControllerTest extends TestCase
         $response = $this->actingAs($admin)->get(route('admin.awards.list-troopers', ['award' => $award->id]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.awards.list-troopers');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/awards/Troopers')
+            ->where('award.id', $award->id)
+            ->has('troopers', 1)
+            ->where('troopers.0.display_name', $recipient->display_name));
     }
 
     public function test_invoke_requires_authentication(): void

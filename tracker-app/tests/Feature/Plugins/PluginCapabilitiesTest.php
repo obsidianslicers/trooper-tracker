@@ -10,6 +10,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
+use Inertia\Testing\AssertableInertia as Assert;
 use ReflectionProperty;
 use Tests\TestCase;
 
@@ -115,8 +116,11 @@ class PluginCapabilitiesTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)->get(route('admin.plugins.list'))
-            ->assertSee('It runs on every page request and adds a way to sign in.')
-            ->assertSee('Turn on Honest? It runs on every page request', false);
+            ->assertInertia(fn (Assert $page) => $page->where(
+                'plugins',
+                fn ($rows) => collect($rows)->firstWhere('slug', 'honest')['capabilities'] === 'It runs on every page request and adds a way to sign in.'
+                    && str_starts_with(collect($rows)->firstWhere('slug', 'honest')['enable_confirm'], 'Turn on Honest? It runs on every page request'),
+            ));
     }
 
     /**

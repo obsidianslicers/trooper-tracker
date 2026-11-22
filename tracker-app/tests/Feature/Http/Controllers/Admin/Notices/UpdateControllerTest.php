@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Notices;
 use App\Models\Notice;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class UpdateControllerTest extends TestCase
@@ -21,7 +22,13 @@ class UpdateControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.notices.update', ['notice' => $notice->id]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.notices.update');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/notices/Update')
+            ->where('notice.id', $notice->id)
+            ->where('notice.title', $notice->title)
+            ->where('notice.starts_at', $notice->starts_at->format('Y-m-d H:i'))
+            ->has('notice.trooper_stamps')
+            ->missing('organization_options'));
     }
 
     public function test_invoke_requires_authentication(): void

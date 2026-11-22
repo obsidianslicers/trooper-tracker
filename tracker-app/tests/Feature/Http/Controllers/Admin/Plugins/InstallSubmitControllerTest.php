@@ -8,6 +8,7 @@ use App\Models\Trooper;
 use App\Plugins\PluginManager;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Feature\Plugins\BuildsPluginArchives;
 use Tests\Feature\Plugins\UsesFixturePlugins;
 use Tests\TestCase;
@@ -205,13 +206,12 @@ class InstallSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)->get(route('admin.plugins.list'))
-            ->assertSee(route('admin.plugins.install'));
+            ->assertInertia(fn (Assert $page) => $page->where('uploads.is_enabled', true));
 
         config(['plugins.uploads.enabled' => false]);
 
         $this->actingAs($trooper)->get(route('admin.plugins.list'))
-            ->assertDontSee(route('admin.plugins.install'))
-            ->assertSee('TRACKER_PLUGINS_ALLOW_UPLOADS');
+            ->assertInertia(fn (Assert $page) => $page->where('uploads.is_enabled', false));
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -82,12 +83,13 @@ class StaffOfficerAccessTest extends TestCase
         $response = $this->actingAs($staff_officer)->get(route('admin.display'));
 
         $response->assertOk();
-        $response->assertSee('Permission Approvals');
-        $response->assertSee('FAQ &amp; Help', false);
-        $response->assertDontSee('System Check');
-        $response->assertDontSee('Enable, Disable, and Configure Plugins');
-        $response->assertDontSee('Merge Troopers');
-        $response->assertDontSee('Merge Costumes');
+        $cards = $this->cardKeys($response);
+        $this->assertContains('permission-approvals', $cards);
+        $this->assertContains('faq', $cards);
+        $this->assertNotContains('system-check', $cards);
+        $this->assertNotContains('plugins', $cards);
+        $this->assertNotContains('merge-troopers', $cards);
+        $this->assertNotContains('merge-costumes', $cards);
     }
 
     public function test_dashboard_shows_developer_tools_to_administrator(): void
@@ -96,9 +98,18 @@ class StaffOfficerAccessTest extends TestCase
 
         $response = $this->actingAs($administrator)->get(route('admin.display'));
 
-        $response->assertSee('System Check');
-        $response->assertSee('Merge Troopers');
-        $response->assertSee('Merge Costumes');
+        $cards = $this->cardKeys($response);
+        $this->assertContains('system-check', $cards);
+        $this->assertContains('merge-troopers', $cards);
+        $this->assertContains('merge-costumes', $cards);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function cardKeys(TestResponse $response): array
+    {
+        return array_column($response->viewData('page')['props']['cards'], 'key');
     }
 
     public function test_staff_officer_can_make_a_trooper_a_staff_officer(): void

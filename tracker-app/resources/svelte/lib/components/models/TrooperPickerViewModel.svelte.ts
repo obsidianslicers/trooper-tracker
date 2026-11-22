@@ -9,8 +9,8 @@ export type Trooper = {
     email: string;
 };
 
-/** "friends" lists the troopers they've brought before until they type a search. */
-export type TrooperPickerMode = "admin" | "friends" | null;
+/** "friends" lists the troopers they've brought before until they type a search; "moderated" only those the trooper moderates. */
+export type TrooperPickerMode = "admin" | "friends" | "moderated" | null;
 
 export interface TrooperPickerOptions {
     label: string | null;

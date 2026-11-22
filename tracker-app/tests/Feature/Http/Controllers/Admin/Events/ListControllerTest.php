@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Events;
 use App\Models\Event;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ListControllerTest extends TestCase
@@ -21,7 +22,10 @@ class ListControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.events.list'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.events.list');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/events/List')
+            ->has('events.data')
+            ->has('statuses'));
     }
 
     public function test_invoke_requires_authentication(): void

@@ -10,6 +10,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 use TroopTracker\Plugins\Xenforo\Database\Seeders\FloridaGarrisonForumSeeder;
 use TroopTracker\Plugins\Xenforo\Models\OrganizationForum;
@@ -62,8 +63,11 @@ class OrganizationForumTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.organizations.update', ['organization' => $organization]))
             ->assertOk()
-            ->assertSee('Related Forum (Node ID):')
-            ->assertSee('name="xenforo_event_forum_id"', false);
+            ->assertInertia(fn (Assert $page) => $page->where(
+                'plugin_fields',
+                fn (string $html) => str_contains($html, 'Related Forum (Node ID):')
+                    && str_contains($html, 'name="xenforo_event_forum_id"'),
+            ));
 
         $this->actingAs($admin)->post(route(
             'admin.organizations.update',

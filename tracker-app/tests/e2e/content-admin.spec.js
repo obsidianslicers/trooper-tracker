@@ -24,18 +24,35 @@ async function pick(page, property, name, search = false) {
 }
 
 // Markdown fields use an editor in place of the textarea.
+// The Svelte organization picker opens a searchable list of organizations.
+async function pickOrganization(page, name) {
+    await page.getByLabel('Organization', { exact: true }).click();
+    const picker = page.getByRole('dialog');
+    await picker.getByRole('textbox').fill(name);
+    await picker.getByRole('button', { name, exact: true }).click();
+}
+
+// The Svelte trooper picker searches as you type.
+async function pickTrooper(page, name) {
+    await page.getByLabel('Trooper', { exact: true }).click();
+    const picker = page.getByRole('dialog');
+    await picker.getByRole('textbox').fill(name);
+    await picker.getByRole('button').filter({ hasText: name }).first().click();
+}
+
 async function typeMarkdown(page, text) {
     await page.locator('.CodeMirror').first().click();
     await page.keyboard.type(text);
 }
 
 // Date-time fields take typed text ("2030-06-01 1:00PM") as well as the calendar popup.
-async function setDate(page, selector, date) {
+async function setDate(page, field, date) {
     const pad = (n) => String(n).padStart(2, '0');
     const hour = date.getHours() % 12 || 12;
     const text = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
         + `${hour}:${pad(date.getMinutes())}${date.getHours() >= 12 ? 'PM' : 'AM'}`;
-    await page.locator(selector).fill(text);
+    const input = typeof field === 'string' ? page.locator(field) : field;
+    await input.fill(text);
 }
 
 function rowFor(page, text) {
@@ -52,29 +69,30 @@ test.describe('awards', () => {
         await page.getByRole('button', { name: 'Create', exact: true }).click();
         await expect(form(page).getByText('The name field is required.')).toBeVisible();
 
-        await pick(page, 'organization_id', '501st Legion');
-        await page.locator('#frequency').selectOption({ label: 'Annually' });
-        await page.locator('#name').fill(seeded.newAward);
+        await pickOrganization(page, '501st Legion');
+        await page.getByLabel('Frequency').selectOption({ label: 'Annually' });
+        await page.getByLabel('Name').fill(seeded.newAward);
         await page.getByRole('button', { name: 'Create', exact: true }).click();
         await expect(page).toHaveURL(/\/admin\/awards\/\d+\/update$/);
 
-        await page.locator('#name').fill(`${seeded.newAward} 2026`);
+        await page.getByLabel('Name').fill(`${seeded.newAward} 2026`);
         await page.getByRole('button', { name: 'Update', exact: true }).click();
+        await expect(page).toHaveURL(/\/admin\/awards$/);
         await page.goto(`/admin/awards?search_term=${encodeURIComponent(seeded.newAward)}`);
         await expect(rowFor(page, `${seeded.newAward} 2026`)).toContainText('501st Legion');
 
         const award = await rowFor(page, seeded.newAward).locator('a[href$="/update"]').first().getAttribute('href');
         await page.goto(award.replace(/\/update$/, '/troopers'));
         await page.getByRole('link', { name: 'Award Trooper' }).click();
-        await pick(page, 'trooper_id', personas.trooper.name, true);
+        await pickTrooper(page, personas.trooper.name);
         await page.getByRole('button', { name: 'Submit' }).click();
 
         await expect(page).toHaveURL(/\/troopers$/);
         const awarded = rowFor(page, personas.trooper.name);
         await expect(awarded).toBeVisible();
 
-        page.once('dialog', (dialog) => dialog.accept());
-        await awarded.getByRole('button').last().click();
+        await awarded.getByRole('button', { name: 'Remove' }).click();
+        await page.getByRole('dialog').getByRole('button', { name: 'Remove' }).click();
         await expect(rowFor(page, personas.trooper.name)).toHaveCount(0);
     });
 });
@@ -88,30 +106,33 @@ test.describe('notices', () => {
         const next_month = new Date(Date.now() + 30 * 86400000);
 
         await page.goto('/admin/notices/create');
-        await pick(page, 'organization_id', 'E2E Garrison');
-        await page.locator('#type').selectOption({ index: 2 });
-        await page.locator('#title').fill(seeded.newNotice);
-        await setDate(page, '#starts_at', today);
-        await setDate(page, '#ends_at', next_week);
+        await pickOrganization(page, 'E2E Garrison');
+        await page.getByLabel('Type').selectOption({ index: 2 });
+        await page.getByLabel('Title').fill(seeded.newNotice);
+        await setDate(page, page.getByLabel('Starts'), today);
+        await setDate(page, page.getByLabel('Ends'), next_week);
         await typeMarkdown(page, 'Muster at the north gate.');
         await page.getByRole('button', { name: 'Create', exact: true }).click();
+        await expect(page).toHaveURL(/\/admin\/notices$/);
 
         await page.goto('/admin/notices?scope=active');
         const posted = rowFor(page, seeded.newNotice);
         await expect(posted).toContainText('E2E Garrison');
 
         await page.goto(await posted.locator('a[href*="copy_id="]').getAttribute('href'));
-        await expect(page.locator('#title')).toHaveValue(`${seeded.newNotice} (Copy)`);
-        await page.locator('#title').fill(`${seeded.newNotice} (next month)`);
-        await setDate(page, '#starts_at', next_week);
-        await setDate(page, '#ends_at', next_month);
+        await expect(page.getByLabel('Title')).toHaveValue(`${seeded.newNotice} (Copy)`);
+        await page.getByLabel('Title').fill(`${seeded.newNotice} (next month)`);
+        await setDate(page, page.getByLabel('Starts'), next_week);
+        await setDate(page, page.getByLabel('Ends'), next_month);
         await page.getByRole('button', { name: 'Create', exact: true }).click();
+        await expect(page).toHaveURL(/\/admin\/notices$/);
 
         await page.goto('/admin/notices?scope=future');
         const copy = rowFor(page, `${seeded.newNotice} (next month)`);
         await page.goto(await copy.locator('a[href$="/update"]').getAttribute('href'));
-        await page.locator('#title').fill(`${seeded.newNotice} (rescheduled)`);
+        await page.getByLabel('Title').fill(`${seeded.newNotice} (rescheduled)`);
         await page.getByRole('button', { name: 'Update', exact: true }).click();
+        await expect(page).toHaveURL(/\/admin\/notices$/);
 
         await page.goto('/admin/notices?scope=future');
         await expect(rowFor(page, `${seeded.newNotice} (rescheduled)`)).toBeVisible();
@@ -127,26 +148,28 @@ test.describe('organizations', () => {
         await page.goto('/admin/organizations');
         const garrison = rowFor(page, 'E2E Garrison').first();
         await page.goto(await garrison.locator('a[href$="/create"]').getAttribute('href'));
-        await expect(page.locator('#parent_name')).toHaveValue('E2E Garrison');
+        await expect(page.getByLabel('Parent')).toHaveValue('E2E Garrison');
 
         await page.getByRole('button', { name: 'Create', exact: true }).click();
         await expect(form(page).getByText('The name field is required.')).toBeVisible();
 
-        await page.locator('#name').fill(seeded.newUnit);
+        await page.getByLabel('Name').fill(seeded.newUnit);
         await page.getByRole('button', { name: 'Create', exact: true }).click();
+        await expect(page).toHaveURL(/\/admin\/organizations\/\d+\/update$/);
 
         await page.goto('/admin/organizations');
         const unit = rowFor(page, seeded.newUnit);
         await page.goto(await unit.locator('a[href$="/update"]').getAttribute('href'));
-        await page.locator('#name').fill(`${seeded.newUnit} Prime`);
+        await page.getByLabel('Name').fill(`${seeded.newUnit} Prime`);
         await page.getByRole('button', { name: 'Update', exact: true }).click();
+        await expect(page).toHaveURL(/\/admin\/organizations$/);
 
         await page.goto('/admin/organizations');
         await page.goto(await rowFor(page, `${seeded.newUnit} Prime`).locator('a[href$="/update"]').getAttribute('href'));
 
         const logo = page.getByAltText('Organization Logo');
         const before = await logo.getAttribute('src');
-        await page.locator('#logo-input').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: PNG });
+        await page.getByTestId('logo-input').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: PNG });
         await expect(page.getByAltText('Organization Logo')).not.toHaveAttribute('src', before);
     });
 });

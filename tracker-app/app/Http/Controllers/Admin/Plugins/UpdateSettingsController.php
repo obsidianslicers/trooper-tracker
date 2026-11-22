@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Plugins;
 
 use App\Http\Controllers\PageController;
-use App\Plugins\PluginManager;
-use Illuminate\Contracts\View\View;
+use App\Messages\Plugins\PageData\UpdatePluginSettingsPageData;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Shows the settings form a plugin declares in its plugin.json.
@@ -19,13 +20,11 @@ class UpdateSettingsController extends PageController
         $this->crumbs->addRoute(__('admin.Plugins'), 'admin.plugins.list');
     }
 
-    public function __invoke(PluginManager $plugins, string $slug): View
+    public function __invoke(string $slug): Response
     {
-        $manifest = $plugins->find($slug) ?? abort(404);
-
-        return view('pages.admin.plugins.update-settings', [
-            'manifest' => $manifest,
-            'settings' => $plugins->settings($slug),
-        ]);
+        return Inertia::render(
+            'admin/plugins/UpdateSettings',
+            UpdatePluginSettingsPageData::call(slug: $slug),
+        );
     }
 }

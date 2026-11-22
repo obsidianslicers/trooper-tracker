@@ -4,55 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\MembershipStatus;
 use App\Http\Controllers\PageController;
-use App\Messages\Events\Queries\Verification\GetTroopsAwaitingVerification;
-use App\Messages\System\Queries\GetSystemCheckProblems;
-use App\Models\PermissionRequest;
-use App\Models\Trooper;
-use App\Models\TrooperCostume;
-use App\Models\TrooperRequest;
-use Illuminate\Contracts\View\View;
+use App\Messages\System\PageData\CommandStaffDashboardPageData;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
+/**
+ * Shows the Command Staff dashboard.
+ */
 class AdminDisplayController extends PageController
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): Response
     {
-        $trooper = $request->user();
-
-        $not_approved = Trooper::pendingApprovals()->moderatedBy($trooper)->count();
-
-        $pending_join_requests = TrooperRequest::pending()
-            ->whereHas('trooper', function ($query): void
-            {
-                $query->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
-            })
-            ->forModerator($trooper)
-            ->count();
-
-        $pending_costumes = TrooperCostume::onlyPending()
-            ->moderatedBy($trooper)
-            ->whereHas('trooper')
-            ->count();
-
-        $troops_awaiting_verification = GetTroopsAwaitingVerification::call(moderator: $trooper)->count();
-
-        $pending_permission_requests = $trooper->is_administrator
-            ? PermissionRequest::pending()->count()
-            : 0;
-
-        $system_check_problems = $trooper->has_system_owner
-            ? GetSystemCheckProblems::call()
-            : collect();
-
-        return view('pages.admin.display', compact(
-            'not_approved',
-            'pending_join_requests',
-            'pending_permission_requests',
-            'pending_costumes',
-            'troops_awaiting_verification',
-            'system_check_problems',
-        ));
+        return Inertia::render('admin/Dashboard', CommandStaffDashboardPageData::call($request));
     }
 }

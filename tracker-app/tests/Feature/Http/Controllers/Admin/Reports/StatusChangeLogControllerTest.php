@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Reports;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class StatusChangeLogControllerTest extends TestCase
@@ -19,7 +20,9 @@ class StatusChangeLogControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.reports.status-change-log'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.reports.status-change-log');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/reports/StatusChangeLog')
+            ->has('caption')->has('changes'));
     }
 
     public function test_invoke_requires_authentication(): void

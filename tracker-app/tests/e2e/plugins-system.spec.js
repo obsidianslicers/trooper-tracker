@@ -10,17 +10,17 @@ test.describe('as a system owner', () => {
     test.use({ storageState: personas.admin.storageState });
 
     test('configures a plugin, enables it, then disables it', async ({ page }) => {
-        page.on('dialog', (dialog) => dialog.accept());
         await page.goto('/admin/plugins');
         const discord = pluginRow(page, 'Discord (discord)');
         await expect(discord).toContainText('Disabled');
 
         await discord.getByRole('link', { name: 'Settings' }).click();
-        await page.locator('[name="settings[webhook_url]"]').fill('https://discord.example.test/api/webhooks/e2e');
+        await page.getByLabel('Webhook URL').fill('https://discord.example.test/api/webhooks/e2e');
         await page.getByRole('button', { name: 'Save' }).click();
 
         await page.goto('/admin/plugins');
         await pluginRow(page, 'Discord (discord)').getByRole('button', { name: 'Enable' }).click();
+        await page.getByRole('dialog').getByRole('button', { name: 'Enable' }).click();
         await expect(pluginRow(page, 'Discord (discord)')).toContainText('Enabled');
 
         await pluginRow(page, 'Discord (discord)').getByRole('button', { name: 'Disable' }).click();

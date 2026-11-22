@@ -1,5 +1,7 @@
 export * from './AddTrooperViewModel.svelte';
 export * from './CharityViewModel.svelte';
+export * from './CreateEventViewModel.svelte';
+export * from './EventFormViewModel.svelte';
 export * from './OverviewViewModel.svelte';
 export * from './RosterGuestViewModel.svelte';
 export * from './RosterTrooperViewModel.svelte';

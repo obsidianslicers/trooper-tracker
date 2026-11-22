@@ -15,7 +15,7 @@ use Hyperdrive\Message;
  *
  * This page data message responds with a list of troopers matching the search criteria, formatted for frontend consumption.
  *
- * @method static array call(Actor $actor, string $search_term, int|null $organization_id = null, bool $moderated_only = false, TrooperSearchMode $search_mode = TrooperSearchMode::NONE)
+ * @method static array call(Actor $actor, ?string $search_term = null, int|null $organization_id = null, bool $moderated_only = false, TrooperSearchMode $search_mode = TrooperSearchMode::NONE)
  */
 final class SearchTroopersPageData extends Message
 {
@@ -26,7 +26,7 @@ final class SearchTroopersPageData extends Message
      */
     public function __construct(
         private readonly Actor $actor,
-        private readonly string $search_term,
+        private readonly ?string $search_term = null,
         private readonly ?int $organization_id = null,
         private readonly TrooperSearchMode $search_mode = TrooperSearchMode::NONE) {}
 
@@ -39,7 +39,7 @@ final class SearchTroopersPageData extends Message
     {
         $troopers = SearchTroopers::call(
             trooper: $this->actor,
-            search_term: $this->search_term,
+            search_term: $this->search_term ?? '',
             organization_id: $this->organization_id,
             search_mode: $this->search_mode
         );

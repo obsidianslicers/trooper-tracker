@@ -5,16 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Organizations;
 
 use App\Http\Controllers\PageController;
-use App\Models\Costume;
+use App\Messages\Organizations\PageData\OrganizationCostumesPageData;
 use App\Models\Organization;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
-/**
- * Class CostumesController
- *
- * Handles displaying the form to manage costumes for an organization.
- */
 class CostumesController extends PageController
 {
     protected function initialized(): void
@@ -23,26 +19,13 @@ class CostumesController extends PageController
         $this->crumbs->addRoute(__('admin.Organizations'), 'admin.organizations.list');
     }
 
-    /**
-     * Handle the request to display the organization costumes page
-     *
-     * Authorizes the user, sets up breadcrumbs, and returns the view
-     * containing the form to manage costumes for an organization.
-     *
-     * @param  Request  $request  The incoming HTTP request object
-     * @param  Organization  $organization  The organization whose costumes are to be managed
-     * @return View The rendered organization costumes view
-     */
-    public function __invoke(Request $request, Organization $organization): View
+    public function __invoke(Request $request, Organization $organization): InertiaResponse
     {
         $this->authorize('update', $organization);
 
-        $organization->load([
-            'costumes' => fn ($q) => $q->orderBy(Costume::NAME),
-        ]);
-
-        $data = compact('organization');
-
-        return view('pages.admin.organizations.costumes', $data);
+        return Inertia::render(
+            'admin/organizations/Costumes',
+            OrganizationCostumesPageData::call(organization: $organization)
+        );
     }
 }

@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Reports;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class TroopersWithoutActivityControllerTest extends TestCase
@@ -19,7 +20,9 @@ class TroopersWithoutActivityControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.reports.troopers-without-activity'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.reports.troopers-without-activity');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/reports/TroopersWithoutActivity')
+            ->has('caption')->has('troopers'));
     }
 
     public function test_invoke_requires_authentication(): void

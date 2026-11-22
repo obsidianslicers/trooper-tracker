@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Events;
 use App\Models\Event;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class CopyControllerTest extends TestCase
@@ -21,7 +22,10 @@ class CopyControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.events.copy', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.events.copy');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/events/Copy')
+            ->where('event.id', $event->id)
+            ->where('event.name', "COPY OF {$event->name}"));
     }
 
     public function test_invoke_requires_authentication(): void

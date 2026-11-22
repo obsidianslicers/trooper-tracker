@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Costumes;
 use App\Models\Costume;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class DeleteControllerTest extends TestCase
@@ -21,7 +22,11 @@ class DeleteControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.costumes.delete', compact('costume')));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.costumes.delete');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/costumes/Update')
+            ->where('confirm_delete', true)
+            ->where('deletion_impact.event_troopers', 0)
+            ->where('deletion_impact.trooper_costumes', 0));
     }
 
     public function test_invoke_requires_authentication(): void

@@ -5,39 +5,25 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Notices;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\PageController;
+use App\Enums\NoticeType;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Notices\CreateRequest;
-use App\Models\Notice;
+use App\Messages\Notices\Commands\CreateNotice;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Carbon;
 
-/**
- * Class CreateSubmitController
- *
- * Handles the submission of the form for creating a new notice.
- */
-class CreateSubmitController extends PageController
+class CreateSubmitController extends Controller
 {
-    /**
-     * Handle the incoming request to create a new notice
-     *
-     * Validates the request, creates a new notice with the provided data,
-     * saves it, and then redirects with a success message.
-     *
-     * @param  CreateRequest  $request  The validated request containing the new notice's data
-     * @return RedirectResponse A redirect response to the notices list
-     */
     public function __invoke(CreateRequest $request): RedirectResponse
     {
-        $notice = new Notice;
-
-        $notice->organization_id = $request->validated('organization_id');
-        $notice->title = $request->validated('title');
-        $notice->type = $request->validated('type');
-        $notice->starts_at = $request->validated('starts_at');
-        $notice->ends_at = $request->validated('ends_at');
-        $notice->message = $request->validated('message');
-
-        $notice->save();
+        $notice = CreateNotice::call(
+            organization_id: $request->validated('organization_id'),
+            title: $request->validated('title'),
+            type: NoticeType::from($request->validated('type')),
+            starts_at: Carbon::parse($request->validated('starts_at')),
+            ends_at: Carbon::parse($request->validated('ends_at')),
+            message: $request->validated('message'),
+        );
 
         FlashType::created($notice);
 

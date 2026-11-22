@@ -5,6 +5,7 @@ import { test, expect } from '@playwright/test';
 import { personas, seeded } from './support/personas.js';
 import { signInAndLeaveLogin } from './support/auth.js';
 import { tinker } from './support/artisan.js';
+import { pickHost } from './support/event-form.js';
 
 test.use({ storageState: personas.moderator.storageState });
 
@@ -57,13 +58,6 @@ async function openSection(page, label) {
     await page.getByRole('button', { name: label }).click();
 }
 
-async function pickHost(page, name) {
-    await page.locator('#picker-container-organization_id').click();
-    const modal = page.locator('#modal-picker');
-    await modal.locator(`li[data-name="${name}"]`).click();
-    await expect(modal).toBeHidden();
-}
-
 function updateButton(page) {
     return page.getByRole('button', { name: 'Update', exact: true });
 }
@@ -74,14 +68,12 @@ test.describe('event details', () => {
 
         await pickHost(page, '501st Legion');
         await page.getByText('Input Manually').click();
-        await page.locator('#name').fill('E2E Created Troop');
-
-        await openSection(page, 'Schedule');
-        await page.locator('#event_start').fill('2030-06-01 10:00AM');
-        await page.locator('#event_end').fill('2030-06-01 2:00PM');
+        await field(page, 'Name').fill('E2E Created Troop');
+        await field(page, 'Starts').fill('2030-06-01 10:00AM');
+        await field(page, 'Ends').fill('2030-06-01 2:00PM');
 
         await openSection(page, /^Location/);
-        await page.locator('#venue').fill('E2E Created Venue');
+        await field(page, 'Venue').fill('E2E Created Venue');
 
         await page.getByRole('button', { name: 'Create', exact: true }).click();
 
@@ -115,7 +107,7 @@ test.describe('event details', () => {
         await page.getByRole('link', { name: 'Copy' }).first().click();
         await expect(page).toHaveURL(/\/admin\/events\/\d+\/copy$/);
 
-        await page.locator('#name').fill('E2E Copied Troop');
+        await page.getByLabel('Name', { exact: true }).fill('E2E Copied Troop');
         await page.getByRole('button', { name: /^(Copy|Create|Save)$/ }).click();
 
         await expect(page).toHaveURL(/\/admin\/events\/\d+\/update$/);

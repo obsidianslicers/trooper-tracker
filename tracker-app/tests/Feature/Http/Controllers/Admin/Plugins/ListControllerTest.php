@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Plugins;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Feature\Plugins\UsesFixturePlugins;
 use Tests\TestCase;
 
@@ -22,10 +23,14 @@ class ListControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.plugins.list'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.plugins.list');
-        $response->assertSee('Hello');
-        $response->assertSee('A test plugin.');
-        $response->assertSee(route('admin.plugins.settings', ['slug' => 'hello']));
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/plugins/List')
+            ->where('plugins', fn ($plugins) => collect($plugins)->contains(
+                fn (array $plugin) => $plugin['slug'] === 'hello'
+                    && $plugin['name'] === 'Hello'
+                    && $plugin['description'] === 'A test plugin.'
+                    && $plugin['has_settings'] === true
+            )));
     }
 
     public function test_invoke_is_forbidden_for_moderators(): void

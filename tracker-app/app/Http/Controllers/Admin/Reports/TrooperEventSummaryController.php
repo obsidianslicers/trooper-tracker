@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
+use App\Messages\Reports\PageData\TrooperEventSummaryPageData;
 use App\Messages\Reports\Queries\GetTrooperEventSummary;
 use App\Models\Organization;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TrooperEventSummaryController extends BaseReportsController
 {
-    public function __invoke(Request $request): View|StreamedResponse
+    public function __invoke(Request $request): Response|StreamedResponse
     {
         $trooper = $request->user();
 
@@ -63,7 +65,7 @@ class TrooperEventSummaryController extends BaseReportsController
             return $this->streamCsv($all, $date_start, $date_end, $active_only, $organization?->name);
         }
 
-        $trooper_events = GetTrooperEventSummary::call(
+        $troopers = GetTrooperEventSummary::call(
             moderator: $trooper,
             date_start: $date_start,
             date_end: $date_end,
@@ -75,9 +77,16 @@ class TrooperEventSummaryController extends BaseReportsController
             accessible_org_ids: $accessible_org_ids,
         );
 
-        $data = compact('trooper_events', 'date_start', 'date_end', 'active_only', 'organizations', 'organization_id', 'sort', 'dir');
-
-        return view('pages.admin.reports.trooper-event-summary', $data);
+        return Inertia::render('admin/reports/TrooperEventSummary', TrooperEventSummaryPageData::call(
+            troopers: $troopers,
+            organizations: $organizations,
+            organization_id: $organization?->id,
+            date_start: $date_start,
+            date_end: $date_end,
+            active_only: $active_only,
+            sort: $sort,
+            dir: $dir,
+        ));
     }
 
     private function streamCsv(LengthAwarePaginator $trooper_events, ?Carbon $date_start, ?Carbon $date_end, bool $active_only, ?string $organization_name): StreamedResponse

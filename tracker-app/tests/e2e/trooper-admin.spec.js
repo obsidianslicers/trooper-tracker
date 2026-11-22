@@ -118,14 +118,18 @@ test.describe('as a moderator', () => {
         await page.goto('/admin/troopers');
         await page.getByRole('link', { name: 'Recruit Trooper' }).click();
 
-        await page.locator('[name="picker-trooper_id"]').click();
+        await page.getByLabel('Trooper', { exact: true }).click();
         const picker = page.getByRole('dialog');
-        await picker.getByRole('textbox').fill(seeded.recruitTarget);
-        await picker.getByRole('listitem').filter({ hasText: seeded.recruitTarget }).click();
+        await picker.getByLabel('Search').fill(seeded.recruitTarget);
+        await picker.getByRole('button').filter({ hasText: seeded.recruitTarget }).first().click();
 
-        await page.locator('#organization_id').selectOption({ label: '— — — E2E Squad' });
-        await page.locator('#identifier').fill('95555');
+        await page.getByLabel('Assign to Unit', { exact: true }).click();
+        const units = page.getByRole('dialog');
+        await units.getByRole('textbox').fill('E2E Squad');
+        await units.getByRole('button').filter({ hasText: 'E2E Squad' }).first().click();
+        await page.getByLabel('TKID (optional)').fill('95555');
         await page.getByRole('button', { name: 'Add to Roster' }).click();
+        await expect(page.getByText(`has been added to E2E Squad`)).toBeVisible();
 
         await openTrooper(page, seeded.recruitTarget, 'memberships');
         const legion_card = card(page, '501st Legion');

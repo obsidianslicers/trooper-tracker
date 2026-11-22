@@ -5,52 +5,27 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Costumes;
 
 use App\Http\Controllers\PageController;
+use App\Messages\Costumes\PageData\UpdateCostumePageData;
 use App\Models\Costume;
-use App\Models\Organization;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
-/**
- * Displays the form for updating an existing costume.
- *
- * An invokable controller that authorizes the user, retrieves the costume,
- * and renders the costume update form with available organization assignments.
- */
 class UpdateController extends PageController
 {
-    /**
-     * Set up breadcrumbs for the costume update page.
-     */
     protected function initialized(): void
     {
         $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.display');
         $this->crumbs->addRoute(__('admin.Costumes'), 'admin.costumes.list');
     }
 
-    /**
-     * Displays the costume update form.
-     *
-     * Authorizes the user, loads the costume with its current organizations,
-     * retrieves all available organizations (augmented with assignment status),
-     * and renders the update form.
-     */
-    public function __invoke(Request $request, Costume $costume): View
+    public function __invoke(Request $request, Costume $costume): InertiaResponse
     {
         $this->authorize('update', $costume);
 
-        $costume->load('organizations');
-
-        $assigned_organizations = $costume->organizations->pluck('id')->all();
-
-        $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
-
-        foreach ($organizations as $organization)
-        {
-            $organization->assigned = in_array($organization->id, $assigned_organizations);
-        }
-
-        $data = compact('costume', 'organizations');
-
-        return view('pages.admin.costumes.update', $data);
+        return Inertia::render(
+            'admin/costumes/Update',
+            UpdateCostumePageData::call(costume: $costume)
+        );
     }
 }

@@ -37,3 +37,13 @@ test('an administrator merges a duplicate trooper into another', async ({ page }
 
     await expect(page.getByText('Troopers are currently being merged.')).toBeVisible();
 });
+
+// Dismissing the dashboard's alerts is covered by DashboardViewModel.test.ts: whether any are
+// showing depends on what the other specs have approved by then.
+test('a dashboard card opens its tool', async ({ page }) => {
+    await page.goto('/admin');
+    await expect(page.locator('.card').filter({ hasText: 'Costume Approvals' })).toContainText(/awaiting review|No costumes waiting/);
+
+    await page.locator('.card').filter({ hasText: 'Reports & Stats' }).click();
+    await expect(page).toHaveURL(/\/admin\/reports$/);
+});
