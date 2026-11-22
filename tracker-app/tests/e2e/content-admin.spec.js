@@ -82,7 +82,7 @@ test.describe('awards', () => {
         await expect(rowFor(page, `${seeded.newAward} 2026`)).toContainText('501st Legion');
 
         const award = await rowFor(page, seeded.newAward).locator('a[href$="/edit"]').first().getAttribute('href');
-        await page.goto(award.replace(/\/update$/, '/troopers'));
+        await page.goto(award.replace(/\/edit$/, '/troopers'));
         await page.getByRole('link', { name: 'Award Trooper' }).click();
         await pickTrooper(page, personas.trooper.name);
         await page.getByRole('button', { name: 'Submit' }).click();
