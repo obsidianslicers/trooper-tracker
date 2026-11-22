@@ -55,7 +55,8 @@
                 <div class={["progress-bar", shift_state === "full" ? "bg-success" : "bg-info"]} style="width: {fill}%;"></div>
             </div>
         {/if}
-        {#if shift.my_status_label}
+        <!-- with one shift, the card's own "You:" badge already says this -->
+        {#if shift.my_status_label && event.shifts.length > 1}
             <span class="badge text-bg-success mt-1">
                 {t("You: :status", { status: shift.my_status_label })}
             </span>
