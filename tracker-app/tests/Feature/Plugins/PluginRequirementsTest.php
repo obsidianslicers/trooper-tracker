@@ -11,6 +11,7 @@ use App\Plugins\PluginManager;
 use App\Plugins\PluginRequirementsException;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use stdClass;
 use Tests\TestCase;
 
@@ -171,8 +172,11 @@ class PluginRequirementsTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)->get(route('admin.plugins.list'))
-            ->assertSee('Needs PHP &gt;=99.0', false)
-            ->assertSee('disabled', false);
+            ->assertInertia(fn (Assert $page) => $page->where(
+                'plugins',
+                fn ($rows) => str_starts_with(collect($rows)->firstWhere('slug', 'needs-php')['requirements']['text'], 'Needs PHP >=99.0')
+                    && collect($rows)->firstWhere('slug', 'needs-php')['can_enable'] === false,
+            ));
     }
 
     public function test_the_enable_page_shows_the_reason_it_was_refused(): void

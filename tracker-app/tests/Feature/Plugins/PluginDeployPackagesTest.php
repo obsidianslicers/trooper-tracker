@@ -14,6 +14,7 @@ use App\Plugins\PluginManager;
 use App\Plugins\PluginRequirementsException;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use stdClass;
 use Tests\TestCase;
 
@@ -110,15 +111,21 @@ class PluginDeployPackagesTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($trooper)->get(route('admin.plugins.list'))
-            ->assertSee('are installed by the next deploy after you enable it');
+            ->assertInertia(fn (Assert $page) => $page->where(
+                'plugins',
+                fn ($rows) => str_contains(collect($rows)->firstWhere('slug', 'sheets')['requirements']['text'], 'are installed by the next deploy after you enable it'),
+            ));
 
         $this->actingAs($trooper)
             ->post(route('admin.plugins.enable', ['slug' => 'sheets']))
             ->assertSessionHas('info');
 
         $this->actingAs($trooper)->get(route('admin.plugins.list'))
-            ->assertSee('Turns on at next deploy')
-            ->assertSee('Cancel');
+            ->assertInertia(fn (Assert $page) => $page->where(
+                'plugins',
+                fn ($rows) => collect($rows)->firstWhere('slug', 'sheets')['status']['label'] === 'Turns on at next deploy'
+                    && collect($rows)->firstWhere('slug', 'sheets')['toggle'] === 'cancel',
+            ));
     }
 
     public function test_plugins_from_every_folder_get_their_packages_from_the_deploy(): void

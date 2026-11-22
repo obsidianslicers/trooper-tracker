@@ -19,6 +19,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia as Assert;
 use stdClass;
 use Tests\TestCase;
 
@@ -181,8 +182,7 @@ class ReconcilePluginsTest extends TestCase
 
         $this->actingAs(Trooper::factory()->asSystemOwner()->create())
             ->get(route('admin.plugins.list'))
-            ->assertSee('Missing plugins')
-            ->assertSee('keeper');
+            ->assertInertia(fn (Assert $page) => $page->where('missing.0.slug', 'keeper'));
 
         (new Filesystem)->moveDirectory($moved, $folder);
         $this->deploy();
@@ -325,8 +325,11 @@ class ReconcilePluginsTest extends TestCase
 
         $this->actingAs(Trooper::factory()->asSystemOwner()->create())
             ->get(route('admin.plugins.list'))
-            ->assertSee('Needs attention')
-            ->assertSee('did not finish');
+            ->assertInertia(fn (Assert $page) => $page->where(
+                'plugins',
+                fn ($rows) => collect($rows)->firstWhere('slug', 'keeper')['status']['label'] === 'Needs attention'
+                    && str_contains(collect($rows)->firstWhere('slug', 'keeper')['last_error'], 'did not finish'),
+            ));
     }
 
     public function test_the_deploy_can_see_which_enabled_plugins_cannot_run(): void

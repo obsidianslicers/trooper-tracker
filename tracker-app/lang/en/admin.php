@@ -455,6 +455,7 @@ return [
     'Plugin ":plugin" was enabled.' => 'Plugin ":plugin" was enabled.',
     'Plugin ":plugin" was uninstalled and its data removed.' => 'Plugin ":plugin" was uninstalled and its data removed.',
     'Plugin ":plugin" was upgraded from :previous to :version. Its settings and data were kept.' => 'Plugin ":plugin" was upgraded from :previous to :version. Its settings and data were kept.',
+    'Plugin .zip file' => 'Plugin .zip file',
     'Plugins' => 'Plugins',
     'Primary Hosting Organization.' => 'Primary Hosting Organization.',
     'Primary Organization:' => 'Primary Organization:',
