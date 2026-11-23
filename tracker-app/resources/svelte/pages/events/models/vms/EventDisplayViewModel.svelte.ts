@@ -18,10 +18,15 @@ export type SendOptions = {
     files?: boolean;
     onSuccess?: () => void;
     onError?: (errors: Record<string, string>) => void;
+    /** Names the button that sent it, so that button can show it's working ({@link isBusy}). */
+    busy?: string;
 };
 
 /** What a change on a shift reloads: the shifts, the summary at the top, and the tour's example. */
 export const SHIFT_PROPS = ["shifts", "my_sign_ups", "tour", "flash", "errors"];
+
+/** More troopers than this on a shift and Sign Up shows above the roster as well. */
+export const LONG_ROSTER = 6;
 
 export function trooperRowKey(id: number): string {
     return `trooper-${id}`;
@@ -44,6 +49,8 @@ export class EventDisplayViewModel {
     busy_shift: number | null = $state(null);
     sending = $state(false);
     confirmation: Confirmation | null = $state(null);
+    sign_up_requested: number | null = $state(null);
+    busy: string | null = $state(null);
 
     private readonly seen_rows = new Set<string>();
     private readonly seen_shifts = new Set<number>();
@@ -117,6 +124,32 @@ export class EventDisplayViewModel {
         document.getElementById("mission-roster")?.scrollIntoView({ behavior: "smooth" });
     };
 
+    /** Sign Up above a long roster ({@link hasLongRoster}): ShiftSignUp goes to it and starts it. */
+    requestSignUp = (shift_id: number) => {
+        this.sign_up_requested = shift_id;
+    };
+
+    /** ShiftSignUp has picked up the request. */
+    takeSignUpRequest(shift_id: number): boolean {
+        if (this.sign_up_requested !== shift_id) {
+            return false;
+        }
+
+        this.sign_up_requested = null;
+
+        return true;
+    }
+
+    /** The button named `key` sent the request that's on its way. */
+    isBusy(key: string): boolean {
+        return this.sending && this.busy === key;
+    }
+
+    /** Long enough that its own Sign up, at the end, is out of sight. */
+    hasLongRoster(shift: DisplayShift): boolean {
+        return shift.going.length + shift.stand_by.length > LONG_ROSTER;
+    }
+
     /** "Change" on the summary: opens that row's Edit area and goes to it. */
     editSignUp = async (row_id: number, shift_id: number) => {
         this.open_shifts.add(shift_id);
@@ -134,10 +167,12 @@ export class EventDisplayViewModel {
             onStart: () => {
                 this.sending = true;
                 this.busy_shift = options.shift_id ?? null;
+                this.busy = options.busy ?? null;
             },
             onFinish: () => {
                 this.sending = false;
                 this.busy_shift = null;
+                this.busy = null;
             },
             onSuccess: () => options.onSuccess?.(),
             onError: (errors) => options.onError?.(errors as Record<string, string>),

@@ -7,6 +7,7 @@
     import { t } from "$lib/i18n";
     import { untrack } from "svelte";
     import type { EventDisplayViewModel, RowEditor, TrooperRow } from "../../models";
+    import BusySpinner from "./BusySpinner.svelte";
 
     interface Props {
         vm: EventDisplayViewModel;
@@ -30,15 +31,17 @@
         message: editor.cancel_confirm,
         label: row.is_mine ? t("Cancel my sign-up") : t("Cancel their sign-up"),
         danger: true,
-        run: () => save("status", "cancelled"),
+        run: () => vm.send(row.actions.update_url, { status: "cancelled" }, { shift_id, busy: cancel_key }),
     });
+
+    const cancel_key = $derived(`cancel-${row.id}`);
 
     const id = (name: string) => `${name}-${row.id}`;
 </script>
 
 <div id="roster-row-editor-{row.id}">
     <div class="row g-3">
-        <div class="col-12 col-md-7">
+        <div class="col-12 col-md">
             {#if editor.stations}
                 <label class="form-label small text-muted mb-1" for={id("station")}>{t("Station")}</label>
                 <select id={id("station")} class="form-select form-select-sm mt-2 mt-md-0 mb-2"
@@ -99,7 +102,7 @@
                 {/if}
             {/if}
         </div>
-        <div class="col-12 col-md-5 align-self-start text-md-end roster-row__editor-actions">
+        <div class="col-12 col-md-auto align-self-start text-md-end roster-row__editor-actions">
             {#if has_picker_beside}
                 <!-- the height of the picker's label, so plans and Cancel line up with the picker beside them -->
                 <span class="form-label small mb-1 d-none d-md-block invisible" aria-hidden="true">&nbsp;</span>
@@ -115,7 +118,9 @@
                         </select>
                     {/if}
                     {#if editor.can_cancel}
-                        <button type="button" class="btn btn-link btn-sm p-0 text-danger" onclick={cancel}>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-danger" onclick={cancel}
+                                disabled={vm.sending} aria-busy={vm.isBusy(cancel_key)}>
+                            <BusySpinner busy={vm.isBusy(cancel_key)} />
                             {row.is_mine ? t("Cancel my sign-up") : t("Cancel their sign-up")}
                         </button>
                     {/if}

@@ -6,6 +6,7 @@
 <script lang="ts">
     import { t } from "$lib/i18n";
     import type { EventDisplayViewModel, TrooperRow } from "../../models";
+    import BusySpinner from "./BusySpinner.svelte";
     import SignUpStatus from "./SignUpStatus.svelte";
 
     interface Props {
@@ -20,7 +21,10 @@
     const actions = $derived(row.actions);
     const pending_hint = t("Select a costume, or mark attending without one, to confirm your spot.");
 
-    const send = (data: Record<string, unknown>) => vm.send(actions.update_url, data, { shift_id });
+    const again_key = $derived(`sign-up-again-${row.id}`);
+
+    const send = (data: Record<string, unknown>, busy?: string) =>
+        vm.send(actions.update_url, data, { shift_id, busy });
 </script>
 
 {#if actions.approve || actions.reject}
@@ -39,7 +43,9 @@
     <i class="small text-muted">{pending_hint}</i>
 {:else if actions.sign_up_again}
     <button type="button" class="btn btn-sm btn-outline-secondary btn-secondary-action" disabled={vm.sending}
-            onclick={() => send(actions.sign_up_again === "resign_up" ? { resign_up: 1 } : { status: "going" })}>
+            aria-busy={vm.isBusy(again_key)}
+            onclick={() => send(actions.sign_up_again === "resign_up" ? { resign_up: 1 } : { status: "going" }, again_key)}>
+        <BusySpinner busy={vm.isBusy(again_key)} />
         {t("Sign up again")}
     </button>
 {:else if actions.attendance}

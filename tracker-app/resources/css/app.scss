@@ -373,8 +373,9 @@ input.searching {
     margin-bottom: 0.5rem;
 }
 
-//  the Sign up area sits inside the roster grid, across it
-.roster > .shift-signup-actions {
+//  the Sign up area, and Sign Up above a long roster, sit inside the roster grid, across it
+.roster > .shift-signup-actions,
+.roster > .shift-signup-jump {
     grid-column: 1 / -1;
 }
 

@@ -7,6 +7,7 @@ vi.mock('@inertiajs/svelte', () => ({ router }));
 
 import {
     EventDisplayViewModel,
+    LONG_ROSTER,
     SHIFT_PROPS,
     guestRowKey,
     trooperRowKey,
@@ -148,6 +149,21 @@ describe('EventDisplayViewModel', () => {
         expect(onError).toHaveBeenCalledWith({ recipient_email: 'Bad address' });
     });
 
+    it('knows which button sent the request on its way', () => {
+        const vm = new EventDisplayViewModel([]);
+
+        vm.send('/events/update/1/trooper', { status: 'cancelled' }, { shift_id: 1, busy: 'cancel-1' });
+        const options = router.post.mock.calls[0][2];
+        expect(vm.isBusy('cancel-1')).toBe(false);
+
+        options.onStart();
+        expect(vm.isBusy('cancel-1')).toBe(true);
+        expect(vm.isBusy('sign-up-1')).toBe(false);
+
+        options.onFinish();
+        expect(vm.isBusy('cancel-1')).toBe(false);
+    });
+
     it('runs a confirmed action once, and drops a cancelled one', () => {
         const vm = new EventDisplayViewModel([]);
         const run = vi.fn();
@@ -174,5 +190,25 @@ describe('EventDisplayViewModel', () => {
         expect(vm.isOpen(1)).toBe(true);
         expect(vm.isOpen(2)).toBe(true);
         expect(vm.isEditing(trooperRowKey(9))).toBe(true);
+    });
+
+    it('counts going and stand-by, not guests or cancelled, toward a long roster', () => {
+        const vm = new EventDisplayViewModel([]);
+        const rows = (from: number, count: number) => Array.from({ length: count }, (_, i) => row(from + i));
+
+        expect(vm.hasLongRoster(shift(1, { going: rows(1, LONG_ROSTER) }))).toBe(false);
+        expect(vm.hasLongRoster(shift(1, { going: rows(1, 4), stand_by: rows(10, 3) }))).toBe(true);
+        expect(vm.hasLongRoster(shift(1, { going: rows(1, 3), cancelled: rows(10, 9) }))).toBe(false);
+    });
+
+    it('hands a sign-up request to its shift once', () => {
+        const vm = new EventDisplayViewModel([shift(1), shift(2)]);
+
+        vm.requestSignUp(2);
+
+        expect(vm.takeSignUpRequest(1)).toBe(false);
+        expect(vm.takeSignUpRequest(2)).toBe(true);
+        expect(vm.takeSignUpRequest(2)).toBe(false);
+        expect(vm.sign_up_requested).toBeNull();
     });
 });
