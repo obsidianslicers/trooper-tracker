@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events\Commands;
 
 use App\Enums\FlashType;
-use App\Messages\Events\Commands\PromoteNextInLineEventTrooper;
+use App\Messages\Events\Commands\RemoveEventTrooper;
 use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Response as InertiaResponse;
 
 class DestroyEventTrooperController extends EventCommandController
@@ -23,18 +22,7 @@ class DestroyEventTrooperController extends EventCommandController
 
         $trooper_name = $event_trooper->trooper->display_name;
 
-        DB::transaction(function () use ($event_trooper)
-        {
-            if ($event_trooper->intendsToGo())
-            {
-                PromoteNextInLineEventTrooper::call(
-                    event_trooper: $event_trooper,
-                    event_shift_station_id: $event_trooper->event_shift_station_id,
-                );
-            }
-
-            $event_trooper->delete();
-        });
+        RemoveEventTrooper::call(event_trooper: $event_trooper);
 
         FlashType::success(__('admin.:name was removed from the roster.', ['name' => $trooper_name]));
 

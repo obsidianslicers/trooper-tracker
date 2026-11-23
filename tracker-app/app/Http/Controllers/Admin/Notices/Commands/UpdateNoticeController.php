@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Notices\Commands;
 
 use App\Enums\FlashType;
-use App\Enums\NoticeType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Notices\Commands\UpdateNoticeRequest;
 use App\Messages\Notices\Commands\UpdateNotice;
@@ -20,7 +19,7 @@ class UpdateNoticeController extends Controller
         $notice = UpdateNotice::call(
             notice: $notice,
             title: $request->validated('title'),
-            type: NoticeType::from($request->validated('type')),
+            type: $request->validated('type'),
             starts_at: Carbon::parse($request->validated('starts_at')),
             ends_at: Carbon::parse($request->validated('ends_at')),
             message: $request->validated('message'),

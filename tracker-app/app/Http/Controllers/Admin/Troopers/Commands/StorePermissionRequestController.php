@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
-use App\Enums\MembershipRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Troopers\Commands\StorePermissionRequestRequest;
 use App\Messages\Troopers\Commands\Permissions\RequestTrooperPermissions;
@@ -19,11 +18,9 @@ class StorePermissionRequestController extends Controller
 {
     public function __invoke(StorePermissionRequestRequest $request): RedirectResponse
     {
-        $membership_role = $request->validated('membership_role');
-
         RequestTrooperPermissions::call(
             trooper: Trooper::findOrFail($request->validated('trooper_id')),
-            membership_role: MembershipRole::tryFrom((string) $membership_role),
+            membership_role: $request->validated('membership_role') ?: null,
             moderated_organization_ids: $request->validated('moderated_organization_ids', []),
             note: $request->validated('note'),
             extensions: $request->validated('extensions', []),

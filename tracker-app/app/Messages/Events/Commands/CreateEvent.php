@@ -37,7 +37,7 @@ final class CreateEvent extends Message
         $event = new Event;
         $event->organization_id = (int) $this->data['organization_id'];
 
-        UpdateEvent::call(event: $event, data: $this->data);
+        UpdateEventDetails::call(event: $event, data: $this->data);
 
         $event_shift = new EventShift;
         $event_shift->event_id = $event->id;

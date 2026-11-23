@@ -8,7 +8,9 @@ use App\Models\FaqSection;
 use Hyperdrive\Message;
 
 /**
- * @method static void call(FaqSection $section)
+ * Deletes a FAQ section, but only once it's empty.
+ *
+ * @method static int call(FaqSection $section)
  */
 final class DeleteFaqSection extends Message
 {
@@ -16,8 +18,18 @@ final class DeleteFaqSection extends Message
         private readonly FaqSection $section,
     ) {}
 
-    public function handle(): void
+    /**
+     * @return int The FAQ items still in the section; it's deleted only when that's 0
+     */
+    public function handle(): int
     {
-        $this->section->delete();
+        $faq_count = $this->section->faqs()->count();
+
+        if ($faq_count === 0)
+        {
+            $this->section->delete();
+        }
+
+        return $faq_count;
     }
 }

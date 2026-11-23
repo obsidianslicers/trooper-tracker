@@ -17,7 +17,7 @@ class DestroyFaqSectionController extends Controller
 {
     public function __invoke(DestroyFaqSectionRequest $request, FaqSection $section): InertiaResponse|SymfonyResponse
     {
-        $faq_count = $section->faqs()->count();
+        $faq_count = DeleteFaqSection::call(section: $section);
 
         if ($faq_count > 0)
         {
@@ -29,8 +29,6 @@ class DestroyFaqSectionController extends Controller
 
             return Inertia::render('admin/faq/Index');
         }
-
-        DeleteFaqSection::call(section: $section);
 
         FlashType::deleted($section);
 
