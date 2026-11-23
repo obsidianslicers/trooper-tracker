@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Api\Pages;
 
+use App\Messages\Api\PageData\PublicRosterPageData;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -86,26 +87,29 @@ class ShowPublicApiControllerTest extends TestCase
 
         $this->get(route('api.public', ['roster' => '', 'org' => $org->id]));
 
-        $this->assertTrue(Cache::has("tracker:roster:{$org->id}"));
+        $this->assertTrue(Cache::has(PublicRosterPageData::cacheKey($org->id)));
     }
 
-    public function test_roster_returns_cached_html_on_subsequent_requests(): void
+    public function test_roster_returns_cached_roster_on_subsequent_requests(): void
     {
         $org = Organization::factory()->create();
 
-        Cache::put("tracker:roster:{$org->id}", '<p>cached content</p>', 86400);
+        Cache::put(PublicRosterPageData::cacheKey($org->id), [
+            'command_staff' => [],
+            'members' => [['name' => 'Cached Member', 'identifier' => 'TK1', 'photo' => null]],
+        ], 86400);
 
         $response = $this->get(route('api.public', ['roster' => '', 'org' => $org->id]));
 
         $response->assertOk();
-        $response->assertSee('cached content');
+        $response->assertSee('Cached Member - TK1');
     }
 
     public function test_roster_does_not_cache_missing_org_response(): void
     {
         $this->get(route('api.public', ['roster' => '', 'org' => 9999]));
 
-        $this->assertFalse(Cache::has('tracker:roster:9999'));
+        $this->assertFalse(Cache::has(PublicRosterPageData::cacheKey(9999)));
     }
 
     public function test_roster_places_moderators_in_staff_section(): void

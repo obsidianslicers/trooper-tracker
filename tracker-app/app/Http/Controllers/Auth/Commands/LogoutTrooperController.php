@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Auth\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
+use App\Messages\Auth\Commands\LogoutTrooper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Handles trooper logout and session termination.
@@ -31,7 +31,7 @@ class LogoutTrooperController extends PageController
     {
         FlashType::success(__('auth.You have been logged out.'));
 
-        Auth::logout();
+        LogoutTrooper::call();
 
         return redirect()->route('auth.login', ['logged_out' => '1']);
     }

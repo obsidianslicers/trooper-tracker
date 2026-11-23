@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth\Pages;
 
 use App\Enums\FlashType;
-use App\Facades\TroopTracker;
 use App\Http\Controllers\PageController;
+use App\Messages\Auth\Commands\StartRegistrationWithEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
 
 /**
  * Initiates the email-based registration flow.
@@ -20,13 +19,6 @@ use Illuminate\Support\Facades\Session;
  */
 class StartEmailSignUpController extends PageController
 {
-    private TroopTracker $troop_tracker;
-
-    protected function initialized(): void
-    {
-        $this->troop_tracker = app(TroopTracker::class);
-    }
-
     /**
      * Handle the incoming request to initiate email registration.
      *
@@ -39,12 +31,10 @@ class StartEmailSignUpController extends PageController
      */
     public function __invoke(Request $request): RedirectResponse
     {
-        $required = $this->troop_tracker->requiredLoginProvider();
+        $required = StartRegistrationWithEmail::call();
 
         if ($required !== null)
         {
-            Session::forget('registration_auth');
-
             FlashType::warning(__(
                 'auth.Email sign up is disabled. Please sign up with :provider.',
                 ['provider' => $required->name()]
@@ -52,14 +42,6 @@ class StartEmailSignUpController extends PageController
 
             return redirect()->route('auth.signup');
         }
-
-        $registration_auth = [
-            'method' => 'email',
-            'email' => null, // will be filled in on the form
-            'expires_at' => now()->addMinutes(20),
-        ];
-
-        Session::put('registration_auth', $registration_auth);
 
         return redirect()->route('auth.register');
     }

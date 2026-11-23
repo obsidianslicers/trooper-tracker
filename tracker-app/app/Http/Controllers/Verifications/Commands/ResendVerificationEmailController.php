@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Verifications\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
+use App\Messages\Troopers\Commands\SendTrooperVerificationEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -27,7 +28,7 @@ class ResendVerificationEmailController extends PageController
      */
     public function __invoke(Request $request): RedirectResponse
     {
-        $request->user()->sendEmailVerificationNotification();
+        SendTrooperVerificationEmail::call(trooper: $request->user());
 
         FlashType::success(__('verifications.A new verification link has been sent to your email.'));
 

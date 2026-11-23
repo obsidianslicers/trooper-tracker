@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account\Pages;
 
 use App\Http\Controllers\PageController;
-use App\Messages\Account\Queries\GetTrooperNotifications;
-use App\Messages\Events\Queries\GetTroopsToConfirm;
-use App\Notifications\Events\EventShiftCompletedNotification;
+use App\Messages\Account\PageData\PushNotificationsPageData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -27,16 +25,8 @@ class ListPushNotificationsController extends PageController
      */
     public function __invoke(Request $request): View
     {
-        $trooper = $request->user();
+        $data = PushNotificationsPageData::call($request);
 
-        //  the reminders' troops are listed above, with their answers, as in the bell
-        $notifications = GetTrooperNotifications::call(
-            trooper: $trooper,
-            except_type: EventShiftCompletedNotification::class,
-        );
-
-        $troops_to_confirm = GetTroopsToConfirm::call(trooper: $trooper);
-
-        return view('pages.account.push-notifications', compact('notifications', 'troops_to_confirm'));
+        return view('pages.account.push-notifications', $data);
     }
 }
