@@ -6,14 +6,12 @@ namespace App\Http\Controllers\Auth\Commands;
 
 use App\Contracts\LoginProvider;
 use App\Enums\FlashType;
+use App\Enums\OauthLoginOutcome;
 use App\Http\Controllers\PageController;
-use App\Models\OauthLogin;
-use App\Models\Trooper;
+use App\Messages\Auth\Commands\LoginTrooperWithOauth;
 use App\Plugins\PluginLoginProviders;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
 
@@ -89,94 +87,16 @@ class HandleOauthCallbackController extends PageController
             return redirect()->route('auth.login');
         }
 
-        // Find existing social account
-        $account = OauthLogin::where(OauthLogin::PROVIDER, $provider)
-            ->where(OauthLogin::PROVIDER_ID, $provider_user->getId())
-            ->first();
+        $outcome = LoginTrooperWithOauth::call(login_provider: $login_provider, provider_user: $provider_user);
 
-        if ($account)
+        return match ($outcome)
         {
-            $trooper = $account->trooper;
-
-            if ($trooper->is_denied)
-            {
-                Auth::login($trooper, true);
-
-                return redirect()->route('account.denied');
-            }
-
-            if (!$trooper->membership_status?->canLogIn())
-            {
-                return redirect()->route('auth.inactive');
-            }
-
-            $login_provider->syncTrooper($trooper, $provider_user);
-
-            Auth::login($trooper, true);
-
-            return redirect()->intended('/');
-        }
-
-        $email = $provider_user->getEmail();
-
-        if (empty($email))
-        {
-            return $this->missingEmail($login_provider);
-        }
-
-        $trooper = Trooper::byEmail($email)->first();
-
-        if ($trooper === null)
-        {
-            $registration_auth = [
-                'method' => $provider,
-                'provider_id' => $provider_user->getId(),
-                'email' => $provider_user->getEmail(),
-                'expires_at' => now()->addMinutes(value: 20),
-            ];
-
-            $oauth_pending = [
-                'provider' => $provider,
-                'provider_id' => $provider_user->getId(),
-                'email' => $provider_user->getEmail(),
-                'name' => $provider_user->getName(),
-                'token' => $provider_user->token ?? null,
-                'refresh_token' => $provider_user->refreshToken ?? null,
-            ];
-
-            // Session::put(self::FLASH_KEY, $messages);
-            Session::put('registration_auth', $registration_auth);
-            Session::put('oauth_pending', $oauth_pending);
-
-            return redirect()->route('auth.register');
-        }
-
-        if ($trooper->is_denied)
-        {
-            Auth::login($trooper, true);
-
-            return redirect()->route('account.denied');
-        }
-
-        if (!$trooper->membership_status?->canLogIn())
-        {
-            return redirect()->route('auth.inactive');
-        }
-
-        $login_provider->syncTrooper($trooper, $provider_user);
-
-        // Link provider to existing trooper account
-        OauthLogin::create([
-            OauthLogin::TROOPER_ID => $trooper->id,
-            OauthLogin::PROVIDER => $provider,
-            OauthLogin::PROVIDER_ID => $provider_user->getId(),
-            OauthLogin::TOKEN => $provider_user->token ?? null,
-            OauthLogin::REFRESH_TOKEN => $provider_user->refreshToken ?? null,
-        ]);
-
-        Auth::login($trooper);
-
-        return redirect()->intended('/');
+            OauthLoginOutcome::LOGGED_IN => redirect()->intended('/'),
+            OauthLoginOutcome::DENIED => redirect()->route('account.denied'),
+            OauthLoginOutcome::INACTIVE => redirect()->route('auth.inactive'),
+            OauthLoginOutcome::REGISTER => redirect()->route('auth.register'),
+            OauthLoginOutcome::MISSING_EMAIL => $this->missingEmail($login_provider),
+        };
     }
 
     private function missingEmail(LoginProvider $login_provider): RedirectResponse

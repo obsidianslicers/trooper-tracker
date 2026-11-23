@@ -57,7 +57,7 @@ class UpdateTrooperSignUpRequest extends FormRequest
             return true;
         }
 
-        if ($event_trooper->canReSignUp($this->user()))
+        if ($event_trooper->canReinstate($this->user()))
         {
             return true;
         }
@@ -127,7 +127,7 @@ class UpdateTrooperSignUpRequest extends FormRequest
                 'int',
                 Rule::in($valid_costume_ids),
             ],
-            'resign_up' => ['nullable', 'boolean'],
+            'reinstate' => ['nullable', 'boolean'],
         ];
     }
 

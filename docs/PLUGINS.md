@@ -353,7 +353,7 @@ $this->extendForm(PluginForms::ORGANIZATION_UPDATE,
 );
 ```
 
-Forms that support this are listed as constants on `App\Plugins\PluginForms`: the organization edit form (`ORGANIZATION_UPDATE`) and the event create and edit forms (`EVENT_UPDATE`, saved by the `UpdateEvent` message; `saved` gets the event and the validated input, so check your own keys are present). Give your inputs names that are not event or organization columns, such as a `hello_` prefix.
+Forms that support this are listed as constants on `App\Plugins\PluginForms`: the organization edit form (`ORGANIZATION_UPDATE`) and the event create and edit forms (`EVENT_UPDATE`, saved by the `UpdateEventDetails` message; `saved` gets the event and the validated input, so check your own keys are present). Give your inputs names that are not event or organization columns, such as a `hello_` prefix.
 
 ### Editor smilies
 

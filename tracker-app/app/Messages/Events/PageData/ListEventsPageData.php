@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Events\PageData;
 
+use App\Facades\TroopTrackerFacade as TroopTracker;
 use App\Messages\Events\Queries\GetEventsForDisplay;
 use App\Messages\Events\Queries\GetTrooperSignUpStatuses;
 use App\Messages\Events\Resources\UpcomingEventResource;
@@ -12,9 +13,11 @@ use App\Messages\Notices\Queries\GetUnreadNoticeCount;
 use App\Messages\Notices\Resources\UnreadNoticeResource;
 use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use App\Messages\Organizations\Resources\HostingOrganizationOptions;
+use App\Messages\Support\Queries\GetSupportGoal;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\Trooper;
+use Closure;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 use Illuminate\Support\Collection;
@@ -39,7 +42,18 @@ final class ListEventsPageData extends Message
             ),
             'notices' => $this->getNotices(),
             'has_map' => (bool) config('services.google.maps_api_key'),
+            'support' => $this->getSupport(),
         ];
+    }
+
+    /**
+     * The support goal is slow to work out, so it comes as a closure the page can load later.
+     */
+    private function getSupport(): ?Closure
+    {
+        return TroopTracker::isSupportGoalEnabled()
+            ? fn (): array => GetSupportGoal::call()
+            : null;
     }
 
     /**

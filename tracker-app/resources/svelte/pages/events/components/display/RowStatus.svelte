@@ -52,7 +52,7 @@
 {:else if actions.sign_up_again}
     <button type="button" class="btn btn-sm btn-outline-secondary btn-secondary-action" disabled={vm.sending}
             aria-busy={vm.isBusy(again_key)}
-            onclick={() => send(actions.sign_up_again === "resign_up" ? { resign_up: 1 } : { status: "going" }, again_key)}>
+            onclick={() => send(actions.sign_up_again === "reinstate" ? { reinstate: 1 } : { status: "going" }, again_key)}>
         <BusySpinner busy={vm.isBusy(again_key)} />
         {t("Sign up again")}
     </button>

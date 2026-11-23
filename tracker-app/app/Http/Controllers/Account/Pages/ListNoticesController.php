@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account\Pages;
 
 use App\Http\Controllers\PageController;
-use App\Messages\Notices\Queries\GetUnreadNotices;
+use App\Messages\Account\PageData\NoticesPageData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -25,11 +25,7 @@ class ListNoticesController extends PageController
      */
     public function __invoke(Request $request): View
     {
-        $trooper = $request->user();
-
-        $notices = GetUnreadNotices::call(trooper: $trooper);
-
-        $data = compact('notices');
+        $data = NoticesPageData::call($request);
 
         return view('pages.account.notices', $data);
     }

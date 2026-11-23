@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Widgets\Pages;
 
 use App\Http\Controllers\Controller;
-use App\Messages\Notices\Queries\GetFirstUnreadNotice;
-use App\Messages\Notices\Queries\GetUnreadNoticeCount;
+use App\Messages\Notices\PageData\NoticeWidgetPageData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -17,26 +16,9 @@ use Illuminate\Http\Request;
  */
 class ShowNoticeHtmxController extends Controller
 {
-    /**
-     * Handle the incoming request to display the notice widget
-     *
-     * @param  Request  $request  The incoming HTTP request
-     * @return View The rendered notice widget view
-     */
     public function __invoke(Request $request): View
     {
-        $trooper = $request->user();
-
-        $notice = null;
-
-        $count = GetUnreadNoticeCount::call(trooper: $trooper);
-
-        if ($count == 1)
-        {
-            $notice = GetFirstUnreadNotice::call(trooper: $trooper);
-        }
-
-        $data = compact('count', 'notice');
+        $data = NoticeWidgetPageData::call($request);
 
         return view('widgets.notice', $data);
     }

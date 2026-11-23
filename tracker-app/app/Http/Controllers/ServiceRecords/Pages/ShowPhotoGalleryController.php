@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\ServiceRecords\Pages;
 
 use App\Http\Controllers\PageController;
-use App\Messages\ServiceRecords\Queries\GetPhotoGallery;
+use App\Messages\ServiceRecords\PageData\PhotoGalleryPageData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -16,8 +16,8 @@ class ShowPhotoGalleryController extends PageController
 {
     public function __invoke(Request $request): View
     {
-        $uploads = GetPhotoGallery::call();
+        $data = PhotoGalleryPageData::call($request);
 
-        return view('pages.service-records.photo-gallery', compact('uploads'));
+        return view('pages.service-records.photo-gallery', $data);
     }
 }

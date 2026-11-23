@@ -4,68 +4,96 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Events\Commands;
 
+use App\Enums\EventStatus;
+use App\Jobs\ReconcileEventRosterJob;
+use App\Jobs\SendEventCancelledNotificationsJob;
+use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Messages\Events\Commands\UpdateEvent;
+use App\Messages\Events\Commands\UpdateEventDetails;
+use App\Messages\Events\Commands\UpdateEventOrganizations;
 use App\Models\Event;
+use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class UpdateEventTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
-    public function test_handle_updates_event_with_valid_data(): void
-    {
-        $event = Event::factory()->create([
-            Event::NAME => 'Original Name',
-            Event::VENUE => 'Original Venue',
-        ]);
+    private Trooper $admin;
 
-        $data = [
-            Event::NAME => 'Updated Name',
-            Event::VENUE => 'Updated Venue',
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Queue::fake();
+        $this->admin = Trooper::factory()->asSystemOwner()->create();
+    }
+
+    public function test_handle_saves_details_and_organizations_then_reconciles_the_roster(): void
+    {
+        $event = Event::factory()->create([Event::STATUS => EventStatus::OPEN]);
+        $messages = $this->fakeMessages([
+            UpdateEventDetails::class => null,
+            UpdateEventOrganizations::class => null,
+        ]);
+        $organizations = [['id' => 1]];
+
+        $subject = new UpdateEvent($event, ['status' => 'open', 'organizations' => $organizations], $this->admin);
+        $subject->handle();
+
+        $messages->assertCalled(UpdateEventDetails::class);
+        $messages->assertCalled(
+            UpdateEventOrganizations::class,
+            fn (array $params): bool => $params['data'] === $organizations
+        );
+        Queue::assertPushed(ReconcileEventRosterJob::class);
+        Queue::assertNotPushed(SendEventCreatedNotificationsJob::class);
+        Queue::assertNotPushed(SendEventCancelledNotificationsJob::class);
+    }
+
+    public function test_handle_announces_a_draft_when_it_opens(): void
+    {
+        $event = Event::factory()->create([Event::STATUS => EventStatus::DRAFT]);
+
+        $subject = new UpdateEvent($event, $this->form($event, EventStatus::OPEN), $this->admin);
+        $subject->handle();
+
+        Queue::assertPushed(SendEventCreatedNotificationsJob::class);
+    }
+
+    public function test_handle_tells_the_roster_when_an_open_event_is_cancelled(): void
+    {
+        $event = Event::factory()->create([Event::STATUS => EventStatus::OPEN]);
+
+        $subject = new UpdateEvent($event, $this->form($event, EventStatus::CANCELLED), $this->admin);
+        $subject->handle();
+
+        Queue::assertPushed(SendEventCancelledNotificationsJob::class);
+    }
+
+    public function test_handle_sends_nothing_when_a_draft_is_cancelled(): void
+    {
+        $event = Event::factory()->create([Event::STATUS => EventStatus::DRAFT]);
+
+        $subject = new UpdateEvent($event, $this->form($event, EventStatus::CANCELLED), $this->admin);
+        $subject->handle();
+
+        Queue::assertNotPushed(SendEventCreatedNotificationsJob::class);
+        Queue::assertNotPushed(SendEventCancelledNotificationsJob::class);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function form(Event $event, EventStatus $status): array
+    {
+        return [
+            Event::NAME => $event->name,
+            Event::STATUS => $status->value,
         ];
-
-        $command = new UpdateEvent(
-            event: $event,
-            data: $data
-        );
-
-        $command->handle();
-
-        $this->assertDatabaseHas('tt_events', [
-            Event::ID => $event->id,
-            Event::NAME => 'Updated Name',
-            Event::VENUE => 'Updated Venue',
-        ]);
-    }
-
-    public function test_handle_persists_changes_to_database(): void
-    {
-        $event = Event::factory()->create([Event::NAME => 'Old Name']);
-
-        $command = new UpdateEvent(
-            event: $event,
-            data: [Event::NAME => 'New Name']
-        );
-
-        $command->handle();
-
-        $event->refresh();
-
-        $this->assertSame('New Name', $event->{Event::NAME});
-    }
-
-    public function test_handle_returns_null(): void
-    {
-        $event = Event::factory()->create();
-
-        $command = new UpdateEvent(
-            event: $event,
-            data: [Event::NAME => 'Test']
-        );
-
-        $result = $command->handle();
-
-        $this->assertNull($result);
     }
 }

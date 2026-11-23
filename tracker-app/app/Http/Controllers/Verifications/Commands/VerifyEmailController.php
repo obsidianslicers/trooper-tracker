@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Verifications\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
+use App\Messages\Troopers\Commands\VerifyTrooperEmail;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
 
@@ -28,7 +29,7 @@ class VerifyEmailController extends PageController
      */
     public function __invoke(EmailVerificationRequest $request): RedirectResponse
     {
-        $request->fulfill();
+        VerifyTrooperEmail::call(trooper: $request->user());
 
         FlashType::success(__('verifications.Thank you for verifying your email!'));
 

@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Pickers\Pages;
 
 use App\Http\Controllers\PageController;
-use App\Messages\Troopers\Queries\GetTroopersForPicker;
-use App\Models\Filters\TrooperFilter;
+use App\Messages\Troopers\PageData\ListPickerTroopersPageData;
 use Exception;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -20,40 +19,14 @@ use Illuminate\Http\Request;
  */
 class ListPickerTroopersController extends PageController
 {
-    /**
-     * Handle the incoming request to display the trooper picker view
-     *
-     * @param  Request  $request  The incoming HTTP request
-     * @param  TrooperFilter  $filter  The filter service for applying query constraints
-     * @return View The rendered trooper picker view
-     *
-     * @throws Exception If property parameter is missing
-     */
-    public function __invoke(Request $request, TrooperFilter $filter): View
+    public function __invoke(Request $request): View
     {
-        $trooper = $request->user();
-
-        $property = $request->query('property');
-
-        $search_term = $request->query('search_term');
-
-        if ($property === null)
+        if ($request->query('property') === null)
         {
             throw new Exception('Missing property parameter');
         }
 
-        $organization_id = $request->query('organization_id');
-
-        if ($organization_id !== null)
-        {
-            $organization_id = (int) $organization_id;
-        }
-
-        $troopers = GetTroopersForPicker::call(trooper: $trooper, filter: $filter, data: $request->query());
-
-        $event_name = $request->query('event', '');
-
-        $data = compact('troopers', 'property', 'search_term', 'organization_id', 'event_name');
+        $data = ListPickerTroopersPageData::call($request, ['query' => $request->query()]);
 
         return view('pickers.trooper', $data);
     }

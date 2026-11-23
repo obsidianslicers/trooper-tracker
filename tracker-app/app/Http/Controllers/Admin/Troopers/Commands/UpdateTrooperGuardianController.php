@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Requests\Admin\Troopers\Commands\UpdateTrooperGuardianRequest;
-use App\Messages\Troopers\Commands\UpdateTrooper;
+use App\Messages\Troopers\Commands\UpdateTrooperGuardian;
 use App\Models\Trooper;
 use Inertia\Response as InertiaResponse;
 
@@ -14,18 +14,7 @@ class UpdateTrooperGuardianController extends ProfileCommandController
 {
     public function __invoke(UpdateTrooperGuardianRequest $request, Trooper $trooper): InertiaResponse
     {
-        $data = $request->validated();
-
-        if (array_key_exists('guardian_email', $data))
-        {
-            $guardian_email = $data['guardian_email'];
-            $data[Trooper::GUARDIAN_ID] = $guardian_email
-                ? Trooper::where(Trooper::EMAIL, $guardian_email)->value(Trooper::ID)
-                : null;
-            unset($data['guardian_email']);
-        }
-
-        UpdateTrooper::call(trooper: $trooper, valid_data: $data);
+        UpdateTrooperGuardian::call(trooper: $trooper, valid_data: $request->validated());
 
         FlashType::updated($trooper);
 

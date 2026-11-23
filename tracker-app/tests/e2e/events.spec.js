@@ -173,6 +173,23 @@ test.describe('signing up', () => {
         await response;
         await expect(shift(page).locator('.trooper-status-cancelled')).toContainText(personas.trooper.name);
         await expect(shift(page).locator('.trooper-status-cancelled').getByRole('button', { name: 'Sign up again' })).toBeVisible();
+        await expect(shift(page).getByText('1 of 10 going')).toBeVisible();
+
+        // Signing up again on an event with limits reinstates the sign-up at the back of the
+        // line: going here, since the shift has room.
+        const reinstated = page.waitForResponse((r) => r.url().includes('/events/update/') && r.request().method() === 'POST');
+        await shift(page).locator('.trooper-status-cancelled').getByRole('button', { name: 'Sign up again' }).click();
+        expect((await reinstated).request().postData()).toContain('reinstate');
+        await expect(page.locator('.toast:visible').getByText('Signed up again.').first()).toBeVisible();
+        await expect(shift(page).getByText('2 of 10 going')).toBeVisible();
+        await expect(shift(page).locator('.roster-row--mine')).toContainText('Going');
+
+        // Cancel once more, so the troops after this one find the trooper not going.
+        const cancelledAgain = page.waitForResponse((r) => r.url().includes('/events/update/') && r.request().method() === 'POST');
+        await shift(page).locator('.roster-row--mine').getByRole('button', { name: 'Cancel my sign-up' }).click();
+        await confirmWith(page, 'Cancel my sign-up');
+        await cancelledAgain;
+        await expect(shift(page).locator('.trooper-status-cancelled')).toContainText(personas.trooper.name);
     });
 
     test('a troop with a required brief opens sign-up once it is acknowledged', async ({ page }) => {

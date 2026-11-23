@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Shares\Pages;
 
 use App\Http\Controllers\PageController;
-use App\Models\Event;
-use App\Models\EventUpload;
+use App\Messages\Events\PageData\SharedEventPageData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -19,38 +18,9 @@ use Illuminate\Http\Request;
  */
 class ShowSharedEventController extends PageController
 {
-    /**
-     * Handle the incoming request to display the event sharing page.
-     *
-     * This method retrieves the specified event and renders the sharing
-     * view where users can generate and copy shareable links or share
-     * directly to social media platforms.
-     *
-     * @param  Request  $request  The incoming HTTP request
-     * @param  Event  $event  The event to be shared
-     * @return View The rendered sharing page view
-     */
-    public function __invoke(Request $request, Event $event, ?EventUpload $event_upload = null): View
+    public function __invoke(Request $request): View
     {
-        $sharing_image = false;
-
-        $image_url = route('shares.og-image', $event->organization->id);
-
-        if ($event_upload)
-        {
-            $event_upload = $event->event_uploads()
-                ->where(EventUpload::ID, $event_upload->id)
-                ->first();
-
-            if ($event_upload && $event_upload->large_url)
-            {
-                $image_url = $event_upload->large_url;
-
-                $sharing_image = true;
-            }
-        }
-
-        $data = compact('event', 'event_upload', 'image_url', 'sharing_image');
+        $data = SharedEventPageData::call($request);
 
         return view('pages.shares.event', $data);
     }

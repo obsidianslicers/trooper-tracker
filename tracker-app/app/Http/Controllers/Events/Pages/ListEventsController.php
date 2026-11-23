@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events\Pages;
 
-use App\Facades\TroopTrackerFacade as TroopTracker;
 use App\Http\Controllers\PageController;
 use App\Messages\Events\PageData\ListEventsPageData;
-use App\Messages\Support\Queries\GetSupportGoal;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -21,9 +19,10 @@ class ListEventsController extends PageController
     {
         $data = ListEventsPageData::call($request);
 
-        $data['support'] = TroopTracker::isSupportGoalEnabled()
-            ? Inertia::defer(fn (): array => GetSupportGoal::call())
-            : null;
+        if ($data['support'] !== null)
+        {
+            $data['support'] = Inertia::defer($data['support']);
+        }
 
         return Inertia::render('events/List', $data);
     }

@@ -8,8 +8,8 @@ use App\Enums\FlashType;
 use App\Http\Controllers\Events\Concerns\AnswersWithEventPage;
 use App\Http\Controllers\Events\Concerns\HandlesEventImageUploadResponses;
 use App\Http\Controllers\PageController;
+use App\Messages\Events\Commands\UploadEventImages;
 use App\Models\Event;
-use App\Services\EventImageUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -29,23 +29,8 @@ class UploadEventImagesController extends PageController
     use AnswersWithEventPage;
     use HandlesEventImageUploadResponses;
 
-    public function __construct(private readonly EventImageUploadService $uploads) {}
-
-    /**
-     * Handle the incoming image upload request
-     *
-     * Validates uploaded images (max tracker.image.max_upload_kb, PNG/JPG/JPEG/WEBP/HEIC), normalizes them
-     * to square transparent canvases, generates thumbnails (128x128), and stores
-     * both versions. Creates EventUpload records linked to the trooper and event.
-     *
-     * @param  Request  $request  The incoming HTTP request with 'images' file array
-     * @param  Event  $event  The event to attach uploads to
-     * @return RedirectResponse Back to the event page, with a toast saying how it went
-     */
     public function __invoke(Request $request, Event $event): RedirectResponse
     {
-        $trooper_id = $request->user()->id;
-
         try
         {
             $request->validate($this->eventImageUploadRules(), $this->eventImageUploadMessages());
@@ -55,11 +40,16 @@ class UploadEventImagesController extends PageController
             return $this->backToEvent($event, $this->eventImageUploadValidationMessage($e), FlashType::DANGER);
         }
 
-        $result = $this->uploads->upload(
-            $event,
-            $trooper_id,
-            $request->file('images', []),
-            $this->isInstructional($request, $event)
+        $result = UploadEventImages::call(
+            event: $event,
+            trooper: $request->user(),
+            files: $request->file('images', []),
+            is_instructional: match ($request->input('upload_type'))
+            {
+                'instructional' => true,
+                'troop' => false,
+                default => null,
+            },
         );
 
         $type = match (true)
@@ -70,15 +60,5 @@ class UploadEventImagesController extends PageController
         };
 
         return $this->backToEvent($event, $this->eventImageUploadSuccessMessage($result), $type);
-    }
-
-    private function isInstructional(Request $request, Event $event): bool
-    {
-        return match ($request->input('upload_type'))
-        {
-            'instructional' => true,
-            'troop' => false,
-            default => $event->uploadsDefaultToInstructional(),
-        };
     }
 }

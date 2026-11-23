@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Home\Pages;
 
 use App\Http\Controllers\PageController;
-use App\Plugins\PluginLoginProviders;
+use App\Messages\Home\PageData\HomePageData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,33 +21,20 @@ use Illuminate\Support\Facades\Auth;
 class ShowHomeController extends PageController
 {
     /**
-     * Handle the incoming request to display the home page.
-     *
      * Redirects authenticated troopers to the events list, or renders
-     * the public home page for guests. When a login provider is required,
-     * the login button goes straight to it instead of the login page.
+     * the public home page for guests.
      *
      * @param  Request  $request  The incoming HTTP request
-     * @param  PluginLoginProviders  $providers  The registered login providers
      * @return View|RedirectResponse The rendered home page view or redirect to events list
      */
-    public function __invoke(Request $request, PluginLoginProviders $providers): View|RedirectResponse
+    public function __invoke(Request $request): View|RedirectResponse
     {
         if (Auth::check())
         {
             return redirect()->route('events.list');
         }
 
-        $required = $providers->required();
-
-        $data = [
-            'login_url' => $required === null
-                ? route('auth.login')
-                : route('auth.oauth-redirect', ['provider' => $required->key()]),
-            'login_label' => $required === null
-                ? __('layout.Login')
-                : __('auth.Login with :provider', ['provider' => $required->name()]),
-        ];
+        $data = HomePageData::call();
 
         return view('pages.home', $data);
     }

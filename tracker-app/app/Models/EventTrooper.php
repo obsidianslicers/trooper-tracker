@@ -317,12 +317,12 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
-     * Determines whether the assignment can be re-signed up by the given trooper.
+     * Determines whether the given trooper can put this cancelled sign-up back on the shift.
      *
-     * @param  Trooper  $actor  The trooper attempting re-signup.
+     * @param  Trooper  $actor  The trooper reinstating the sign-up.
      * @return bool True when status is CANCELLED, shift is open, and actor has ownership.
      */
-    public function canReSignUp(Trooper $actor): bool
+    public function canReinstate(Trooper $actor): bool
     {
         return $this->status === EventTrooperStatus::CANCELLED
             && $this->event_shift->is_open

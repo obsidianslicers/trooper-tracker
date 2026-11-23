@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards\Commands;
 
-use App\Enums\AwardFrequency;
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Awards\Commands\StoreAwardRequest;
@@ -18,7 +17,7 @@ class StoreAwardController extends Controller
         $award = CreateAward::call(
             organization_id: (int) $request->validated('organization_id'),
             name: $request->validated('name'),
-            frequency: AwardFrequency::from($request->validated('frequency')),
+            frequency: $request->validated('frequency'),
         );
 
         FlashType::created($award);

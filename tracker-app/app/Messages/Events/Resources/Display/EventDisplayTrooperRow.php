@@ -137,7 +137,7 @@ class EventDisplayTrooperRow extends JsonResource
     }
 
     /**
-     * 'resign_up' re-queues them by sign-up time on limited events; 'going' just sets them back.
+     * 'reinstate' re-queues them by sign-up time on limited events; 'going' just sets them back.
      */
     private function signUpAgain(): ?string
     {
@@ -150,7 +150,7 @@ class EventDisplayTrooperRow extends JsonResource
 
         if ($this->context->event->hasLimits())
         {
-            return $this->canReSignUp($viewer) ? 'resign_up' : null;
+            return $this->canReinstate($viewer) ? 'reinstate' : null;
         }
 
         return $this->canUpdateStatus($viewer) ? 'going' : null;

@@ -5,24 +5,20 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events\Pages;
 
 use App\Http\Controllers\PageController;
-use App\Models\Event;
-use Spatie\CalendarLinks\Generators\Ics;
+use App\Messages\Events\PageData\EventIcsPageData;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DownloadEventIcsController extends PageController
 {
-    public function __invoke(Event $event): StreamedResponse
+    public function __invoke(Request $request): StreamedResponse
     {
-        $link = $event->createCalendarLink();
-        $generator = new Ics([], ['format' => 'file']);
-        $icsContent = $generator->generate($link);
-
-        $filename = str($event->name)->slug().'.ics';
+        ['filename' => $filename, 'content' => $content] = EventIcsPageData::call($request);
 
         return response()->streamDownload(
-            function () use ($icsContent)
+            function () use ($content)
             {
-                echo $icsContent;
+                echo $content;
             },
             $filename,
             [

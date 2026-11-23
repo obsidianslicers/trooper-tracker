@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Admin\Events\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Events\Concerns\HandlesEventImageUploadResponses;
+use App\Messages\Events\Commands\UploadEventImages;
 use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
-use App\Services\EventImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Response as InertiaResponse;
@@ -24,19 +24,6 @@ class StoreEventUploadController extends EventCommandController
 {
     use HandlesEventImageUploadResponses;
 
-    public function __construct(private readonly EventImageUploadService $uploads) {}
-
-    /**
-     * Handle the incoming administrative image upload request
-     *
-     * Validates uploaded images (max tracker.image.max_upload_kb, PNG/JPG/JPEG/WEBP/HEIC), normalizes them
-     * to square transparent canvases, generates thumbnails (128x128), and stores
-     * both versions. Creates EventUpload records marked as administrative uploads.
-     *
-     * @param  Request  $request  The incoming HTTP request with 'images' file array
-     * @param  Event  $event  The event to attach uploads to
-     * @return InertiaResponse The refreshed event page data as results
-     */
     public function __invoke(Request $request, Event $event): InertiaResponse
     {
         $this->authorize('update', $event);
@@ -49,14 +36,16 @@ class StoreEventUploadController extends EventCommandController
         {
             FlashType::danger($this->eventImageUploadValidationMessage($e));
 
-            return $this->respondWithResults(
-                $request,
-                AdminEventPageData::UPLOADS,
-                AdminEventPageData::MISSION_REVIEW,
-            );
+            return $this->respondWithUploads($request);
         }
 
-        $result = $this->uploads->upload($event, $request->user()->id, $request->file('images', []), true);
+        $result = UploadEventImages::call(
+            event: $event,
+            trooper: $request->user(),
+            files: $request->file('images', []),
+            is_instructional: true,
+        );
+
         $message = $this->eventImageUploadSuccessMessage($result);
 
         match (true)
@@ -66,6 +55,11 @@ class StoreEventUploadController extends EventCommandController
             default => FlashType::success($message),
         };
 
+        return $this->respondWithUploads($request);
+    }
+
+    private function respondWithUploads(Request $request): InertiaResponse
+    {
         return $this->respondWithResults(
             $request,
             AdminEventPageData::UPLOADS,

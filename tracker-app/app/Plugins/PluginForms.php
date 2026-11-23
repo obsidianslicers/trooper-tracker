@@ -20,7 +20,7 @@ class PluginForms
     public const ORGANIZATION_UPDATE = 'admin.organizations.update';
 
     /**
-     * The event create and edit forms. Saved through UpdateEvent, which passes
+     * The event create and edit forms. Saved through UpdateEventDetails, which passes
      * the event and the validated input.
      */
     public const EVENT_UPDATE = 'admin.events.update';

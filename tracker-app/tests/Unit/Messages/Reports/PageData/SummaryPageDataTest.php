@@ -7,6 +7,9 @@ namespace Tests\Unit\Messages\Reports\PageData;
 use App\Messages\Reports\PageData\CostumeEventSummaryPageData;
 use App\Messages\Reports\PageData\DonationEventSummaryPageData;
 use App\Messages\Reports\PageData\TrooperEventSummaryPageData;
+use App\Messages\Reports\Queries\GetCostumeEventSummary;
+use App\Messages\Reports\Queries\GetDonationEventSummary;
+use App\Messages\Reports\Queries\GetTrooperEventSummary;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
@@ -15,10 +18,12 @@ use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class SummaryPageDataTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_trooper_summary_lists_troopers_and_describes_the_filters(): void
@@ -28,18 +33,23 @@ class SummaryPageDataTest extends TestCase
         $trooper->events_count = 3;
         $trooper->event_shifts_count = 0;
 
+        $fake = $this->fakeMessages([GetTrooperEventSummary::class => $this->page([$trooper])]);
+
         $subject = new TrooperEventSummaryPageData(
-            troopers: $this->page([$trooper]),
-            organizations: collect([$organization]),
+            actor: $this->moderator(),
+            date_start: '2026-01-01',
+            active_only: '1',
             organization_id: $organization->id,
-            date_start: Carbon::parse('2026-01-01'),
-            date_end: null,
-            active_only: true,
             sort: 'events_count',
             dir: 'asc',
         );
 
         $result = $subject->handle();
+
+        $fake->assertCalled(GetTrooperEventSummary::class, fn (array $params): bool => $params['active_only']
+            && $params['organization']->is($organization)
+            && $params['date_start']->eq(Carbon::parse('2026-01-01'))
+            && $params['page_size'] === TrooperEventSummaryPageData::PAGE_SIZE);
         $row = $result['troopers']->resolve()[0];
 
         $this->assertSame('TK-1', $row['display_name']);
@@ -72,15 +82,9 @@ class SummaryPageDataTest extends TestCase
                 return $costume;
             });
 
-        $subject = new CostumeEventSummaryPageData(
-            costumes: $this->page($costumes->all()),
-            organizations: collect(),
-            organization_id: null,
-            date_start: null,
-            date_end: null,
-            sort: 'uses_count',
-            dir: 'desc',
-        );
+        $this->fakeMessages([GetCostumeEventSummary::class => $this->page($costumes->all())]);
+
+        $subject = new CostumeEventSummaryPageData(actor: $this->moderator());
 
         $result = $subject->handle();
 
@@ -92,8 +96,8 @@ class SummaryPageDataTest extends TestCase
 
     public function test_donation_summary_totals_each_event_and_the_page(): void
     {
-        $garrison = Organization::factory()->create(['name' => 'Florida Garrison']);
-        $squad = Organization::factory()->create(['name' => 'Makaze Squad']);
+        $garrison = Organization::factory()->create(['name' => 'Florida Garrison', 'sequence' => 1]);
+        $squad = Organization::factory()->create(['name' => 'Makaze Squad', 'sequence' => 2]);
         $event = Event::factory()
             ->withOrganization($garrison)
             ->withEventStart(Carbon::parse('2026-06-01 10:00:00'))
@@ -111,16 +115,9 @@ class SummaryPageDataTest extends TestCase
             });
         $event->setRelation('event_shifts', $shifts);
 
-        $subject = new DonationEventSummaryPageData(
-            events: $this->page([$event]),
-            filter_orgs: collect([$garrison, $squad]),
-            selected_ids: [],
-            date_start: null,
-            date_end: null,
-            charity_only: true,
-            sort: 'event_start',
-            dir: 'desc',
-        );
+        $this->fakeMessages([GetDonationEventSummary::class => $this->page([$event])]);
+
+        $subject = new DonationEventSummaryPageData(actor: $this->moderator(), charity_only: '1');
 
         $result = $subject->handle();
         $row = $result['events']->resolve()[0];
@@ -140,22 +137,21 @@ class SummaryPageDataTest extends TestCase
 
     public function test_donation_summary_has_no_totals_or_caption_when_empty(): void
     {
-        $subject = new DonationEventSummaryPageData(
-            events: $this->page([]),
-            filter_orgs: collect([Organization::factory()->create()]),
-            selected_ids: [],
-            date_start: null,
-            date_end: null,
-            charity_only: false,
-            sort: 'event_start',
-            dir: 'desc',
-        );
+        Organization::factory()->create();
+        $this->fakeMessages([GetDonationEventSummary::class => $this->page([])]);
+
+        $subject = new DonationEventSummaryPageData(actor: $this->moderator());
 
         $result = $subject->handle();
 
         $this->assertNull($result['grand_totals']);
         $this->assertNull($result['caption']);
         $this->assertSame([], $result['clubs']);
+    }
+
+    private function moderator(): Trooper
+    {
+        return Trooper::factory()->asSystemOwner()->create();
     }
 
     /**

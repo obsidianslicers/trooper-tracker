@@ -5,27 +5,24 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events\Pages;
 
 use App\Http\Controllers\PageController;
+use App\Messages\Events\PageData\EventShiftIcsPageData;
 use App\Models\Event;
 use App\Models\EventShift;
-use Spatie\CalendarLinks\Generators\Ics;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DownloadEventShiftIcsController extends PageController
 {
-    public function __invoke(Event $event, EventShift $event_shift): StreamedResponse
+    public function __invoke(Request $request, Event $event, EventShift $event_shift): StreamedResponse
     {
         abort_unless((int) $event_shift->event_id === (int) $event->id, 404);
 
-        $link = $event_shift->createCalendarLink();
-        $generator = new Ics([], ['format' => 'file']);
-        $icsContent = $generator->generate($link);
-
-        $filename = str($event->name)->slug().'-shift-'.$event_shift->id.'.ics';
+        ['filename' => $filename, 'content' => $content] = EventShiftIcsPageData::call($request);
 
         return response()->streamDownload(
-            function () use ($icsContent)
+            function () use ($content)
             {
-                echo $icsContent;
+                echo $content;
             },
             $filename,
             [

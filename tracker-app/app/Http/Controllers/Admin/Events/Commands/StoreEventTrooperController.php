@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events\Commands;
 
+use App\Enums\AddEventTrooperOutcome;
 use App\Enums\FlashType;
-use App\Messages\Events\Commands\SignUpEventTrooper;
+use App\Messages\Events\Commands\AddEventTrooper;
 use App\Messages\Events\PageData\AdminEventPageData;
-use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\Trooper;
@@ -22,61 +22,37 @@ class StoreEventTrooperController extends EventCommandController
 
         abort_if($event_shift->event_id !== $event->id, 404);
 
-        $trooper_id = (int) $request->input('trooper_id');
+        $trooper = Trooper::active()->findOrFail((int) $request->input('trooper_id'));
 
-        $trooper = Trooper::active()->findOrFail($trooper_id);
-
-        $auth_trooper = $request->user();
-        $event_shift->loadMissing('event_shift_stations');
-
-        if ($event_shift->isSignedUp($trooper))
-        {
-            FlashType::danger(__('admin.:name is already signed up for this shift.', ['name' => $trooper->display_name]));
-
-            return $this->respondWithResults($request, AdminEventPageData::ROSTER);
-        }
-
-        $costume_id = $request->input('costume_id') ? (int) $request->input('costume_id') : null;
-
-        if ($costume_id !== null && !Costume::forTrooper($trooper->id)->where('id', $costume_id)->exists())
-        {
-            $costume_id = null;
-        }
-
-        $organization_id = $request->input('organization_id') ? (int) $request->input('organization_id') : null;
-
-        if ($organization_id !== null)
-        {
-            $eligible_org_ids = $trooper->eligibleOrgsForEvent($event)->pluck('id')->all();
-
-            if (!in_array($organization_id, $eligible_org_ids, true))
-            {
-                $organization_id = null;
-            }
-        }
-
-        $event_shift_station_id = $request->input('event_shift_station_id')
-            ? (int) $request->input('event_shift_station_id')
-            : null;
-
-        if (!$event_shift->isValidStationChoice($event_shift_station_id))
-        {
-            FlashType::danger(__('admin.Select a station before adding a trooper.'));
-
-            return $this->respondWithResults($request, AdminEventPageData::ROSTER);
-        }
-
-        SignUpEventTrooper::call(
+        $outcome = AddEventTrooper::call(
             event_shift: $event_shift,
             trooper: $trooper,
-            added_by_trooper: $auth_trooper,
-            organization_id: $organization_id,
-            costume_id: $costume_id,
-            event_shift_station_id: $event_shift_station_id,
+            added_by_trooper: $request->user(),
+            costume_id: $this->optionalId($request, 'costume_id'),
+            organization_id: $this->optionalId($request, 'organization_id'),
+            event_shift_station_id: $this->optionalId($request, 'event_shift_station_id'),
         );
 
-        FlashType::success(__('admin.:name was added to the shift.', ['name' => $trooper->display_name]));
+        match ($outcome)
+        {
+            AddEventTrooperOutcome::ALREADY_SIGNED_UP => FlashType::danger(__(
+                'admin.:name is already signed up for this shift.',
+                ['name' => $trooper->display_name]
+            )),
+            AddEventTrooperOutcome::STATION_REQUIRED => FlashType::danger(
+                __('admin.Select a station before adding a trooper.')
+            ),
+            AddEventTrooperOutcome::ADDED => FlashType::success(__(
+                'admin.:name was added to the shift.',
+                ['name' => $trooper->display_name]
+            )),
+        };
 
         return $this->respondWithResults($request, AdminEventPageData::ROSTER);
+    }
+
+    private function optionalId(Request $request, string $key): ?int
+    {
+        return $request->input($key) ? (int) $request->input($key) : null;
     }
 }
