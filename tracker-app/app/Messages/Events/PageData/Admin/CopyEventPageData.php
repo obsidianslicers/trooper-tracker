@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Events\PageData\Admin;
 
+use App\Messages\Events\Resources\Admin\CopyEventResource;
 use App\Models\Event;
 use Hyperdrive\Message;
 
@@ -22,12 +23,7 @@ final class CopyEventPageData extends Message
     public function handle(): array
     {
         return [
-            'event' => [
-                'id' => $this->event->id,
-                'name' => __('admin.COPY OF :name', ['name' => $this->event->name]),
-                'event_start' => $this->event->event_start?->format('Y-m-d H:i'),
-                'organization_name' => $this->event->organization->name ?? __('admin.Everyone'),
-            ],
+            'event' => new CopyEventResource($this->event),
         ];
     }
 }

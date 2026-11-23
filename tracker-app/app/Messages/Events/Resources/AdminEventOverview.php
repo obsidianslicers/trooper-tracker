@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Messages\Events\Resources;
 
 use App\Enums\EventStatus;
+use App\Messages\Events\Resources\Admin\ChoiceOptions;
+use App\Messages\Events\Resources\Admin\EventOrganizationLimitCollection;
+use App\Messages\Events\Resources\Admin\EventTypeOptionCollection;
+use App\Messages\Events\Resources\Admin\HostOptionCollection;
 use App\Messages\Troopers\Resources\TrooperStampsResource;
 use App\Models\Event;
-use App\Models\EventOrganization;
 use App\Models\EventType;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -38,8 +41,11 @@ class AdminEventOverview extends JsonResource
 
         return [
             'form' => $this->form($event),
-            'organizations' => $this->organizations($event),
-            'host_options' => $this->hostOptions($event),
+            'organizations' => new EventOrganizationLimitCollection(
+                Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get(),
+                $event->organizations()->get(),
+            ),
+            'host_options' => new HostOptionCollection($this->hostOrganizations($event)),
             'host_name' => $event->organization?->name,
             'can_change_host' => $this->canChangeHost($event),
             'coordinator_options' => $this->coordinatorOptions($event),
@@ -48,8 +54,8 @@ class AdminEventOverview extends JsonResource
                     ? $this->coordinatorLabel($event->created_by)
                     : __("admin.The event's creator"),
             ]),
-            'event_types' => $this->eventTypes($event),
-            'status_options' => $this->options(EventStatus::toArray()),
+            'event_types' => new EventTypeOptionCollection($this->eventTypes($event)),
+            'status_options' => new ChoiceOptions(EventStatus::toArray()),
             'smilies' => app(PluginSmilies::class)->all(),
             'plugin_fields' => app(PluginSlots::class)
                 ->render('admin.events.form.fields', ['event' => $event]),
@@ -98,44 +104,11 @@ class AdminEventOverview extends JsonResource
     }
 
     /**
-     * Every club troopers can sign up from, with the event's limits for it.
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function organizations(Event $event): array
-    {
-        $limits = $event->organizations()->get()->keyBy(Organization::ID);
-
-        return Organization::ofTypeOrganizations()
-            ->orderBy(Organization::NAME)
-            ->get()
-            ->map(function (Organization $organization) use ($limits): array
-            {
-                $pivot = $limits->get($organization->id)?->pivot;
-                $can_attend = (bool) ($pivot?->{EventOrganization::CAN_ATTEND} ?? false);
-
-                return [
-                    'id' => $organization->id,
-                    'name' => $organization->name,
-                    'image_url' => map_image_url(
-                        $organization->image_path_sm,
-                        'img/icons/organization-32x32.png'
-                    ),
-                    'can_attend' => $can_attend,
-                    'troopers_allowed' => $can_attend ? $pivot->troopers_allowed : null,
-                    'handlers_allowed' => $can_attend ? $pivot->handlers_allowed : null,
-                ];
-            })
-            ->values()
-            ->all();
-    }
-
-    /**
      * The organizations this trooper can host for, plus the event's own host.
      *
-     * @return array<int, array{value:int,label:string}>
+     * @return Collection<int, Organization>
      */
-    private function hostOptions(Event $event): array
+    private function hostOrganizations(Event $event): Collection
     {
         return Organization::query()
             ->where(fn ($q) => $q->whereIn(
@@ -143,12 +116,7 @@ class AdminEventOverview extends JsonResource
                 Organization::eventHostableBy($this->actor)->select(Organization::ID)
             )->orWhere(Organization::ID, $event->organization_id))
             ->orderBy(Organization::SEQUENCE)
-            ->get()
-            ->map(fn (Organization $organization): array => [
-                'value' => $organization->id,
-                'label' => str_repeat('— ', max(0, $organization->depth - 1)).$organization->name,
-            ])
-            ->all();
+            ->get();
     }
 
     /**
@@ -195,33 +163,14 @@ class AdminEventOverview extends JsonResource
     /**
      * The types offered, plus the event's own type if it has since been hidden.
      *
-     * @return array<int, array<string, mixed>>
+     * @return Collection<int, EventType>
      */
-    private function eventTypes(Event $event): array
+    private function eventTypes(Event $event): Collection
     {
         return EventType::query()
             ->where(fn ($q) => $q->where(EventType::IS_ACTIVE, true)
                 ->orWhere(EventType::ID, $event->event_type_id))
             ->ordered()
-            ->get()
-            ->map(fn (EventType $type): array => [
-                'value' => $type->id,
-                'label' => $type->name,
-                'description' => (string) $type->description,
-                'is_counted' => (bool) $type->is_counted,
-            ])
-            ->all();
-    }
-
-    /**
-     * @param  array<string, string>  $choices
-     * @return array<int, array{value:string,label:string}>
-     */
-    private function options(array $choices): array
-    {
-        return (new Collection($choices))
-            ->map(fn (string $label, string $value): array => compact('value', 'label'))
-            ->values()
-            ->all();
+            ->get();
     }
 }

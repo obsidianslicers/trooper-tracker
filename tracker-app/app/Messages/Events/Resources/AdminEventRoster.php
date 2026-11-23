@@ -79,7 +79,6 @@ class AdminEventRoster extends JsonResource
 
         return [
             'id' => $event_trooper->id,
-            'trooper_id' => $trooper->id,
             'display_name' => $trooper->display_name,
             'legal_name' => $trooper->legal_name,
             'profile_url' => $this->actor->is_event_coordinator
