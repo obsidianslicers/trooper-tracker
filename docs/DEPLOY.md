@@ -480,8 +480,9 @@ The script runs with `set -euo pipefail`, so any failing step aborts the deploy.
 
 1. `cd`s into `/home/admin/trooper-tracker/tracker-app` and resolves `php`, `composer`, and `npm`
    from `PATH` (override with the `PHP`, `COMPOSER`, or `NPM` environment variables)
-2. Syncs code with `git fetch origin` + `git reset --hard origin/main` — **any uncommitted
-   changes on the server are discarded**
+2. Syncs code with `git fetch --prune origin` + `git reset --hard origin/main` — **any
+   uncommitted changes on the server are discarded**. `--prune` drops refs to branches deleted
+   on GitHub, which would otherwise block fetching a new branch that uses one as a prefix
 3. Installs PHP dependencies: `composer install --no-interaction --prefer-dist
    --optimize-autoloader --no-dev`, plus the packages enabled plugins need through
    `composer.plugins.json` (see [Plugin packages on deploy](#plugin-packages-on-deploy))
@@ -514,7 +515,7 @@ If you need to deploy by hand, mirror the script from `tracker-app/`:
 
 ```bash
 # 1. Sync code (discards local server changes)
-git fetch origin
+git fetch --prune origin
 git reset --hard origin/main
 
 # 2. Install dependencies and build assets
@@ -832,6 +833,20 @@ sudo systemctl restart php8.2-fpm
 ## Troubleshooting
 
 ### Common Issues
+
+**Deploy fails at the fetch with `cannot lock ref 'refs/remotes/origin/<name>/...'`:**
+
+The server still has a ref to a deleted branch (`origin/docs`) whose name is now a prefix of a new
+one (`docs/readme-matches-codebase`), so git can't create the new ref. `deploy.sh` fetches with
+`--prune`, which prevents this; an older copy of the script doesn't. Clear the stale refs once,
+from `tracker-app/`, then deploy again:
+
+```bash
+git remote prune origin
+```
+
+It only removes `origin/*` refs to branches that no longer exist on GitHub; the working tree and
+local branches are untouched.
 
 **Queue not processing:**
 ```bash
