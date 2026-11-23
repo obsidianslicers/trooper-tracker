@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\TrooperSetupRequiredMiddleware;
 use App\Models\MobileDevice;
 use App\Models\Trooper;
 use App\Models\TrooperNotification;
@@ -19,7 +20,12 @@ Route::post('/fcm/register', function (Request $request)
     );
 
     return response()->json(['ok' => true]);
-})->middleware('auth')->name('fcm.register');
+})
+    ->middleware('auth')
+    // The app registers its device on the first page it loads, which for a new
+    // trooper is the setup page. Without this, the setup redirect swallows it.
+    ->defaults(TrooperSetupRequiredMiddleware::ALLOWED, true)
+    ->name('fcm.register');
 
 // FCM-token-authenticated endpoints for the Flutter notifications screen.
 $fcmTrooper = function (Request $request): ?int

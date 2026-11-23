@@ -13,13 +13,16 @@
         fetch('/fcm/register', {
             method: 'POST',
             headers: {
+                'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': csrfToken,
             },
             body: JSON.stringify({ token }),
             credentials: 'same-origin',
         }).then(function (r) {
-            if (r.ok) {
+            // A middleware redirect is followed to a 200 page: not a registration.
+            // Marking it sent would skip every retry for the rest of the session.
+            if (r.ok && !r.redirected) {
                 sessionStorage.setItem(key, '1');
             } else {
                 console.warn('[FCM] register failed:', r.status);
