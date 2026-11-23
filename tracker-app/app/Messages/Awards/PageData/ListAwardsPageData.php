@@ -6,6 +6,7 @@ namespace App\Messages\Awards\PageData;
 
 use App\Messages\Awards\Queries\GetAwardsForModerator;
 use App\Messages\Awards\Resources\AwardRowResource;
+use App\Messages\Organizations\Resources\OrganizationFilterResource;
 use App\Models\Filters\AwardFilter;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -38,18 +39,13 @@ final class ListAwardsPageData extends Message
         ];
     }
 
-    /**
-     * @return array{id: int, name: string}|null
-     */
-    private function getOrganization(): ?array
+    private function getOrganization(): ?OrganizationFilterResource
     {
         if ($this->organization_id === null)
         {
             return null;
         }
 
-        $organization = Organization::findOrFail($this->organization_id);
-
-        return ['id' => $organization->id, 'name' => $organization->name];
+        return new OrganizationFilterResource(Organization::findOrFail($this->organization_id));
     }
 }

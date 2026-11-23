@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Messages\Organizations\PageData;
 
 use App\Enums\OrganizationType;
-use App\Messages\Troopers\Resources\TrooperStampsResource;
+use App\Messages\Organizations\Resources\OrganizationResource;
+use App\Messages\Organizations\Resources\RosterSyncOptions;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Plugins\PluginClubSynchronizers;
@@ -30,21 +31,9 @@ final class UpdateOrganizationPageData extends Message
     public function handle(PluginClubSynchronizers $synchronizers, PluginSlots $slots): array
     {
         $organization = $this->organization->loadMissing('parent');
-        $parent = $organization->parent;
 
         return [
-            'organization' => [
-                'id' => $organization->id,
-                'name' => $organization->name,
-                'synchronizer' => $organization->synchronizer,
-                'is_club' => $organization->type === OrganizationType::ORGANIZATION,
-                'parent' => $parent === null ? null : [
-                    'name' => $parent->name,
-                    'label' => __('admin.Parent :type', ['type' => $parent->type->label()]),
-                ],
-                'logo_url' => $this->logoUrl($organization),
-                TrooperStampsResource::TROOPER_STAMPS => new TrooperStampsResource($organization),
-            ],
+            'organization' => new OrganizationResource($organization),
             'synchronizer_options' => $this->synchronizerOptions($synchronizers),
             'plugin_fields' => $slots->render(
                 'admin.organizations.update.fields',
@@ -56,10 +45,8 @@ final class UpdateOrganizationPageData extends Message
     /**
      * Only administrators choose a club's roster sync. A sync that is set but no longer offered
      * stays listed so saving doesn't clear it.
-     *
-     * @return array<int, array{value: string, label: string}>|null
      */
-    private function synchronizerOptions(PluginClubSynchronizers $synchronizers): ?array
+    private function synchronizerOptions(PluginClubSynchronizers $synchronizers): ?RosterSyncOptions
     {
         if ($this->organization->type !== OrganizationType::ORGANIZATION || !$this->actor->is_administrator)
         {
@@ -74,22 +61,6 @@ final class UpdateOrganizationPageData extends Message
             $options[$current] = __('admin.:name (not available)', ['name' => $current]);
         }
 
-        $choices = [['value' => '', 'label' => __('admin.None')]];
-
-        foreach ($options as $value => $label)
-        {
-            $choices[] = ['value' => (string) $value, 'label' => $label];
-        }
-
-        return $choices;
-    }
-
-    private function logoUrl(Organization $organization): string
-    {
-        $url = map_image_url($organization->image_path_lg, DEFAULT_ORGANIZATION_IMAGE_URL);
-
-        return $organization->image_path_lg === null
-            ? $url
-            : $url.'?v='.$organization->updated_at?->timestamp;
+        return new RosterSyncOptions($options);
     }
 }

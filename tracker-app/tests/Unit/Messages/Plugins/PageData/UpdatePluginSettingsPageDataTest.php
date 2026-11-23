@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Messages\Plugins\PageData;
 
 use App\Messages\Plugins\PageData\UpdatePluginSettingsPageData;
+use App\Plugins\PluginManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\Feature\Plugins\UsesFixturePlugins;
@@ -20,7 +21,7 @@ class UpdatePluginSettingsPageDataTest extends TestCase
         $plugins = $this->useFixturePlugins();
         $plugins->updateSettings('hello', ['greeting' => 'Howdy', 'api_key' => 'super-secret', 'is_loud' => true]);
 
-        $result = (new UpdatePluginSettingsPageData('hello'))->handle($plugins);
+        $result = $this->payload($plugins);
         $fields = collect($result['settings'])->keyBy('key');
 
         $this->assertSame(['slug' => 'hello', 'name' => 'Hello'], $result['plugin']);
@@ -35,7 +36,7 @@ class UpdatePluginSettingsPageDataTest extends TestCase
     {
         $plugins = $this->useFixturePlugins();
 
-        $fields = collect((new UpdatePluginSettingsPageData('hello'))->handle($plugins)['settings'])->keyBy('key');
+        $fields = collect($this->payload($plugins)['settings'])->keyBy('key');
 
         $this->assertSame('Hello', $fields['greeting']['value']);
         $this->assertFalse($fields['api_key']['is_saved']);
@@ -47,5 +48,15 @@ class UpdatePluginSettingsPageDataTest extends TestCase
         $this->expectException(NotFoundHttpException::class);
 
         (new UpdatePluginSettingsPageData('nope'))->handle($this->useFixturePlugins());
+    }
+
+    /**
+     * What the settings page receives, with the Resources serialized.
+     *
+     * @return array<string, mixed>
+     */
+    private function payload(PluginManager $plugins): array
+    {
+        return json_decode(json_encode((new UpdatePluginSettingsPageData('hello'))->handle($plugins)), true);
     }
 }

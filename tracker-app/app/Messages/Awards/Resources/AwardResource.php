@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * An award on its create, update, troopers and assign pages.
+ * The award on the Command Staff award update page: what it is, and who made and changed it.
  *
  * @mixin Award
  */
@@ -22,16 +22,8 @@ class AwardResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            Award::ID => $this->id,
-            Award::ORGANIZATION_ID => $this->organization_id,
-            'organization_name' => $this->organization?->name,
-            Award::NAME => $this->name ?? '',
-            Award::FREQUENCY => $this->frequency->value,
-            'frequency_label' => $this->frequency->label(),
-            TrooperStampsResource::TROOPER_STAMPS => $this->when(
-                $this->exists,
-                fn () => new TrooperStampsResource($this->resource)
-            ),
+            ...(new AwardSummaryResource($this->resource))->toArray($request),
+            TrooperStampsResource::TROOPER_STAMPS => new TrooperStampsResource($this->resource),
         ];
     }
 }

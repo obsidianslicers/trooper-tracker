@@ -16,14 +16,12 @@ import {
     ListViewModel,
     TroopersViewModel,
 } from '../../../../../../resources/svelte/pages/admin/awards/models/vms';
-import type { Award } from '../../../../../../resources/svelte/pages/admin/awards/models/types';
+import type { AwardSummary } from '../../../../../../resources/svelte/pages/admin/awards/models/types';
 
-const award: Award = {
+const award: AwardSummary = {
     id: 5,
-    organization_id: 4,
     organization_name: 'E2E Garrison',
     name: 'Trooper of the Year',
-    frequency: 'annually',
     frequency_label: 'Annually',
 };
 

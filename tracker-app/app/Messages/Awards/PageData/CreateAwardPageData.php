@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\Awards\PageData;
 
 use App\Enums\AwardFrequency;
-use App\Messages\Awards\Resources\AwardResource;
+use App\Messages\Awards\Resources\AwardFormResource;
 use App\Messages\Organizations\Queries\GetModeratedOrganizationOptions;
 use App\Models\Award;
 use App\Models\Organization;
@@ -39,14 +39,12 @@ final class CreateAwardPageData extends Message
 
         if ($award->organization_id !== null)
         {
-            $organization = Organization::moderatedBy($this->actor)
-                ->findOrFail($award->organization_id);
-
-            $award->setRelation('organization', $organization);
+            //  only an organization the trooper moderates can be preselected
+            Organization::moderatedBy($this->actor)->findOrFail($award->organization_id);
         }
 
         return [
-            'award' => new AwardResource($award),
+            'award' => new AwardFormResource($award),
             'frequency_options' => AwardFrequency::toValueLabels(),
             'organization_options' => GetModeratedOrganizationOptions::call(trooper: $this->actor),
         ];

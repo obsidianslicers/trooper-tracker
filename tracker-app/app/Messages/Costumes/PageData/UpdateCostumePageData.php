@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Messages\Costumes\PageData;
 
 use App\Messages\Costumes\Queries\GetCostumeDeletionImpact;
-use App\Messages\Troopers\Resources\TrooperStampsResource;
+use App\Messages\Costumes\Resources\CostumeClubResource;
+use App\Messages\Costumes\Resources\CostumeResource;
 use App\Models\Costume;
 use App\Models\Organization;
-use App\Models\OrganizationCostume;
 use Hyperdrive\Message;
 
 /**
@@ -29,18 +29,10 @@ final class UpdateCostumePageData extends Message
         $can_delete = !$this->costume->countsAsHandler();
 
         return [
-            'costume' => [
-                'id' => $this->costume->id,
-                'name' => $this->costume->name,
-                'organization_ids' => OrganizationCostume::query()
-                    ->where(OrganizationCostume::COSTUME_ID, $this->costume->id)
-                    ->pluck(OrganizationCostume::ORGANIZATION_ID),
-                'can_delete' => $can_delete,
-                TrooperStampsResource::TROOPER_STAMPS => new TrooperStampsResource($this->costume),
-            ],
-            'organizations' => Organization::ofTypeOrganizations()
-                ->orderBy(Organization::NAME)
-                ->get([Organization::ID, Organization::NAME]),
+            'costume' => new CostumeResource($this->costume),
+            'organizations' => CostumeClubResource::collection(
+                Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get()
+            ),
             'deletion_impact' => $can_delete ? GetCostumeDeletionImpact::call(costume: $this->costume) : null,
             'confirm_delete' => $can_delete && $this->confirm_delete,
         ];

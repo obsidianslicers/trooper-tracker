@@ -7,7 +7,6 @@ export type FaqItem = {
     id: number;
     title: string;
     has_video: boolean;
-    sort_order: number;
     update_route?: string;
 };
 
@@ -15,7 +14,6 @@ export type FaqSection = {
     id: number;
     label: string;
     icon: string;
-    sort_order: number;
     faqs: FaqItem[];
     update_route?: string;
     create_item_route?: string;

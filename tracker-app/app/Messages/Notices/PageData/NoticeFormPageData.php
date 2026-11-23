@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\Notices\PageData;
 
 use App\Messages\Notices\Resources\NoticeFormResource;
+use App\Messages\Notices\Resources\NoticeTypeOptions;
 use App\Messages\Organizations\Queries\GetModeratedOrganizationOptions;
 use App\Models\Notice;
 use App\Models\Trooper;
@@ -29,7 +30,7 @@ final class NoticeFormPageData extends Message
     {
         $data = [
             'notice' => new NoticeFormResource($this->notice),
-            'type_options' => $this->getTypeOptions(),
+            'type_options' => new NoticeTypeOptions,
         ];
 
         if (!$this->notice->exists)
@@ -41,18 +42,5 @@ final class NoticeFormPageData extends Message
         }
 
         return $data;
-    }
-
-    /**
-     * @return array<int, array{value: string, label: string}>
-     */
-    private function getTypeOptions(): array
-    {
-        return [
-            ['value' => 'info', 'label' => 'ℹ️ '.__('admin.NOW HEAR THIS!')],
-            ['value' => 'success', 'label' => '✔️ '.__('admin.MISSION ACCOMPLISHED!')],
-            ['value' => 'warning', 'label' => '⚠️ '.__('admin.ATTENTION TROOPERS!')],
-            ['value' => 'danger', 'label' => '❌ '.__('admin.BATTLE STATIONS!')],
-        ];
     }
 }

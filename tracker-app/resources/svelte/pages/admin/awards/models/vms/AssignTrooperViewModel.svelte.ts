@@ -2,13 +2,13 @@ import type { Trooper } from "$lib/components/models/TrooperPickerViewModel.svel
 import { SubmitableViewModel, type ISubmitableViewModel } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 import { useForm } from "@inertiajs/svelte";
-import type { AssignTrooperPageData, Award, IAssignTrooperForm } from "../types";
+import type { AssignTrooperPageData, AwardSummary, IAssignTrooperForm } from "../types";
 
 export class AssignTrooperViewModel
     extends SubmitableViewModel<AssignTrooperViewModel, IAssignTrooperForm>
     implements ISubmitableViewModel<IAssignTrooperForm> {
 
-    award: Award;
+    award: AwardSummary;
     trooper: Trooper | null = $state(null);
 
     constructor(pageData: AssignTrooperPageData) {

@@ -17,7 +17,7 @@ export class UpdateViewModel
         super();
 
         this.award = pageData.award;
-        this.trooper_stamps = pageData.award.trooper_stamps ?? null;
+        this.trooper_stamps = pageData.award.trooper_stamps;
         this.form = useForm<RenameForm>({ name: pageData.award.name });
     }
 

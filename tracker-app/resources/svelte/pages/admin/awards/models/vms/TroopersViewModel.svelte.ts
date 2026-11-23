@@ -1,10 +1,10 @@
 import { ViewModel } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
-import type { Award, AwardedTrooper, TroopersPageData } from "../types";
+import type { AwardSummary, AwardedTrooper, TroopersPageData } from "../types";
 
 export class TroopersViewModel extends ViewModel {
-    award: Award;
+    award: AwardSummary;
     troopers: AwardedTrooper[] = $state([]);
     removing: AwardedTrooper | null = $state(null);
     submitting: boolean = $state(false);

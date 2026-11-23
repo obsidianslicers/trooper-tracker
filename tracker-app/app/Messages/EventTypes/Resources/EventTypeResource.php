@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
+ * The event type on the Command Staff event type update page. Load the events count first: the
+ * page warns that changing whether the type counts also changes those events.
+ *
  * @mixin EventType
  */
 class EventTypeResource extends JsonResource
@@ -27,7 +30,6 @@ class EventTypeResource extends JsonResource
             EventType::IS_COSTUME_REQUIRED => $this->is_costume_required,
             EventType::IS_ACTIVE => $this->is_active,
             'events_count' => $this->whenCounted('events'),
-            'can_delete' => $request->user()?->can('delete', $this->resource) ?? false,
             TrooperStampsResource::TROOPER_STAMPS => new TrooperStampsResource($this),
         ];
     }

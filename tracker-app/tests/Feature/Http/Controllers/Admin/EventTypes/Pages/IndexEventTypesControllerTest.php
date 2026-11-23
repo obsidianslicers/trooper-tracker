@@ -30,6 +30,7 @@ class IndexEventTypesControllerTest extends TestCase
             ->has('event_types', 13)
             ->where('event_types.0.id', $first->id)
             ->where('event_types.0.can_delete', true)
+            ->missing('event_types.0.trooper_stamps')
             ->where('event_types', fn ($types) => collect($types)
                 ->firstWhere('name', 'Charity')['can_delete'] === false));
     }
