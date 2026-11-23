@@ -243,7 +243,7 @@
                                 {#if is_active}
                                     <button
                                         type="button"
-                                        class="btn btn-sm btn-outline-danger station-remove"
+                                        class="btn btn-sm btn-outline-danger"
                                         title={t("Remove station")}
                                         onclick={() =>
                                             vm.removeStation(station)}
