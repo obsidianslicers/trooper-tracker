@@ -95,6 +95,12 @@ git fetch origin
 git reset --hard "$TARGET"
 RELEASE="$(git rev-parse HEAD)"
 
+# The site stays up while the new release installs and builds. The cached routes and
+# config still name the previous release's classes, so a renamed controller fails until
+# they are rebuilt at the end. Read them fresh from the new files in the meantime.
+"$PHP" artisan route:clear >/dev/null || true
+"$PHP" artisan config:clear >/dev/null || true
+
 # shellcheck source=bin/plugin-packages.sh
 . "$APP_DIR/bin/plugin-packages.sh"
 
@@ -104,6 +110,8 @@ abort_to_previous_release() {
     echo "⏪ Putting back release $PREVIOUS_RELEASE and its packages."
     git reset --hard "$PREVIOUS_RELEASE"
     restore_previous_packages
+    "$PHP" artisan config:cache >/dev/null || true
+    "$PHP" artisan route:cache >/dev/null || true
     rm -f "$PLUGIN_DEPLOY_DIR/deploy-in-progress"
     echo "❌ Deployment stopped: $1 The site is still on the previous release."
     exit 1
