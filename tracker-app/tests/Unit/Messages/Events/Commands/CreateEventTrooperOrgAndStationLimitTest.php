@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Messages\Events\Commands;
 
 use App\Enums\EventTrooperStatus;
-use App\Messages\Events\Commands\SignUpEventTrooper;
+use App\Messages\Events\Commands\CreateEventTrooper;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
@@ -27,9 +27,9 @@ use Tests\TestCase;
  * numerical station limit all have room. If any applicable limit is full,
  * the trooper receives STAND_BY.
  *
- * @see SignUpEventTrooper
+ * @see CreateEventTrooper
  */
-class SignUpEventTrooperOrgAndStationLimitTest extends TestCase
+class CreateEventTrooperOrgAndStationLimitTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -83,7 +83,7 @@ class SignUpEventTrooperOrgAndStationLimitTest extends TestCase
 
     private function signUp(Trooper $trooper, EventShiftStation $station): void
     {
-        (new SignUpEventTrooper(
+        (new CreateEventTrooper(
             event_shift: $this->shift,
             trooper: $trooper,
             added_by_trooper: $trooper,

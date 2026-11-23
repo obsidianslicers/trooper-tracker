@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Events\Commands;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\FlashType;
+use App\Enums\SignUpOutcome;
 use App\Http\Controllers\Events\Concerns\AnswersWithEventPage;
 use App\Http\Controllers\PageController;
 use App\Messages\Events\Commands\SignUpEventTrooper;
@@ -41,105 +42,39 @@ class SignUpTrooperController extends PageController
      */
     public function __invoke(Request $request, EventShift $event_shift): RedirectResponse
     {
-        $trooper = $request->user();
-
         $auth_trooper = $request->user();
 
-        if ($request->has('trooper_id'))
-        {
-            //  auth_trooper is signing up on behalf of another trooper
-            $trooper = Trooper::active()->findOrFail($request->input('trooper_id'));
-        }
+        //  with trooper_id, they're signing up someone else (Add a Friend, or command staff)
+        $trooper = $request->has('trooper_id')
+            ? Trooper::active()->findOrFail($request->input('trooper_id'))
+            : $auth_trooper;
 
-        $signed_up = false;
+        $outcome = SignUpEventTrooper::call(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $auth_trooper,
+            is_for_another_trooper: $request->has('trooper_id'),
+            organization_id: $this->optionalId($request->input('organization_id')),
+            is_handler: $request->has('is_handler') ? (bool) $request->input('is_handler') : null,
+            costume_id: $this->optionalString($request->input('costume_id')),
+            backup_costume_id: $this->optionalString($request->input('backup_costume_id')),
+            event_shift_station_id: $this->optionalId($request->input('event_shift_station_id')),
+            is_tentative: $request->input('status') === EventTrooperStatus::TENTATIVE->value,
+        );
 
-        $can_moderate = $auth_trooper->isModeratorForOrganization($event_shift->event->organization);
-
-        $can_add_friend = !$request->has('trooper_id')
-            || $can_moderate
-            || $event_shift->canSignUpTrooper($auth_trooper);
-
-        $grace_period_moderator_add = $can_moderate
-            && $event_shift->event->is_within_grace_period
-            && !$event_shift->isSignedUp($trooper);
-
-        $is_friend_add = $request->has('trooper_id') && $trooper->id !== $auth_trooper->id;
-
-        if ($can_add_friend && ($event_shift->canSignUp($trooper, require_own_mission_brief_ack: !$is_friend_add) || $grace_period_moderator_add))
-        {
-            $event_shift->loadMissing('event_shift_stations');
-
-            $event_shift_station_id = $request->input('event_shift_station_id')
-                ? (int) $request->input('event_shift_station_id')
-                : null;
-
-            if (!$event_shift->isValidStationChoice($event_shift_station_id))
-            {
-                return $this->backToEvent(
-                    $event_shift->event,
-                    __('events.Select a station before signing up.'),
-                    FlashType::DANGER,
-                );
-            }
-
-            $organization_id = $request->input('organization_id') ? (int) $request->input('organization_id') : null;
-
-            $is_handler = (bool) $request->input('is_handler', $trooper->is_handler ? 1 : 0);
-
-            //  the Sign Up form, and Add a Friend's, carry the costume of whoever is signing up (or
-            //  "attending without a costume"). A costume that isn't one of theirs is ignored, which
-            //  leaves them on the shift needing a costume, as before. Tentative is the trooper's
-            //  own choice, where the event allows it.
-            $costume_id = null;
-            $is_attending_without_costume = false;
-            $costume_options = $event_shift->costumeOptionsFor($trooper, $organization_id);
-
-            $raw_costume_id = $request->input('costume_id');
-
-            if ($raw_costume_id === 'none')
-            {
-                $is_attending_without_costume = true;
-                $is_handler = false;
-            }
-            elseif (is_numeric($raw_costume_id) && array_key_exists((int) $raw_costume_id, $costume_options))
-            {
-                $costume_id = (int) $raw_costume_id;
-            }
-
-            //  the backup costume, optional, checked against their costumes the same way
-            $raw_backup_costume_id = $request->input('backup_costume_id');
-            $backup_costume_id = $event_shift->event->requiresCostume()
-                && is_numeric($raw_backup_costume_id)
-                && array_key_exists((int) $raw_backup_costume_id, $costume_options)
-                ? (int) $raw_backup_costume_id
-                : null;
-
-            $is_tentative = !$is_friend_add
-                && $request->input('status') === EventTrooperStatus::TENTATIVE->value
-                && array_key_exists(EventTrooperStatus::TENTATIVE->value, $event_shift->event->planStatusOptions());
-
-            SignUpEventTrooper::call(
-                event_shift: $event_shift,
-                trooper: $trooper,
-                added_by_trooper: $auth_trooper,
-                organization_id: $organization_id,
-                is_handler: $is_handler,
-                costume_id: $costume_id,
-                event_shift_station_id: $event_shift_station_id,
-                is_attending_without_costume: $is_attending_without_costume,
-                is_tentative: $is_tentative,
-                backup_costume_id: $backup_costume_id,
-            );
-
-            $signed_up = true;
-        }
-
-        return $this->answer($event_shift, $auth_trooper, $trooper, $signed_up);
+        return $this->answer($event_shift, $auth_trooper, $trooper, $outcome);
     }
 
-    /**
-     * What the shift says right after a sign-up, depending on where it landed.
-     */
+    private function optionalId(mixed $value): ?int
+    {
+        return $value ? (int) $value : null;
+    }
+
+    private function optionalString(mixed $value): ?string
+    {
+        return is_scalar($value) ? (string) $value : null;
+    }
+
     private function signedUpMessage(EventShift $event_shift, Trooper $trooper, bool $is_self): string
     {
         $status = $event_shift->event_troopers->firstWhere(EventTrooper::TROOPER_ID, $trooper->id)?->status;
@@ -162,20 +97,22 @@ class SignUpTrooperController extends PageController
         };
     }
 
-    private function answer(EventShift $event_shift, Trooper $auth_trooper, Trooper $trooper, bool $signed_up): RedirectResponse
-    {
+    private function answer(
+        EventShift $event_shift,
+        Trooper $auth_trooper,
+        Trooper $trooper,
+        SignUpOutcome $outcome,
+    ): RedirectResponse {
         $event = $event_shift->event;
 
-        if (!$signed_up)
+        if ($outcome !== SignUpOutcome::SIGNED_UP)
         {
-            $is_maxed = $event->shifts_allowed !== null
-                && $event->getShiftCountFor($trooper) >= $event->shifts_allowed;
-
-            return $this->backToEvent(
-                $event,
-                $is_maxed ? __('events.You have reached the maximum number of shift sign-ups allowed.') : null,
-                FlashType::DANGER,
-            );
+            return $this->backToEvent($event, match ($outcome)
+            {
+                SignUpOutcome::STATION_REQUIRED => __('events.Select a station before signing up.'),
+                SignUpOutcome::SHIFT_LIMIT_REACHED => __('events.You have reached the maximum number of shift sign-ups allowed.'),
+                default => null,
+            }, FlashType::DANGER);
         }
 
         $same_day_shifts = $trooper->id === $auth_trooper->id
