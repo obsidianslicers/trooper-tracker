@@ -73,6 +73,7 @@ export type RowEditor = {
     stations: { value: number | null; options: PickOption[] } | null;
     organizations: { value: number | null; options: PickOption[] } | null;
     costumes: CostumePicker | null;
+    requires_costume: boolean;
     plans: { value: string; options: PickOption[] } | null;
     can_cancel: boolean;
     cancel_confirm: string;

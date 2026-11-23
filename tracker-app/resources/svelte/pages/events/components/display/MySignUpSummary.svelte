@@ -30,6 +30,7 @@
                         <span class="my-signup-summary__costume">
                             {#if !sign_up.requires_costume}
                                 <!-- an event type troopers don't wear a costume to -->
+                                <i class="text-muted">{t("No costume needed for this event")}</i>
                             {:else if sign_up.costume}
                                 {sign_up.costume}
                             {:else if sign_up.is_without_costume}

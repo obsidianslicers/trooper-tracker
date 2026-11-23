@@ -206,6 +206,8 @@ class EventDisplayTrooperRow extends JsonResource
             'stations' => $can_costume ? $this->stationPicker() : null,
             'organizations' => $can_costume ? $this->organizationPicker() : null,
             'costumes' => $can_costume ? $this->costumePicker() : null,
+            //  costumes is also null when the viewer may not change it; this says which
+            'requires_costume' => $this->context->event->requiresCostume(),
             'plans' => $this->plans(),
             'can_cancel' => $this->eventShift()->is_open && $can_cancel,
             'cancel_confirm' => $this->trooper_id === $viewer->id
