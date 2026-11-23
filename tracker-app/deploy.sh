@@ -91,7 +91,9 @@ echo "NPM: $(npm --version)"
 UNMET_BEFORE="$(plugins_unmet)"
 
 echo "📥 Syncing code with GitHub..."
-git fetch origin
+# --prune drops refs to branches deleted on GitHub first; a stale origin/docs would otherwise
+# block fetching a new docs/... branch and fail the deploy
+git fetch --prune origin
 git reset --hard "$TARGET"
 RELEASE="$(git rev-parse HEAD)"
 
