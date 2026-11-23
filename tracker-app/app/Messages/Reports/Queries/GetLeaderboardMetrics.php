@@ -137,7 +137,7 @@ final class GetLeaderboardMetrics extends Message
                 $q->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
             })
             ->select(EventTrooper::TROOPER_ID, DB::raw('count(*) as troop_count'))
-            ->with(['trooper' => fn ($q) => $q->select(Trooper::ID, Trooper::DISPLAY_NAME)])
+            ->with(['trooper' => fn ($q) => $q->select(Trooper::ID, Trooper::DISPLAY_NAME, Trooper::LEGAL_NAME)])
             ->groupBy(EventTrooper::TROOPER_ID);
 
         $this->applyTrooperOrgCredit($query, $this->resolveOrgSubtreeIds($this->organization), []);

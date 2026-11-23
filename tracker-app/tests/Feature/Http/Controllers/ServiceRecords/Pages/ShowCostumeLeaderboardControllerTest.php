@@ -4,18 +4,22 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\ServiceRecords\Pages;
 
+use App\Enums\EventTrooperStatus;
 use App\Messages\Reports\Queries\GetCostumeTrooperLeaderboard;
 use App\Models\Costume;
+use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
+use Tests\Concerns\BuildsTroopsToConfirm;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class ShowCostumeLeaderboardControllerTest extends TestCase
 {
     use FakesMessages;
+    use BuildsTroopsToConfirm;
     use RefreshDatabase;
 
     public function test_invoke_requires_authentication(): void
@@ -185,5 +189,19 @@ class ShowCostumeLeaderboardControllerTest extends TestCase
                 'last_deployed_at' => null,
             ],
         ];
+    }
+
+    public function test_invoke_shows_each_troopers_real_name_next_to_their_username(): void
+    {
+        $viewer = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $named = Trooper::factory()->asActive()->create([Trooper::DISPLAY_NAME => 'TK-Zeta', Trooper::LEGAL_NAME => 'Jane Example']);
+        $costume = Costume::factory()->create();
+        $troop = $this->troopToConfirm($named, EventTrooperStatus::ATTENDED);
+        $troop->forceFill([EventTrooper::COSTUME_ID => $costume->id])->saveQuietly();
+
+        $response = $this->actingAs($viewer)->get(route('service-records.costume', $costume));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['TK-Zeta', 'Jane Example'], false);
     }
 }
