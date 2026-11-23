@@ -943,4 +943,4 @@ sudo mysqladmin -p status
 - [Laravel Envoyer](https://envoyer.io) - Zero-downtime deployment
 - [Coding Conventions](CODING_CONVENTIONS.md) - Project coding standards
 - [Authentication Flow](AUTHENTICATION.md) - Multi-provider auth setup
-- [Notifications System](NOTIFICATIONS.md) - Event notification architecture
+- [Event Workflow](EVENT_WORKFLOW.md) - Event lifecycle and notification flow

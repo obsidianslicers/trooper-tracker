@@ -98,5 +98,5 @@ email clears `guardian_id`.
 | `app/Mail/Auth/GuardianAwareness.php` | Guardian awareness mailable |
 | `app/Http/Controllers/Admin/Troopers/Pages/ShowTrooperController.php` | Admin GET — trooper profile, including the guardian tab |
 | `app/Http/Controllers/Admin/Troopers/Commands/UpdateTrooperGuardianController.php` | Admin POST — save DOB + guardian |
-| `app/Http/Requests/Admin/Troopers/GuardianRequest.php` | Validation for admin guardian form |
-| `app/Http/Controllers/Account/MinorsController.php` | Account > Minors read-only view |
+| `app/Http/Requests/Admin/Troopers/UpdateGuardianRequest.php` | Validation for admin guardian form |
+| `resources/svelte/pages/account/components/Minors.svelte` | Account > Minors read-only view (part of the account page) |

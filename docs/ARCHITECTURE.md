@@ -121,9 +121,18 @@ Feature-organized validation rules in `app/Rules/`:
 - `AtLeastOneOrganizationSelectedRule` - Ensures at least one organization selected
 - `UniqueOrganizationIdentifierRule` - Validates organization-specific member IDs are unique
 
-**Admin/Organizations Rules:**
-- `UniqueCostumeNameRule` - Ensures costume names unique within organization
-- `UniqueNameRule` - Ensures organization names unique among siblings
+**Account Rules:**
+- `ExpiredVisitorMembership` - Lets a visitor renew only an expired visitor membership
+
+**Troopers Rules:**
+- `MemberOrganizationRule`, `VisitorOrganizationRule` - Members can't be assigned to a top-level organization; visitors can only be assigned to one
+
+**Admin Rules:**
+- `Admin/Account/AwardDateMatchesFrequencyRule` - An award date matches the award's frequency; `TrooperNotAlreadyAwardedRule` - no second award for the same date
+- `Admin/Organizations/UniqueNameRule` - Ensures organization names unique among siblings
+- `Admin/Troopers/AdminOnlyStatusRule` - Only an administrator moves a trooper into or out of a status that locks them out
+- `Admin/Troopers/PendingTrooperMembership`, `PendingTrooperRequest` - The membership or request being approved is still pending
+- `Admin/Troopers/ValidTrooperEmailRule` - A valid email, unless the value is unchanged
 
 ### Middleware
 
@@ -267,11 +276,8 @@ php artisan make:rule NameRule
 ### Code Quality
 
 ```bash
-# Format code to Laravel standards
-./vendor/bin/pint
-
-# Run static analysis
-./vendor/bin/phpstan
+# Format code to Laravel standards (the folders CI checks)
+composer pint:format
 
 # Run all tests
 php artisan test
@@ -352,4 +358,4 @@ Add to cron:
 - **[Project Structure](PROJECT_STRUCTURE.md)** - Complete directory breakdown
 - **[Database Schema](DATABASE.md)** - Table reference and ERD
 - **[Authentication Flow](AUTHENTICATION.md)** - Multi-provider auth details
-- **[Notifications](NOTIFICATIONS.md)** - Notification system architecture
+- **[Event Workflow](EVENT_WORKFLOW.md)** - Event lifecycle, mission briefs and notification flow

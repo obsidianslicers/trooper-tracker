@@ -85,25 +85,9 @@ php artisan tracker:fix-trooper-assignment-hierarchy
 
 ---
 
-### `tracker:merge-troopers`
+### Merging troopers (no command)
 
-Merges two trooper accounts, reassigning the source trooper's organizations, assignments, costumes, donations, friends, awards, event sign-ups/uploads/watches/mission-acks/notifications/shares, and achievements onto the target trooper. Account-level fields (phone, date of birth, membership status/role, notification settings, etc.) are reconciled onto the target, and the source trooper's `membership_status` is set to `MERGED`. Runs inside a database transaction; notifies all administrators when complete.
-
-```bash
-php artisan tracker:merge-troopers {source_trooper_id} {target_trooper_id}
-```
-
-| Argument | Required | Description |
-|---|---|---|
-| `source_trooper_id` | Yes | ID of the trooper whose account will be merged from (marked `MERGED` afterward) |
-| `target_trooper_id` | Yes | ID of the trooper whose account will be merged into |
-
-**Example:**
-```bash
-php artisan tracker:merge-troopers 42 1
-```
-
-> **Note:** This runs the same merge logic synchronously as the admin "Merge Troopers" UI, which instead queues it via `MergeTroopersJob`.
+There is no Artisan command for merging troopers. A system owner merges two accounts on the admin **Merge Troopers** page (`/admin/troopers/merge`, `ShowMergeTroopersFormController` → `MergeTroopersController`), which queues `MergeTroopersJob`. The job calls the `MergeTroopers` message: it moves the source trooper's organizations, assignments, costumes, donations, friends, awards, event sign-ups, uploads, watches, mission acknowledgements, notifications, shares and achievements onto the target, reconciles account-level fields, sets the source's `membership_status` to `MERGED`, and notifies the administrators when done.
 
 ---
 
@@ -418,28 +402,17 @@ php artisan xenforo:sync-users --chunk=50
 
 ---
 
-### `xenforo:test-thread`
+### `xenforo:import-env` (XenForo plugin)
 
-Creates a test thread in a XenForo forum node and outputs the raw JSON response. Useful for verifying XenForo API connectivity and thread creation.
+Copies the `XENFORO_*` and `TRACKER_REQUIRE_XENFORO` values from `.env` onto the plugin's settings page (Command Staff > Plugins > XenForo > Settings). Settings that are already saved are kept unless `--force` is given.
 
 ```bash
-php artisan xenforo:test-thread {node_id} {title} {message} [--user_id=] [--prefix_id=] [--extra=*]
+php artisan xenforo:import-env [--force]
 ```
 
-| Argument/Option | Required | Description |
+| Option | Required | Description |
 |---|---|---|
-| `node_id` | Yes | XenForo forum/node ID to post in |
-| `title` | Yes | Thread title |
-| `message` | Yes | Thread body |
-| `--user_id` | No | XenForo user ID for the thread creator |
-| `--prefix_id` | No | XenForo thread prefix ID |
-| `--extra` | No | Extra fields as `key:value` pairs (repeatable) |
-
-**Example:**
-```bash
-php artisan xenforo:test-thread 5 "Test Thread" "Hello world" --user_id=1 --prefix_id=3
-php artisan xenforo:test-thread 5 "Test" "Body" --extra=field1:val1 --extra=field2:val2
-```
+| `--force` | No | Replace settings that are already saved |
 
 ---
 

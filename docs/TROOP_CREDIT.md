@@ -139,7 +139,7 @@ flowchart TD
 
 ## Reports: SQL Attribution
 
-The `HasOrgAttributionQuery` trait applies org filtering at the SQL level for reports like the Trooper Event Summary. It accepts either a single `Organization` model or a list of `accessible_org_ids` (root-level IDs that a moderator can see).
+The `HasTrooperOrgCreditQuery` trait (`app/Messages/Concerns`) applies org filtering at the SQL level for reports like the Trooper Event Summary. It accepts either a single `Organization` model or a list of `accessible_org_ids` (root-level IDs that a moderator can see).
 
 ```mermaid
 flowchart TD
@@ -175,7 +175,7 @@ The multi-org path uses `SUBSTRING_INDEX(node_path, ':', 1)` to extract the root
 | Forum-thread sync for roster lifecycle changes | `app/Models/Observers/EventTrooperObserver.php` |
 | Attendance credit assignment (self-service) | `app/Http/Controllers/Events/Commands/CompleteShiftController.php` |
 | Multi-club selection | `app/Http/Controllers/Events/Commands/CompleteShiftWithClubController.php` |
-| Admin roster credit override | `app/Http/Controllers/Admin/Events/UpdateTroopersSubmitController.php` |
+| Admin roster credit override | `app/Http/Controllers/Admin/Events/Commands/UpdateEventTroopersController.php` |
 | Shift-complete scenario generation | `app/Console/Commands/SimulateShiftCompleteCommand.php` |
 | PHP troop count + org annotation | `app/Messages/Concerns/HasOrgCreditAnnotation.php` |
 | SQL attribution WHERE clause | `app/Messages/Concerns/HasTrooperOrgCreditQuery.php` |

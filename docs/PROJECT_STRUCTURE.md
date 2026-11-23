@@ -229,8 +229,8 @@ All enums are backed by strings and located in `app/Enums/`:
 - **AwardFrequency:** How often awards are given
 - **EventStatus:** Event lifecycle states
 - **EventTrooperStatus:** Signup states
-- **MembershipRole:** Trooper roles (member, moderator, administrator)
-- **MembershipStatus:** Account states (pending, active, retired)
+- **MembershipRole:** Trooper roles (member, handler, visitor, event_coordinator, moderator, staff_officer, system_owner)
+- **MembershipStatus:** Account states (none, pending, denied, active, inactive, invalid, reserve, retired, merged, departed)
 - **NoticeType:** Notice severity levels
 - **NotificationFrequency:** Email preferences (never, instant, daily)
 - **OrganizationType:** Organization hierarchy levels
@@ -354,4 +354,4 @@ Key configuration files in `config/`:
 - **Architecture Patterns:** [CODING_CONVENTIONS.md](CODING_CONVENTIONS.md)
 - **Database Schema:** [DATABASE.md](DATABASE.md)
 - **Authentication Flow:** [AUTHENTICATION.md](AUTHENTICATION.md)
-- **Notifications:** [NOTIFICATIONS.md](NOTIFICATIONS.md)
+- **Event lifecycle and notifications:** [EVENT_WORKFLOW.md](EVENT_WORKFLOW.md)
