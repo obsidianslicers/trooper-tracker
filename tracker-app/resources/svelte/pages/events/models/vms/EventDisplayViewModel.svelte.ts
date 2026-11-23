@@ -117,10 +117,27 @@ export class EventDisplayViewModel {
         }
     };
 
-    /** "Sign up" at the top: opens the shifts that can be signed up for and goes to the roster. */
+    /**
+     * "Sign up" at the top, or in the phone bar: opens the shifts that can be signed up for. With
+     * one, it goes straight to that shift's Sign up, ready to go ({@link requestSignUp}); with
+     * several, or when the shift has no Sign up yet (the mission brief comes first), to the roster.
+     */
     goToSignUp = async (shift_ids: number[]) => {
         shift_ids.forEach((id) => this.open_shifts.add(id));
+
+        if (shift_ids.length === 1) {
+            this.requestSignUp(shift_ids[0]);
+        }
+
         await tick();
+
+        if (this.sign_up_requested !== null) {
+            //  no Sign up on that shift picked it up
+            this.sign_up_requested = null;
+        } else if (shift_ids.length === 1) {
+            return;
+        }
+
         document.getElementById("mission-roster")?.scrollIntoView({ behavior: "smooth" });
     };
 

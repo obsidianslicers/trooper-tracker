@@ -88,15 +88,29 @@ test.describe('finding a troop', () => {
 });
 
 test.describe('signing up', () => {
-    test("the summary's Sign up opens a collapsed shift", async ({ page }) => {
+    test("the summary's Sign up opens a collapsed shift at its sign-up, ready to go", async ({ page }) => {
         await openEvent(page, seeded.signupEvent);
-        const signUp = shift(page).getByRole('button', { name: 'Sign Up' });
         await collapseShift(page);
-        await expect(signUp).toBeHidden();
+        await expect(shift(page).getByRole('button', { name: 'Sign Up' })).toBeHidden();
 
         await summary(page).getByRole('link', { name: 'Sign up' }).click();
-        await expect(signUp).toBeVisible();
+
+        //  not just the top of the shift: its sign-up choices are open, in view and focused
         await expect(shift(page).locator('.collapse-icon')).toHaveClass(/fa-minus/);
+        const costume = shift(page).locator('.shift-signup-primary--form').getByLabel('Costume', { exact: true });
+        await expect(costume).toBeFocused();
+        await expect(costume).toBeInViewport();
+    });
+
+    test("on a phone, the bar's Sign up goes to the shift's sign-up too", async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await openEvent(page, seeded.signupEvent);
+
+        await page.locator('.my-signup-bar').getByRole('link', { name: 'Sign up' }).click();
+
+        const costume = shift(page).locator('.shift-signup-primary--form').getByLabel('Costume', { exact: true });
+        await expect(costume).toBeFocused();
+        await expect(costume).toBeInViewport();
     });
 
     test('a trooper signs up in a costume, brings a guest and a friend, then cancels', async ({ page }) => {
