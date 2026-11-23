@@ -30,6 +30,18 @@ class ShowTrooperEventSummaryControllerTest extends TestCase
         );
     }
 
+    public function test_invoke_streams_trooper_event_summary_csv(): void
+    {
+        $trooper = Trooper::factory()->asSystemOwner()->create();
+
+        $response = $this->actingAs($trooper)->get(route('admin.reports.trooper-event-summary', ['format' => 'csv']));
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $response->assertDownload('trooper-event-summary-'.now()->format('Y-m-d').'.csv');
+        $this->assertStringContainsString('Trooper,"Unique Events","Total Shifts"', $response->streamedContent());
+    }
+
     public function test_invoke_requires_authentication(): void
     {
         $response = $this->get(route('admin.reports.trooper-event-summary'));

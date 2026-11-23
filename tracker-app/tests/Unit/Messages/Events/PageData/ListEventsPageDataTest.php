@@ -6,17 +6,21 @@ namespace Tests\Unit\Messages\Events\PageData;
 
 use App\Enums\EventStatus;
 use App\Messages\Events\PageData\ListEventsPageData;
+use App\Messages\Support\Queries\GetSupportGoal;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\Trooper;
+use Closure;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class ListEventsPageDataTest extends TestCase
 {
+    use FakesMessages;
     use RefreshDatabase;
 
     public function test_handle_marks_the_shifts_the_trooper_signed_up_for(): void
@@ -101,6 +105,28 @@ class ListEventsPageDataTest extends TestCase
     /**
      * The page data as the Svelte page receives it, with every resource turned into JSON.
      */
+    public function test_handle_has_no_support_goal_when_none_is_set(): void
+    {
+        config(['tracker.support.goal' => 0]);
+        $trooper = Trooper::factory()->asActive()->create();
+
+        $result = (new ListEventsPageData($trooper))->handle();
+
+        $this->assertNull($result['support']);
+    }
+
+    public function test_handle_offers_the_support_goal_to_load_later(): void
+    {
+        config(['tracker.support.goal' => 500]);
+        $trooper = Trooper::factory()->asActive()->create();
+        $this->fakeMessages([GetSupportGoal::class => ['goal' => 500]]);
+
+        $result = (new ListEventsPageData($trooper))->handle();
+
+        $this->assertInstanceOf(Closure::class, $result['support']);
+        $this->assertSame(['goal' => 500], ($result['support'])());
+    }
+
     private function resolve(array $data): array
     {
         return json_decode(json_encode($data), true);
