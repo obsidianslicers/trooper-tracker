@@ -1,7 +1,8 @@
 <!--
     One shift: how full it is, then its roster in sign-up order (on limited shifts that order
     decides who goes and who moves up from stand-by), with Sign up at the end, where the new row
-    will land, then guests and cancelled sign-ups, and the shift's other links.
+    will land, then guests and cancelled sign-ups, and the shift's other links. A long roster
+    also has Sign Up above it, which goes down to that one and gets it ready.
 -->
 <script lang="ts">
     import { t } from "$lib/i18n";
@@ -49,6 +50,16 @@
                 {/if}
 
                 <div class="roster">
+                    {#if shift.sign_up && "url" in shift.sign_up && vm.hasLongRoster(shift)}
+                        <div class="shift-signup-jump d-flex justify-content-end mb-2">
+                            <button type="button" class="btn btn-sm btn-success" disabled={vm.sending}
+                                    onclick={() => vm.requestSignUp(shift.id)}>
+                                <i class="fa-solid fa-arrow-down me-1" aria-hidden="true"></i>
+                                {shift.sign_up.is_full ? t("Join stand-by") : t("Sign Up")}
+                            </button>
+                        </div>
+                    {/if}
+
                     {#each shift.going as row (row.id)}
                         <RosterRow {vm} {row} shift_id={shift.id} is_open={shift.is_open} />
                     {/each}

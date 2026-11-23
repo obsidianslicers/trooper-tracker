@@ -6,6 +6,7 @@
 <script lang="ts">
     import { t } from "$lib/i18n";
     import { guestRowKey, type EventDisplayViewModel, type GuestRow } from "../../models";
+    import BusySpinner from "./BusySpinner.svelte";
     import SignUpStatus from "./SignUpStatus.svelte";
 
     let { vm, guest, shift_id }: { vm: EventDisplayViewModel; guest: GuestRow; shift_id: number } = $props();
@@ -13,14 +14,17 @@
     const key = $derived(guestRowKey(guest.id));
     const editing = $derived(guest.can_cancel && vm.isEditing(key));
 
-    const send = (status: string) => vm.send(guest.update_url, { status }, { shift_id });
+    const again_key = $derived(`guest-sign-up-again-${guest.id}`);
+    const cancel_key = $derived(`guest-cancel-${guest.id}`);
+
+    const send = (status: string, busy?: string) => vm.send(guest.update_url, { status }, { shift_id, busy });
 
     const cancel = () => vm.confirm({
         title: t("Cancel their sign-up"),
         message: guest.cancel_confirm,
         label: t("Cancel their sign-up"),
         danger: true,
-        run: () => send("cancelled"),
+        run: () => send("cancelled", cancel_key),
     });
 </script>
 
@@ -48,7 +52,9 @@
             {:else if guest.sign_up_again}
                 <SignUpStatus status={guest.status} block />
                 <button type="button" class="btn btn-sm btn-outline-secondary btn-secondary-action"
-                        disabled={vm.sending} onclick={() => send(guest.sign_up_again!)}>
+                        disabled={vm.sending} aria-busy={vm.isBusy(again_key)}
+                        onclick={() => send(guest.sign_up_again!, again_key)}>
+                    <BusySpinner busy={vm.isBusy(again_key)} />
                     {t("Sign up again")}
                 </button>
             {:else}
@@ -70,7 +76,9 @@
     </div>
     {#if editing}
         <div class="roster-row__editor text-md-end" id="roster-guest-editor-{guest.id}">
-            <button type="button" class="btn btn-link btn-sm p-0 text-danger" onclick={cancel}>
+            <button type="button" class="btn btn-link btn-sm p-0 text-danger" onclick={cancel}
+                    disabled={vm.sending} aria-busy={vm.isBusy(cancel_key)}>
+                <BusySpinner busy={vm.isBusy(cancel_key)} />
                 {t("Cancel their sign-up")}
             </button>
         </div>
