@@ -41,7 +41,6 @@ class EventDisplayTrooperRow extends JsonResource
             'id' => $this->id,
             'number' => $this->roster_number,
             'trooper' => [
-                'id' => $this->trooper->id,
                 'name' => $this->trooper->display_name,
                 'legal_name' => $this->trooper->legal_name,
                 'url' => route('service-records.trooper', ['trooper' => $this->trooper->id]),

@@ -54,6 +54,10 @@ class UpdateOrganizationPageDataTest extends TestCase
     {
         $subject = new UpdateOrganizationPageData($actor, $organization);
 
-        return $subject->handle(app(PluginClubSynchronizers::class), app(PluginSlots::class));
+        //  as the page receives it, with the Resources serialized
+        return json_decode(
+            json_encode($subject->handle(app(PluginClubSynchronizers::class), app(PluginSlots::class))),
+            true
+        );
     }
 }

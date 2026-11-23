@@ -6,6 +6,7 @@ namespace App\Messages\Reports\PageData;
 
 use App\Enums\EventTrooperStatus;
 use App\Messages\Reports\Queries\GetTroopersWithoutActivity;
+use App\Messages\Reports\Resources\InactiveTrooperRowResource;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
@@ -35,16 +36,7 @@ final class TroopersWithoutActivityPageData extends Message
                 'attended' => EventTrooperStatus::ATTENDED->label(),
                 'date' => $lookback->localFormat('M d, Y'),
             ]),
-            'troopers' => $troopers
-                ->map(fn (Trooper $trooper): array => [
-                    'id' => $trooper->id,
-                    'display_name' => $trooper->display_name,
-                    'profile_url' => route('admin.troopers.show', ['trooper' => $trooper]),
-                    'last_seen' => $trooper->last_active_at?->localFormat('M d, Y')
-                        ?? __('admin.Never'),
-                ])
-                ->values()
-                ->all(),
+            'troopers' => InactiveTrooperRowResource::collection($troopers->values()),
         ];
     }
 }

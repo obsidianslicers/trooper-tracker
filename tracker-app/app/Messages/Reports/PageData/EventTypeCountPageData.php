@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Messages\Reports\PageData;
 
-use App\Messages\Concerns\FormatsReportNumbers;
 use App\Messages\Reports\Queries\GetEventTypeCount;
+use App\Messages\Reports\Resources\EventTypeCountRowResource;
+use App\Messages\Reports\Resources\EventTypeCountTotalsResource;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
@@ -17,8 +18,6 @@ use Hyperdrive\Message;
  */
 final class EventTypeCountPageData extends Message
 {
-    use FormatsReportNumbers;
-
     public const DAYS = 30;
 
     /**
@@ -35,24 +34,8 @@ final class EventTypeCountPageData extends Message
 
         return [
             'days' => self::DAYS,
-            'event_types' => $types
-                ->map(fn (object $type): array => [
-                    'id' => $type->event_type->id,
-                    'name' => $type->event_type->name,
-                    'events_url' => route('admin.events.index', [
-                        'event_type_id' => $type->event_type->id,
-                    ]),
-                    'count' => $this->count($type->count),
-                    'unique_trooper_count' => $this->count($type->unique_trooper_count),
-                    'total_trooper_count' => $this->count($type->total_trooper_count),
-                ])
-                ->values()
-                ->all(),
-            'totals' => [
-                'count' => $this->count($types->sum('count')),
-                'unique_trooper_count' => $this->count($types->sum('unique_trooper_count')),
-                'total_trooper_count' => $this->count($types->sum('total_trooper_count')),
-            ],
+            'event_types' => EventTypeCountRowResource::collection($types->values()),
+            'totals' => new EventTypeCountTotalsResource($types),
         ];
     }
 }

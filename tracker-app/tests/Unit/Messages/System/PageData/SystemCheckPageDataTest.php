@@ -29,7 +29,8 @@ class SystemCheckPageDataTest extends TestCase
         ]));
 
         $subject = new SystemCheckPageData;
-        $result = $subject->handle($service, $log_viewer);
+        //  as the page receives it, with Resources resolved
+        $result = json_decode(json_encode($subject->handle($service, $log_viewer)), true);
 
         $this->assertSame([[
             'name' => 'Environment',

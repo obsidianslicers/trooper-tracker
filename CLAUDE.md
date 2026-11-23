@@ -145,12 +145,21 @@ Core principle: **decomposition into small, single units of work** — reduces c
 In addition to Commands and Queries (see Hyperdrive Messages above), page-facing endpoints get a **PageData** message:
 
 - **Commands & Queries** stay strictly separate — neither should be overloaded to also supply multi-query page view data.
-- **PageData**: aggregates multiple queries into a single response payload tailored to a specific page. Example: `GetAllOrganizationsQuery` returns full records/columns; `RegistrationPageData` pulls from that query and trims the payload to only the JSON fields the registration UI needs.
-- Location: `app/Messages/[Feature]/PageData/[Name]PageData.php` (see `app/Messages/Auth/PageData/LoginPageData.php` for reference).
+- **PageData**: aggregates multiple queries into a single response payload tailored to a specific page. Example: `GetOrganizationHierarchy` returns full records; `RegisterPageData` passes them through `RegisterOrganizationResource`, which sends only the fields the registration page reads.
+- Location: `app/Messages/[Feature]/PageData/[Name]PageData.php` (see `app/Messages/Awards/PageData/ListAwardsPageData.php` for reference).
+
+**What a PageData sends to Svelte (pages and the JSON lookups Svelte fetches):**
+- Only the fields the Svelte code reads: trace each prop through the page, its components and its VM. Unread fields don't go over the wire.
+- Every payload is shaped by a Resource (`JsonResource` in `app/Messages/[Feature]/Resources/`, like `AwardRowResource`: a `@mixin` docblock naming the page, model constants for keys). Hand-built arrays, even `['id' => …, 'name' => …]`, become Resources; plain scalars (a search term, a flag) may stay at the top level.
+- The page's TypeScript types (`pages/[feature]/models/types.ts`) list exactly what the Resource sends. When you add or drop a field, change both.
+- A Resource another page also uses isn't trimmed for one page: make a page-specific Resource instead.
+- An id-keyed map passed straight to Inertia as a Resource loses its keys (Laravel's resource wrapping renumbers integer keys). Pass `(new SomeResource(...))->resolve()` for those; lists and string-keyed objects are fine.
+- Blade views get PHP objects, not a serialized payload, so this applies to Svelte only.
 
 **Calling conventions:**
 - Page requests: `PageData::call($request)` — automatically hydrates constructor parameters from request inputs, query strings, route parameters, and route model bindings.
 - Everywhere else: explicit named arguments (e.g. `Query::call(organization_id: 123)`) to keep dependencies clear and refactoring safe.
+- Hyperdrive turns raw values into enums (and ids into bound models) for named arguments too, so pass `status: $request->validated('status')` rather than `EventTrooperStatus::from(...)`. Convert in the controller only when a bad value must give a specific response (a 404 for a tampered signed link).
 - Maintain PHPDoc annotations on static `::call()` methods to preserve constructor autocomplete/Intellisense.
 - For messages needing the authenticated user, inject `Actor $actor` in the constructor — this explicitly distinguishes the active session user from target user records fetched via lookup.
 
@@ -179,18 +188,23 @@ styled as a button (Login on the home page), and a quiet, low-stakes action may 
 
 ```
 resources/svelte/
-├── lib/domains/[feature]/
-│   └── vms/
-│       └── [PageViewModel].svelte.ts   # One file per VM; page logic, state, & types
+├── lib/                                # Shared across features
+│   ├── components/                     # Shared components (pickers), their VMs in components/models/
+│   └── domains/types.svelte.ts         # Shared types (Option, PaginatedResource, ...)
 └── pages/[feature]/
-    ├── components/                     # Single-responsibility, reusable UI components
+    ├── models/
+    │   ├── types.ts                    # The page's props: exactly what its PageData sends
+    │   └── vms/
+    │       └── [PageViewModel].svelte.ts   # One file per VM; page logic and state
+    ├── components/                     # Single-responsibility UI components
     │   └── ComponentName.svelte
     └── PageName.svelte
 ```
 
-- `lib/domains/[feature]/vms/`: each ViewModel handles a single unit of work supporting one specific page. Keep helper functions, types, and logic contained within its VM file.
+- `pages/[feature]/models/vms/`: each ViewModel handles a single unit of work supporting one specific page.
 - `pages/[feature]/`: pure presentation layer. Components and pages delegate business/state logic to their VM. Simple pages may not need a VM — use judgment.
-- Reference implementation: the auth/Login module (`resources/svelte/lib/domains/auth/vms/LoginViewModel.svelte.ts`).
+- Reference implementation: the auth/Login module (`resources/svelte/pages/auth/models/vms/LoginViewModel.svelte.ts`).
+- Vitest specs mirror the pages under `tests/js/svelte/[feature]/` and type their fixtures with the page's types, so a dropped field shows up there too.
 
 ---
 
@@ -260,6 +274,19 @@ Each feature folder splits its controllers in two:
   are GETs that live in `Commands/`.
 - `Pages/`: the request changes nothing. Pages, plus downloads (ICS, CSV), JSON lookups (pickers,
   search) and HTMX fragments.
+
+What a controller calls:
+
+- A `Pages/` controller calls exactly one PageData message, never a Query directly. A download's
+  PageData returns the filename and content; the controller only builds the response.
+- A `Commands/` controller calls a Command message that holds the business rules (eligibility,
+  capacity, what to write). The controller keeps only authorization, request validation, and
+  turning the result into flash text, a redirect or a response.
+- When the controller has to choose a response, the Command returns an outcome enum in
+  `app/Enums` (`ShiftAttendanceOutcome`, `SignUpOutcome`); the controller maps it to a toast or a
+  403. Don't put translated text in the Command.
+- A controller with no data and no rules (a static view, a redirect) needs no message, and one
+  whose work belongs in a queue only dispatches the Job.
 
 Controller names follow the same `[Verb][Object][Optional Detail]` rule as Command messages, and
 share the message's name where there is one (`LoginTrooperController` → `LoginTrooper`). Pages

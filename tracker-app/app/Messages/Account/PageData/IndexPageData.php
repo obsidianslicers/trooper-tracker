@@ -6,10 +6,11 @@ namespace App\Messages\Account\PageData;
 
 use App\Enums\AdministrativeNotifications;
 use App\Enums\NotificationChannels;
-use App\Enums\NotificationFrequency;
 use App\Enums\OrganizationType;
 use App\Enums\TrooperNotifications;
 use App\Messages\Account\Queries\GetOrganizationNotifications;
+use App\Messages\Account\Resources\AccountNotificationsResource;
+use App\Messages\Account\Resources\MembershipOrganizationCollection;
 use App\Messages\Account\Resources\OrganizationNotificationCollection;
 use App\Messages\Account\Resources\TrooperCostumeCollection;
 use App\Messages\Account\Resources\TrooperDetails;
@@ -18,7 +19,6 @@ use App\Messages\Account\Resources\TrooperMembershipCollection;
 use App\Messages\Account\Resources\TrooperMinorCollection;
 use App\Messages\Account\Resources\TrooperRequestCollection;
 use App\Messages\Organizations\Queries\GetOrganizationHierarchy;
-use App\Messages\Organizations\Resources\OrganizationHierarchy;
 use App\Messages\Organizations\Resources\OrganizationOptions;
 use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumes;
 use App\Messages\Troopers\Queries\GetTrooperFriends;
@@ -58,12 +58,10 @@ final class IndexPageData extends Message
     public function handle(): array
     {
         $data = [
-            'trooper_id' => $this->actor->id,
             'is_visitor' => $this->actor->is_visitor,
             'is_handler' => $this->actor->is_handler,
             'visitor_expires_at' => $this->actor->visitor_expires_at,
             'deletion_requested_at' => $this->actor->deletion_requested_at,
-            'email' => $this->actor->email,
             'details' => $this->getDetails(),
             'notifications' => $this->getNotifications(),
             'costumes' => $this->getCostumes(),
@@ -80,20 +78,18 @@ final class IndexPageData extends Message
         return $this->actor->toResource(TrooperDetails::class);
     }
 
-    private function getNotifications(): array
+    private function getNotifications(): AccountNotificationsResource
     {
-        return [
-            'trooper_notification_enums' => $this->withPluginCategories(
+        return new AccountNotificationsResource(
+            trooper: $this->actor,
+            trooper_options: $this->withPluginCategories(
                 TrooperNotifications::toValueLabels(),
                 $this->plugins()->trooperCategories(),
             ),
-            'administrative_notification_enums' => $this->getAdministrativeNotificationEnums(),
-            'notification_frequency_enums' => NotificationFrequency::toValueLabels(),
-            'notification_frequency' => $this->actor->notification_frequency,
-            'push_notifications_enabled' => $this->actor->push_notifications_enabled,
-            'notification_preferences' => $this->getNotificationPreferences(),
-            'organization_notifications' => $this->getOrganizationNotifications(),
-        ];
+            administrative_options: $this->getAdministrativeNotificationEnums(),
+            preferences: $this->getNotificationPreferences(),
+            organization_notifications: $this->getOrganizationNotifications(),
+        );
     }
 
     /**
@@ -235,11 +231,11 @@ final class IndexPageData extends Message
         return new TrooperRequestCollection($collection);
     }
 
-    private function getOrganizationHierarchy(): OrganizationHierarchy
+    private function getOrganizationHierarchy(): MembershipOrganizationCollection
     {
         $collection = GetOrganizationHierarchy::call();
 
-        return new OrganizationHierarchy($collection);
+        return new MembershipOrganizationCollection($collection);
     }
 
     private function getOrganizationOptions(): OrganizationOptions

@@ -27,7 +27,9 @@ class RecruitTrooperPageDataTest extends TestCase
         $other = Organization::factory()->asOrganization()->create();
         $other->update([Organization::NODE_PATH => "{$other->id}:"]);
 
-        $result = (new RecruitTrooperPageData(Trooper::factory()->asSystemOwner()->create()))->handle();
+        $result = json_decode(json_encode(
+            (new RecruitTrooperPageData(Trooper::factory()->asSystemOwner()->create()))->handle()
+        ), true);
 
         $this->assertSame(['label' => 'TKID', 'is_required' => true], $result['identifiers'][$unit->id]);
         $this->assertSame(['label' => 'Member ID', 'is_required' => false], $result['identifiers'][$other->id]);

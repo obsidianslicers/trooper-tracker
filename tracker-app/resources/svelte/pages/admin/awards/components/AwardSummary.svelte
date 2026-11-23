@@ -2,10 +2,10 @@
     import { t } from "$lib/i18n";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
-    import type { Award } from "../models";
+    import type { AwardSummary } from "../models";
 
     interface Props {
-        award: Award;
+        award: AwardSummary;
         with_frequency?: boolean;
     }
 

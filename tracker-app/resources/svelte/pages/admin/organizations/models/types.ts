@@ -39,6 +39,6 @@ export type UpdatePageData = {
 };
 
 export type CostumesPageData = {
-    organization: { id: number; name: string; is_club: boolean };
+    organization: { id: number };
     costumes: { id: number; name: string; synchronized_at: string | null }[];
 };

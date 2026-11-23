@@ -26,7 +26,6 @@ class MapPageDataTest extends TestCase
 
         $this->assertCount(1, $result['events']);
         $pin = $result['events'][0];
-        $this->assertSame($event->id, $pin['id']);
         $this->assertSame($event->name, $pin['name']);
         $this->assertSame(route('events.display', ['event' => $event]), $pin['url']);
         $this->assertSame($event->time_display, $pin['date_range']);
@@ -34,7 +33,7 @@ class MapPageDataTest extends TestCase
         $this->assertEqualsWithDelta(27.95, $pin['lat'], 0.0001);
         $this->assertEqualsWithDelta(-82.46, $pin['lng'], 0.0001);
         $this->assertSame(
-            ['id', 'name', 'url', 'date_range', 'venue_address', 'organization_id', 'lat', 'lng'],
+            ['name', 'url', 'date_range', 'venue_address', 'organization_id', 'lat', 'lng'],
             array_keys($pin),
         );
     }

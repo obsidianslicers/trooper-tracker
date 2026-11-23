@@ -45,7 +45,7 @@ class ListAdminEventsPageDataTest extends TestCase
             Event::EVENT_START => Carbon::parse('2030-05-04 09:30'),
         ]);
 
-        $result = (new CopyEventPageData($event))->handle();
+        $result = json_decode(json_encode((new CopyEventPageData($event))->handle()), true);
 
         $this->assertSame('COPY OF Parade', $result['event']['name']);
         $this->assertSame('2030-05-04 09:30', $result['event']['event_start']);

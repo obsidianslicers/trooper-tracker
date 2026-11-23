@@ -20,7 +20,6 @@ class TrooperMinorCollection extends ResourceCollection
                 Trooper::ID => $minor->id,
                 Trooper::LEGAL_NAME => $minor->legal_name,
                 Trooper::DISPLAY_NAME => $minor->display_name,
-                Trooper::DATE_OF_BIRTH => $minor->date_of_birth,
             ])->toArray();
     }
 }

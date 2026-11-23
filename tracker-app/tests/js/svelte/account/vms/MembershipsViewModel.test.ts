@@ -31,10 +31,7 @@ const pageData = (): MembershipsPageData => ({
             regions: [
                 {
                     id: 10,
-                    name: 'Garrison',
-                    parent_id: 1,
-                    primary_organization_id: 1,
-                    units: [{ id: 100, name: 'Squad', parent_id: 10, primary_organization_id: 1 }],
+                    units: [{ id: 100 }],
                 },
             ],
         },

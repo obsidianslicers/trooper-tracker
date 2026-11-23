@@ -22,8 +22,7 @@ class CreateAwardControllerTest extends TestCase
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
             ->component('admin/awards/Create')
-            ->where('award.id', null)
-            ->where('award.frequency', 'once')
+            ->where('award', ['organization_id' => null, 'frequency' => 'once', 'name' => ''])
             ->has('frequency_options', 5)
             ->has('organization_options'));
     }

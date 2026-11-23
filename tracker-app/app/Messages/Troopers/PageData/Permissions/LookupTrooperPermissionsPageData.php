@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\PageData\Permissions;
 
-use App\Messages\Troopers\Resources\PermissionRequestsCollection;
+use App\Messages\Troopers\Resources\TrooperPermissionsLookupResource;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Plugins\PluginGuard;
@@ -15,33 +15,22 @@ use Hyperdrive\Message;
  * A trooper's current role, moderated organizations, and forum groups, used to
  * pre-fill the permission request form once a trooper is picked.
  *
- * @method static array<string, mixed> call(Trooper $trooper)
+ * @method static TrooperPermissionsLookupResource call(Trooper $trooper)
  */
 final class LookupTrooperPermissionsPageData extends Message
 {
     public function __construct(private readonly Trooper $trooper) {}
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function handle(PluginPermissionRequests $extensions): array
+    public function handle(PluginPermissionRequests $extensions): TrooperPermissionsLookupResource
     {
         $moderated_ids = array_map('intval', $this->trooper->resolveModeratorOrgIds() ?? []);
 
-        return [
-            'trooper' => [
-                'id' => $this->trooper->id,
-                'display_name' => $this->trooper->display_name,
-                'legal_name' => $this->trooper->legal_name,
-                'membership_role' => $this->trooper->membership_role?->value,
-                'membership_role_label' => PermissionRequestsCollection::roleLabel(
-                    $this->trooper->membership_role
-                ),
-            ],
-            'moderated_organization_ids' => $moderated_ids,
-            'covered_organization_ids' => $this->getCoveredOrganizationIds($moderated_ids),
-            'extension_sections' => $this->getExtensionSections($extensions),
-        ];
+        return new TrooperPermissionsLookupResource(
+            trooper: $this->trooper,
+            moderated_organization_ids: $moderated_ids,
+            covered_organization_ids: $this->getCoveredOrganizationIds($moderated_ids),
+            extension_sections: $this->getExtensionSections($extensions),
+        );
     }
 
     /**

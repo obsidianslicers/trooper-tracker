@@ -5,8 +5,6 @@ import { router } from "@inertiajs/svelte";
 export type TrooperApproval = {
     id: number;
     is_visitor: boolean;
-    is_denied: boolean;
-    is_active: boolean;
     trooper_id: number;
     display_name: string;
     legal_name: string;
@@ -21,11 +19,9 @@ export type TrooperApproval = {
 }
 
 type Guardian = {
-    trooper_id: number;
     display_name: string;
     legal_name: string;
     email: string;
-    phone: string;
 };
 
 type TrooperRequest = {

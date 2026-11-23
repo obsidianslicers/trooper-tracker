@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\PageData;
 
-use App\Enums\MembershipRole;
-use App\Enums\MembershipStatus;
 use App\Messages\Changes\Queries\GetModelChangesForTrooper;
 use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForReview;
 use App\Messages\Troopers\Queries\GetMostRecentEventsForTrooper;
@@ -13,6 +11,9 @@ use App\Messages\Troopers\Queries\Membership\GetModeratedOrganizationIds;
 use App\Messages\Troopers\Queries\Membership\GetTrooperAuthorityOrganizations;
 use App\Messages\Troopers\Queries\Membership\GetTrooperOrganizationMemberships;
 use App\Messages\Troopers\Resources\AdminTrooperDetails;
+use App\Messages\Troopers\Resources\ProfileAuthorityResource;
+use App\Messages\Troopers\Resources\ProfileGuardianResource;
+use App\Messages\Troopers\Resources\ProfileMembershipsResource;
 use App\Messages\Troopers\Resources\TrooperAuthorityOrganizationCollection;
 use App\Messages\Troopers\Resources\TrooperChangeCollection;
 use App\Messages\Troopers\Resources\TrooperCostumeReviewCollection;
@@ -47,9 +48,6 @@ final class AdminProfilePageData extends Message
     {
         return [
             'trooper_id' => $this->trooper->id,
-            'display_name' => $this->trooper->display_name,
-            'membership_role' => $this->trooper->membership_role->value,
-            'membership_role_label' => $this->trooper->membership_role->label(),
             'details' => new AdminTrooperDetails($this->trooper, $this->actor),
             'authority' => $this->getAuthority(),
             'memberships' => $this->getMemberships(),
@@ -60,10 +58,7 @@ final class AdminProfilePageData extends Message
         ];
     }
 
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function getAuthority(): ?array
+    private function getAuthority(): ?ProfileAuthorityResource
     {
         if (!$this->actor->can('updateAuthority', $this->trooper))
         {
@@ -72,59 +67,33 @@ final class AdminProfilePageData extends Message
 
         $organizations = GetTrooperAuthorityOrganizations::call(trooper: $this->trooper);
 
-        return [
-            'membership_role' => $this->trooper->membership_role->value,
-            'role_options' => $this->toOptions($this->getRoleChoices()),
-            'organizations' => new TrooperAuthorityOrganizationCollection($organizations),
-        ];
+        return new ProfileAuthorityResource(
+            trooper: $this->trooper,
+            may_give_system_owner: (bool) $this->actor->has_system_owner,
+            organizations: new TrooperAuthorityOrganizationCollection($organizations),
+        );
     }
 
-    /**
-     * @return array<string, string>
-     */
-    private function getRoleChoices(): array
-    {
-        return collect(MembershipRole::cases())
-            ->reject(fn (MembershipRole $role): bool => $role === MembershipRole::SYSTEM_OWNER
-                && !$this->actor->has_system_owner)
-            ->mapWithKeys(fn (MembershipRole $role): array => [
-                $role->value => $role->label(),
-            ])
-            ->all();
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function getMemberships(): array
+    private function getMemberships(): ProfileMembershipsResource
     {
         $organizations = GetTrooperOrganizationMemberships::call(trooper: $this->trooper);
         $allowed_ids = GetModeratedOrganizationIds::call(moderator: $this->actor);
 
-        return [
-            'status_options' => $this->toOptions(MembershipStatus::toArray()),
-            'organizations' => new TrooperOrganizationMembershipCollection(
-                $organizations,
-                $allowed_ids,
-                (bool) $this->trooper->is_visitor,
-            ),
-        ];
+        return new ProfileMembershipsResource(new TrooperOrganizationMembershipCollection(
+            $organizations,
+            $allowed_ids,
+            (bool) $this->trooper->is_visitor,
+        ));
     }
 
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function getGuardian(): ?array
+    private function getGuardian(): ?ProfileGuardianResource
     {
         if (!$this->trooper->has_guardian_required_membership)
         {
             return null;
         }
 
-        return [
-            'date_of_birth' => $this->trooper->date_of_birth?->format('Y-m-d'),
-            'guardian_email' => $this->trooper->guardian?->email,
-        ];
+        return new ProfileGuardianResource($this->trooper);
     }
 
     private function getCostumes(): TrooperCostumeReviewCollection
@@ -152,21 +121,5 @@ final class AdminProfilePageData extends Message
         );
 
         return new TrooperChangeCollection($collection);
-    }
-
-    /**
-     * @param  array<string|int, string>  $choices
-     * @return array<int, array{value:string|int,label:string}>
-     */
-    private function toOptions(array $choices): array
-    {
-        $options = [];
-
-        foreach ($choices as $value => $label)
-        {
-            $options[] = ['value' => $value, 'label' => $label];
-        }
-
-        return $options;
     }
 }

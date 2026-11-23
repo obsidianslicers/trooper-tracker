@@ -35,7 +35,6 @@ class FaqsCollection extends ResourceCollection
                 FaqSection::ID => $section->id,
                 FaqSection::LABEL => $section->label,
                 FaqSection::ICON => $section->icon,
-                FaqSection::SORT_ORDER => $section->sort_order,
                 'faqs' => $this->getQuestions($section),
             ])
             ->toArray();
@@ -47,7 +46,6 @@ class FaqsCollection extends ResourceCollection
             ->map(fn ($faq) => [
                 Faq::ID => $faq->id,
                 Faq::TITLE => $faq->title,
-                Faq::SORT_ORDER => $faq->sort_order,
                 'has_video' => $faq->has_video,
             ])
             ->toArray();

@@ -37,12 +37,11 @@ class LookUpTrooperPermissionsControllerTest extends TestCase
             ->getJson(route('admin.troopers.permissions.lookup', $trooper));
 
         $response->assertOk();
+        $response->assertJsonPath('trooper', [
+            'membership_role' => 'moderator',
+            'membership_role_label' => 'Moderator',
+        ]);
         $response->assertJson([
-            'trooper' => [
-                'id' => $trooper->id,
-                'membership_role' => 'moderator',
-                'membership_role_label' => 'Moderator',
-            ],
             'moderated_organization_ids' => [$organization->id],
             'extension_sections' => [[
                 'key' => 'badges',

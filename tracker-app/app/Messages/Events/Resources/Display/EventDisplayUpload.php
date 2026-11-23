@@ -33,7 +33,6 @@ class EventDisplayUpload extends JsonResource
             'id' => $this->id,
             'small_url' => $this->small_url,
             'large_url' => $this->large_url,
-            'is_instructional' => (bool) $this->is_administrative,
             'uploaded_by' => $this->is_administrative ? $this->trooper?->display_name : null,
             'is_tagged' => $this->troopers->contains('id', $this->viewer->id),
             'tag_url' => !$this->is_administrative

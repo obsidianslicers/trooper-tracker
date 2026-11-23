@@ -1,8 +1,14 @@
-import type { Option, PaginatedResource } from "$lib/domains/types.svelte";
+import type { PaginatedResource } from "$lib/domains/types.svelte";
 
 /** Numbers arrive formatted for the reader's language; "-" means none. */
 
 export type SortLink = { url: string; arrow: string };
+
+/** A club the report can be narrowed to. */
+export type ClubOption = { value: number; label: string };
+
+/** A column the report can be sorted by. */
+export type SortOption = { value: string; label: string };
 
 type SummaryPage<F, S extends string> = {
     filters: F;
@@ -29,7 +35,7 @@ export type TrooperEventSummaryPageData = SummaryPage<
     ClubFilters & { active_only: boolean },
     "display_name" | "events_count" | "event_shifts_count"
 > & {
-    organizations: Option[];
+    organizations: ClubOption[];
     troopers: PaginatedResource<TrooperEventSummaryRow>;
 };
 
@@ -44,7 +50,7 @@ export type CostumeEventSummaryPageData = SummaryPage<
     ClubFilters,
     "name" | "events_count" | "uses_count"
 > & {
-    organizations: Option[];
+    organizations: ClubOption[];
     costumes: PaginatedResource<CostumeEventSummaryRow>;
     totals: { events_count: string; uses_count: string } | null;
 };
@@ -86,8 +92,8 @@ export type DonationFilters = {
 
 export type DonationEventSummaryPageData = {
     filters: DonationFilters;
-    clubs: Option[];
-    sort_options: Option[];
+    clubs: ClubOption[];
+    sort_options: SortOption[];
     caption: string | null;
     csv_url: string;
     events: PaginatedResource<DonationEventRow>;

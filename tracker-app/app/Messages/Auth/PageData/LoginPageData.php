@@ -5,30 +5,24 @@ declare(strict_types=1);
 namespace App\Messages\Auth\PageData;
 
 use App\Messages\Auth\Queries\GetAuthConfig;
+use App\Messages\Auth\Resources\LoginOptionsResource;
 use Hyperdrive\Message;
 
 /**
- * Retrieves application configuration including authentication provider status and feature toggles.
- *
- * This query message responds with configuration data for authorization providers (Google or
- * plugin login providers, email/password authentication), application metadata, and feature/localization settings.
- * Used by frontend clients to determine available authentication methods and application capabilities.
+ * The login page (auth/Login): the login providers to offer, the one that is required if any,
+ * and whether email/password login is on.
  *
  * @method static array<string, mixed> call()
  */
 final class LoginPageData extends Message
 {
     /**
-     * Retrieves application configuration as a nested associative array.
-     *
-     * @return array Configuration array with auth provider status, URLs, features, and localization settings
+     * @return array{oauth: LoginOptionsResource}
      */
     public function handle(): array
     {
-        $data = [
-            'oauth' => GetAuthConfig::call(),
+        return [
+            'oauth' => new LoginOptionsResource(GetAuthConfig::call()),
         ];
-
-        return $data;
     }
 }

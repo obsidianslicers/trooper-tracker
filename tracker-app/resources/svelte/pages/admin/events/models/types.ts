@@ -99,7 +99,6 @@ export type CreditOption = { id: number; name: string };
 
 export type RosterTrooper = {
     id: number;
-    trooper_id: number;
     display_name: string;
     legal_name: string | null;
     profile_url: string;

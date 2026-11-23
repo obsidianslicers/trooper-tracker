@@ -20,12 +20,12 @@ class MissingCreditsPageDataTest extends TestCase
     {
         $actor = Trooper::factory()->asSystemOwner()->create();
         $messages = $this->fakeMessages([
-            GetEventTroopersMissingCredit::class => ['rows' => collect([['id' => 1], ['id' => 2]]), 'total' => 5],
+            GetEventTroopersMissingCredit::class => ['rows' => collect([$this->row(1), $this->row(2)]), 'total' => 5],
         ]);
 
-        $result = (new MissingCreditsPageData($actor, null, 2))->handle();
+        $result = $this->resolve((new MissingCreditsPageData($actor, null, 2))->handle());
 
-        $this->assertSame([['id' => 1], ['id' => 2]], $result['rows']);
+        $this->assertSame([1, 2], array_column($result['rows'], 'event_trooper_id'));
         $this->assertSame(4, $result['next_offset']);
         $this->assertTrue($result['has_more']);
         $this->assertNull($result['filtered_trooper']);
@@ -35,15 +35,38 @@ class MissingCreditsPageDataTest extends TestCase
         );
     }
 
+    public function test_handle_sends_only_what_the_page_reads_of_each_row(): void
+    {
+        $actor = Trooper::factory()->asSystemOwner()->create();
+        $this->fakeMessages([
+            GetEventTroopersMissingCredit::class => ['rows' => collect([$this->row(7)]), 'total' => 1],
+        ]);
+
+        $row = $this->resolve((new MissingCreditsPageData($actor))->handle())['rows'][0];
+
+        $this->assertSame([
+            'event_trooper_id' => 7,
+            'trooper_id' => 70,
+            'trooper_name' => 'TK-7',
+            'event_name' => 'Library Day',
+            'shift_label' => '10:00 AM - 2:00 PM',
+            'costume_name' => 'Stormtrooper',
+            'org_options' => [['id' => 3, 'name' => '501st']],
+            'has_orphaned_db_value' => false,
+            'fallback_org_options' => [],
+            'trooper_has_no_club_membership' => false,
+        ], $row);
+    }
+
     public function test_handle_describes_the_filtered_trooper(): void
     {
         $actor = Trooper::factory()->asSystemOwner()->create();
         $trooper = Trooper::factory()->withDisplayName('TK-421')->create();
         $this->fakeMessages([
-            GetEventTroopersMissingCredit::class => ['rows' => collect([['id' => 1]]), 'total' => 1],
+            GetEventTroopersMissingCredit::class => ['rows' => collect([$this->row(1)]), 'total' => 1],
         ]);
 
-        $result = (new MissingCreditsPageData($actor, $trooper->id))->handle();
+        $result = $this->resolve((new MissingCreditsPageData($actor, $trooper->id))->handle());
 
         $this->assertFalse($result['has_more']);
         $this->assertSame(['id' => $trooper->id, 'display_name' => 'TK-421'], $result['filtered_trooper']);
@@ -56,8 +79,40 @@ class MissingCreditsPageDataTest extends TestCase
             GetEventTroopersMissingCredit::class => ['rows' => collect(), 'total' => 0],
         ]);
 
-        $result = (new MissingCreditsPageData($actor, 999999))->handle();
+        $result = $this->resolve((new MissingCreditsPageData($actor, 999999))->handle());
 
         $this->assertNull($result['filtered_trooper']);
+    }
+
+    /**
+     * A row as GetEventTroopersMissingCredit builds it, including the fields the page doesn't read.
+     *
+     * @return array<string, mixed>
+     */
+    private function row(int $event_trooper_id): array
+    {
+        return [
+            'event_trooper_id' => $event_trooper_id,
+            'trooper_id' => $event_trooper_id * 10,
+            'trooper_name' => 'TK-'.$event_trooper_id,
+            'event_id' => 99,
+            'event_name' => 'Library Day',
+            'shift_label' => '10:00 AM - 2:00 PM',
+            'shift_starts_at' => '2026-06-01T10:00:00+00:00',
+            'costume_name' => 'Stormtrooper',
+            'org_options' => [['id' => 3, 'name' => '501st']],
+            'has_eligible_options' => true,
+            'has_orphaned_db_value' => false,
+            'fallback_org_options' => [],
+            'trooper_has_no_club_membership' => false,
+        ];
+    }
+
+    /**
+     * The payload as the page receives it, with Resources resolved.
+     */
+    private function resolve(array $data): array
+    {
+        return json_decode(json_encode($data), true);
     }
 }

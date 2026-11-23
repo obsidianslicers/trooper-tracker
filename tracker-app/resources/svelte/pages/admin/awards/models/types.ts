@@ -15,14 +15,17 @@ export type ListPageData = {
     organization: { id: number; name: string } | null;
 };
 
-export type Award = {
-    id: number | null;
-    organization_id: number | null;
-    organization_name: string | null;
+/** The award above the troopers awarded and award a trooper pages. */
+export type AwardSummary = {
+    id: number;
     name: string;
-    frequency: string;
+    organization_name: string | null;
     frequency_label: string;
-    trooper_stamps?: ITrooperStamps;
+};
+
+/** The award on its update page. */
+export type Award = AwardSummary & {
+    trooper_stamps: ITrooperStamps;
 };
 
 export interface IAwardForm {
@@ -32,7 +35,8 @@ export interface IAwardForm {
 }
 
 export type CreatePageData = {
-    award: Award;
+    /** blank, or a copy of another award */
+    award: IAwardForm;
     frequency_options: Option[];
     organization_options: Option[];
 };
@@ -48,7 +52,7 @@ export type AwardedTrooper = {
 };
 
 export type TroopersPageData = {
-    award: Award;
+    award: AwardSummary;
     troopers: AwardedTrooper[];
 };
 
@@ -58,6 +62,6 @@ export interface IAssignTrooperForm {
 }
 
 export type AssignTrooperPageData = {
-    award: Award;
+    award: AwardSummary;
     award_date: string;
 };

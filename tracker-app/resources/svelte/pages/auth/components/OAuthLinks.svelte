@@ -1,9 +1,9 @@
 <script lang="ts">
-    import type { AuthConfiguration } from "../models/types";
+    import type { SignUpOptions } from "../models/types";
     import OAuthLink from "./OAuthLink.svelte";
 
     interface Props {
-        oauth: AuthConfiguration | null;
+        oauth: SignUpOptions | null;
         action: "login" | "signup";
     }
 

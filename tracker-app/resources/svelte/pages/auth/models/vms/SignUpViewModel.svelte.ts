@@ -1,12 +1,12 @@
 import { ViewModel } from "$lib/domains/types.svelte";
-import type { AuthConfiguration } from "../types";
+import type { SignUpOptions } from "../types";
 
 export type SignUpPageData = {
-    oauth: AuthConfiguration;
+    oauth: SignUpOptions;
 };
 
 export class SignUpViewModel extends ViewModel {
-    oauth: AuthConfiguration | null = $state(null);
+    oauth: SignUpOptions | null = $state(null);
 
     constructor(pageData?: SignUpPageData) {
         super();

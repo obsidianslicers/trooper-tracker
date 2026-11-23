@@ -42,7 +42,6 @@ class CreateTrooperRequestControllerTest extends TestCase
         $response->assertInertia(fn (Assert $page) => $page
             ->component('account/Index')
             ->has('results.organization_requests', 1)
-            ->where('results.organization_requests.0.identifier', 'TK-1234')
             ->where('results.organization_requests.0.status', 'pending')
         );
 

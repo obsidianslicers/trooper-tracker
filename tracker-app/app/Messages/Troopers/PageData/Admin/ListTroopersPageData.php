@@ -7,6 +7,10 @@ namespace App\Messages\Troopers\PageData\Admin;
 use App\Enums\MembershipRole;
 use App\Messages\Organizations\Queries\GetModeratedOrganizationOptions;
 use App\Messages\Troopers\Queries\GetTroopersForModerator;
+use App\Messages\Troopers\Resources\MembershipRoleOptions;
+use App\Messages\Troopers\Resources\TrooperListFiltersResource;
+use App\Messages\Troopers\Resources\TrooperListOrganizationResource;
+use App\Messages\Troopers\Resources\TrooperListSortColumns;
 use App\Messages\Troopers\Resources\TrooperRowResource;
 use App\Models\Filters\TrooperFilter;
 use App\Models\Organization;
@@ -52,18 +56,16 @@ final class ListTroopersPageData extends Message
                 sort_col: $sort_col,
                 sort_dir: $sort_dir,
             )),
-            'filters' => [
+            'filters' => new TrooperListFiltersResource([
                 'search_term' => $this->search_term ?? '',
                 'membership_role' => $this->membership_role,
                 'organization_id' => $this->organization_id,
                 'sort_col' => $sort_col,
                 'sort_dir' => $sort_dir,
-            ],
+            ]),
             'organization' => $this->organization(),
-            'sort_columns' => collect($this->sortColumns())
-                ->map(fn (string $label, string $key) => ['key' => $key, 'label' => $label])
-                ->values(),
-            'roles' => MembershipRole::toValueLabels(),
+            'sort_columns' => new TrooperListSortColumns($this->sortColumns()),
+            'roles' => new MembershipRoleOptions(MembershipRole::cases()),
             'organization_options' => array_merge(
                 [['value' => null, 'label' => __('admin.All Groups')]],
                 $organization_options,
@@ -71,10 +73,7 @@ final class ListTroopersPageData extends Message
         ];
     }
 
-    /**
-     * @return array{id: int, name: string}|null
-     */
-    private function organization(): ?array
+    private function organization(): ?TrooperListOrganizationResource
     {
         if ($this->organization_id === null)
         {
@@ -83,7 +82,7 @@ final class ListTroopersPageData extends Message
 
         $organization = Organization::moderatedBy($this->actor)->find($this->organization_id);
 
-        return $organization ? ['id' => $organization->id, 'name' => $organization->name] : null;
+        return $organization ? new TrooperListOrganizationResource($organization) : null;
     }
 
     /**

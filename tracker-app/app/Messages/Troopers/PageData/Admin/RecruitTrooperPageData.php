@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\Troopers\PageData\Admin;
 
 use App\Messages\Organizations\Queries\GetModeratedOrganizationOptions;
+use App\Messages\Troopers\Resources\RecruitIdentifiersResource;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
@@ -29,31 +30,14 @@ final class RecruitTrooperPageData extends Message
         $organizations = Organization::moderatedBy($this->actor)->get();
         $clubs = Organization::whereIn(
             Organization::ID,
-            $organizations->map(fn (Organization $organization) => $this->clubId($organization))->unique()
+            $organizations->map(fn (Organization $organization) => RecruitIdentifiersResource::clubId($organization))->unique()
         )->get()->keyBy(Organization::ID);
-
-        $identifiers = $organizations->mapWithKeys(function (Organization $organization) use ($clubs)
-        {
-            $club = $clubs[$this->clubId($organization)] ?? null;
-            $display = $organization->identifier_display ?? $club?->identifier_display;
-            $validation = $organization->identifier_validation ?? $club?->identifier_validation;
-
-            return [$organization->id => [
-                'label' => $display ?: __('admin.Member ID'),
-                'is_required' => in_array('required', explode('|', (string) $validation), true),
-            ]];
-        });
 
         return [
             'organization_options' => GetModeratedOrganizationOptions::call(trooper: $this->actor),
-            'identifiers' => $identifiers,
+            //  resolved here: Inertia sends a Resource through a JSON response, which would
+            //  renumber these organization-id keys
+            'identifiers' => (new RecruitIdentifiersResource($organizations, $clubs))->resolve(),
         ];
-    }
-
-    private function clubId(Organization $organization): int
-    {
-        $parts = array_filter(explode(Organization::NODE_PATH_SEP, $organization->node_path));
-
-        return (int) reset($parts);
     }
 }

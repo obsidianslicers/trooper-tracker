@@ -13,17 +13,10 @@ export type PermissionRequestOrganization = {
     parent_name: string | null;
 };
 
-export type PermissionRequestTrooper = {
-    id: number;
-    display_name: string;
-    legal_name: string;
-    membership_role: string | null;
-};
-
+/** PermissionRequestsCollection */
 export type PermissionRequest = {
     id: number;
     status: "pending" | "approved" | "denied";
-    membership_role: "moderator" | "event_coordinator" | "member" | null;
     membership_role_label: string | null;
     moderated_organizations_to_add: PermissionRequestOrganization[];
     moderated_organizations_to_remove: PermissionRequestOrganization[];
@@ -31,10 +24,8 @@ export type PermissionRequest = {
     note: string | null;
     denial_reason: string | null;
     created: string | null;
-    reviewed: string | null;
-    trooper: PermissionRequestTrooper;
-    requester: PermissionRequestTrooper | null;
-    reviewer: PermissionRequestTrooper | null;
+    trooper: { display_name: string; legal_name: string };
+    requester: { display_name: string } | null;
 };
 
 export class PendingPermissionRequestViewModel extends ViewModel {

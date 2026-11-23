@@ -119,12 +119,21 @@ class ListEventsPageDataTest extends TestCase
     {
         config(['tracker.support.goal' => 500]);
         $trooper = Trooper::factory()->asActive()->create();
-        $this->fakeMessages([GetSupportGoal::class => ['goal' => 500]]);
+        $this->fakeMessages([GetSupportGoal::class => [
+            'goal' => 500.0,
+            'current' => 125.0,
+            'progress' => 25.0,
+            'message' => 'Support the garrison.',
+            'url' => null,
+        ]]);
 
         $result = (new ListEventsPageData($trooper))->handle();
 
         $this->assertInstanceOf(Closure::class, $result['support']);
-        $this->assertSame(['goal' => 500], ($result['support'])());
+        $this->assertSame(
+            ['goal' => 500.0, 'progress' => 25.0, 'message' => 'Support the garrison.', 'url' => null],
+            ($result['support'])()->resolve(),
+        );
     }
 
     private function resolve(array $data): array

@@ -5,10 +5,10 @@ import { getRoute } from "$lib/utils";
 import { useForm, type InertiaForm } from "@inertiajs/svelte";
 import type { PermissionRequest } from "./PendingPermissionRequestViewModel.svelte";
 
+/** RequestableOrganizationResource */
 export type RequestableOrganization = {
     id: number;
     name: string;
-    parent_name: string | null;
     node_path: string;
     depth: number;
 };
@@ -28,9 +28,6 @@ type ExtensionInputs = Record<string, Record<string, string | string[]>>;
 
 export type TrooperPermissionsLookup = {
     trooper: {
-        id: number;
-        display_name: string;
-        legal_name: string;
         membership_role: string | null;
         membership_role_label: string | null;
     };

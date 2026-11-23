@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Messages\ServiceRecords\PageData;
 
+use App\Messages\ServiceRecords\Resources\MissingCreditRowResource;
+use App\Messages\ServiceRecords\Resources\MissingCreditsTrooperResource;
 use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
@@ -38,7 +40,7 @@ final class MissingCreditsPageData extends Message
         $next_offset = $this->offset + $rows->count();
 
         return [
-            'rows' => $rows->values()->all(),
+            'rows' => MissingCreditRowResource::collection($rows->values()),
             'total' => $total,
             'next_offset' => $next_offset,
             'has_more' => $next_offset < $total,
@@ -46,23 +48,10 @@ final class MissingCreditsPageData extends Message
         ];
     }
 
-    private function getFilteredTrooper(): ?array
+    private function getFilteredTrooper(): ?MissingCreditsTrooperResource
     {
-        if ($this->trooper_id === null)
-        {
-            return null;
-        }
+        $trooper = $this->trooper_id === null ? null : Trooper::find($this->trooper_id);
 
-        $trooper = Trooper::find($this->trooper_id);
-
-        if ($trooper === null)
-        {
-            return null;
-        }
-
-        return [
-            'id' => $trooper->id,
-            'display_name' => $trooper->display_name,
-        ];
+        return $trooper === null ? null : new MissingCreditsTrooperResource($trooper);
     }
 }

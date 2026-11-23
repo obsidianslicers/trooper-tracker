@@ -21,7 +21,7 @@ class CreateEventPageDataTest extends TestCase
         $actor = Trooper::factory()->asSystemOwner()->create();
 
         $subject = new CreateEventPageData($actor);
-        $form = $subject->handle()['form'];
+        $form = $this->payload($subject)['form'];
 
         $this->assertNull($form['organization_id']);
         $this->assertSame('draft', $form['status']);
@@ -44,7 +44,7 @@ class CreateEventPageDataTest extends TestCase
 
         $subject = new CreateEventPageData($actor, $organization->id);
 
-        $this->assertSame($organization->id, $subject->handle()['form']['organization_id']);
+        $this->assertSame($organization->id, $this->payload($subject)['form']['organization_id']);
     }
 
     public function test_handle_refuses_a_host_the_trooper_cannot_host_for(): void
@@ -66,7 +66,7 @@ class CreateEventPageDataTest extends TestCase
             ->withName('E2E Garrison')->create();
 
         $subject = new CreateEventPageData($actor);
-        $hosts = collect($subject->handle()['host_options'])->keyBy('value');
+        $hosts = collect($this->payload($subject)['host_options'])->keyBy('value');
 
         $this->assertSame(['value' => $club->id, 'label' => 'E2E Club', 'club' => 'E2E Club'], $hosts[$club->id]);
         $this->assertSame('— E2E Garrison', $hosts[$garrison->id]['label']);
@@ -80,7 +80,7 @@ class CreateEventPageDataTest extends TestCase
         $stays = Organization::factory()->asOrganization()->create(['can_attend_default' => false]);
 
         $subject = new CreateEventPageData($actor);
-        $organizations = collect($subject->handle()['organizations'])->keyBy('id');
+        $organizations = collect($this->payload($subject)['organizations'])->keyBy('id');
 
         $this->assertTrue($organizations[$attends->id]['can_attend']);
         $this->assertFalse($organizations[$stays->id]['can_attend']);
@@ -95,9 +95,19 @@ class CreateEventPageDataTest extends TestCase
         EventType::where(EventType::NAME, 'Disney')->update([EventType::IS_ACTIVE => false]);
 
         $subject = new CreateEventPageData($actor);
-        $types = collect($subject->handle()['event_types']);
+        $types = collect($this->payload($subject)['event_types']);
 
         $this->assertSame('Wedding', $types->first()['label']);
         $this->assertNotContains('Disney', $types->pluck('label'));
+    }
+
+    /**
+     * The props as the page receives them, with every Resource resolved.
+     *
+     * @return array<string, mixed>
+     */
+    private function payload(CreateEventPageData $subject): array
+    {
+        return json_decode(json_encode($subject->handle()), true);
     }
 }

@@ -17,7 +17,7 @@ import type { DisplayShift, TrooperRow } from '../../../../../resources/svelte/p
 const row = (id: number, overrides: Partial<TrooperRow> = {}): TrooperRow => ({
     id,
     number: 1,
-    trooper: { id, name: `TK-${id}`, legal_name: `Trooper ${id}`, url: `/troopers/${id}` },
+    trooper: { name: `TK-${id}`, legal_name: `Trooper ${id}`, url: `/troopers/${id}` },
     is_mine: false,
     needs_verification: false,
     added_by: null,
@@ -53,7 +53,6 @@ const shift = (id: number, overrides: Partial<DisplayShift> = {}): DisplayShift 
     guests: [],
     sign_up: null,
     links: {
-        friend_search_mode: 'friends',
         friend_form_url: `/events/add-trooper-form/${id}`,
         can_add_friend: false,
         can_add_guest: false,

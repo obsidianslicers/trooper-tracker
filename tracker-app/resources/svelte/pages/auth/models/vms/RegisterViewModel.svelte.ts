@@ -2,7 +2,7 @@ import { SubmitableViewModel, type Option } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 import { useForm } from "@inertiajs/svelte";
 import { AuthFactory } from "../factories";
-import type { AuthConfiguration } from "../types";
+import type { RegistrationSession } from "../types";
 
 export type Organization = {
     id: number;
@@ -48,7 +48,7 @@ export type Registration = {
 export type RegisterPageData = {
     membership_roles: Option[];
     organizations: Organization[];
-    oauth: AuthConfiguration;
+    oauth: RegistrationSession;
 };
 
 export class RegisterViewModel extends SubmitableViewModel<RegisterViewModel, Registration> {

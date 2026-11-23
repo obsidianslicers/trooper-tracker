@@ -6,6 +6,9 @@ namespace App\Messages\Events\PageData\Admin;
 
 use App\Enums\EventStatus;
 use App\Messages\Events\Queries\GetEventsForModerator;
+use App\Messages\Events\Resources\Admin\AdminEventListFilters;
+use App\Messages\Events\Resources\Admin\AdminEventListOrganization;
+use App\Messages\Events\Resources\Admin\ChoiceOptions;
 use App\Messages\Events\Resources\AdminEventRowResource;
 use App\Models\Filters\EventFilter;
 use App\Models\Organization;
@@ -39,28 +42,11 @@ final class ListAdminEventsPageData extends Message
             'events' => AdminEventRowResource::collection(
                 GetEventsForModerator::call(filter: $this->filter, moderator: $this->actor)
             ),
-            'filters' => [
-                'status' => $this->status,
-                'search_term' => $this->search_term ?? '',
-                'organization_id' => $this->organization_id,
-            ],
-            'organization' => $this->organization(),
-            'statuses' => EventStatus::toValueLabels(),
+            'filters' => new AdminEventListFilters($this->status, $this->search_term, $this->organization_id),
+            'organization' => $this->organization_id === null
+                ? null
+                : new AdminEventListOrganization(Organization::findOrFail($this->organization_id)),
+            'statuses' => new ChoiceOptions(EventStatus::toArray()),
         ];
-    }
-
-    /**
-     * @return array{id: int, name: string}|null
-     */
-    private function organization(): ?array
-    {
-        if ($this->organization_id === null)
-        {
-            return null;
-        }
-
-        $organization = Organization::findOrFail($this->organization_id);
-
-        return ['id' => $organization->id, 'name' => $organization->name];
     }
 }

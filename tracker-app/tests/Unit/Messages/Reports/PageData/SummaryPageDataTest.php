@@ -44,13 +44,13 @@ class SummaryPageDataTest extends TestCase
             dir: 'asc',
         );
 
-        $result = $subject->handle();
+        $result = $this->resolve($subject->handle());
 
         $fake->assertCalled(GetTrooperEventSummary::class, fn (array $params): bool => $params['active_only']
             && $params['organization']->is($organization)
             && $params['date_start']->eq(Carbon::parse('2026-01-01'))
             && $params['page_size'] === TrooperEventSummaryPageData::PAGE_SIZE);
-        $row = $result['troopers']->resolve()[0];
+        $row = $result['troopers'][0];
 
         $this->assertSame('TK-1', $row['display_name']);
         $this->assertSame('3', $row['events_count']);
@@ -86,9 +86,9 @@ class SummaryPageDataTest extends TestCase
 
         $subject = new CostumeEventSummaryPageData(actor: $this->moderator());
 
-        $result = $subject->handle();
+        $result = $this->resolve($subject->handle());
 
-        $this->assertSame('Stormtrooper', $result['costumes']->resolve()[0]['name']);
+        $this->assertSame('Stormtrooper', $result['costumes'][0]['name']);
         $this->assertSame(['events_count' => '3', 'uses_count' => '6'], $result['totals']);
         $this->assertSame('All Clubs — all time', $result['caption']);
         $this->assertSame('↓', $result['sorts']['uses_count']['arrow']);
@@ -119,8 +119,8 @@ class SummaryPageDataTest extends TestCase
 
         $subject = new DonationEventSummaryPageData(actor: $this->moderator(), charity_only: '1');
 
-        $result = $subject->handle();
-        $row = $result['events']->resolve()[0];
+        $result = $this->resolve($subject->handle());
+        $row = $result['events'][0];
 
         $this->assertSame('Library Visit', $row['name']);
         $this->assertSame('Florida Garrison', $row['organization_name']);
@@ -142,11 +142,19 @@ class SummaryPageDataTest extends TestCase
 
         $subject = new DonationEventSummaryPageData(actor: $this->moderator());
 
-        $result = $subject->handle();
+        $result = $this->resolve($subject->handle());
 
         $this->assertNull($result['grand_totals']);
         $this->assertNull($result['caption']);
         $this->assertSame([], $result['clubs']);
+    }
+
+    /**
+     * The payload as the page receives it, with Resources resolved.
+     */
+    private function resolve(array $data): array
+    {
+        return json_decode(json_encode($data), true);
     }
 
     private function moderator(): Trooper

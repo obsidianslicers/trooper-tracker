@@ -6,12 +6,10 @@ import {
 } from '../../../../../resources/svelte/pages/account/models/vms/IndexViewModel.svelte';
 
 const pageData = (overrides: Partial<IndexPageData> = {}): IndexPageData => ({
-    trooper_id: 1,
     is_visitor: false,
     is_handler: false,
     deletion_requested_at: null,
     visitor_expires_at: null,
-    email: 'trooper@example.com',
     details: {} as any,
     notifications: {} as any,
     memberships: {} as any,
@@ -64,11 +62,10 @@ describe('IndexViewModel', () => {
         expect(populated.has_friends).toBe(true);
     });
 
-    it('exposes the trooper role flags and email', () => {
+    it('exposes the trooper role flags', () => {
         const subject = new IndexViewModel(pageData({ is_visitor: true, is_handler: true }));
 
         expect(subject.is_visitor).toBe(true);
         expect(subject.is_handler).toBe(true);
-        expect(subject.email).toBe('trooper@example.com');
     });
 });

@@ -5,99 +5,47 @@ declare(strict_types=1);
 namespace App\Messages\Troopers\PageData\Membership;
 
 use App\Messages\Troopers\Queries\FindExistingTrooperMembership;
-use App\Models\Organization;
+use App\Messages\Troopers\Resources\MembershipLookupResource;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
 use App\Services\MemberLookup\MemberLookupResolver;
 use Hyperdrive\Message;
 
 /**
- * Retrieves data for the trooper lookup page.
-
- * This query message responds with the necessary data for displaying troopers pending approval,
- * including their details, notifications, costumes, memberships, friends, and minors.
+ * Checks a membership request's identifier (admin.troopers.approvals.lookup-membership): what the
+ * club's member lookup service says about it, and whether another trooper already holds it.
  *
- * @method static array<string, mixed> call()
+ * @method static MembershipLookupResource call(TrooperRequest $trooper_request)
  */
 final class LookupMembershipPageData extends Message
 {
-    /**
-     * Constructs the LookupMembershipPageData message.
-     *
-     * @param  TrooperRequest  $trooper_request  The trooper request being looked up
-     */
     public function __construct(
         private readonly TrooperRequest $trooper_request) {}
 
-    /**
-     * Retrieves trooper approvals as a nested associative array.
-     *
-     * @return array Configuration array with trooper approvals
-     */
-    public function handle(MemberLookupResolver $resolver): array
+    public function handle(MemberLookupResolver $resolver): MembershipLookupResource
     {
         $service = $resolver->resolve($this->trooper_request->primary_organization);
         $identifier = $this->trooper_request->identifier;
 
-        $data = [
-            'identifier' => $identifier,
-            'primary_organization' => $this->getPrimaryOrganization(),
-            'existing_trooper_membership' => $this->findExistingTrooperMembership(),
-            'service_name' => $this->getServiceName($service),
-            'member' => ($service !== null && !empty($identifier)) ? $service->lookup($identifier) : null,
-        ];
-
-        return $data;
+        return new MembershipLookupResource(
+            trooper_request: $this->trooper_request,
+            service_name: $service === null ? null : class_basename($service),
+            member: ($service !== null && !empty($identifier)) ? $service->lookup($identifier) : null,
+            existing_trooper: $this->findExistingTrooper(),
+        );
     }
 
-    private function getServiceName(?object $service): ?string
-    {
-        if ($service === null)
-        {
-            return null;
-        }
-
-        $class_name = get_class($service);
-
-        $parts = explode('\\', $class_name);
-
-        return end($parts);
-    }
-
-    private function getPrimaryOrganization(): ?array
-    {
-        $columns = [Organization::ID, Organization::NAME];
-
-        return $this->trooper_request
-            ->primary_organization
-            ->only($columns);
-    }
-
-    private function findExistingTrooperMembership(): ?array
+    private function findExistingTrooper(): ?Trooper
     {
         if (empty($this->trooper_request->identifier))
         {
             return null;
         }
 
-        $existing_trooper = FindExistingTrooperMembership::call(
+        return FindExistingTrooperMembership::call(
             identifier: $this->trooper_request->identifier,
             primary_organization: $this->trooper_request->primary_organization,
             ignore_trooper: $this->trooper_request->trooper
         );
-
-        if ($existing_trooper)
-        {
-            $columns = [
-                Trooper::ID,
-                Trooper::LEGAL_NAME,
-                Trooper::DISPLAY_NAME,
-                Trooper::MEMBERSHIP_STATUS,
-            ];
-
-            return $existing_trooper->only($columns);
-        }
-
-        return null;
     }
 }

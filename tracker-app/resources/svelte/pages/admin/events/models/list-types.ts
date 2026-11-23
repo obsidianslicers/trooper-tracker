@@ -20,7 +20,8 @@ export type AdminEventFilters = {
 export type ListPageData = {
     events: PaginatedResource<AdminEventRow>;
     filters: AdminEventFilters;
-    organization: { id: number; name: string } | null;
+    /** The organization the list is filtered to, named in its header. */
+    organization: { name: string } | null;
     statuses: { value: string; label: string }[];
 };
 

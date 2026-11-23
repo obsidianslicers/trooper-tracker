@@ -21,7 +21,7 @@ class IndexPageDataTest extends TestCase
         $trooper = Trooper::factory()->asSystemOwner()->create();
         $subject = new IndexPageData($trooper);
 
-        $values = $this->administrativeValues($subject->handle());
+        $values = $this->administrativeValues($this->payload($subject));
 
         $this->assertEqualsCanonicalizing(
             array_column(AdministrativeNotifications::cases(), 'value'),
@@ -34,7 +34,7 @@ class IndexPageDataTest extends TestCase
         $trooper = Trooper::factory()->asModerator()->create();
         $subject = new IndexPageData($trooper);
 
-        $values = $this->administrativeValues($subject->handle());
+        $values = $this->administrativeValues($this->payload($subject));
 
         $this->assertContains(AdministrativeNotifications::TROOPER_MILESTONES->value, $values);
         $this->assertContains(AdministrativeNotifications::TROOPER_REQUESTS->value, $values);
@@ -47,24 +47,43 @@ class IndexPageDataTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $subject = new IndexPageData($trooper);
 
-        $this->assertSame([], $this->administrativeValues($subject->handle()));
+        $this->assertSame([], $this->administrativeValues($this->payload($subject)));
     }
 
     public function test_handle_fills_sparse_notification_preferences_with_defaults(): void
     {
-        $key = AdministrativeNotifications::TROOPER_REQUESTS->value;
+        $key = TrooperNotifications::cases()[0]->value;
         $trooper = Trooper::factory()->asMember()->create([
             'notification_preferences' => [$key => ['mail' => false]],
         ]);
         $subject = new IndexPageData($trooper);
 
-        $preferences = $subject->handle()['notifications']['notification_preferences'];
+        $preferences = $this->payload($subject)['notifications']['notification_preferences'];
 
         $this->assertEquals(['mail' => false, 'fcm' => true, 'database' => true], $preferences[$key]);
+    }
+
+    public function test_handle_sends_preferences_only_for_the_categories_offered(): void
+    {
+        $member = $this->payload(new IndexPageData(Trooper::factory()->asMember()->create()));
+        $administrator = $this->payload(new IndexPageData(Trooper::factory()->asSystemOwner()->create()));
+
+        $this->assertEqualsCanonicalizing(
+            array_column(TrooperNotifications::cases(), 'value'),
+            array_keys($member['notifications']['notification_preferences'])
+        );
         $this->assertCount(
             count(AdministrativeNotifications::cases()) + count(TrooperNotifications::cases()),
-            $preferences
+            $administrator['notifications']['notification_preferences']
         );
+    }
+
+    public function test_handle_sends_no_trooper_id_or_email(): void
+    {
+        $payload = $this->payload(new IndexPageData(Trooper::factory()->asMember()->create()));
+
+        $this->assertArrayNotHasKey('trooper_id', $payload);
+        $this->assertArrayNotHasKey('email', $payload);
     }
 
     public function test_handle_includes_plugin_notification_categories(): void
@@ -74,8 +93,8 @@ class IndexPageDataTest extends TestCase
         $plugins->add('forum_flag', 'Forum Flag', for_command_staff: true);
         $plugins->add('forum_audit', 'Forum Audit', administrator_only: true);
 
-        $moderator = (new IndexPageData(Trooper::factory()->asModerator()->create()))->handle();
-        $administrator = (new IndexPageData(Trooper::factory()->asSystemOwner()->create()))->handle();
+        $moderator = $this->payload(new IndexPageData(Trooper::factory()->asModerator()->create()));
+        $administrator = $this->payload(new IndexPageData(Trooper::factory()->asSystemOwner()->create()));
 
         $trooper_values = array_column($moderator['notifications']['trooper_notification_enums'], 'value');
         $this->assertContains('forum_reply', $trooper_values);
@@ -87,6 +106,16 @@ class IndexPageDataTest extends TestCase
             ['mail' => true, 'fcm' => true, 'database' => true],
             $moderator['notifications']['notification_preferences']['forum_reply'],
         );
+    }
+
+    /**
+     * The payload as the page receives it, Resources resolved.
+     *
+     * @return array<string, mixed>
+     */
+    private function payload(IndexPageData $subject): array
+    {
+        return json_decode(json_encode($subject->handle()), true);
     }
 
     /**

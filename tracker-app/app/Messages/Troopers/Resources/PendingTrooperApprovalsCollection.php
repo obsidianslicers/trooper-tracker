@@ -20,8 +20,6 @@ class PendingTrooperApprovalsCollection extends ResourceCollection
             ->map(fn (Trooper $trooper) => [
                 'id' => $trooper->id,
                 'is_visitor' => $trooper->is_visitor,
-                'is_denied' => $trooper->is_denied,
-                'is_active' => $trooper->is_active,
                 'trooper_id' => $trooper->id,
                 'display_name' => $trooper->display_name,
                 'legal_name' => $trooper->legal_name,
@@ -51,11 +49,9 @@ class PendingTrooperApprovalsCollection extends ResourceCollection
         }
 
         return [
-            'trooper_id' => $guardian->id,
             'display_name' => $guardian->display_name,
             'legal_name' => $guardian->legal_name,
             'email' => $guardian->email,
-            'phone' => $guardian->phone,
         ];
     }
 

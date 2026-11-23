@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Awards\PageData;
 
-use App\Messages\Awards\Resources\AwardResource;
+use App\Messages\Awards\Resources\AwardSummaryResource;
 use App\Models\Award;
 use Hyperdrive\Message;
 
@@ -22,7 +22,7 @@ final class AssignAwardTrooperPageData extends Message
         $this->award->loadMissing('organization');
 
         return [
-            'award' => new AwardResource($this->award),
+            'award' => new AwardSummaryResource($this->award),
             'award_date' => $this->award->frequency->normalizeDate(now())->format('Y-m-d'),
         ];
     }

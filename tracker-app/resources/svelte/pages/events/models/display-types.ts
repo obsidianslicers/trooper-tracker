@@ -7,7 +7,6 @@ export type ShareLink = { provider: string; url: string; icon: string };
 export type CalendarLinks = { google: string; yahoo: string; outlook: string; ics: string };
 
 export type EventDetails = {
-    id: number;
     name: string;
     header: { color: "primary" | "danger" | "secondary"; logo_url: string | null };
     organization_name: string | null;
@@ -82,7 +81,7 @@ export type RowEditor = {
 export type TrooperRow = {
     id: number;
     number: number | null;
-    trooper: { id: number; name: string; legal_name: string; url: string };
+    trooper: { name: string; legal_name: string; url: string };
     is_mine: boolean;
     needs_verification: boolean;
     added_by: string | null;
@@ -164,7 +163,6 @@ export type DisplayShift = {
     guests: GuestRow[];
     sign_up: SignUpForm | { needs_mission_brief: true } | null;
     links: {
-        friend_search_mode: string;
         friend_form_url: string;
         can_add_friend: boolean;
         can_add_guest: boolean;
@@ -199,7 +197,6 @@ export type DisplayUpload = {
     id: number;
     small_url: string;
     large_url: string;
-    is_instructional: boolean;
     uploaded_by: string | null;
     is_tagged: boolean;
     tag_url: string | null;
@@ -214,7 +211,6 @@ export type DisplayUploads = {
 };
 
 export type DisplayTools = {
-    can_moderate: boolean;
     roster_csv_url: string | null;
     share_roster_url: string | null;
     broadcast_url: string | null;

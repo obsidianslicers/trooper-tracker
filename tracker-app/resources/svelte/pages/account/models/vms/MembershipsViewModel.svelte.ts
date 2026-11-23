@@ -7,16 +7,13 @@ import { useForm } from "@inertiajs/svelte";
 export type OrganizationMembership = {
     membership_path: string;
     membership_status: string;
-    identifier: string;
     image_url: string;
 }
 
 export type OrganizationRequest = {
     membership_path: string;
     status: string;
-    created: string;
     updated: string;
-    identifier: string;
     denial_reason: string;
     image_url: string;
 }
@@ -33,31 +30,29 @@ export type AddTrooperRequestForm = {
     identifier: string | null;
 }
 
-export type OrganizationItem = {
+/** A club, with the ids of its regions and units (MembershipOrganizationCollection). */
+export type Organization = {
     id: number;
     name: string;
-    parent_id?: number;
-    primary_organization_id?: number;
-}
-
-export type Organization = OrganizationItem & {
     identifier_display: string;
     identifier_validation: string;
     regions: Region[];
 }
 
-export type Region = OrganizationItem & {
+export type Region = {
+    id: number;
     units: Unit[];
 }
 
-export type Unit = OrganizationItem & {
+export type Unit = {
+    id: number;
 }
 
 export class MembershipsViewModel extends SubmitableViewModel<MembershipsViewModel, AddTrooperRequestForm> {
     is_visitor: boolean = $state(false);
     organizations: Organization[] = $state([]);
     organization_options: Option[] = $state([]);
-    organization_lookups: Record<number, OrganizationItem> = $state({});
+    organization_lookups: Record<number, Organization> = $state({});
     organization_memberships: OrganizationMembership[] = $state([]);
     organization_requests: OrganizationRequest[] = $state([]);
 
@@ -91,18 +86,11 @@ export class MembershipsViewModel extends SubmitableViewModel<MembershipsViewMod
         return this.selected_primary_organization.name + ' ' + this.selected_primary_organization.identifier_display;
     }
 
+    /** The club the chosen club, region or unit belongs to: the lookups map every id to its club. */
     get selected_primary_organization(): Organization | null {
         const id = this.form.organization_id || 0;
-        const org = this.organization_lookups[id];
 
-        if (org) {
-            if (org.primary_organization_id) {
-                return this.organization_lookups[org.primary_organization_id] as Organization || null;
-            }
-            return org as Organization;
-        }
-
-        return null;
+        return this.organization_lookups[id] ?? null;
     }
 
     addTrooperRequest = (e: Event) => {

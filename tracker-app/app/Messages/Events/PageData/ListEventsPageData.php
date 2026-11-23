@@ -7,13 +7,14 @@ namespace App\Messages\Events\PageData;
 use App\Facades\TroopTrackerFacade as TroopTracker;
 use App\Messages\Events\Queries\GetEventsForDisplay;
 use App\Messages\Events\Queries\GetTrooperSignUpStatuses;
+use App\Messages\Events\Resources\UnreadNoticesResource;
 use App\Messages\Events\Resources\UpcomingEventResource;
 use App\Messages\Notices\Queries\GetFirstUnreadNotice;
 use App\Messages\Notices\Queries\GetUnreadNoticeCount;
-use App\Messages\Notices\Resources\UnreadNoticeResource;
 use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use App\Messages\Organizations\Resources\HostingOrganizationOptions;
 use App\Messages\Support\Queries\GetSupportGoal;
+use App\Messages\Support\Resources\SupportGoalResource;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\Trooper;
@@ -52,7 +53,7 @@ final class ListEventsPageData extends Message
     private function getSupport(): ?Closure
     {
         return TroopTracker::isSupportGoalEnabled()
-            ? fn (): array => GetSupportGoal::call()
+            ? fn (): SupportGoalResource => new SupportGoalResource(GetSupportGoal::call())
             : null;
     }
 
@@ -75,15 +76,13 @@ final class ListEventsPageData extends Message
             ->values();
     }
 
-    private function getNotices(): array
+    private function getNotices(): UnreadNoticesResource
     {
         $count = GetUnreadNoticeCount::call(trooper: $this->actor);
 
-        $notice = $count === 1 ? GetFirstUnreadNotice::call(trooper: $this->actor) : null;
-
-        return [
-            'count' => $count,
-            'notice' => $notice ? new UnreadNoticeResource($notice) : null,
-        ];
+        return new UnreadNoticesResource(
+            $count,
+            $count === 1 ? GetFirstUnreadNotice::call(trooper: $this->actor) : null,
+        );
     }
 }

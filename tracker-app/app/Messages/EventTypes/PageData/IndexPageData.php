@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\EventTypes\PageData;
 
-use App\Messages\EventTypes\Resources\EventTypeResource;
+use App\Messages\EventTypes\Resources\EventTypeRowResource;
 use App\Models\EventType;
 use Hyperdrive\Message;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -25,6 +25,6 @@ final class IndexPageData extends Message
     {
         $event_types = EventType::query()->withCount('events')->ordered()->get();
 
-        return EventTypeResource::collection($event_types);
+        return EventTypeRowResource::collection($event_types);
     }
 }

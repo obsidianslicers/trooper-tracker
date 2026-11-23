@@ -121,7 +121,6 @@ function fakeGoogleMaps(): any {
 }
 
 const pin = (overrides: Partial<MapEvent>): MapEvent => ({
-    id: 1,
     name: 'Library Day',
     url: '/events/1',
     date_range: 'Sat - Nov 14, 2026 - 10:00am - 2:00pm',
@@ -134,7 +133,7 @@ const pin = (overrides: Partial<MapEvent>): MapEvent => ({
 
 const events = [
     pin({}),
-    pin({ id: 2, lat: 41.52, lng: -88.08, name: 'Parade', url: '/events/2', date_range: 'Sun - Nov 15, 2026 - 1:00pm - 3:00pm' }),
+    pin({ lat: 41.52, lng: -88.08, name: 'Parade', url: '/events/2', date_range: 'Sun - Nov 15, 2026 - 1:00pm - 3:00pm' }),
 ];
 
 function open(list: MapEvent[]): EventMapPins {

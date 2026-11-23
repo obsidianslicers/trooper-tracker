@@ -38,7 +38,8 @@ class ShowEventControllerTest extends TestCase
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
             ->component('events/Display')
-            ->where('event.id', $event->id)
+            ->where('event.name', $event->name)
+            ->missing('event.id')
             ->where('event.not_counted_notice', null)
             ->whereNot('event.header.logo_url', null));
     }

@@ -7,7 +7,7 @@ namespace App\Messages\Troopers\PageData\Permissions;
 use App\Messages\Troopers\Queries\Permissions\GetRequestableOrganizations;
 use App\Messages\Troopers\Queries\Permissions\GetRequestedPermissionRequests;
 use App\Messages\Troopers\Resources\PermissionRequestsCollection;
-use App\Models\Organization;
+use App\Messages\Troopers\Resources\RequestableOrganizationResource;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
@@ -30,33 +30,12 @@ final class RequestPermissionsPageData extends Message
     public function handle(): array
     {
         return [
-            'organizations' => $this->getOrganizations(),
+            'organizations' => RequestableOrganizationResource::collection(
+                GetRequestableOrganizations::call(requester: $this->actor)->values()
+            ),
             'permission_requests' => new PermissionRequestsCollection(
                 GetRequestedPermissionRequests::call(requester: $this->actor)
             ),
         ];
-    }
-
-    /**
-     * @return array<int, array{
-     *     id:int,
-     *     name:string,
-     *     parent_name:string|null,
-     *     node_path:string,
-     *     depth:int
-     * }>
-     */
-    private function getOrganizations(): array
-    {
-        return GetRequestableOrganizations::call(requester: $this->actor)
-            ->map(fn (Organization $organization): array => [
-                'id' => $organization->id,
-                'name' => $organization->name,
-                'parent_name' => $organization->parent?->name,
-                'node_path' => (string) $organization->node_path,
-                'depth' => (int) $organization->depth,
-            ])
-            ->values()
-            ->all();
     }
 }

@@ -6,22 +6,20 @@ namespace App\Messages\Troopers\PageData;
 
 use App\Enums\TrooperSearchMode;
 use App\Messages\Troopers\Queries\SearchTroopers;
+use App\Messages\Troopers\Resources\TrooperSearchResultResource;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 /**
- * Retrieves search results for troopers based on the provided search term, organization, and other filters.
+ * The troopers matching a search (search.troopers), for the trooper picker.
  *
- * This page data message responds with a list of troopers matching the search criteria, formatted for frontend consumption.
- *
- * @method static array call(Actor $actor, ?string $search_term = null, int|null $organization_id = null, bool $moderated_only = false, TrooperSearchMode $search_mode = TrooperSearchMode::NONE)
+ * @method static AnonymousResourceCollection call(Actor $actor, ?string $search_term = null, int|null $organization_id = null, TrooperSearchMode $search_mode = TrooperSearchMode::NONE)
  */
 final class SearchTroopersPageData extends Message
 {
     /**
-     * Summary of __construct
-     *
      * @param  Actor&Trooper  $actor
      */
     public function __construct(
@@ -30,12 +28,7 @@ final class SearchTroopersPageData extends Message
         private readonly ?int $organization_id = null,
         private readonly TrooperSearchMode $search_mode = TrooperSearchMode::NONE) {}
 
-    /**
-     * Retrieves application configuration as a nested associative array.
-     *
-     * @return array Configuration array with auth provider status, URLs, features, and localization settings
-     */
-    public function handle(): array
+    public function handle(): AnonymousResourceCollection
     {
         $troopers = SearchTroopers::call(
             trooper: $this->actor,
@@ -44,13 +37,6 @@ final class SearchTroopersPageData extends Message
             search_mode: $this->search_mode
         );
 
-        $data = $troopers->map(fn (Trooper $trooper) => [
-            Trooper::ID => $trooper->id,
-            Trooper::LEGAL_NAME => $trooper->legal_name,
-            Trooper::DISPLAY_NAME => $trooper->display_name,
-            Trooper::EMAIL => $trooper->email,
-        ])->toArray();
-
-        return $data;
+        return TrooperSearchResultResource::collection($troopers);
     }
 }

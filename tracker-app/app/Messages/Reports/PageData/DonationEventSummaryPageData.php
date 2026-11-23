@@ -8,6 +8,10 @@ use App\Messages\Concerns\DescribesReportFilters;
 use App\Messages\Concerns\ResolvesDonationReportClubs;
 use App\Messages\Reports\Queries\GetDonationEventSummary;
 use App\Messages\Reports\Resources\DonationEventRowResource;
+use App\Messages\Reports\Resources\DonationGrandTotalsResource;
+use App\Messages\Reports\Resources\DonationReportFiltersResource;
+use App\Messages\Reports\Resources\ReportClubOptions;
+use App\Messages\Reports\Resources\ReportSortOptions;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
@@ -76,23 +80,21 @@ final class DonationEventSummaryPageData extends Message
         $rows = collect($events->items());
 
         return [
-            'filters' => [
-                'date_start' => $this->starts?->format('Y-m-d'),
-                'date_end' => $this->ends?->format('Y-m-d'),
+            'filters' => new DonationReportFiltersResource([
+                'date_start' => $this->starts,
+                'date_end' => $this->ends,
                 'charity_only' => $this->isCharityOnly(),
                 'organization_ids' => $this->selectedOrDefault(),
                 'sort' => $this->sortColumn(),
                 'dir' => $this->sortDirection(),
-            ],
-            'clubs' => $this->clubOptions(),
-            'sort_options' => collect(self::SORTS)
-                ->map(fn (string $key, string $value): array => ['value' => $value, 'label' => __($key)])
-                ->values()
-                ->all(),
+            ]),
+            //  a single club needs no picker
+            'clubs' => new ReportClubOptions($this->filter_orgs->count() > 1 ? $this->filter_orgs : collect()),
+            'sort_options' => new ReportSortOptions(self::SORTS),
             'caption' => $this->caption(),
             'csv_url' => $this->csvUrl(),
             'events' => DonationEventRowResource::collection($events),
-            'grand_totals' => $rows->isEmpty() ? null : DonationEventRowResource::grandTotals($rows),
+            'grand_totals' => $rows->isEmpty() ? null : new DonationGrandTotalsResource($rows),
         ];
     }
 
@@ -128,25 +130,6 @@ final class DonationEventSummaryPageData extends Message
     private function sortDirection(): string
     {
         return $this->dir ?? 'desc';
-    }
-
-    /**
-     * @return array<int, array{value: int, label: string}>
-     */
-    private function clubOptions(): array
-    {
-        if ($this->filter_orgs->count() <= 1)
-        {
-            return [];
-        }
-
-        return $this->filter_orgs
-            ->map(fn (Organization $organization): array => [
-                'value' => $organization->id,
-                'label' => $organization->name,
-            ])
-            ->values()
-            ->all();
     }
 
     /**
