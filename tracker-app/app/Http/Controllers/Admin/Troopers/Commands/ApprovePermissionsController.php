@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Admin\Troopers\Commands;
 use App\Enums\FlashType;
 use App\Exceptions\PermissionApprovalException;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Troopers\ApprovePermissionsRequest;
+use App\Http\Requests\Admin\Troopers\Commands\ApprovePermissionsRequest;
 use App\Messages\Troopers\Commands\Permissions\ApproveTrooperPermissions;
 use App\Models\PermissionRequest;
 use Illuminate\Http\RedirectResponse;

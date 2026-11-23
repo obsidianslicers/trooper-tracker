@@ -15,7 +15,7 @@ use Illuminate\Validation\Rule;
 /**
  * Shared validation rules for Event creation and updates.
  *
- * Provides common validation rules used by both CreateRequest and UpdateRequest.
+ * Provides common validation rules used by both StoreEventRequest and UpdateEventRequest.
  * Includes validation for:
  * - Event details (name, status, dates, website)
  * - Contact information (name, phone, email)

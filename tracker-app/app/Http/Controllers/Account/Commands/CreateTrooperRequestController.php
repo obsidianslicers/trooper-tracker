@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account\Commands;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Account\CreateTrooperOrganizationRequest;
+use App\Http\Requests\Account\Commands\CreateTrooperRequestRequest;
 use App\Messages\Account\Resources\TrooperRequestCollection;
 use App\Messages\Troopers\Commands\Membership\CreateTrooperRequest;
 use App\Messages\Troopers\Queries\Membership\GetTrooperRequests;
@@ -25,7 +25,7 @@ class CreateTrooperRequestController extends Controller
      *
      * @return void
      */
-    public function __invoke(CreateTrooperOrganizationRequest $request): InertiaResponse|SymfonyResponse
+    public function __invoke(CreateTrooperRequestRequest $request): InertiaResponse|SymfonyResponse
     {
         $trooper = $request->user();
 

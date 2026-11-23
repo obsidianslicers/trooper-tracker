@@ -10,7 +10,7 @@ use App\Enums\FlashType;
 use App\Enums\RosterAction;
 use App\Http\Controllers\Events\Concerns\AnswersWithEventPage;
 use App\Http\Controllers\PageController;
-use App\Http\Requests\Events\SignUpUpdateRequest;
+use App\Http\Requests\Events\Commands\UpdateTrooperSignUpRequest;
 use App\Jobs\SendEventRosterActivityNotificationsJob;
 use App\Messages\Events\Commands\ChangeEventTrooperStation;
 use App\Messages\Events\Commands\PromoteNextInLineEventTrooper;
@@ -35,7 +35,7 @@ class UpdateTrooperSignUpController extends PageController
     use AnswersWithEventPage;
 
     public function __invoke(
-        SignUpUpdateRequest $request,
+        UpdateTrooperSignUpRequest $request,
         EventTrooper $event_trooper,
         EventRosterCapacityService $capacity,
     ): RedirectResponse|Response {

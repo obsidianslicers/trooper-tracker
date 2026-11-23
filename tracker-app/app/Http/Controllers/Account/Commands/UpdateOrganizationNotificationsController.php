@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account\Commands;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Account\UpdateOrganizationNotificationsRequest;
+use App\Http\Requests\Account\Commands\UpdateOrganizationNotificationsRequest;
 use App\Messages\Troopers\Commands\Notifications\CreateOrUpdateOrganizationNotifications;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;

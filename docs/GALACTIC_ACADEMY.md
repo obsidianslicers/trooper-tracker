@@ -22,7 +22,7 @@ If either field is missing the minor is treated as a regular adult account with 
 ## Registration
 
 When a trooper selects a `requires_guardian` organization during registration, both fields become
-required (`RegisterRequest`):
+required (`RegisterTrooperRequest`):
 
 - `date_of_birth` — must be between 13 and 17 years old
 - `guardian_email` — must match an existing trooper account that does not itself have a `guardian_id`
@@ -92,7 +92,7 @@ email clears `guardian_id`.
 | `app/Models/Event.php` | `minorAllowedToAttend()`, `minorCannotAttend()` |
 | `app/Models/EventShift.php` | Minor signup gate, `isGuardianAttending()` |
 | `app/Messages/Troopers/Queries/GetTroopersForPicker.php` | Hides minors from all but their guardian |
-| `app/Http/Requests/Auth/RegisterRequest.php` | Enforces DOB + guardian email at registration |
+| `app/Http/Requests/Auth/Commands/RegisterTrooperRequest.php` | Enforces DOB + guardian email at registration |
 | `app/Messages/Troopers/Commands/CreateTrooper.php` | Sets `guardian_id` and `date_of_birth` |
 | `app/Http/Controllers/Auth/Commands/RegisterTrooperController.php` | Sends `GuardianAwareness` email |
 | `app/Mail/Auth/GuardianAwareness.php` | Guardian awareness mailable |

@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Awards\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Awards\AssignTrooperRequest;
+use App\Http\Requests\Admin\Awards\Commands\StoreAwardTrooperRequest;
 use App\Messages\Awards\Commands\GrantTrooperAward;
 use App\Models\Award;
 use App\Models\Trooper;
@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
 
 class StoreAwardTrooperController extends Controller
 {
-    public function __invoke(AssignTrooperRequest $request, Award $award): RedirectResponse
+    public function __invoke(StoreAwardTrooperRequest $request, Award $award): RedirectResponse
     {
         $this->authorize('update', $award);
 

@@ -8,7 +8,7 @@ use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
 use App\Http\Controllers\Events\Concerns\AnswersWithEventPage;
 use App\Http\Controllers\PageController;
-use App\Http\Requests\Events\GuestUpdateRequest;
+use App\Http\Requests\Events\Commands\UpdateGuestSignUpRequest;
 use App\Messages\Events\Commands\UpdateEventGuest;
 use App\Models\EventGuest;
 use Illuminate\Http\RedirectResponse;
@@ -27,7 +27,7 @@ class UpdateGuestSignUpController extends PageController
      * Validates the incoming payload and updates either the guest status or
      * guest name based on the provided input key.
      */
-    public function __invoke(GuestUpdateRequest $request, EventGuest $event_guest): RedirectResponse|Response
+    public function __invoke(UpdateGuestSignUpRequest $request, EventGuest $event_guest): RedirectResponse|Response
     {
         $request->validateInputs();
 

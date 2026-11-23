@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Account\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Account\RequestDeletionRequest;
+use App\Http\Requests\Account\Commands\RequestDeletionRequest;
 use App\Messages\Troopers\Commands\RequestTrooperDeletion;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

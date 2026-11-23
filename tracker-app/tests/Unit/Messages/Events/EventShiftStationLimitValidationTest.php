@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Messages\Events;
 
 use App\Enums\EventTrooperStatus;
-use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
+use App\Http\Requests\Admin\Events\Commands\UpdateEventShiftsRequest;
 use App\Messages\Events\Commands\UpdateEventShiftStations;
 use App\Models\Event;
 use App\Models\EventShift;
@@ -49,7 +49,7 @@ class EventShiftStationLimitValidationTest extends TestCase
     {
         $payload = $this->stationPayload($station);
 
-        $request = new UpdateShiftsRequest;
+        $request = new UpdateEventShiftsRequest;
         $request->merge($payload);
 
         $validator = Validator::make($payload, $request->rules());

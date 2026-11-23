@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\ServiceRecords\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\ServiceRecords\AssignCreditRequest;
+use App\Http\Requests\Admin\ServiceRecords\Commands\AssignEventTrooperCreditRequest;
 use App\Messages\Events\Commands\AssignEventTrooperCredit;
 use App\Models\EventTrooper;
 use Inertia\Inertia;
@@ -14,7 +14,7 @@ use Inertia\Response as InertiaResponse;
 
 class AssignEventTrooperCreditController extends Controller
 {
-    public function __invoke(AssignCreditRequest $request, EventTrooper $event_trooper): InertiaResponse
+    public function __invoke(AssignEventTrooperCreditRequest $request, EventTrooper $event_trooper): InertiaResponse
     {
         AssignEventTrooperCredit::call(
             event_trooper: $event_trooper,

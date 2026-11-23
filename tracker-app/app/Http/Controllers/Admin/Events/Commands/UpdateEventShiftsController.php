@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events\Commands;
 
 use App\Enums\EventStatus;
-use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
+use App\Http\Requests\Admin\Events\Commands\UpdateEventShiftsRequest;
 use App\Jobs\ReconcileEventRosterJob;
 use App\Messages\Events\Commands\UpdateEventShiftStations;
 use App\Messages\Events\PageData\AdminEventPageData;
@@ -29,11 +29,11 @@ class UpdateEventShiftsController extends EventCommandController
      * Parses date and time strings into Carbon datetime objects for database storage.
      * The tab saves as changes are made, so it answers without a flash message.
      *
-     * @param  UpdateShiftsRequest  $request  The validated shift update request
+     * @param  UpdateEventShiftsRequest  $request  The validated shift update request
      * @param  Event  $event  The event whose shifts are being updated (route model binding)
      * @return InertiaResponse The refreshed event page data as results
      */
-    public function __invoke(UpdateShiftsRequest $request, Event $event): InertiaResponse
+    public function __invoke(UpdateEventShiftsRequest $request, Event $event): InertiaResponse
     {
         $this->authorize('update', $event);
 

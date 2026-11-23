@@ -6,14 +6,14 @@ namespace App\Http\Controllers\Admin\Organizations\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Organizations\CreateRequest;
+use App\Http\Requests\Admin\Organizations\Commands\StoreOrganizationRequest;
 use App\Messages\Organizations\Commands\CreateSubOrganization;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
 
 class StoreOrganizationController extends Controller
 {
-    public function __invoke(CreateRequest $request, Organization $parent): RedirectResponse
+    public function __invoke(StoreOrganizationRequest $request, Organization $parent): RedirectResponse
     {
         $organization = CreateSubOrganization::call(
             parent: $parent,

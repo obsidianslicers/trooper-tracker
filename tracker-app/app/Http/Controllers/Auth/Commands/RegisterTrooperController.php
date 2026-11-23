@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Auth\Commands;
 use App\Enums\FlashType;
 use App\Enums\MembershipRole;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\Commands\RegisterTrooperRequest;
 use App\Jobs\SendTrooperRegisteredNotificationsJob;
 use App\Mail\Auth\GuardianAwareness;
 use App\Mail\Auth\TrooperRegistered;
@@ -42,10 +42,10 @@ class RegisterTrooperController extends Controller
      * organization join requests and email confirmation.
      * The newly created trooper will have PENDING status until approved by an admin.
      *
-     * @param  RegisterRequest  $request  The validated registration form request
+     * @param  RegisterTrooperRequest  $request  The validated registration form request
      * @return InertiaResponse|SymfonyResponse A redirect to the thank you page after successful registration
      */
-    public function __invoke(RegisterRequest $request): InertiaResponse|SymfonyResponse
+    public function __invoke(RegisterTrooperRequest $request): InertiaResponse|SymfonyResponse
     {
         try
         {
@@ -74,7 +74,7 @@ class RegisterTrooperController extends Controller
         }
     }
 
-    private function registerTrooper(RegisterRequest $request): Trooper
+    private function registerTrooper(RegisterTrooperRequest $request): Trooper
     {
         return DB::transaction(function () use ($request)
         {
@@ -89,7 +89,7 @@ class RegisterTrooperController extends Controller
         });
     }
 
-    private function registerTrooperOrganizations(Trooper $trooper, RegisterRequest $request): void
+    private function registerTrooperOrganizations(Trooper $trooper, RegisterTrooperRequest $request): void
     {
         $organizations = $request->validated('organizations', []);
 

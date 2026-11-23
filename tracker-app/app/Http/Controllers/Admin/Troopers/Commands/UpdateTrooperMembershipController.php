@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
-use App\Http\Requests\Admin\Troopers\UpdateMembershipRequest;
+use App\Http\Requests\Admin\Troopers\Commands\UpdateTrooperMembershipRequest;
 use App\Messages\Troopers\Commands\UpdateTrooperIdentifiers;
 use App\Messages\Troopers\Commands\UpdateTrooperMemberships;
 use App\Models\Organization;
@@ -22,7 +22,7 @@ use Inertia\Response as InertiaResponse;
 class UpdateTrooperMembershipController extends ProfileCommandController
 {
     public function __invoke(
-        UpdateMembershipRequest $request,
+        UpdateTrooperMembershipRequest $request,
         Trooper $trooper,
         Organization $organization,
     ): InertiaResponse {

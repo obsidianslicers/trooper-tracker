@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Troopers\ApproveCostumeRequest;
+use App\Http\Requests\Admin\Troopers\Commands\ApproveCostumeRequest;
 use App\Messages\Troopers\Commands\Costumes\ApproveTrooperCostume;
 use App\Models\TrooperCostume;
 use Illuminate\Http\RedirectResponse;

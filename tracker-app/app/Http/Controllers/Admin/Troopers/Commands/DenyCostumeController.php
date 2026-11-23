@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Troopers\DenyCostumeRequest;
+use App\Http\Requests\Admin\Troopers\Commands\DenyCostumeRequest;
 use App\Messages\Troopers\Commands\Costumes\DenyTrooperCostume;
 use App\Models\TrooperCostume;
 use Illuminate\Http\RedirectResponse;

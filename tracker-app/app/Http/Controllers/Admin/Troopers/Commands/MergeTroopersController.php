@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Troopers\MergeTroopersRequest;
+use App\Http\Requests\Admin\Troopers\Commands\MergeTroopersRequest;
 use App\Jobs\MergeTroopersJob;
 use App\Models\Trooper;
 use Inertia\Response as InertiaResponse;

@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Troopers\RejectTroopCreditRequest;
+use App\Http\Requests\Admin\Troopers\Commands\RejectTroopCreditRequest;
 use App\Messages\Events\Commands\Verification\RejectTroopCredit;
 use App\Models\EventTrooper;
 use App\Models\Organization;

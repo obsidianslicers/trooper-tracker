@@ -6,7 +6,7 @@ namespace Tests\Feature\Http\Controllers\Auth\Commands;
 
 use App\Contracts\LoginProvider;
 use App\Facades\TroopTracker;
-use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\Commands\LoginTrooperRequest;
 use App\Messages\Auth\Commands\LoginTrooper;
 use App\Models\Trooper;
 use Hyperdrive\MessageDispatcher;
@@ -61,7 +61,7 @@ class LoginTrooperControllerTest extends TestCase
         ));
 
         $this->assertCount(1, $login_calls);
-        $this->assertInstanceOf(LoginRequest::class, $login_calls[0][1]);
+        $this->assertInstanceOf(LoginTrooperRequest::class, $login_calls[0][1]);
         $this->assertSame([], $login_calls[0][2]);
     }
 
@@ -144,7 +144,7 @@ class LoginTrooperControllerTest extends TestCase
         ));
 
         $this->assertCount(1, $login_calls);
-        $this->assertInstanceOf(LoginRequest::class, $login_calls[0][1]);
+        $this->assertInstanceOf(LoginTrooperRequest::class, $login_calls[0][1]);
         $this->assertSame([], $login_calls[0][2]);
     }
 

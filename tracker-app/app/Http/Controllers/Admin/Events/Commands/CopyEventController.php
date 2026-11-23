@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Events\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
-use App\Http\Requests\Admin\Events\CopyRequest;
+use App\Http\Requests\Admin\Events\Commands\CopyEventRequest;
 use App\Messages\Events\Commands\CopyEvent;
 use App\Models\Event;
 use Carbon\Carbon;
@@ -17,7 +17,7 @@ use Illuminate\Http\RedirectResponse;
  */
 class CopyEventController extends PageController
 {
-    public function __invoke(CopyRequest $request, Event $event): RedirectResponse
+    public function __invoke(CopyEventRequest $request, Event $event): RedirectResponse
     {
         $copy = CopyEvent::call(
             event: $event,

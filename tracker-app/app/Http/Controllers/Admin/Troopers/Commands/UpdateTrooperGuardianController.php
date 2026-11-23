@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
-use App\Http\Requests\Admin\Troopers\UpdateGuardianRequest;
+use App\Http\Requests\Admin\Troopers\Commands\UpdateTrooperGuardianRequest;
 use App\Messages\Troopers\Commands\UpdateTrooper;
 use App\Models\Trooper;
 use Inertia\Response as InertiaResponse;
 
 class UpdateTrooperGuardianController extends ProfileCommandController
 {
-    public function __invoke(UpdateGuardianRequest $request, Trooper $trooper): InertiaResponse
+    public function __invoke(UpdateTrooperGuardianRequest $request, Trooper $trooper): InertiaResponse
     {
         $data = $request->validated();
 

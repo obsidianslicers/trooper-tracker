@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Admin\Troopers\Commands;
 use App\Enums\FlashType;
 use App\Enums\MembershipRole;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Troopers\RequestPermissionsRequest;
+use App\Http\Requests\Admin\Troopers\Commands\StorePermissionRequestRequest;
 use App\Messages\Troopers\Commands\Permissions\RequestTrooperPermissions;
 use App\Models\Trooper;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +17,7 @@ use Illuminate\Http\RedirectResponse;
  */
 class StorePermissionRequestController extends Controller
 {
-    public function __invoke(RequestPermissionsRequest $request): RedirectResponse
+    public function __invoke(StorePermissionRequestRequest $request): RedirectResponse
     {
         $membership_role = $request->validated('membership_role');
 
