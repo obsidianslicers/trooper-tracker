@@ -27,5 +27,5 @@ export type SystemCheckRow = {
 
 export type SystemCheckPageData = {
     groups: { name: string; results: SystemCheckRow[] }[];
-    errors: { level: string; badge: string; logged_at: string; summary: string; message: string }[];
+    log_entries: { level: string; badge: string; logged_at: string; summary: string; message: string }[];
 };
