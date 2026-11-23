@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Enums\EventStatus;
+use App\Messages\Events\Commands\ForgetAttendanceReminders;
 use App\Messages\Events\Queries\GetEventShiftsToClose;
 use App\Notifications\Events\EventShiftCompletedNotification;
 use Illuminate\Console\Command;
@@ -55,6 +56,9 @@ class CloseEventShiftsCommand extends Command
             {
                 if ($event_trooper->intendsToGo())
                 {
+                    //  one reminder per troop in the notification log, not one every few days
+                    ForgetAttendanceReminders::call(event_trooper: $event_trooper);
+
                     $event_trooper->trooper->notify(new EventShiftCompletedNotification($event_trooper));
                 }
             }

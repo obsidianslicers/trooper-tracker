@@ -8,10 +8,10 @@
            aria-label="{{ __('layout.Notifications') }}">
             <span class="position-relative">
                 <i class="fa fa-fw fa-bell"></i>
-                @if($pushNotificationUnreadCount > 0)
+                @if($navbar_badge_count > 0)
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                           style="font-size: 0.6rem;">
-                        {{ $pushNotificationUnreadCount > 99 ? '99+' : $pushNotificationUnreadCount }}
+                        {{ $navbar_badge_count > 99 ? '99+' : $navbar_badge_count }}
                     </span>
                 @endif
             </span>
@@ -34,6 +34,23 @@
                 @endif
             </div>
 
+            @if($navbar_troops_to_confirm->isNotEmpty())
+                <div class="border-bottom troops-to-confirm">
+                    <div class="px-3 pt-2 small fw-semibold">{{ __('layout.Did you make it?') }}</div>
+                    @foreach($navbar_troops_to_confirm as $event_trooper)
+                        <div class="px-3 py-2">
+                            @include('partials.inc.troop-to-confirm')
+                        </div>
+                    @endforeach
+                    @if($navbar_troops_to_confirm_count > $navbar_troops_to_confirm->count())
+                        <a class="dropdown-item small pb-2"
+                           href="{{ route('account.push-notifications') }}">
+                            {{ __('layout.See all :count troops to confirm', ['count' => $navbar_troops_to_confirm_count]) }}
+                        </a>
+                    @endif
+                </div>
+            @endif
+
             @forelse($navbar_notifications as $notification)
                 <form method="POST"
                       action="{{ route('account.push-notifications.read', $notification) }}">
@@ -51,7 +68,9 @@
                     </button>
                 </form>
             @empty
-                <p class="small opacity-75 px-3 py-3 mb-0">{{ __('layout.No notifications yet.') }}</p>
+                @if($navbar_troops_to_confirm->isEmpty())
+                    <p class="small opacity-75 px-3 py-3 mb-0">{{ __('layout.No notifications yet.') }}</p>
+                @endif
             @endforelse
 
             <a class="dropdown-item text-center small border-top py-2"

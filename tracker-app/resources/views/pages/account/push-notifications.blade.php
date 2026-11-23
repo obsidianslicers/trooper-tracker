@@ -6,11 +6,24 @@
 
     <x-slim-container>
 
-        @if($notifications->isEmpty())
+        @if($troops_to_confirm->isNotEmpty())
+            <div class="card mb-3 troops-to-confirm">
+                <div class="card-header fw-semibold">{{ __('layout.Did you make it?') }}</div>
+                <div class="list-group list-group-flush">
+                    @foreach($troops_to_confirm as $event_trooper)
+                        <div class="list-group-item py-3 troop-to-confirm-row">
+                            @include('partials.inc.troop-to-confirm')
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        @if($notifications->isEmpty() && $troops_to_confirm->isEmpty())
             <x-card>
                 <p class="text-muted mb-0">{{ __('account.No notifications yet.') }}</p>
             </x-card>
-        @else
+        @elseif($notifications->isNotEmpty())
             <div class="d-flex justify-content-end mb-2">
                 <form method="POST" action="{{ route('account.push-notifications.clear') }}">
                     @csrf

@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Events\Commands;
 
 use App\Enums\EventTrooperStatus;
 use App\Enums\FlashType;
+use App\Enums\ShiftAttendanceOutcome;
 use App\Http\Controllers\PageController;
-use App\Messages\Events\Commands\UpdateEventTrooper;
-use App\Messages\Events\Commands\Verification\RequestTroopCredit;
+use App\Messages\Events\Commands\ConfirmShiftAttendance;
 use App\Models\EventTrooper;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\View\View;
@@ -19,8 +19,8 @@ use ValueError;
 /**
  * Handles club selection when confirming attendance for a multi-club costume.
  *
- * Called via POST after CompleteShiftController determines the trooper must
- * choose which top-level clubs receive credit before attendance is confirmed.
+ * Called via POST after ConfirmShiftAttendance finds the trooper must choose
+ * which top-level clubs receive credit before attendance is confirmed.
  * Accepts one or more parent organization IDs and narrows costume_organization_ids
  * to only the child orgs belonging to the selected parents.
  */
@@ -69,46 +69,19 @@ class CompleteShiftWithClubController extends PageController
             }
         }
 
-        if (!$event_trooper->event_shift->event->can_update_trooper_status)
-        {
-            FlashType::danger(__('events.Status updates for this event are no longer permitted. Please reach out to your administrator for further help.'));
+        $outcome = ConfirmShiftAttendance::call(
+            event_trooper: $event_trooper,
+            status: $status,
+            parent_organization_ids: $submitted_ids,
+        );
 
+        $message = $outcome->message($status);
+
+        if ($outcome === ShiftAttendanceOutcome::CLOSED)
+        {
+            FlashType::danger($message);
             $message = '';
-
-            return view('pages.events.shift-complete', compact('event_trooper', 'message'));
         }
-
-        $child_org_ids = $event_trooper->childOrgIdsForSelectedParents($submitted_ids);
-
-        if ($event_trooper->isAwaitingVerification() || $event_trooper->trooper->is_untrusted)
-        {
-            return $this->requestVerification($event_trooper, $child_org_ids);
-        }
-
-        $valid_data = [
-            EventTrooper::STATUS => EventTrooperStatus::ATTENDED,
-            EventTrooper::COSTUME_ORGANIZATION_IDS => $child_org_ids,
-            // organization_id is intentionally not set — multi-club credit flows via costume_organization_ids
-        ];
-
-        UpdateEventTrooper::call(event_trooper: $event_trooper, valid_data: $valid_data);
-
-        $message = __('events.Excellent work trooper! Imperial records now reflect your heroic presence.');
-
-        return view('pages.events.shift-complete', compact('event_trooper', 'message'));
-    }
-
-    /**
-     * @param  array<int, int>  $organization_ids
-     */
-    private function requestVerification(EventTrooper $event_trooper, array $organization_ids): View
-    {
-        if (!$event_trooper->isAwaitingVerification())
-        {
-            RequestTroopCredit::call(event_trooper: $event_trooper, organization_ids: $organization_ids);
-        }
-
-        $message = __('events.'.CompleteShiftController::VERIFICATION_MESSAGE);
 
         return view('pages.events.shift-complete', compact('event_trooper', 'message'));
     }

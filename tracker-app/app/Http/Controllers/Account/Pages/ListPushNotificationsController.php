@@ -6,14 +6,16 @@ namespace App\Http\Controllers\Account\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Messages\Account\Queries\GetTrooperNotifications;
+use App\Messages\Events\Queries\GetTroopsToConfirm;
+use App\Notifications\Events\EventShiftCompletedNotification;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
  * Display the push notifications inbox for the authenticated trooper.
  *
- * Retrieves all push notifications for the trooper and renders them
- * in the notifications page.
+ * Lists the troops waiting for "did you make it?", with both answers, then the
+ * trooper's push notifications: the same as the bell, without its limits.
  */
 class ListPushNotificationsController extends PageController
 {
@@ -27,8 +29,14 @@ class ListPushNotificationsController extends PageController
     {
         $trooper = $request->user();
 
-        $notifications = GetTrooperNotifications::call(trooper: $trooper);
+        //  the reminders' troops are listed above, with their answers, as in the bell
+        $notifications = GetTrooperNotifications::call(
+            trooper: $trooper,
+            except_type: EventShiftCompletedNotification::class,
+        );
 
-        return view('pages.account.push-notifications', compact('notifications'));
+        $troops_to_confirm = GetTroopsToConfirm::call(trooper: $trooper);
+
+        return view('pages.account.push-notifications', compact('notifications', 'troops_to_confirm'));
     }
 }

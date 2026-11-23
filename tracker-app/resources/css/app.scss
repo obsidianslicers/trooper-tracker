@@ -1153,6 +1153,34 @@ html body .btn.btn-secondary-action {
     overflow-y: auto;
 }
 
+//  "Made It" and "Missed It" under a troop in the bell: half the width each
+.troop-answers .btn {
+    flex: 1 1 0;
+}
+
+//  on the notifications page they sit to the right of the troop once there's room
+@media (min-width: 768px) {
+    .troop-to-confirm-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+
+        .troop-to-confirm-event {
+            min-width: 0;
+        }
+
+        .troop-answers {
+            flex-shrink: 0;
+            margin-top: 0 !important;
+        }
+
+        .troop-answers .btn {
+            flex: 0 0 auto;
+        }
+    }
+}
+
 //  the event page's sign-up tour (pages/events/inc/signup-tour.blade.php)
 .signup-tour-example {
     border-style: dashed;

@@ -6,6 +6,7 @@ use App\Http\Controllers\Events\Commands\AcknowledgeMissionBriefController;
 use App\Http\Controllers\Events\Commands\BroadcastEventMessageController;
 use App\Http\Controllers\Events\Commands\CompleteShiftController;
 use App\Http\Controllers\Events\Commands\CompleteShiftWithClubController;
+use App\Http\Controllers\Events\Commands\ConfirmShiftAttendanceController;
 use App\Http\Controllers\Events\Commands\ShareEventRosterController;
 use App\Http\Controllers\Events\Commands\SignUpGuestController;
 use App\Http\Controllers\Events\Commands\SignUpTrooperController;
@@ -58,4 +59,5 @@ Route::prefix('events')
         Route::post('/update/{event_guest}/guest', UpdateGuestSignUpController::class)->name('guest-update');
         Route::get('/complete/{event_trooper}/{status}', CompleteShiftController::class)->name('shift-complete');
         Route::post('/complete/{event_trooper}/club-select', CompleteShiftWithClubController::class)->name('shift-complete-club-select');
+        Route::post('/confirm/{event_trooper}', ConfirmShiftAttendanceController::class)->name('confirm-attendance');
     });
