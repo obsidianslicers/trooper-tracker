@@ -40,6 +40,11 @@
         {/each}
         <option value="none">{t("Attending without a costume")}</option>
     </select>
+{:else}
+    <!-- where the costume picker would be: an event type troopers don't wear a costume to -->
+    <span class="small text-muted flex-grow-1">
+        <i class="fa fa-fw fa-circle-info me-1" aria-hidden="true"></i>{t("No costume needed for this event")}
+    </span>
 {/if}
 
 {#if (choices.plans?.length ?? 0) > 1}

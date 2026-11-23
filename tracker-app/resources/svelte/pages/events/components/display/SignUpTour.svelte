@@ -70,7 +70,7 @@
                     </div>
                     <div class="roster-row__editor">
                         <div class="row g-3">
-                            <div class="col-12 col-md-7">
+                            <div class="col-12 col-md">
                                 {#if tour.requires_costume}
                                     <span class="form-label small text-muted mb-1 d-block">{t("Costume")}</span>
                                     <select class="form-select form-select-sm" aria-label={t("Costume")}>
@@ -78,9 +78,13 @@
                                     </select>
                                     <span class="btn btn-sm btn-outline-secondary btn-secondary-action mt-2"
                                           data-tour-example="backup">{t("Add a backup costume")}</span>
+                                {:else}
+                                    <span class="small text-muted">
+                                        <i class="fa fa-fw fa-circle-info me-1" aria-hidden="true"></i>{t("No costume needed for this event")}
+                                    </span>
                                 {/if}
                             </div>
-                            <div class="col-12 col-md-5 align-self-start text-md-end">
+                            <div class="col-12 col-md-auto align-self-start text-md-end">
                                 <div class="d-flex flex-wrap gap-3 align-items-baseline justify-content-md-end"
                                      data-tour-example="plans">
                                     {#if tour.has_plans}

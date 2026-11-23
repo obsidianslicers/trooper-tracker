@@ -100,6 +100,10 @@
                         {t("Add a backup costume")}
                     </button>
                 {/if}
+            {:else if !editor.requires_costume}
+                <span class="small text-muted">
+                    <i class="fa fa-fw fa-circle-info me-1" aria-hidden="true"></i>{t("No costume needed for this event")}
+                </span>
             {/if}
         </div>
         <div class="col-12 col-md-auto align-self-start text-md-end roster-row__editor-actions">

@@ -199,6 +199,7 @@ return [
     'Newer' => 'Newer',
     'Next' => 'Next',
     'No closed events found.' => 'No closed events found.',
+    'No costume needed for this event' => 'No costume needed for this event',
     'No costume picked yet' => 'No costume picked yet',
     'No costume selected' => 'No costume selected',
     'No events match your filters.' => 'No events match your filters.',

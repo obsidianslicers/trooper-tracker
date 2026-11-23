@@ -344,6 +344,7 @@ class ShowEventControllerTest extends TestCase
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
             ->whereNot('shifts.0.going.0.editor.costumes', null)
+            ->where('shifts.0.going.0.editor.requires_costume', true)
             ->where('tour.requires_costume', true));
     }
 
@@ -357,6 +358,8 @@ class ShowEventControllerTest extends TestCase
         //  the tour's "pick your costume" steps drop out with their example row
         $response->assertInertia(fn (Assert $page) => $page
             ->where('shifts.0.going.0.editor.costumes', null)
+            //  so the Edit area says no costume is needed rather than leaving a gap
+            ->where('shifts.0.going.0.editor.requires_costume', false)
             ->where('shifts.0.going.0.costume', null)
             ->where('tour.requires_costume', false));
     }
