@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Faq\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Faq\CreateSectionRequest;
+use App\Http\Requests\Admin\Faq\Commands\StoreFaqSectionRequest;
 use App\Messages\Faq\Commands\CreateFaqSection;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class StoreFaqSectionController extends Controller
 {
-    public function __invoke(CreateSectionRequest $request): InertiaResponse|SymfonyResponse
+    public function __invoke(StoreFaqSectionRequest $request): InertiaResponse|SymfonyResponse
     {
         $section = CreateFaqSection::call($request);
 

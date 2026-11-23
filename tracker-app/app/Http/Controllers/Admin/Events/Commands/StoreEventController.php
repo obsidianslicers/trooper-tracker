@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Events\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\PageController;
-use App\Http\Requests\Admin\Events\CreateRequest;
+use App\Http\Requests\Admin\Events\Commands\StoreEventRequest;
 use App\Messages\Events\Commands\CreateEvent;
 use Illuminate\Http\RedirectResponse;
 
@@ -15,7 +15,7 @@ use Illuminate\Http\RedirectResponse;
  */
 class StoreEventController extends PageController
 {
-    public function __invoke(CreateRequest $request): RedirectResponse
+    public function __invoke(StoreEventRequest $request): RedirectResponse
     {
         $event = CreateEvent::call(data: $request->validated());
 

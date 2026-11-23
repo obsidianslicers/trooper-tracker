@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\EventTypes\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\EventTypes\UpdateRequest;
+use App\Http\Requests\Admin\EventTypes\Commands\UpdateEventTypeRequest;
 use App\Messages\EventTypes\Commands\UpdateEventType;
 use App\Models\EventType;
 use Inertia\Inertia;
@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class UpdateEventTypeController extends Controller
 {
-    public function __invoke(UpdateRequest $request, EventType $event_type): InertiaResponse|SymfonyResponse
+    public function __invoke(UpdateEventTypeRequest $request, EventType $event_type): InertiaResponse|SymfonyResponse
     {
         $event_type = UpdateEventType::call(
             event_type: $event_type,

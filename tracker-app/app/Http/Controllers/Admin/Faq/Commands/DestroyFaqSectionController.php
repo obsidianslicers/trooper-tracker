@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Faq\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Faq\DeleteSectionRequest;
+use App\Http\Requests\Admin\Faq\Commands\DestroyFaqSectionRequest;
 use App\Messages\Faq\Commands\DeleteFaqSection;
 use App\Models\FaqSection;
 use Inertia\Inertia;
@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class DestroyFaqSectionController extends Controller
 {
-    public function __invoke(DeleteSectionRequest $request, FaqSection $section): InertiaResponse|SymfonyResponse
+    public function __invoke(DestroyFaqSectionRequest $request, FaqSection $section): InertiaResponse|SymfonyResponse
     {
         $faq_count = $section->faqs()->count();
 

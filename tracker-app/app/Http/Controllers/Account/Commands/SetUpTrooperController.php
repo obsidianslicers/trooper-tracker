@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account\Commands;
 
 use App\Http\Controllers\PageController;
-use App\Http\Requests\Account\SetupRequest;
+use App\Http\Requests\Account\Commands\SetUpTrooperRequest;
 use App\Messages\Troopers\Commands\SetUpTrooper;
 use Illuminate\Http\RedirectResponse;
 
@@ -21,10 +21,10 @@ class SetUpTrooperController extends PageController
     /**
      * Handle the incoming request to process organization setup submission.
      *
-     * @param  SetupRequest  $request  The validated setup request
+     * @param  SetUpTrooperRequest  $request  The validated setup request
      * @return RedirectResponse Redirect to the costume setup page
      */
-    public function __invoke(SetupRequest $request): RedirectResponse
+    public function __invoke(SetUpTrooperRequest $request): RedirectResponse
     {
         $trooper = $request->user();
 

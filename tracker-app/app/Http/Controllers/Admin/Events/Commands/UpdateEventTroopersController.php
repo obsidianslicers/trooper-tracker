@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events\Commands;
 
-use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
+use App\Http\Requests\Admin\Events\Commands\UpdateEventTroopersRequest;
 use App\Messages\Events\Commands\UpdateEventRoster;
 use App\Messages\Events\PageData\AdminEventPageData;
 use App\Models\Event;
@@ -12,7 +12,7 @@ use Inertia\Response as InertiaResponse;
 
 class UpdateEventTroopersController extends EventCommandController
 {
-    public function __invoke(UpdateTroopersRequest $request, Event $event): InertiaResponse
+    public function __invoke(UpdateEventTroopersRequest $request, Event $event): InertiaResponse
     {
         $this->authorize('update', $event);
 

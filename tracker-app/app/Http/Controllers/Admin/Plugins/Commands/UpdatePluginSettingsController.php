@@ -6,13 +6,13 @@ namespace App\Http\Controllers\Admin\Plugins\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Plugins\UpdateSettingsRequest;
+use App\Http\Requests\Admin\Plugins\Commands\UpdatePluginSettingsRequest;
 use App\Messages\Plugins\Commands\UpdatePluginSettings;
 use Illuminate\Http\RedirectResponse;
 
 class UpdatePluginSettingsController extends Controller
 {
-    public function __invoke(UpdateSettingsRequest $request, string $slug): RedirectResponse
+    public function __invoke(UpdatePluginSettingsRequest $request, string $slug): RedirectResponse
     {
         $manifest = $request->manifest();
 

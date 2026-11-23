@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account\Commands;
 
-use App\Http\Requests\Account\RenewVisitorMembershipRequest;
+use App\Http\Requests\Account\Commands\RenewVisitorMembershipRequest;
 use App\Messages\Troopers\Commands\Membership\RenewVisitorMembership;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;

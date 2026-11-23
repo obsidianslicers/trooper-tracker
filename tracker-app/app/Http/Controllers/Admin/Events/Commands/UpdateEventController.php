@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Events\Commands;
 
 use App\Enums\EventStatus;
 use App\Enums\FlashType;
-use App\Http\Requests\Admin\Events\UpdateRequest;
+use App\Http\Requests\Admin\Events\Commands\UpdateEventRequest;
 use App\Jobs\ReconcileEventRosterJob;
 use App\Jobs\SendEventCancelledNotificationsJob;
 use App\Jobs\SendEventCreatedNotificationsJob;
@@ -31,12 +31,12 @@ class UpdateEventController extends EventCommandController
      * Processes the validated request to update the event's properties
      * and organization access permissions, then answers with the refreshed page.
      *
-     * @param  UpdateRequest  $request  The validated event update request
+     * @param  UpdateEventRequest  $request  The validated event update request
      * @param  Event  $event  The event to update (route model binding)
      * @return InertiaResponse The refreshed event page data as results
      */
     public function __invoke(
-        UpdateRequest $request,
+        UpdateEventRequest $request,
         Event $event): InertiaResponse
     {
         $current_status = $event->status;

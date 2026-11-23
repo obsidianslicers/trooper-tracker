@@ -85,7 +85,7 @@ For controller actions that perform a single, specific task (e.g., submitting a 
 // app/Http/Controllers/Auth/Commands/LoginTrooperController.php
 class LoginTrooperController extends Controller
 {
-    public function __invoke(LoginRequest $request)
+    public function __invoke(LoginTrooperRequest $request)
     {
         // Handle login submission...
     }

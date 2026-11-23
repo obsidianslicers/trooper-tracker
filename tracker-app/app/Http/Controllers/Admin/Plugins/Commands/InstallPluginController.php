@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Plugins\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Plugins\InstallRequest;
+use App\Http\Requests\Admin\Plugins\Commands\InstallPluginRequest;
 use App\Messages\Plugins\Commands\InstallPlugin;
 use App\Plugins\PluginInstallException;
 use Illuminate\Http\RedirectResponse;
@@ -16,7 +16,7 @@ use Illuminate\Http\RedirectResponse;
  */
 class InstallPluginController extends Controller
 {
-    public function __invoke(InstallRequest $request): RedirectResponse
+    public function __invoke(InstallPluginRequest $request): RedirectResponse
     {
         try
         {

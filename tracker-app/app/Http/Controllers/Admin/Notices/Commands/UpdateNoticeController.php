@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Admin\Notices\Commands;
 use App\Enums\FlashType;
 use App\Enums\NoticeType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Notices\UpdateRequest;
+use App\Http\Requests\Admin\Notices\Commands\UpdateNoticeRequest;
 use App\Messages\Notices\Commands\UpdateNotice;
 use App\Models\Notice;
 use Illuminate\Http\RedirectResponse;
@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
 
 class UpdateNoticeController extends Controller
 {
-    public function __invoke(UpdateRequest $request, Notice $notice): RedirectResponse
+    public function __invoke(UpdateNoticeRequest $request, Notice $notice): RedirectResponse
     {
         $notice = UpdateNotice::call(
             notice: $notice,

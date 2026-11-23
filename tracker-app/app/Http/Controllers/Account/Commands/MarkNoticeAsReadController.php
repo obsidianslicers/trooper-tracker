@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account\Commands;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Account\UpdateNoticeAsReadRequest;
+use App\Http\Requests\Account\Commands\MarkNoticeAsReadRequest;
 use App\Messages\Notices\Commands\MarkNoticeAsRead;
 use App\Models\Notice;
 use Illuminate\Http\RedirectResponse;
@@ -15,7 +15,7 @@ use Illuminate\Http\RedirectResponse;
  */
 class MarkNoticeAsReadController extends Controller
 {
-    public function __invoke(UpdateNoticeAsReadRequest $request, Notice $notice): RedirectResponse
+    public function __invoke(MarkNoticeAsReadRequest $request, Notice $notice): RedirectResponse
     {
         MarkNoticeAsRead::call(trooper: $request->user(), notice: $notice);
 

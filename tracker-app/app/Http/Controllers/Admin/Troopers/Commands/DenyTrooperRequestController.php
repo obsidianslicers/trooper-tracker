@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Troopers\DenyTrooperRequestRequest;
+use App\Http\Requests\Admin\Troopers\Commands\DenyTrooperRequestRequest;
 use App\Messages\Troopers\Commands\Membership\DenyTrooperRequest;
 use App\Models\TrooperRequest;
 use Inertia\Inertia;

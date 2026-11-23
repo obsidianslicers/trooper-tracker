@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Account\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Account\ResubmitDeniedRequest;
+use App\Http\Requests\Account\Commands\ResubmitDeniedTrooperRequest;
 use App\Messages\Troopers\Commands\ResubmitDeniedTrooper;
 use Illuminate\Http\RedirectResponse;
 
@@ -21,10 +21,10 @@ class ResubmitDeniedTrooperController extends Controller
     /**
      * Handle the resubmit denied membership request.
      *
-     * @param  ResubmitDeniedRequest  $request  The validated resubmit request
+     * @param  ResubmitDeniedTrooperRequest  $request  The validated resubmit request
      * @return RedirectResponse Redirect to pending memberships page
      */
-    public function __invoke(ResubmitDeniedRequest $request): RedirectResponse
+    public function __invoke(ResubmitDeniedTrooperRequest $request): RedirectResponse
     {
         $trooper = $request->user();
 

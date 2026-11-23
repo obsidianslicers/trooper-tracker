@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Events\Commands;
 
 use App\Http\Controllers\Events\Concerns\AnswersWithEventPage;
 use App\Http\Controllers\PageController;
-use App\Http\Requests\Events\ShareRosterRequest;
+use App\Http\Requests\Events\Commands\ShareEventRosterRequest;
 use App\Messages\Events\Commands\ShareEventRoster;
 use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +19,7 @@ class ShareEventRosterController extends PageController
 {
     use AnswersWithEventPage;
 
-    public function __invoke(ShareRosterRequest $request, Event $event): RedirectResponse
+    public function __invoke(ShareEventRosterRequest $request, Event $event): RedirectResponse
     {
         ShareEventRoster::call(
             event: $event,

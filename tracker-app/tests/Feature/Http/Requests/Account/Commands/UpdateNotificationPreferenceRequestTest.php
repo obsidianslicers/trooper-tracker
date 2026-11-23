@@ -1,0 +1,91 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Http\Requests\Account\Commands;
+
+use App\Enums\AdministrativeNotifications;
+use App\Enums\NotificationChannels;
+use App\Enums\TrooperNotifications;
+use App\Http\Requests\Account\Commands\UpdateNotificationPreferenceRequest;
+use App\Plugins\PluginNotifications;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Validator;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\TestCase;
+
+class UpdateNotificationPreferenceRequestTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public static function notification_enum_cases(): array
+    {
+        $cases = array_merge(AdministrativeNotifications::cases(), TrooperNotifications::cases());
+
+        $data = [];
+
+        foreach ($cases as $case)
+        {
+            $data[$case->value] = [$case->value];
+        }
+
+        return $data;
+    }
+
+    public function test_authorize_returns_true(): void
+    {
+        $subject = new UpdateNotificationPreferenceRequest;
+
+        $this->assertTrue($subject->authorize());
+    }
+
+    #[DataProvider('notification_enum_cases')]
+    public function test_rules_accepts_values_from_both_notification_enums(string $notification): void
+    {
+        $subject = new UpdateNotificationPreferenceRequest;
+
+        $validator = Validator::make(
+            [
+                'notification' => $notification,
+                'channel' => NotificationChannels::MAIL->value,
+                'enabled' => true,
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->fails(), sprintf('Expected %s to pass validation.', $notification));
+    }
+
+    public function test_rules_accepts_plugin_notification_categories(): void
+    {
+        $this->app->make(PluginNotifications::class)->add('forum_reply', 'Forum Reply');
+
+        $validator = Validator::make(
+            [
+                'notification' => 'forum_reply',
+                'channel' => NotificationChannels::MAIL->value,
+                'enabled' => true,
+            ],
+            (new UpdateNotificationPreferenceRequest)->rules()
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_rules_rejects_unknown_notification_value(): void
+    {
+        $subject = new UpdateNotificationPreferenceRequest;
+
+        $validator = Validator::make(
+            [
+                'notification' => 'unknown-notification',
+                'channel' => NotificationChannels::MAIL->value,
+                'enabled' => true,
+            ],
+            $subject->rules()
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('notification', $validator->errors()->toArray());
+    }
+}

@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Troopers\DenyPermissionsRequest;
+use App\Http\Requests\Admin\Troopers\Commands\DenyPermissionsRequest;
 use App\Messages\Troopers\Commands\Permissions\DenyTrooperPermissions;
 use App\Models\PermissionRequest;
 use Illuminate\Http\RedirectResponse;

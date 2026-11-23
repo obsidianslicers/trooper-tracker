@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Troopers\ApproveTrooperMembershipRequest;
+use App\Http\Requests\Admin\Troopers\Commands\ApproveTrooperMembershipRequest;
 use App\Messages\Troopers\Commands\Membership\ApproveTrooperMembership;
 use App\Models\Trooper;
 use Inertia\Inertia;

@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Auth\Commands;
 
 use App\Facades\TroopTracker;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\Commands\LoginTrooperRequest;
 use App\Messages\Auth\Commands\LoginTrooper;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -31,16 +31,16 @@ class LoginTrooperController extends Controller
      * Handles the incoming login request and authenticates the trooper.
      *
      * This method performs the following checks in order:
-     * 1. Validates email and password (via LoginRequest)
+     * 1. Validates email and password (via LoginTrooperRequest)
      * 2. Checks if the trooper's membership status is PENDING
      * 3. Checks if the trooper's membership status is not ACTIVE (e.g., RETIRED)
      * 4. Verifies the password against the stored hash
      * 5. Logs in the trooper and redirects to the intended page
      *
-     * @param  LoginRequest  $request  The validated login form request containing email and password
+     * @param  LoginTrooperRequest  $request  The validated login form request containing email and password
      * @return InertiaResponse|SymfonyResponse A redirect to the events list on success, or back with errors on failure
      */
-    public function __invoke(LoginRequest $request): InertiaResponse|SymfonyResponse
+    public function __invoke(LoginTrooperRequest $request): InertiaResponse|SymfonyResponse
     {
         $required = $this->troop_tracker->requiredLoginProvider();
 

@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Account\Commands;
 use App\Enums\FlashType;
 use App\Enums\TrooperTheme;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Account\UpdateProfileRequest;
+use App\Http\Requests\Account\Commands\UpdateProfileRequest;
 use App\Messages\Troopers\Commands\UpdateTrooperProfile;
 use App\Services\TranslationService;
 use Illuminate\Support\Facades\App;

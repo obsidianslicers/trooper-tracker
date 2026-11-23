@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
-use App\Http\Requests\Admin\Troopers\MarkUntrustedRequest;
+use App\Http\Requests\Admin\Troopers\Commands\MarkTrooperUntrustedRequest;
 use App\Messages\Troopers\Commands\MarkTrooperUntrusted;
 use App\Models\Trooper;
 use Inertia\Response as InertiaResponse;
 
 class MarkTrooperUntrustedController extends ProfileCommandController
 {
-    public function __invoke(MarkUntrustedRequest $request, Trooper $trooper): InertiaResponse
+    public function __invoke(MarkTrooperUntrustedRequest $request, Trooper $trooper): InertiaResponse
     {
         MarkTrooperUntrusted::call(
             trooper: $trooper,

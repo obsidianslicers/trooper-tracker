@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Events\Commands;
 
 use App\Enums\FlashType;
 use App\Enums\ShiftAttendanceOutcome;
-use App\Http\Requests\Events\ConfirmShiftAttendanceRequest;
+use App\Http\Requests\Events\Commands\ConfirmShiftAttendanceRequest;
 use App\Messages\Events\Commands\ConfirmShiftAttendance;
 use App\Models\EventTrooper;
 use Inertia\Inertia;

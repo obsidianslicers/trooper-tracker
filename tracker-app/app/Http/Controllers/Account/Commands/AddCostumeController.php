@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account\Commands;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Account\AddCostumeRequest;
+use App\Http\Requests\Account\Commands\AddCostumeRequest;
 use App\Messages\Account\Resources\TrooperCostumeCollection;
 use App\Messages\Troopers\Commands\Costumes\AddTrooperCostume;
 use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumes;

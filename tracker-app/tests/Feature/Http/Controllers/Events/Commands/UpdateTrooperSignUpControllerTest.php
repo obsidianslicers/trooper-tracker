@@ -779,7 +779,7 @@ class UpdateTrooperSignUpControllerTest extends TestCase
     public function test_invoke_costume_decision_on_manual_selection_event_returns_to_standby_not_going(): void
     {
         // Only a moderator can act on a manual-selection event trooper (per
-        // SignUpUpdateRequest::authorize()), and the costume_id branch also
+        // UpdateTrooperSignUpRequest::authorize()), and the costume_id branch also
         // requires ownership — so this is a moderator signed up for their own spot.
         $admin = Trooper::factory()->asSystemOwner()->withVerifiedEmail()->create();
         $organization = Organization::factory()->create();

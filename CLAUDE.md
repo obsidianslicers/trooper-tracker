@@ -267,6 +267,11 @@ start with `Show` (one page or thing), `List` (a list), `Download`, or `Search`;
 the form for a command is `Show[Thing]FormController` (`ShowLoginFormController`,
 `ShowSetupFormController`). Drop `Submit`: the form's POST is named after what it does.
 
+A controller's form request mirrors its path and name: `Controllers/Events/Commands/UpdateTrooperSignUpController`
+uses `Requests/Events/Commands/UpdateTrooperSignUpRequest`, and its test is
+`tests/Feature/Http/Requests/Events/Commands/UpdateTrooperSignUpRequestTest`. Rules shared by
+several requests stay as a trait in the feature folder (`Requests/Admin/Events/CommonRules`).
+
 ```
 app/Http/Controllers/Events/
 ├── Commands/SignUpTrooperController.php      # POST: signs a trooper up for a shift

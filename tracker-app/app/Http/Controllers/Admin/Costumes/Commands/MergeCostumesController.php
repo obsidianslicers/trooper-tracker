@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Costumes\Commands;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Costumes\MergeCostumesRequest;
+use App\Http\Requests\Admin\Costumes\Commands\MergeCostumesRequest;
 use App\Messages\Costumes\Commands\Merge\MergeCostumes;
 use App\Models\Costume;
 use Illuminate\Http\RedirectResponse;

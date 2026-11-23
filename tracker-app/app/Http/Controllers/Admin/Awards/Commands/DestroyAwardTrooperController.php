@@ -6,14 +6,14 @@ namespace App\Http\Controllers\Admin\Awards\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Awards\RemoveTrooperRequest;
+use App\Http\Requests\Admin\Awards\Commands\DestroyAwardTrooperRequest;
 use App\Messages\Awards\Commands\RevokeTrooperAward;
 use App\Models\Award;
 use Illuminate\Http\RedirectResponse;
 
 class DestroyAwardTrooperController extends Controller
 {
-    public function __invoke(RemoveTrooperRequest $request, Award $award): RedirectResponse
+    public function __invoke(DestroyAwardTrooperRequest $request, Award $award): RedirectResponse
     {
         $this->authorize('update', $award);
 

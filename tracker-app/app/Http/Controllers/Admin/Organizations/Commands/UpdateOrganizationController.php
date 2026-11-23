@@ -6,14 +6,14 @@ namespace App\Http\Controllers\Admin\Organizations\Commands;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Organizations\UpdateRequest;
+use App\Http\Requests\Admin\Organizations\Commands\UpdateOrganizationRequest;
 use App\Messages\Organizations\Commands\UpdateOrganization;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
 
 class UpdateOrganizationController extends Controller
 {
-    public function __invoke(UpdateRequest $request, Organization $organization): RedirectResponse
+    public function __invoke(UpdateOrganizationRequest $request, Organization $organization): RedirectResponse
     {
         $organization = UpdateOrganization::call(
             organization: $organization,

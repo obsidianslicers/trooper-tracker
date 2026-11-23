@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers\Commands;
 
 use App\Enums\FlashType;
-use App\Http\Requests\Admin\Troopers\RemoveMembershipRequest;
+use App\Http\Requests\Admin\Troopers\Commands\DestroyTrooperMembershipRequest;
 use App\Messages\Troopers\Commands\RemoveTrooperMembership;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -22,7 +22,7 @@ class DestroyTrooperMembershipController extends ProfileCommandController
     /**
      * Handle the incoming request to remove a membership.
      */
-    public function __invoke(RemoveMembershipRequest $request, Trooper $trooper, Organization $organization): InertiaResponse
+    public function __invoke(DestroyTrooperMembershipRequest $request, Trooper $trooper, Organization $organization): InertiaResponse
     {
         RemoveTrooperMembership::call(trooper: $trooper, organization: $organization);
 
