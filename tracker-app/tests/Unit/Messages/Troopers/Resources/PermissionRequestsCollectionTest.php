@@ -29,15 +29,18 @@ class PermissionRequestsCollectionTest extends TestCase
         $subject = new PermissionRequestsCollection(collect([$request->fresh()]));
         $result = $subject->toArray(new Request)[0];
 
-        $this->assertSame('moderator', $result['membership_role']);
         $this->assertSame('Moderator', $result['membership_role_label']);
         $this->assertSame(
             [['id' => $garrison->id, 'name' => 'Florida', 'parent_name' => '501st']],
             $result['moderated_organizations_to_add']
         );
         $this->assertSame([], $result['moderated_organizations_to_remove']);
-        $this->assertSame($trooper->id, $result['trooper']['id']);
-        $this->assertNull($result['reviewer']);
+        $this->assertSame(
+            ['display_name' => $trooper->display_name, 'legal_name' => $trooper->legal_name],
+            $result['trooper']
+        );
+        $this->assertSame(['display_name' => $trooper->display_name], $result['requester']);
+        $this->assertArrayNotHasKey('reviewer', $result);
     }
 
     public function test_role_label_handles_null_and_regular_members(): void

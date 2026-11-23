@@ -20,11 +20,11 @@ class ShowSignUpControllerTest extends TestCase
         $response->assertViewIs('layouts.inertia');
         $response->assertInertia(fn (Assert $page) => $page
             ->component('auth/SignUp')
-            ->has('oauth')
-            ->has('oauth.session')
-            ->has('oauth.providers')
-            ->where('oauth.required', null)
-            ->has('oauth.email_password')
+            //  exactly the providers and the required one: nothing from the session
+            ->has('oauth', fn (Assert $oauth) => $oauth
+                ->has('providers')
+                ->where('required', null)
+            )
         );
     }
 }

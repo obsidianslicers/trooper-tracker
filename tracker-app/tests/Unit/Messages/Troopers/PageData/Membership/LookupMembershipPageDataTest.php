@@ -43,13 +43,12 @@ class LookupMembershipPageDataTest extends TestCase
         $this->assertSame([
             'identifier' => 'TK-12345',
             'primary_organization' => [
-                Organization::ID => $organization->id,
                 Organization::NAME => '501st Legion',
             ],
             'existing_trooper_membership' => null,
             'service_name' => null,
             'member' => null,
-        ], $subject->handle($resolver));
+        ], $subject->handle($resolver)->resolve());
     }
 
     public function test_handle_returns_null_membership_when_identifier_is_missing(): void
@@ -66,7 +65,7 @@ class LookupMembershipPageDataTest extends TestCase
 
         $subject = new LookupMembershipPageData($trooper_request);
 
-        $result = $subject->handle($resolver);
+        $result = $subject->handle($resolver)->resolve();
 
         $this->assertNull($result['identifier']);
         $this->assertNull($result['existing_trooper_membership']);
@@ -105,14 +104,12 @@ class LookupMembershipPageDataTest extends TestCase
 
         $subject = new LookupMembershipPageData($trooper_request);
 
-        $result = $subject->handle($resolver);
+        $result = $subject->handle($resolver)->resolve();
 
         $this->assertSame('LookupMembershipServiceStub', $result['service_name']);
         $this->assertSame([
             Trooper::ID => $existing_trooper->id,
             Trooper::LEGAL_NAME => 'Existing Trooper',
-            Trooper::DISPLAY_NAME => 'Existing',
-            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ], $result['existing_trooper_membership']);
     }
 
@@ -132,9 +129,10 @@ class LookupMembershipPageDataTest extends TestCase
 
         $subject = new LookupMembershipPageData($trooper_request);
 
-        $result = $subject->handle($resolver);
+        $result = $subject->handle($resolver)->resolve();
 
-        $this->assertSame(['identifier' => 'TK-12345', 'full_name' => 'Test Trooper'], $result['member']);
+        //  the raw identifier is left out: the card shows the formatted one
+        $this->assertSame(['full_name' => 'Test Trooper'], $result['member']);
     }
 }
 

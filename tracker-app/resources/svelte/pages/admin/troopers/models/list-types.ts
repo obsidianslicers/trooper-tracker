@@ -25,7 +25,7 @@ export type TrooperListFilters = {
 export type ListTroopersPageData = {
     troopers: PaginatedResource<TrooperRow>;
     filters: TrooperListFilters;
-    organization: { id: number; name: string } | null;
+    organization: { name: string } | null;
     sort_columns: { key: string; label: string }[];
     roles: { value: string; label: string }[];
     organization_options: Option[];

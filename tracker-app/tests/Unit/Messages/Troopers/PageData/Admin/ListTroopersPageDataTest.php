@@ -41,8 +41,9 @@ class ListTroopersPageDataTest extends TestCase
         $result = $this->pageData($admin, organization_id: $club->id);
 
         $this->assertSame(['value' => null, 'label' => 'All Groups'], $result['organization_options'][0]);
-        $this->assertSame(['id' => $club->id, 'name' => 'Rebel Legion'], $result['organization']);
-        $this->assertSame('Name / Email', $result['sort_columns'][0]['label']);
+        //  the badge only shows the name
+        $this->assertSame(['name' => 'Rebel Legion'], $result['organization']->resolve());
+        $this->assertSame('Name / Email', $result['sort_columns']->resolve()[0]['label']);
     }
 
     /** @return array<string, mixed> */

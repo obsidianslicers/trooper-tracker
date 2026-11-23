@@ -3,7 +3,7 @@ import { SubmitableViewModel } from "$lib/domains/types.svelte";
 import toastStateSvelte from "$lib/states/toast-state.svelte";
 import { getRoute } from "$lib/utils";
 import { useForm, type InertiaForm } from "@inertiajs/svelte";
-import type { AuthConfiguration } from "../types";
+import type { LoginOptions } from "../types";
 
 function createLoginForm(options: Partial<Login> = {}): InertiaForm<Login> {
     const data = {
@@ -23,11 +23,11 @@ type Login = {
 };
 
 export type LoginPageData = {
-    oauth: AuthConfiguration;
+    oauth: LoginOptions;
 };
 
 export class LoginViewModel extends SubmitableViewModel<LoginViewModel, Login> {
-    oauth: AuthConfiguration | null = $state(null);
+    oauth: LoginOptions | null = $state(null);
 
     constructor(pageData?: LoginPageData) {
         super();

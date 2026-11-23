@@ -6,63 +6,33 @@ namespace App\Messages\Auth\PageData;
 
 use App\Enums\MembershipRole;
 use App\Messages\Auth\Queries\GetAuthConfig;
+use App\Messages\Auth\Resources\RegisterOrganizationResource;
+use App\Messages\Auth\Resources\RegistrationSessionResource;
 use App\Messages\Organizations\Queries\GetOrganizationHierarchy;
-use App\Models\Organization;
+use App\Messages\Troopers\Resources\MembershipRoleOptions;
 use Hyperdrive\Message;
 
 /**
- * Retrieves application configuration including authentication provider status and feature toggles.
+ * The registration page (auth/Register): the email a login provider gave, the clubs with their
+ * regions and units, and the account types someone can register as.
  *
- * This query message responds with configuration data for authorization providers (Google or
- * plugin login providers, email/password authentication), application metadata, and feature/localization settings.
- * Used by frontend clients to determine available authentication methods and application capabilities.
+ * @method static array<string, mixed> call()
  */
 final class RegisterPageData extends Message
 {
     /**
-     * Retrieves application configuration as a nested associative array.
-     *
-     * @return array Configuration array with auth provider status, URLs, features, and localization settings
+     * @return array<string, mixed>
      */
     public function handle(): array
     {
-        $data = [
-            'oauth' => GetAuthConfig::call(),
-            'organizations' => $this->getOrganizationHierarchy(),
-            'membership_roles' => $this->getMembershipRoles(),
+        return [
+            'oauth' => new RegistrationSessionResource(GetAuthConfig::call()),
+            'organizations' => RegisterOrganizationResource::collection(GetOrganizationHierarchy::call()),
+            'membership_roles' => new MembershipRoleOptions([
+                MembershipRole::HANDLER,
+                MembershipRole::MEMBER,
+                MembershipRole::VISITOR,
+            ]),
         ];
-
-        return $data;
-    }
-
-    private function getOrganizationHierarchy(): array
-    {
-        return GetOrganizationHierarchy::call()
-            ->map(fn (Organization $org) => [
-                'id' => $org->id,
-                'name' => $org->name,
-                'identifier_display' => $org->identifier_display,
-                'requires_guardian' => $org->requires_guardian,
-                'regions' => $org->organizations->map(fn ($region) => [
-                    'id' => $region->id,
-                    'name' => $region->name,
-                    'units' => $region->organizations->map(fn ($unit) => [
-                        'id' => $unit->id,
-                        'name' => $unit->name,
-                    ]),
-                ]),
-            ])->toArray();
-    }
-
-    private function getMembershipRoles(): array
-    {
-        $exclude = [
-            MembershipRole::EVENT_COORDINATOR,
-            MembershipRole::MODERATOR,
-            MembershipRole::STAFF_OFFICER,
-            MembershipRole::SYSTEM_OWNER,
-        ];
-
-        return MembershipRole::toValueLabels(exclude: $exclude);
     }
 }

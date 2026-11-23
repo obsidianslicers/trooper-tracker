@@ -5,10 +5,9 @@ import { router } from "@inertiajs/svelte";
 export type TrooperRequest = {
     id: number;
     identifier: string;
-    status: string;
     denial_reason: string | null;
     organization: Organization;
-    primary_organization: Organization;
+    primary_organization: { id: number; name: string };
     trooper: Trooper;
 };
 
@@ -19,7 +18,6 @@ type Organization = {
 };
 
 type Trooper = {
-    id: number;
     display_name: string;
     legal_name: string;
     email: string;

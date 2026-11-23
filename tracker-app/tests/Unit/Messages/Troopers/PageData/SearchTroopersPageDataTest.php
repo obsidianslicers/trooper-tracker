@@ -54,7 +54,7 @@ class SearchTroopersPageDataTest extends TestCase
             search_mode: TrooperSearchMode::MODERATED,
         );
 
-        $result = $subject->handle();
+        $result = json_decode(json_encode($subject->handle()), true);
 
         $this->assertSame([
             [
@@ -89,7 +89,7 @@ class SearchTroopersPageDataTest extends TestCase
             search_term: '',
         );
 
-        $result = $subject->handle();
+        $result = json_decode(json_encode($subject->handle()), true);
 
         $this->assertSame([], $result);
     }

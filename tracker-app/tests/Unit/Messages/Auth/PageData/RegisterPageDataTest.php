@@ -20,9 +20,10 @@ class RegisterPageDataTest extends TestCase
     public function test_handle_returns_oauth_organizations_and_allowed_membership_roles(): void
     {
         $oauth = [
-            'session' => ['method' => 'email'],
+            'session' => ['method' => 'google', 'email' => 'alpha@example.com', 'provider_id' => 'abc'],
             'providers' => [],
             'required' => null,
+            'email_password' => ['enabled' => true],
         ];
 
         $organization = $this->makeOrganizationHierarchy();
@@ -39,27 +40,28 @@ class RegisterPageDataTest extends TestCase
 
         $subject = new RegisterPageData;
 
-        $result = $subject->handle();
+        $result = json_decode(json_encode($subject->handle()), true);
 
-        $this->assertSame($oauth, $result['oauth']);
-        $this->assertEquals([
+        //  only the email from the sign-up session; not the method or provider id
+        $this->assertSame(['session' => ['email' => 'alpha@example.com']], $result['oauth']);
+        $this->assertSame([
             [
                 'id' => 10,
                 'name' => 'Alpha Organization',
                 'identifier_display' => 'AO',
                 'requires_guardian' => false,
-                'regions' => new Collection([
+                'regions' => [
                     [
                         'id' => 20,
                         'name' => 'Alpha Region',
-                        'units' => new Collection([
+                        'units' => [
                             [
                                 'id' => 30,
                                 'name' => 'Alpha Unit',
                             ],
-                        ]),
+                        ],
                     ],
-                ]),
+                ],
             ],
         ], $result['organizations']);
         $this->assertSame(

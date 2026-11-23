@@ -69,7 +69,7 @@ class SearchCostumesPageDataTest extends TestCase
             trooper: $requesting_trooper,
         );
 
-        $result = $subject->handle();
+        $result = json_decode(json_encode($subject->handle()), true);
 
         $this->assertSame([
             [
@@ -116,7 +116,7 @@ class SearchCostumesPageDataTest extends TestCase
             trooper: $requesting_trooper,
         );
 
-        $result = $subject->handle();
+        $result = json_decode(json_encode($subject->handle()), true);
 
         $this->assertSame([], $result);
     }

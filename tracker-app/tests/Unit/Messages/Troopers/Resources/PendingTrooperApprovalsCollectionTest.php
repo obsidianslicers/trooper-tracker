@@ -51,8 +51,10 @@ class PendingTrooperApprovalsCollectionTest extends TestCase
         $result = $this->transform($minor);
 
         $this->assertTrue($result['is_minor']);
-        $this->assertSame($guardian->id, $result['guardian']['trooper_id']);
-        $this->assertSame('Parent', $result['guardian']['display_name']);
+        $this->assertSame(
+            ['display_name' => 'Parent', 'legal_name' => $guardian->legal_name, 'email' => $guardian->email],
+            $result['guardian']
+        );
     }
 
     public function test_to_array_returns_null_guardian_for_minor_without_one(): void

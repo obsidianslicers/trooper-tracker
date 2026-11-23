@@ -35,10 +35,9 @@ class PendingTrooperRequestsCollectionTest extends TestCase
             $result['organization']
         );
         $this->assertSame(
-            ['id' => $primary->id, 'name' => '501st', 'parent_name' => null],
+            ['id' => $primary->id, 'name' => '501st'],
             $result['primary_organization']
         );
-        $this->assertSame($trooper->id, $result['trooper']['id']);
         $this->assertSame('TK-421', $result['trooper']['display_name']);
         $this->assertSame($trooper->email, $result['trooper']['email']);
     }

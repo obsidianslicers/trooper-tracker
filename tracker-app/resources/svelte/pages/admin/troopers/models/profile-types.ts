@@ -89,9 +89,6 @@ export type ProfileChange = {
 
 export type ProfilePageData = {
     trooper_id: number;
-    display_name: string;
-    membership_role: string;
-    membership_role_label: string;
     details: ProfileDetailsPageData;
     authority: ProfileAuthorityPageData | null;
     memberships: ProfileMembershipsPageData;

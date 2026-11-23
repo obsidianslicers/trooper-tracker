@@ -19,7 +19,6 @@ class PendingTrooperRequestsCollection extends ResourceCollection
             ->map(fn (TrooperRequest $trooper_request) => [
                 'id' => $trooper_request->id,
                 'identifier' => $trooper_request->identifier,
-                'status' => $trooper_request->status,
                 'denial_reason' => $trooper_request->denial_reason,
                 'organization' => $this->getOrganization($trooper_request),
                 'primary_organization' => $this->getPrimaryOrganization($trooper_request),
@@ -41,14 +40,12 @@ class PendingTrooperRequestsCollection extends ResourceCollection
         return [
             'id' => $trooper_request->primary_organization->id,
             'name' => $trooper_request->primary_organization->name,
-            'parent_name' => $trooper_request->primary_organization->parent?->name,
         ];
     }
 
     private function getTrooper(TrooperRequest $trooper_request): array
     {
         return [
-            'id' => $trooper_request->trooper->id,
             'display_name' => $trooper_request->trooper->display_name,
             'legal_name' => $trooper_request->trooper->legal_name,
             'email' => $trooper_request->trooper->email,

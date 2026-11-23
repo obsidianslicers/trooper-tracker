@@ -1,24 +1,30 @@
 import { ViewModel } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 
+/** MembershipLookupResource */
 export type MembershipLookupResult = {
     identifier: string | null;
-    primary_organization: PrimaryOrganization;
+    primary_organization: { name: string };
     existing_trooper_membership: ExistingTrooperMembership | null;
-    service_name: string;
-    member: any;
-};
-
-type PrimaryOrganization = {
-    id: number;
-    name: string;
+    service_name: string | null;
+    member: LookedUpMember | null;
 };
 
 type ExistingTrooperMembership = {
     id: number;
     legal_name: string;
-    display_name: string;
-    membership_status: string;
+};
+
+/** What the club's member lookup found (MemberLookupInterface); a service may leave any of these out. */
+type LookedUpMember = {
+    formatted_identifier?: string | null;
+    full_name?: string | null;
+    status?: string | null;
+    standing?: string | null;
+    is_approved?: boolean;
+    unit_name?: string | null;
+    profile_url?: string | null;
+    thumbnail_url?: string | null;
 };
 
 export class MembershipLookupViewModel extends ViewModel {

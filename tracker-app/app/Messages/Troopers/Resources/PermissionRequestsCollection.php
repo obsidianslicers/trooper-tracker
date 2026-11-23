@@ -29,7 +29,6 @@ class PermissionRequestsCollection extends ResourceCollection
             ->map(fn (PermissionRequest $permission_request): array => [
                 'id' => $permission_request->id,
                 'status' => $permission_request->status->value,
-                'membership_role' => $permission_request->membership_role?->value,
                 'membership_role_label' => self::roleLabel($permission_request->membership_role),
                 'moderated_organizations_to_add' => $organizations
                     ->only($permission_request->moderated_organization_ids_to_add ?? [])
@@ -43,10 +42,13 @@ class PermissionRequestsCollection extends ResourceCollection
                 'note' => $permission_request->note,
                 'denial_reason' => $permission_request->denial_reason,
                 'created' => $permission_request->created_at?->diffForHumans(),
-                'reviewed' => $permission_request->reviewed_at?->diffForHumans(),
-                'trooper' => $this->getTrooper($permission_request->trooper),
-                'requester' => $this->getTrooper($permission_request->requester),
-                'reviewer' => $this->getTrooper($permission_request->reviewer),
+                'trooper' => [
+                    Trooper::DISPLAY_NAME => $permission_request->trooper->display_name,
+                    Trooper::LEGAL_NAME => $permission_request->trooper->legal_name,
+                ],
+                'requester' => $permission_request->requester === null ? null : [
+                    Trooper::DISPLAY_NAME => $permission_request->requester->display_name,
+                ],
             ])->toArray();
     }
 
@@ -157,20 +159,5 @@ class PermissionRequestsCollection extends ResourceCollection
                     'parent_name' => $organization->parent?->name,
                 ],
             ]);
-    }
-
-    private function getTrooper(?Trooper $trooper): ?array
-    {
-        if ($trooper === null)
-        {
-            return null;
-        }
-
-        return [
-            'id' => $trooper->id,
-            'display_name' => $trooper->display_name,
-            'legal_name' => $trooper->legal_name,
-            'membership_role' => $trooper->membership_role?->value,
-        ];
     }
 }

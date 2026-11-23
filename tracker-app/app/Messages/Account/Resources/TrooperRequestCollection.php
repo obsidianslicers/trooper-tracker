@@ -18,9 +18,7 @@ class TrooperRequestCollection extends ResourceCollection
         return $this->collection
             ->map(fn (TrooperRequest $trooper_request) => [
                 'membership_path' => $trooper_request->membership_path,
-                'identifier' => $trooper_request->identifier,
                 'status' => $trooper_request->status,
-                'created' => $trooper_request->created_at->diffForHumans(),
                 'updated' => $trooper_request->updated_at->diffForHumans(),
                 'denial_reason' => $trooper_request->denial_reason,
                 'image_url' => map_image_url(
