@@ -5,16 +5,18 @@ declare(strict_types=1);
 namespace App\Messages\Reports\PageData;
 
 use App\Messages\Concerns\DescribesReportFilters;
-use App\Messages\Concerns\FormatsReportNumbers;
 use App\Messages\Concerns\ResolvesReportFilters;
 use App\Messages\Reports\Queries\GetCostumeEventSummary;
+use App\Messages\Reports\Resources\ClubReportFiltersResource;
 use App\Messages\Reports\Resources\CostumeEventSummaryRowResource;
+use App\Messages\Reports\Resources\CostumeEventSummaryTotalsResource;
+use App\Messages\Reports\Resources\ReportClubOptions;
+use App\Messages\Reports\Resources\ReportSortLinks;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
-use Illuminate\Support\Collection;
 
 /**
  * Data for the Costume Event Summary report: one page of costumes, their totals, and the filters.
@@ -24,7 +26,6 @@ use Illuminate\Support\Collection;
 final class CostumeEventSummaryPageData extends Message
 {
     use DescribesReportFilters;
-    use FormatsReportNumbers;
     use ResolvesReportFilters;
 
     public const PAGE_SIZE = 50;
@@ -68,36 +69,18 @@ final class CostumeEventSummaryPageData extends Message
         $rows = collect($costumes->items());
 
         return [
-            'filters' => [
-                'organization_id' => $organization?->id,
-                'date_start' => $date_start?->format('Y-m-d'),
-                'date_end' => $date_end?->format('Y-m-d'),
-            ],
-            'organizations' => $this->organizationOptions($organizations),
+            'filters' => new ClubReportFiltersResource([
+                'organization' => $organization,
+                'date_start' => $date_start,
+                'date_end' => $date_end,
+            ]),
+            'organizations' => new ReportClubOptions($organizations),
             'caption' => $this->caption($organization, $date_start, $date_end),
-            'sorts' => $this->sortLinks(['name', 'events_count', 'uses_count'], $sort, $dir),
+            'sorts' => new ReportSortLinks(['name', 'events_count', 'uses_count'], $sort, $dir),
             'csv_url' => $this->csvUrl(),
             'costumes' => CostumeEventSummaryRowResource::collection($costumes),
-            'totals' => $rows->isEmpty() ? null : [
-                'events_count' => $this->count($rows->sum('events_count')),
-                'uses_count' => $this->count($rows->sum('uses_count')),
-            ],
+            'totals' => $rows->isEmpty() ? null : new CostumeEventSummaryTotalsResource($rows),
         ];
-    }
-
-    /**
-     * @param  Collection<int, Organization>  $organizations
-     * @return array<int, array{value: int, label: string}>
-     */
-    private function organizationOptions(Collection $organizations): array
-    {
-        return $organizations
-            ->map(fn (Organization $organization): array => [
-                'value' => $organization->id,
-                'label' => $organization->name,
-            ])
-            ->values()
-            ->all();
     }
 
     private function caption(?Organization $organization, ?Carbon $date_start, ?Carbon $date_end): string

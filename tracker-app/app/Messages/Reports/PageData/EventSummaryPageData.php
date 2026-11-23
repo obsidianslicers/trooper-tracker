@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Messages\Reports\PageData;
 
-use App\Messages\Concerns\FormatsReportNumbers;
 use App\Messages\Reports\Queries\GetEventSummary;
-use App\Models\Event;
+use App\Messages\Reports\Resources\EventSummaryRowResource;
+use App\Messages\Reports\Resources\EventSummaryTotalsResource;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
@@ -19,8 +19,6 @@ use Hyperdrive\Message;
  */
 final class EventSummaryPageData extends Message
 {
-    use FormatsReportNumbers;
-
     public const DAYS = 30;
 
     /**
@@ -37,30 +35,8 @@ final class EventSummaryPageData extends Message
 
         return [
             'days' => self::DAYS,
-            'events' => $events
-                ->map(fn (Event $event): array => [
-                    'id' => $event->id,
-                    'name' => $event->name,
-                    'url' => route('admin.events.edit', ['event' => $event]),
-                    'logo_url' => map_image_url(
-                        $event->organization?->image_path_sm,
-                        'img/icons/organization-32x32.png'
-                    ),
-                    'shifts' => (string) $event->event_shifts_count,
-                    'unique_trooper_count' => $this->count($event->unique_trooper_count),
-                    'total_trooper_count' => $this->count($event->total_trooper_count),
-                    'direct' => $this->funds($event->charity_direct_funds),
-                    'indirect' => $this->funds($event->charity_indirect_funds),
-                ])
-                ->values()
-                ->all(),
-            'totals' => [
-                'shifts' => $this->count($events->sum('event_shifts_count')),
-                'unique_trooper_count' => $this->count($events->sum('unique_trooper_count')),
-                'total_trooper_count' => $this->count($events->sum('total_trooper_count')),
-                'direct' => $this->funds($events->sum('charity_direct_funds')),
-                'indirect' => $this->funds($events->sum('charity_indirect_funds')),
-            ],
+            'events' => EventSummaryRowResource::collection($events->values()),
+            'totals' => new EventSummaryTotalsResource($events),
         ];
     }
 }

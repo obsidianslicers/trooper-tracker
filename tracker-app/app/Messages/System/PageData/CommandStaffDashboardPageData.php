@@ -7,6 +7,8 @@ namespace App\Messages\System\PageData;
 use App\Enums\MembershipStatus;
 use App\Messages\Events\Queries\Verification\GetTroopsAwaitingVerification;
 use App\Messages\System\Queries\GetSystemCheckProblems;
+use App\Messages\System\Resources\DashboardCardResource;
+use App\Messages\System\Resources\DashboardCountsResource;
 use App\Models\Costume;
 use App\Models\EventType;
 use App\Models\PermissionRequest;
@@ -40,11 +42,11 @@ final class CommandStaffDashboardPageData extends Message
 
         return [
             'trooper_id' => $this->actor->id,
-            'counts' => $counts,
+            'counts' => new DashboardCountsResource($counts),
             'system_check_problems' => $this->actor->has_system_owner
                 ? GetSystemCheckProblems::call()->count()
                 : 0,
-            'cards' => $this->cards(),
+            'cards' => DashboardCardResource::collection($this->cards()),
             'plugin_cards' => $slots->render('admin.dashboard.cards', [
                 'request' => $request,
                 'actor' => $this->actor,
@@ -82,7 +84,7 @@ final class CommandStaffDashboardPageData extends Message
     /**
      * The tools the reader can open, in the order the dashboard shows them.
      *
-     * @return array<int, array{key: string, url: string}>
+     * @return array<int, array{key: string, route: string}>
      */
     private function cards(): array
     {
@@ -115,7 +117,7 @@ final class CommandStaffDashboardPageData extends Message
 
         return collect($cards)
             ->filter(fn (array $card): bool => $card[1])
-            ->map(fn (array $card, string $key): array => ['key' => $key, 'url' => route($card[0])])
+            ->map(fn (array $card, string $key): array => ['key' => $key, 'route' => $card[0]])
             ->values()
             ->all();
     }

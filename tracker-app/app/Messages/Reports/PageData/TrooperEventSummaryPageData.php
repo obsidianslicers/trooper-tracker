@@ -7,6 +7,9 @@ namespace App\Messages\Reports\PageData;
 use App\Messages\Concerns\DescribesReportFilters;
 use App\Messages\Concerns\ResolvesReportFilters;
 use App\Messages\Reports\Queries\GetTrooperEventSummary;
+use App\Messages\Reports\Resources\ClubReportFiltersResource;
+use App\Messages\Reports\Resources\ReportClubOptions;
+use App\Messages\Reports\Resources\ReportSortLinks;
 use App\Messages\Reports\Resources\TrooperEventSummaryRowResource;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -66,21 +69,15 @@ final class TrooperEventSummaryPageData extends Message
         );
 
         return [
-            'filters' => [
-                'organization_id' => $organization?->id,
-                'date_start' => $date_start?->format('Y-m-d'),
-                'date_end' => $date_end?->format('Y-m-d'),
+            'filters' => new ClubReportFiltersResource([
+                'organization' => $organization,
+                'date_start' => $date_start,
+                'date_end' => $date_end,
                 'active_only' => $active_only,
-            ],
-            'organizations' => $organizations
-                ->map(fn (Organization $organization): array => [
-                    'value' => $organization->id,
-                    'label' => $organization->name,
-                ])
-                ->values()
-                ->all(),
+            ]),
+            'organizations' => new ReportClubOptions($organizations),
             'caption' => $this->caption($organization, $date_start, $date_end, $active_only),
-            'sorts' => $this->sortLinks(['display_name', 'events_count', 'event_shifts_count'], $sort, $dir),
+            'sorts' => new ReportSortLinks(['display_name', 'events_count', 'event_shifts_count'], $sort, $dir),
             'csv_url' => $this->csvUrl(),
             'troopers' => TrooperEventSummaryRowResource::collection($troopers),
         ];

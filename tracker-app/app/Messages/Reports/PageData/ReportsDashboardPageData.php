@@ -6,6 +6,9 @@ namespace App\Messages\Reports\PageData;
 
 use App\Enums\EventTrooperStatus;
 use App\Messages\Reports\Queries\GetDashboardMetrics;
+use App\Messages\Reports\Resources\DashboardImpactResource;
+use App\Messages\Reports\Resources\DashboardLeaderboardRowResource;
+use App\Messages\Reports\Resources\DashboardPersonnelResource;
 use Hyperdrive\Message;
 
 /**
@@ -30,55 +33,15 @@ final class ReportsDashboardPageData extends Message
         return [
             'days' => $days,
             'lookbacks' => self::LOOKBACKS,
-            'personnel' => $this->numbers($metrics['personnel'], [
-                'active_count', 'trooper_count', 'handler_count', 'new_enlistments',
-                'ghost_count', 'attendance_count', 'attrition_risk',
-            ]),
+            'personnel' => new DashboardPersonnelResource($metrics['personnel']),
             'fulfillment_rate' => format_number($metrics['logistics']['fulfillment_rate'], 1),
-            'impact' => [
-                'total_credits' => format_number($metrics['impact']['total_credits'], 2),
-                'volunteer_hours' => format_number($metrics['impact']['volunteer_hours']),
-                'internal_donations' => format_number($metrics['impact']['internal_donations'], 2),
-            ],
+            'impact' => new DashboardImpactResource($metrics['impact']),
             'awards_issued' => format_number($metrics['engagement']['award_velocity']),
             'photo_activity' => format_number($metrics['engagement']['photo_activity']),
-            'leaderboard' => $this->leaderboard($metrics['leaderboard']),
+            'leaderboard' => DashboardLeaderboardRowResource::collection(
+                collect($metrics['leaderboard'])->values()
+            ),
             'attended' => EventTrooperStatus::ATTENDED->label(),
         ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $metrics
-     * @param  array<int, string>  $keys
-     * @return array<string, string>
-     */
-    private function numbers(array $metrics, array $keys): array
-    {
-        return collect($keys)
-            ->mapWithKeys(fn (string $key): array => [$key => format_number($metrics[$key])])
-            ->all();
-    }
-
-    /**
-     * @param  iterable<int, array<string, mixed>>  $rows
-     * @return array<int, array<string, string>>
-     */
-    private function leaderboard(iterable $rows): array
-    {
-        $dash = fn ($value, int $decimals = 0): string => (float) $value == 0.0
-            ? '-'
-            : format_number($value, $decimals);
-
-        return collect($rows)
-            ->map(fn (array $row): array => [
-                'name' => $row['name'],
-                'events_completed' => $dash($row['events_completed']),
-                'troopers_attended' => $dash($row['troopers_attended']),
-                'direct_funds_raised' => $dash($row['direct_funds_raised'], 2),
-                'indirect_funds_raised' => $dash($row['indirect_funds_raised'], 2),
-                'total_funds_raised' => $dash($row['total_funds_raised'], 2),
-            ])
-            ->values()
-            ->all();
     }
 }

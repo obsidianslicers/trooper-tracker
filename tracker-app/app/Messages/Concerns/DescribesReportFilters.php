@@ -33,33 +33,6 @@ trait DescribesReportFilters
         return implode(' ', $parts);
     }
 
-    /**
-     * A link per column that sorts by it, flipping the direction when it is already the sort.
-     *
-     * @param  array<int, string>  $columns
-     * @return array<string, array{url: string, arrow: string}>
-     */
-    protected function sortLinks(array $columns, string $sort, string $dir): array
-    {
-        $links = [];
-
-        foreach ($columns as $column)
-        {
-            $active = $sort === $column;
-
-            $links[$column] = [
-                'url' => request()->fullUrlWithQuery([
-                    'sort' => $column,
-                    'dir' => ($active && $dir === 'asc') ? 'desc' : 'asc',
-                    'page' => 1,
-                ]),
-                'arrow' => $active ? ($dir === 'asc' ? '↑' : '↓') : '',
-            ];
-        }
-
-        return $links;
-    }
-
     protected function csvUrl(): string
     {
         return request()->fullUrlWithQuery(['format' => 'csv']);
