@@ -153,6 +153,27 @@ In addition to Commands and Queries (see Hyperdrive Messages above), page-facing
 - Maintain PHPDoc annotations on static `::call()` methods to preserve constructor autocomplete/Intellisense.
 - For messages needing the authenticated user, inject `Actor $actor` in the constructor — this explicitly distinguishes the active session user from target user records fetched via lookup.
 
+### Styling
+
+Style with CSS classes first: Bootstrap's own, then the shared ones in `resources/css/app.scss`
+(e.g. `btn-secondary-action`). Only when no class fits, customise in the Svelte component's own
+`<style>` block (or in `app.scss` for Blade). No inline `style=`, and no utility classes used to
+undo what a class already sets.
+
+Buttons look the same everywhere, on Blade and Svelte pages:
+
+- Every `<button>` has a class. A button is `.btn` plus a colour class (`btn-primary`,
+  `btn-outline-danger`, `btn-secondary-action`, ...).
+- Size comes only from Bootstrap's `btn-sm` / `btn-lg`. Don't change a button's padding, height,
+  font size, font, weight or case: the theme makes every button uppercase in its own font.
+- A link-style action (Never mind, Download CSV) is `btn-link` and stays a normal-case text link.
+
+Links take you somewhere; buttons do something. Prefer an `<a>` that looks like a link for going
+to another page, and a `<button>` that looks like a button for an action (save, sign up, cancel,
+open a form). This is a strong default, not a hard rule: a page's main call to action may be a link
+styled as a button (Login on the home page), and a quiet, low-stakes action may be a text-style
+`btn-link` (Never mind).
+
 ### Svelte directory structure
 
 ```

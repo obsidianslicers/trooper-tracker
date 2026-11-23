@@ -16,7 +16,7 @@
     {#each lookbacks as interval (interval)}
         <a
             href={getRoute("admin.reports.display", { days: interval })}
-            class={["btn btn-outline-dark text-uppercase small fw-bold", days === interval && "active"]}
+            class={["btn btn-sm btn-outline-dark", days === interval && "active"]}
         >
             {t(":daysD", { days: interval })}
         </a>
