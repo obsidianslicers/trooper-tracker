@@ -264,13 +264,23 @@ test.describe('around the event page', () => {
 });
 
 test.describe('after the troop', () => {
-    test('a trooper says they made it', async ({ page }) => {
+    test('a trooper says they made it, without leaving the event page', async ({ page }) => {
         await openEvent(page, seeded.pastParade, '/events/closed');
+        const url = page.url();
+        const mine = shift(page).locator('.roster-row--mine');
 
-        await shift(page).getByRole('link', { name: 'Made It' }).click();
+        await mine.getByRole('button', { name: 'Made It' }).click();
+
+        //  the answer fills its button, a toast says so, and the page stays put
+        await expect(mine.getByRole('button', { name: 'Made It' })).toHaveAttribute('aria-pressed', 'true');
+        await expect(mine.getByRole('button', { name: 'Made It' })).toHaveClass(/btn-success/);
+        await expect(mine.getByRole('button', { name: 'Missed It' })).toHaveAttribute('aria-pressed', 'false');
+        await expect(page.locator('.toast').first()).toBeVisible();
+        expect(page.url()).toBe(url);
 
         await openEvent(page, seeded.pastParade, '/events/closed');
-        await expect(shift(page).locator('.roster-row--mine')).toContainText('Attended');
+        await expect(shift(page).locator('.roster-row--mine').getByRole('button', { name: 'Made It' }))
+            .toHaveAttribute('aria-pressed', 'true');
     });
 });
 

@@ -109,7 +109,7 @@ class ConfirmShiftAttendanceControllerTest extends TestCase
 
         $this->actingAs($trooper)
             ->post(route('events.confirm-attendance', $troop), ['status' => EventTrooperStatus::ATTENDED->value])
-            ->assertSessionHas('danger');
+            ->assertForbidden();
 
         $this->assertSame(EventTrooperStatus::GOING, $troop->fresh()->status);
     }
@@ -136,5 +136,49 @@ class ConfirmShiftAttendanceControllerTest extends TestCase
             ->assertSessionHasErrors('status');
 
         $this->assertSame(EventTrooperStatus::GOING, $troop->fresh()->status);
+    }
+
+    private function moderatorOf(EventTrooper $troop): Trooper
+    {
+        $moderator = Trooper::factory()->asModerator()->withVerifiedEmail()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)
+            ->forOrganization($troop->event_shift->event->organization)->asModerator()->create();
+
+        return $moderator;
+    }
+
+    public function test_a_moderator_of_the_event_can_answer_for_a_trooper(): void
+    {
+        $troop = $this->troopToConfirm(Trooper::factory()->asActive()->create());
+
+        $this->actingAs($this->moderatorOf($troop))
+            ->from(route('events.display', ['event' => $troop->event_shift->event_id]))
+            ->post(route('events.confirm-attendance', $troop), ['status' => EventTrooperStatus::ATTENDED->value])
+            ->assertRedirect(route('events.display', ['event' => $troop->event_shift->event_id]))
+            ->assertSessionHas('success');
+
+        $this->assertSame(EventTrooperStatus::ATTENDED, $troop->fresh()->status);
+    }
+
+    public function test_an_answer_can_be_changed_during_the_grace_period(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $troop = $this->troopToConfirm($trooper, EventTrooperStatus::ATTENDED);
+
+        $this->actingAs($trooper)
+            ->post(route('events.confirm-attendance', $troop), ['status' => EventTrooperStatus::UNABLE_TO_ATTEND->value])
+            ->assertSessionHas('success');
+
+        $this->assertSame(EventTrooperStatus::UNABLE_TO_ATTEND, $troop->fresh()->status);
+    }
+
+    public function test_a_troop_waiting_for_verification_cant_be_answered_again(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $troop = $this->troopToConfirm($trooper, EventTrooperStatus::AWAITING_VERIFICATION);
+
+        $this->actingAs($trooper)
+            ->post(route('events.confirm-attendance', $troop), ['status' => EventTrooperStatus::UNABLE_TO_ATTEND->value])
+            ->assertForbidden();
     }
 }

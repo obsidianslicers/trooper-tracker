@@ -102,7 +102,8 @@ export type TrooperRow = {
         reject: boolean;
         needs_costume_to_approve: SignUpStatus | null;
         sign_up_again: "resign_up" | "going" | null;
-        attendance: { made_it_url: string; missed_it_url: string } | null;
+        /** answer: what was already recorded, shown filled; null until answered */
+        attendance: { url: string; answer: "attended" | "unabletoattend" | null } | null;
     };
     editor: RowEditor | null;
     opens_itself: boolean;

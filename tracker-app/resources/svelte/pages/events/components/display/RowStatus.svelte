@@ -22,6 +22,14 @@
     const pending_hint = t("Select a costume, or mark attending without one, to confirm your spot.");
 
     const again_key = $derived(`sign-up-again-${row.id}`);
+    const answer_key = $derived(`attendance-${row.id}`);
+
+    //  pressing the answer already recorded changes nothing, so it doesn't send
+    const answer = (status: "attended" | "unabletoattend") => {
+        if (actions.attendance && actions.attendance.answer !== status) {
+            vm.send(actions.attendance.url, { status }, { shift_id, busy: answer_key });
+        }
+    };
 
     const send = (data: Record<string, unknown>, busy?: string) =>
         vm.send(actions.update_url, data, { shift_id, busy });
@@ -49,9 +57,16 @@
         {t("Sign up again")}
     </button>
 {:else if actions.attendance}
-    <div class="input-group input-group-sm d-inline-flex w-auto">
-        <a class="btn btn-outline-success" href={actions.attendance.made_it_url}>{t("Made It")}</a>
-        <a class="btn btn-outline-danger" href={actions.attendance.missed_it_url}>{t("Missed It")}</a>
+    {@const chosen = actions.attendance.answer}
+    <!-- stacked until lg: below it the roster's status column is narrow -->
+    <div class="d-inline-flex flex-column flex-lg-row gap-1" role="group" aria-label={t("Did you make it?")}
+         aria-busy={vm.isBusy(answer_key)}>
+        <button type="button" class="btn btn-sm text-nowrap {chosen === 'attended' ? 'btn-success' : 'btn-outline-success'}"
+                aria-pressed={chosen === "attended"} disabled={vm.sending}
+                onclick={() => answer("attended")}>{t("Made It")}</button>
+        <button type="button" class="btn btn-sm text-nowrap {chosen === 'unabletoattend' ? 'btn-danger' : 'btn-outline-danger'}"
+                aria-pressed={chosen === "unabletoattend"} disabled={vm.sending}
+                onclick={() => answer("unabletoattend")}>{t("Missed It")}</button>
     </div>
 {:else if !(is_open && row.status.value === "cancelled")}
     <!-- a cancelled row sits under "Cancelled", so it needs no status word -->

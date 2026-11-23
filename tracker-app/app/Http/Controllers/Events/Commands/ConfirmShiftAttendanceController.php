@@ -13,7 +13,7 @@ use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
- * Records "Made It" or "Missed It" from the bell or the notifications page,
+ * Records "Made It" or "Missed It" from the bell, the notifications page or the event page,
  * then goes back to the page it came from. A costume that can credit more than one club goes
  * to the club choice page first, the same page the email link opens.
  */

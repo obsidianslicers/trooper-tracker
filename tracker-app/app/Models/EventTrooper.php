@@ -161,25 +161,36 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
-     * Determines whether attendance can be marked for this assignment.
+     * Statuses that "Made It" / "Missed It" can be pressed from: not answered yet, or answered
+     * and still open to a change of mind. A troop sent for verification waits for a moderator.
+     */
+    public const ATTENDANCE_ANSWERABLE_STATUSES = [
+        EventTrooperStatus::GOING,
+        EventTrooperStatus::TENTATIVE,
+        EventTrooperStatus::ATTENDED,
+        EventTrooperStatus::UNABLE_TO_ATTEND,
+    ];
+
+    /**
+     * Determines whether "Made It" / "Missed It" can be pressed for this assignment.
      *
-     * Attendance can be marked only when the shift is closed, the event allows
-     * trooper status updates, the caller has ownership, and current status is GOING.
+     * Only once the shift has closed and ended, while the event allows trooper status updates
+     * (its grace period), for the trooper's own sign-up (or one they added or are guardian of)
+     * or for a moderator of the event, and only from an answerable status.
      *
      * @param  Trooper  $actor  The trooper attempting the update
-     * @return bool True if the status can be updated
+     * @param  bool  $moderates_event  Whether the actor moderates the event's organization
+     * @return bool True if the answer can be recorded
      */
-    public function canMarkAttendance(Trooper $actor): bool
+    public function canMarkAttendance(Trooper $actor, bool $moderates_event = false): bool
     {
-        if ($this->isEligibleForAttendance() && $this->event_shift->is_closed && $this->event_shift->event->can_update_trooper_status && $this->hasOwnership($actor))
-        {
-            if ($this->intendsToGo())
-            {
-                return true;
-            }
-        }
+        $shift = $this->event_shift;
 
-        return false;
+        return in_array($this->status, self::ATTENDANCE_ANSWERABLE_STATUSES, true)
+            && $shift->is_closed
+            && $shift->shift_ends_at->isPast()
+            && $shift->event->can_update_trooper_status
+            && ($moderates_event || $this->hasOwnership($actor));
     }
 
     /**
