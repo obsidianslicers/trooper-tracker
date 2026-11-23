@@ -10,7 +10,7 @@
         router.post(url, {}, {
             preserveScroll: true,
             preserveState: true,
-            only: ["is_watching", "toast", "flash"],
+            only: ["is_watching", "flash"],
             onStart: () => (sending = true),
             onFinish: () => (sending = false),
         });

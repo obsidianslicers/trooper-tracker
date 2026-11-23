@@ -662,8 +662,10 @@ html body .btn.btn-secondary-action {
 }
 
 //  phones: toasts sit along the bottom, so lift them over the "Your sign-up" bar
-body:has(.my-signup-bar) .toast-container.bottom-0 {
-    margin-bottom: calc(3rem + env(safe-area-inset-bottom));
+@media (max-width: 575.98px) {
+    body:has(.my-signup-bar) .tt-toasts {
+        margin-bottom: calc(3rem + env(safe-area-inset-bottom));
+    }
 }
 
 //  "You're bringing", under "Your sign-up": the friends and guests they added, then the Add buttons
@@ -793,6 +795,21 @@ body:has(.my-signup-bar) .toast-container.bottom-0 {
 //  the text underneath show through the alert
 .toast {
     --bs-toast-bg: var(--bs-body-bg);
+}
+
+//  ToastMessages.svelte: along the bottom on phones, top right from sm up
+.tt-toasts {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+
+    @media (min-width: 576px) {
+        top: 0;
+        right: 0;
+        bottom: auto;
+        left: auto;
+        transform: none;
+    }
 }
 
 .shift-signup-primary--station {

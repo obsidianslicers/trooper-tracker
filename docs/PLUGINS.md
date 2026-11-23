@@ -321,7 +321,7 @@ Every page has four page slots, with no core edit needed:
 | Page slot | Where |
 |-----------|-------|
 | `page.head` | Inside `<head>`, after the stylesheets. On Svelte pages, only on the first full page load. |
-| `page.top` | Above the page content, below flash messages. |
+| `page.top` | At the top of the page content (flash messages show as toasts over the page). |
 | `page.bottom` | Below the page content. |
 | `page.scripts` | End of `<body>`. On Svelte pages, only on the first full page load. |
 

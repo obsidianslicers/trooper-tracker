@@ -12,7 +12,7 @@
 
     let { vm, uploads, is_instructional, onview }: Props = $props();
 
-    const UPLOAD_PROPS = ["uploads", "toast", "flash", "errors"];
+    const UPLOAD_PROPS = ["uploads", "flash", "errors"];
 
     const toggleTag = (upload: DisplayUpload) => vm.send(upload.tag_url!, {}, { only: UPLOAD_PROPS });
 

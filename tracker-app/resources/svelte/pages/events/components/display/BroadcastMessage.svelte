@@ -22,7 +22,7 @@
     const send = () => {
         error = "";
         vm.send(url, { message }, {
-            only: ["toast", "flash", "errors"],
+            only: ["flash", "errors"],
             onSuccess: () => (message = ""),
             onError: (errors) => (error = errors.message ?? ""),
         });

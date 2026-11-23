@@ -50,7 +50,7 @@ class SignUpGuestControllerTest extends TestCase
         );
 
         $response->assertRedirect(route('events.display', ['event' => $this->event_shift->event_id]));
-        $response->assertSessionHas('toast.success', 'Guest added.');
+        $response->assertSessionHas('success', 'Guest added.');
 
         $this->assertDatabaseHas('tt_event_guests', [
             EventGuest::EVENT_SHIFT_ID => $this->event_shift->id,

@@ -67,7 +67,6 @@ class HandleInertiaRequests extends Middleware
             ],
             'lang' => fn (): array => app(TranslationService::class)->forRoute($request->route()?->getName()),
             'results' => fn () => $request->session()->pull('results'),
-            'toast' => fn () => $request->session()->pull('toast') ?: null,
             'plugin_slots' => fn (): array => $this->pluginSlots($request),
             'flash' => function () use ($request)
             {

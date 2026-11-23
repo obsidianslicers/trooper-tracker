@@ -21,7 +21,7 @@ export type SendOptions = {
 };
 
 /** What a change on a shift reloads: the shifts, the summary at the top, and the tour's example. */
-export const SHIFT_PROPS = ["shifts", "my_sign_ups", "tour", "toast", "flash", "errors"];
+export const SHIFT_PROPS = ["shifts", "my_sign_ups", "tour", "flash", "errors"];
 
 export function trooperRowKey(id: number): string {
     return `trooper-${id}`;

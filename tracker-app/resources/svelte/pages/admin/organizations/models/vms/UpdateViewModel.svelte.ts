@@ -47,7 +47,7 @@ export class UpdateViewModel
                 forceFormData: true,
                 preserveScroll: true,
                 preserveState: true,
-                only: ["organization", "toast", "flash"],
+                only: ["organization", "flash"],
                 onSuccess: (page) => {
                     this.organization = (page.props as unknown as UpdatePageData).organization;
                 },

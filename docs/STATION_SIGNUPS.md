@@ -137,7 +137,7 @@ Changing a trooper into a full station follows the same capacity rule as the pub
 
 If a station exists, a new trooper signup must select one. If no station is selected, the signup is rejected with a validation message.
 
-An existing signup on a stationed shift cannot clear its station. On the event page this is rejected with a flash message ("A station is required for this shift.") and the roster re-renders unchanged — no session validation errors are used, because every roster row shares the same input name and session errors would render against all of them.
+An existing signup on a stationed shift cannot clear its station. On the event page this is rejected with a toast ("A station is required for this shift.") and the roster re-renders unchanged — no session validation errors are used, because every roster row shares the same input name and session errors would render against all of them.
 
 If a station is full, new signups are still stored, but with `STAND_BY` status.
 

@@ -142,7 +142,7 @@ describe('EventDisplayViewModel', () => {
         const vm = new EventDisplayViewModel([]);
         const onError = vi.fn();
 
-        vm.send('/events/share-roster/1', {}, { only: ['toast'], onError });
+        vm.send('/events/share-roster/1', {}, { only: ['flash'], onError });
         router.post.mock.calls[0][2].onError({ recipient_email: 'Bad address' });
 
         expect(onError).toHaveBeenCalledWith({ recipient_email: 'Bad address' });
