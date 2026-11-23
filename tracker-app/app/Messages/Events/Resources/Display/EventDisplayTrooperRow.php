@@ -157,32 +157,23 @@ class EventDisplayTrooperRow extends JsonResource
     }
 
     /**
-     * @return array{made_it_url: string|null, missed_it_url: string|null}|null
+     * Made It / Missed It: where the answer goes, and the answer already given (shown filled),
+     * which can still be changed during the grace period.
+     *
+     * @return array{url: string, answer: string|null}|null
      */
     private function attendance(): ?array
     {
-        $shift = $this->eventShift();
-        $viewer = $this->context->viewer;
-
-        $is_after = $shift->is_closed
-            && $shift->shift_ends_at->isPast()
-            && $this->isEligibleForAttendance()
-            && ($this->context->can_moderate || $this->canMarkAttendance($viewer));
-
-        if (!$is_after)
+        if (!$this->canMarkAttendance($this->context->viewer, $this->context->can_moderate))
         {
             return null;
         }
 
-        $answered = in_array($this->status, [
-            EventTrooperStatus::ATTENDED,
-            EventTrooperStatus::UNABLE_TO_ATTEND,
-            EventTrooperStatus::AWAITING_VERIFICATION,
-        ], true);
+        $answered = in_array($this->status, [EventTrooperStatus::ATTENDED, EventTrooperStatus::UNABLE_TO_ATTEND], true);
 
-        return $answered ? null : [
-            'made_it_url' => $this->getAttendanceUrl(EventTrooperStatus::ATTENDED),
-            'missed_it_url' => $this->getAttendanceUrl(EventTrooperStatus::UNABLE_TO_ATTEND),
+        return [
+            'url' => route('events.confirm-attendance', ['event_trooper' => $this->resource]),
+            'answer' => $answered ? $this->status->value : null,
         ];
     }
 

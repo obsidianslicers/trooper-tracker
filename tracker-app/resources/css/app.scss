@@ -359,8 +359,9 @@ input.searching {
 .roster {
     column-gap: 0.75rem;
     display: grid;
-    //  who and costume as wide as their widest entry (capped), the spare room before the status
-    grid-template-columns: minmax(1.25rem, auto) fit-content(40%) fit-content(40%) minmax(0, 1fr) fit-content(16rem);
+    //  who and costume as wide as their widest entry (capped), the spare room before the status,
+    //  which never gets narrower than what it shows (Made It / Missed It), or it runs into Edit
+    grid-template-columns: minmax(1.25rem, auto) fit-content(40%) fit-content(40%) minmax(min-content, 1fr) fit-content(16rem);
     margin-bottom: 0.5rem;
 }
 

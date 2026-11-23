@@ -127,8 +127,8 @@ test.describe('troop verification', () => {
     async function reportAttendance(page, event) {
         await page.goto('/events/closed');
         await page.getByRole('link', { name: event }).first().click();
-        await page.locator('[id^="shift-container-"]').first().getByRole('link', { name: 'Made It' }).click();
-        await expect(page.getByText('A moderator will confirm this troop')).toBeVisible();
+        await page.locator('[id^="shift-container-"]').first().getByRole('button', { name: 'Made It' }).click();
+        await expect(page.getByText('A moderator will confirm this troop').first()).toBeVisible();
     }
 
     test('a do-not-trust trooper\'s troops wait for a moderator, who approves one and removes another', async ({ browser }) => {
@@ -155,7 +155,9 @@ test.describe('troop verification', () => {
 
         await trooper.goto('/events/closed');
         await trooper.getByRole('link', { name: seeded.verifiedParade }).first().click();
-        await expect(trooper.locator('[id^="shift-container-"] .roster-row--mine').first()).toContainText('Attended');
+        //  approved: the row shows the answer as a filled Made It, while the grace period lasts
+        await expect(trooper.locator('[id^="shift-container-"] .roster-row--mine').first()
+            .getByRole('button', { name: 'Made It' })).toHaveAttribute('aria-pressed', 'true');
 
         await trooper_context.close();
         await moderator_context.close();

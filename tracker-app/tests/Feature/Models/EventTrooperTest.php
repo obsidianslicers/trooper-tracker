@@ -765,4 +765,43 @@ class EventTrooperTest extends TestCase
         $this->assertTrue($result->contains('id', $org1->id));
         $this->assertTrue($result->contains('id', $org2->id));
     }
+
+    private function closedSignUp(Trooper $trooper, EventTrooperStatus $status): EventTrooper
+    {
+        $event = Event::factory()->asClosed()->withEventEnd(now()->subDays(1))->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::CLOSED,
+                EventShift::SHIFT_ENDS_AT => \Carbon\Carbon::now()->subDay(),
+            ])
+            ->create();
+
+        return EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)
+            ->state([EventTrooper::STATUS => $status])->create();
+    }
+
+    public function test_can_mark_attendance_again_to_change_an_answer(): void
+    {
+        $trooper = Trooper::factory()->create();
+
+        $this->assertTrue($this->closedSignUp($trooper, EventTrooperStatus::ATTENDED)->canMarkAttendance($trooper));
+        $this->assertTrue($this->closedSignUp($trooper, EventTrooperStatus::UNABLE_TO_ATTEND)->canMarkAttendance($trooper));
+    }
+
+    public function test_can_mark_attendance_returns_false_while_waiting_for_verification(): void
+    {
+        $trooper = Trooper::factory()->create();
+
+        $this->assertFalse($this->closedSignUp($trooper, EventTrooperStatus::AWAITING_VERIFICATION)->canMarkAttendance($trooper));
+    }
+
+    public function test_can_mark_attendance_for_someone_else_only_as_a_moderator_of_the_event(): void
+    {
+        $subject = $this->closedSignUp(Trooper::factory()->create(), EventTrooperStatus::GOING);
+        $moderator = Trooper::factory()->create();
+
+        $this->assertFalse($subject->canMarkAttendance($moderator));
+        $this->assertTrue($subject->canMarkAttendance($moderator, moderates_event: true));
+    }
 }

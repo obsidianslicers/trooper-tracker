@@ -10,8 +10,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * A trooper answering "did you make it?" for one of their own troops, from the bell or the
- * notifications page.
+ * "Did you make it?" answered from the bell, the notifications page or the event page: by the
+ * trooper (or whoever added them, or their guardian), or by a moderator of the event.
  */
 class ConfirmShiftAttendanceRequest extends FormRequest
 {
@@ -22,7 +22,17 @@ class ConfirmShiftAttendanceRequest extends FormRequest
         /** @var EventTrooper|null $event_trooper */
         $event_trooper = $this->route('event_trooper');
 
-        return $event_trooper !== null && $event_trooper->trooper_id === $this->user()?->id;
+        $user = $this->user();
+
+        if ($event_trooper === null || $user === null)
+        {
+            return false;
+        }
+
+        return $event_trooper->canMarkAttendance(
+            $user,
+            $user->isModeratorForOrganization($event_trooper->event_shift->event->organization),
+        );
     }
 
     /**

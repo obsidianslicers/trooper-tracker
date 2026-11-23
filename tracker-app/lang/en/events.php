@@ -109,6 +109,7 @@ return [
     'Credit recorded for:' => 'Credit recorded for:',
     'Decrypt mission brief' => 'Decrypt mission brief',
     'Deployment Limits' => 'Deployment Limits',
+    'Did you make it?' => 'Did you make it?',
     'Direct' => 'Direct',
     'Direct Funds: $:amount' => 'Direct Funds: $:amount',
     'Done' => 'Done',
