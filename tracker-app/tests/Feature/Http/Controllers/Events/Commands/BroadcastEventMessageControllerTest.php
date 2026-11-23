@@ -50,7 +50,7 @@ class BroadcastEventMessageControllerTest extends TestCase
             ]);
 
         $response->assertRedirect(route('events.display', ['event' => $this->event]));
-        $response->assertSessionHas('toast.success', 'Message sent.');
+        $response->assertSessionHas('success', 'Message sent.');
         Queue::assertPushed(BroadcastEventMessageJob::class, function (BroadcastEventMessageJob $job) use ($message): bool
         {
             return $job->event->id === $this->event->id

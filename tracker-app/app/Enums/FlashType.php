@@ -11,10 +11,8 @@ use Illuminate\Support\Str;
 /**
  * Defines the types of flash notifications that can be displayed to a user.
  *
- * This is typically used for flash messages or alerts to convey information
- * with a certain level of importance or context (e.g., success, error).
- *
- * Wired into the naming conventions of the Bootstrap alert classes for consistent styling.
+ * Every page, Blade or Svelte, shows these as toasts (ToastMessages.svelte). The values match the
+ * Bootstrap contextual classes the toast is styled with.
  */
 enum FlashType: string
 {
@@ -112,15 +110,6 @@ enum FlashType: string
     public static function danger($message): void
     {
         session()->flash(self::DANGER->value, $message);
-    }
-
-    /**
-     * A short message the page shows as a toast, beside what the trooper just did, rather than
-     * at the top of the page.
-     */
-    public function toast(string $message): void
-    {
-        session()->flash('toast.'.$this->value, $message);
     }
 
     /**

@@ -83,7 +83,7 @@ class CancelEventTrooperCapacityTest extends TestCase
         );
 
         $response->assertRedirect();
-        $response->assertSessionHas('toast.success');
+        $response->assertSessionHas('success');
     }
 
     private function makeTrooper(

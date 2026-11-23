@@ -1,83 +1,11 @@
 import { t } from '../i18n.js';
 import toastState from './toasts.js';
 
-//  data-flash-target="toast": show the message as a toast instead of in a container on the page
-const TOAST = 'toast';
-
-/** FLASH AFTER SWAP / ERROR **/
-function resolveFlashContainer(event) {
-    //  the element itself or a container around it (e.g. a whole shift on the event page, whose
-    //  swapped-in copy is the elt of its afterSwap)
-    const targetSelector = event.detail.elt?.closest?.('[data-flash-target]')?.dataset?.flashTarget;
-
-    if (targetSelector === TOAST) {
-        return TOAST;
-    }
-
-    if (targetSelector) {
-        const target = document.querySelector(targetSelector);
-
-        if (target) {
-            return target;
-        }
-    }
-
-    return document.getElementById('flash-messages');
-}
-
-function appendFlashMessage(response, messagesContainer) {
+//  An HTMX response's X-Flash-Message ({ message, type, fadeOut? }) shows as a toast, like every
+//  other FlashType message.
+function showToast(response) {
     if (response && response.message && response.type) {
-        if (messagesContainer === TOAST) {
-            toastState.show(response.message, { type: response.type, delay: response.fadeOut || 4000 });
-            return;
-        }
-
-        if (!messagesContainer) {
-            console.error('Flash message container not found.');
-            return;
-        }
-
-        // Create the alert div
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `alert alert-${response.type} alert-dismissible fade show mt-2`;
-
-        // Create the close button
-        const closeButton = document.createElement('button');
-        closeButton.type = 'button';
-        closeButton.className = 'btn-close float-end';
-        closeButton.setAttribute('data-bs-dismiss', 'alert');
-        messageDiv.appendChild(closeButton);
-
-        // Create the strong message element
-        const strong = document.createElement('strong');
-        strong.textContent = response.message;
-        messageDiv.appendChild(strong);
-
-        // Append and fade in
-        messagesContainer.appendChild(messageDiv);
-
-        requestAnimationFrame(() => {
-            messageDiv.style.transition = 'opacity 0.3s ease-in-out';
-            messageDiv.style.opacity = '1';
-        });
-
-        // Scroll into view if needed
-        const rect = messagesContainer.getBoundingClientRect();
-        const isOutOfView = rect.top < 0 || rect.bottom > window.innerHeight;
-        if (isOutOfView && response.focus) {
-            messagesContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        const fadeOut = response.fadeOut || 2000;
-
-        // Fade out and remove after fadeOut duration
-        setTimeout(() => {
-            messageDiv.style.opacity = '0';
-            messageDiv.style.transition = 'opacity 0.5s ease-in-out';
-            setTimeout(() => {
-                messageDiv.remove();
-            }, 500);
-        }, fadeOut);
+        toastState.show(response.message, { type: response.type, delay: response.fadeOut || 4000 });
     }
 }
 
@@ -88,7 +16,7 @@ function showHtmxFlash(event) {
             return;
         }
 
-        appendFlashMessage(JSON.parse(flashMessageJson), resolveFlashContainer(event));
+        showToast(JSON.parse(flashMessageJson));
     } catch (e) {
         console.error("Error parsing JSON or displaying flash message:", e);
     }
@@ -100,11 +28,11 @@ function showHtmxErrorFallback(event) {
     }
 
     if (event.detail.xhr.status === 413) {
-        appendFlashMessage({
+        showToast({
             message: t('That upload is too large for the server. Please upload JPG, PNG, or WEBP images that are 50MB or smaller.'),
             type: 'danger',
             fadeOut: 5000,
-        }, resolveFlashContainer(event));
+        });
     }
 }
 

@@ -1,4 +1,3 @@
-import flashState from '$lib/states/flash-state.svelte';
 import toastState from '$lib/states/toast-state.svelte';
 import { setupProgress } from '@inertiajs/core';
 import { createInertiaApp, router } from '@inertiajs/svelte';
@@ -37,24 +36,15 @@ function handleMessages(event: CustomEvent): void {
     //  ie. form submission success, or page navigation success
     const pg = event.detail.page;
 
-    if (pg.props.flash) {
-        const flash = pg.props.flash as InertiaFlashProps;
+    const flash = (pg.props.flash ?? {}) as InertiaFlashProps;
+    const shown = [
+        ...to_messages(flash.success).map((m) => toastState.success(m)),
+        ...to_messages(flash.danger).map((m) => toastState.danger(m)),
+        ...to_messages(flash.warning).map((m) => toastState.warning(m)),
+        ...to_messages(flash.info).map((m) => toastState.info(m)),
+    ];
 
-        to_messages(flash.success).forEach((m) => flashState.success(m));
-        to_messages(flash.danger).forEach((m) => flashState.danger(m));
-        to_messages(flash.warning).forEach((m) => flashState.warning(m));
-        to_messages(flash.info).forEach((m) => flashState.info(m));
-    }
-
-    if (pg.props.toast) {
-        const toast = pg.props.toast as InertiaFlashProps;
-
-        to_messages(toast.success).forEach((m) => toastState.success(m));
-        to_messages(toast.danger).forEach((m) => toastState.danger(m));
-        to_messages(toast.warning).forEach((m) => toastState.warning(m));
-        to_messages(toast.info).forEach((m) => toastState.info(m));
-    }
-    else if (pg.props.errors && Object.keys(pg.props.errors).length > 0) {
+    if (shown.length === 0 && pg.props.errors && Object.keys(pg.props.errors).length > 0) {
         toastState.danger('Validation errors .. data submission cancelled.');
     }
 }

@@ -45,8 +45,8 @@ class ForumReplyController
         }
 
         $success
-            ? FlashType::SUCCESS->toast(__('xenforo::events.Reply posted!'))
-            : FlashType::DANGER->toast(__('xenforo::events.Failed to post reply.'));
+            ? FlashType::SUCCESS->flash(__('xenforo::events.Reply posted!'))
+            : FlashType::DANGER->flash(__('xenforo::events.Failed to post reply.'));
 
         return redirect()->to(route('events.display', ['event' => $event]).'#forum-comments');
     }

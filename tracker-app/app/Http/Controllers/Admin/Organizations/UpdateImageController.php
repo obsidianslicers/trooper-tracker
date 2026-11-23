@@ -23,7 +23,7 @@ class UpdateImageController extends Controller
 
         UpdateOrganizationLogo::call(organization: $organization, logo: $request->file('logo'));
 
-        FlashType::SUCCESS->toast(__('admin.Logo updated.'));
+        FlashType::SUCCESS->flash(__('admin.Logo updated.'));
 
         return redirect()->route('admin.organizations.update', compact('organization'));
     }

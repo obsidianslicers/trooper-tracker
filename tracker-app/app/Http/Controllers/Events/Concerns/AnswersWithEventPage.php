@@ -21,7 +21,7 @@ trait AnswersWithEventPage
     ): RedirectResponse {
         if ($message !== null && $message !== '')
         {
-            $type->toast($message);
+            $type->flash($message);
         }
 
         return redirect()->route('events.display', ['event' => $event]);

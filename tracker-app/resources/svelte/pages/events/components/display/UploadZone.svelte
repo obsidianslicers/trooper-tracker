@@ -27,7 +27,7 @@
         uploading = true;
         vm.send(url, { images: Array.from(files), upload_type }, {
             files: true,
-            only: ["uploads", "toast", "flash", "errors"],
+            only: ["uploads", "flash", "errors"],
         });
     };
 

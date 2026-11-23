@@ -18,7 +18,7 @@
         e.preventDefault();
         error = "";
         vm.send(url, { recipient_email: email }, {
-            only: ["toast", "flash", "errors"],
+            only: ["flash", "errors"],
             onSuccess: () => {
                 email = "";
                 close();

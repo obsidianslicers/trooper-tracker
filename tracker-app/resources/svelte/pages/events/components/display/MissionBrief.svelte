@@ -45,7 +45,7 @@
         router.post(brief.acknowledge_url, {}, {
             preserveScroll: true,
             preserveState: true,
-            only: ["event", "shifts", "my_sign_ups", "tour", "flash", "toast"],
+            only: ["event", "shifts", "my_sign_ups", "tour", "flash"],
             onStart: () => (sending = true),
             onFinish: () => (sending = false),
         });

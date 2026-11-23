@@ -31,7 +31,7 @@ class ToggleEventWatchControllerTest extends TestCase
         $response = $this->actingAs($trooper)->post(route('events.toggle-watch', $event));
 
         $response->assertRedirect(route('events.display', ['event' => $event]));
-        $response->assertSessionHas('toast.success', "You're watching this event.");
+        $response->assertSessionHas('success', "You're watching this event.");
         $this->assertDatabaseHas('tt_event_watches', [
             'event_id' => $event->id,
             'trooper_id' => $trooper->id,
@@ -48,7 +48,7 @@ class ToggleEventWatchControllerTest extends TestCase
         $response = $this->actingAs($trooper)->post(route('events.toggle-watch', $event));
 
         $response->assertRedirect(route('events.display', ['event' => $event]));
-        $response->assertSessionHas('toast.success', "You're no longer watching this event.");
+        $response->assertSessionHas('success', "You're no longer watching this event.");
         $this->assertDatabaseMissing('tt_event_watches', [
             'event_id' => $event->id,
             'trooper_id' => $trooper->id,

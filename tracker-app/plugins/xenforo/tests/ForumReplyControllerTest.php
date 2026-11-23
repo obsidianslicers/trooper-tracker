@@ -87,7 +87,7 @@ class ForumReplyControllerTest extends TestCase
         ]);
 
         $response->assertRedirect(route('events.display', ['event' => $event]).'#forum-comments');
-        $response->assertSessionHas('toast.success', 'Reply posted!');
+        $response->assertSessionHas('success', 'Reply posted!');
     }
 
     public function test_invoke_does_not_dispatch_job_when_checkbox_is_absent(): void
