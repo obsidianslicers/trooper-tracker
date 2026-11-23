@@ -54,7 +54,7 @@ export class AddTrooperViewModel extends ViewModel {
         }
 
         router.post(
-            getRoute("admin.events.troopers.add", { event: this.event_id, event_shift: this.shift_id }),
+            getRoute("admin.events.troopers.store", { event: this.event_id, event_shift: this.shift_id }),
             {
                 trooper_id: this.choices.trooper_id,
                 costume_id: this.costume_id,

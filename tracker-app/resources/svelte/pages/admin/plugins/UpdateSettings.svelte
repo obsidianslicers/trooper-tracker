@@ -60,7 +60,7 @@
         {/each}
         <SubmitButtonContainer>
             <SubmitButton label={t("Save")} submitting={vm.submitting} />
-            <CancelButton href={getRoute("admin.plugins.list")} />
+            <CancelButton href={getRoute("admin.plugins.index")} />
         </SubmitButtonContainer>
     </form>
 </SlimView>

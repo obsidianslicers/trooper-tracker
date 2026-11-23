@@ -118,7 +118,7 @@ class DiscordPluginTest extends TestCase
         DiscordOrganizationMention::store($organization->id, '<@&111>');
 
         $this->actingAs($admin)
-            ->get(route('admin.organizations.update', ['organization' => $organization]))
+            ->get(route('admin.organizations.edit', ['organization' => $organization]))
             ->assertOk()
             ->assertSee('Discord Mention:')
             ->assertSee('&lt;@&amp;111&gt;', false);
@@ -129,7 +129,7 @@ class DiscordPluginTest extends TestCase
         ), [
             Organization::NAME => $organization->name,
             'discord_mention' => '<@&222>',
-        ])->assertRedirect(route('admin.organizations.list'));
+        ])->assertRedirect(route('admin.organizations.index'));
 
         $this->assertSame(
             '<@&222>',
@@ -158,7 +158,7 @@ class DiscordPluginTest extends TestCase
         $organization = Organization::factory()->create();
 
         $this->actingAs($admin)
-            ->get(route('admin.organizations.update', ['organization' => $organization]))
+            ->get(route('admin.organizations.edit', ['organization' => $organization]))
             ->assertOk()
             ->assertDontSee('Discord Mention:');
     }

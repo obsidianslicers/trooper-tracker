@@ -27,7 +27,7 @@ export class ListTroopersViewModel extends ViewModel {
         if (filters.sort_col) query.sort_col = filters.sort_col;
         if (filters.sort_dir) query.sort_dir = filters.sort_dir;
 
-        return getRoute("admin.troopers.list", query);
+        return getRoute("admin.troopers.index", query);
     }
 
     /** Clicking the sorted column flips its direction; another column sorts A to Z. */
@@ -62,6 +62,6 @@ export class ListTroopersViewModel extends ViewModel {
     }
 
     profileUrl(trooper_id: number): string {
-        return getRoute("admin.troopers.profile", { trooper: trooper_id });
+        return getRoute("admin.troopers.show", { trooper: trooper_id });
     }
 }

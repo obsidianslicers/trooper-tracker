@@ -22,7 +22,7 @@
 {#snippet who(id: number, name: string, at: string)}
     {#if name}
         {t("by")}
-        <a href={getRoute("admin.troopers.profile", { trooper: id })}>
+        <a href={getRoute("admin.troopers.show", { trooper: id })}>
             {name}
         </a>
     {/if}

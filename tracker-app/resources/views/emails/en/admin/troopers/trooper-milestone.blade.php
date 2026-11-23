@@ -13,7 +13,7 @@
     @foreach ($achievements->groupBy('trooper_id') as $trooper_achievements)
         @php($trooper = $trooper_achievements->first()->trooper)
         <h3>
-            <a href="{{ route('admin.troopers.profile', $trooper) }}">
+            <a href="{{ route('admin.troopers.show', $trooper) }}">
                 {{ $trooper->legal_name }} ({{ $trooper->display_name }})
             </a>
         </h3>

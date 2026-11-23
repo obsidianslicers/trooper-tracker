@@ -61,7 +61,7 @@ class OrganizationForumTest extends TestCase
         $organization = $this->createForumOrganization([OrganizationForum::EVENT_FORUM_ID => 9]);
 
         $this->actingAs($admin)
-            ->get(route('admin.organizations.update', ['organization' => $organization]))
+            ->get(route('admin.organizations.edit', ['organization' => $organization]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where(
                 'plugin_fields',
@@ -77,7 +77,7 @@ class OrganizationForumTest extends TestCase
             'xenforo_event_forum_id' => 12,
             'xenforo_archive_forum_id' => '',
             'xenforo_retired_group_id' => 30,
-        ])->assertRedirect(route('admin.organizations.list'));
+        ])->assertRedirect(route('admin.organizations.index'));
 
         $forum = OrganizationForum::forOrganization($organization->id);
         $this->assertSame(12, $forum->event_forum_id);

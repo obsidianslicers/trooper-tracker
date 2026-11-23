@@ -32,7 +32,7 @@ export class ListViewModel extends ViewModel {
             query.organization_id = organization_id;
         }
 
-        return getRoute("admin.awards.list", query);
+        return getRoute("admin.awards.index", query);
     }
 
     search = (e: Event) => {
@@ -46,7 +46,7 @@ export class ListViewModel extends ViewModel {
     }
 
     updateUrl(award: AwardRow): string {
-        return getRoute("admin.awards.update", { award: award.id });
+        return getRoute("admin.awards.edit", { award: award.id });
     }
 
     copyUrl(award: AwardRow): string {
@@ -54,6 +54,6 @@ export class ListViewModel extends ViewModel {
     }
 
     troopersUrl(award: AwardRow): string {
-        return getRoute("admin.awards.list-troopers", { award: award.id });
+        return getRoute("admin.awards.troopers.index", { award: award.id });
     }
 }

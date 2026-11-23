@@ -86,7 +86,7 @@ class EventTypeForumsTest extends TestCase
         EventTypeForum::store($event_type->id, [EventTypeForum::EVENT_FORUM_ID => 314]);
 
         $response = $this->actingAs($trooper)
-            ->get(route('admin.event-types.update', ['event_type' => $event_type]));
+            ->get(route('admin.event-types.edit', ['event_type' => $event_type]));
 
         $response->assertInertia(fn (Assert $page) => $page->where(
             'plugin_slots',
@@ -106,7 +106,7 @@ class EventTypeForumsTest extends TestCase
         $event_type = EventType::factory()->create();
 
         $response = $this->actingAs($trooper)
-            ->get(route('admin.event-types.update', ['event_type' => $event_type]));
+            ->get(route('admin.event-types.edit', ['event_type' => $event_type]));
 
         $response->assertInertia(fn (Assert $page) => $page->where(
             'plugin_slots',
@@ -128,7 +128,7 @@ class EventTypeForumsTest extends TestCase
                 'xenforo_archive_forum_id' => '',
             ]);
 
-        $response->assertRedirect(route('admin.event-types.update', ['event_type' => $event_type]));
+        $response->assertRedirect(route('admin.event-types.edit', ['event_type' => $event_type]));
         $forum = EventTypeForum::forEventType($event_type->id);
         $this->assertSame(222, $forum->event_forum_id);
         $this->assertNull($forum->archive_forum_id);

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Admin\Costumes\CreateController;
-use App\Http\Controllers\Admin\Costumes\CreateSubmitController;
-use App\Http\Controllers\Admin\Costumes\DeleteController;
-use App\Http\Controllers\Admin\Costumes\DeleteSubmitController;
-use App\Http\Controllers\Admin\Costumes\ListController;
-use App\Http\Controllers\Admin\Costumes\MergeCostumesController;
-use App\Http\Controllers\Admin\Costumes\MergeCostumesSubmitController;
-use App\Http\Controllers\Admin\Costumes\UpdateController;
-use App\Http\Controllers\Admin\Costumes\UpdateSubmitController;
+use App\Http\Controllers\Admin\Costumes\Commands\DestroyCostumeController;
+use App\Http\Controllers\Admin\Costumes\Commands\MergeCostumesController;
+use App\Http\Controllers\Admin\Costumes\Commands\StoreCostumeController;
+use App\Http\Controllers\Admin\Costumes\Commands\UpdateCostumeController;
+use App\Http\Controllers\Admin\Costumes\Pages\CreateCostumeController;
+use App\Http\Controllers\Admin\Costumes\Pages\DeleteCostumeController;
+use App\Http\Controllers\Admin\Costumes\Pages\EditCostumeController;
+use App\Http\Controllers\Admin\Costumes\Pages\IndexCostumesController;
+use App\Http\Controllers\Admin\Costumes\Pages\ShowMergeCostumesFormController;
 use Illuminate\Support\Facades\Route;
 
 //  ADMIN/COSTUMES
@@ -19,17 +19,17 @@ Route::prefix('admin/costumes')
     ->middleware(['auth', 'check.role:staff_officer,system_owner'])
     ->group(function ()
     {
-        Route::get('/', ListController::class)->name('list');
-        Route::get('/create', CreateController::class)->name('create');
-        Route::post('/create', CreateSubmitController::class);
+        Route::get('/', IndexCostumesController::class)->name('index');
+        Route::get('/create', CreateCostumeController::class)->name('create');
+        Route::post('/', StoreCostumeController::class)->name('store');
         Route::middleware('check.role:system_owner')
             ->group(function ()
             {
-                Route::get('/merge', MergeCostumesController::class)->name('merge');
-                Route::post('/merge', MergeCostumesSubmitController::class);
+                Route::get('/merge', ShowMergeCostumesFormController::class)->name('merge.create');
+                Route::post('/merge', MergeCostumesController::class)->name('merge.store');
             });
-        Route::get('/{costume}/update', UpdateController::class)->name('update');
-        Route::post('/{costume}/update', UpdateSubmitController::class);
-        Route::get('/{costume}/delete', DeleteController::class)->name('delete');
-        Route::post('/{costume}/delete', DeleteSubmitController::class);
+        Route::get('/{costume}/edit', EditCostumeController::class)->name('edit');
+        Route::post('/{costume}', UpdateCostumeController::class)->name('update');
+        Route::get('/{costume}/delete', DeleteCostumeController::class)->name('delete');
+        Route::post('/{costume}/delete', DestroyCostumeController::class)->name('destroy');
     });

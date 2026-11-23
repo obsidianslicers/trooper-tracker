@@ -20,13 +20,13 @@ describe('ListViewModel', () => {
     it('changes the scope and keeps the organization filter', () => {
         const vm = new ListViewModel(pageData({ organization: { id: 4, name: 'E2E Garrison' } }));
 
-        expect(vm.listUrl({ scope: 'past' })).toBe('/admin.notices.list?scope=past&organization_id=4');
+        expect(vm.listUrl({ scope: 'past' })).toBe('/admin.notices.index?scope=past&organization_id=4');
     });
 
     it('clears the organization filter and keeps the scope', () => {
         const vm = new ListViewModel(pageData({ scope: 'future', organization: { id: 4, name: 'E2E Garrison' } }));
 
-        expect(vm.listUrl({ organization_id: null })).toBe('/admin.notices.list?scope=future');
+        expect(vm.listUrl({ organization_id: null })).toBe('/admin.notices.index?scope=future');
     });
 
     it('creates a notice for the organization being shown', () => {

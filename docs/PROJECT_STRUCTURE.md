@@ -144,7 +144,7 @@ app/Http/Controllers/
 ├── Account/               # User account management
 │   ├── Commands/         # Changes something (database, login), whatever the HTTP verb
 │   └── Pages/            # Changes nothing (pages, downloads, JSON, HTMX)
-├── Admin/                 # Administrative interfaces (not yet split into Commands/Pages)
+├── Admin/                 # Command Staff, each area split into Commands/ and Pages/
 ├── Api/Pages/             # Public JSON API
 ├── Auth/                  # Login, logout, registration, OAuth (Commands/, Pages/)
 ├── Events/                # Public event pages and sign-ups (Commands/, Pages/, Concerns/)

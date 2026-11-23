@@ -41,7 +41,7 @@ final class EventSummaryPageData extends Message
                 ->map(fn (Event $event): array => [
                     'id' => $event->id,
                     'name' => $event->name,
-                    'url' => route('admin.events.update', ['event' => $event]),
+                    'url' => route('admin.events.edit', ['event' => $event]),
                     'logo_url' => map_image_url(
                         $event->organization?->image_path_sm,
                         'img/icons/organization-32x32.png'

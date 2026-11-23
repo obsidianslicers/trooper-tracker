@@ -43,7 +43,7 @@
 
         <SubmitButtonContainer>
             <SubmitButton label={t("Update")} submitting={vm.submitting} />
-            <CancelButton href={getRoute("admin.costumes.list")} />
+            <CancelButton href={getRoute("admin.costumes.index")} />
             {#if vm.can_delete}
                 <span class="ms-2"><DeleteButton click={vm.confirmDelete} /></span>
             {/if}

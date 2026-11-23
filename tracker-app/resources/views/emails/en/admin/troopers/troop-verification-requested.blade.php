@@ -17,7 +17,7 @@
 
     <p>
         Please check the troop, then approve or reject each club on the
-        <a href="{{ route('admin.troopers.troop-verifications') }}">Troop Verifications</a> page.
+        <a href="{{ route('admin.troopers.troop-verifications.index') }}">Troop Verifications</a> page.
     </p>
 
     @include(email_view('inc.signature'))

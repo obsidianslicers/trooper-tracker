@@ -65,7 +65,7 @@ export class UpdateViewModel
     delete = () => {
         this.deleting = true;
 
-        router.post(getRoute("admin.costumes.delete", { costume: this.costume_id }), {}, {
+        router.post(getRoute("admin.costumes.destroy", { costume: this.costume_id }), {}, {
             onFinish: () => {
                 this.deleting = false;
                 this.show_delete = false;

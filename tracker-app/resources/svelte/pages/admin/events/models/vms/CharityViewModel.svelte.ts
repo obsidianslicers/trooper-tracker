@@ -32,7 +32,7 @@ export class CharityViewModel extends AutosaveViewModel<CharityForm> {
     }
 
     protected url(): string {
-        return getRoute("admin.events.charity", { event: this.event_id });
+        return getRoute("admin.events.charity.update", { event: this.event_id });
     }
 
     protected payload(data: CharityForm): Record<string, unknown> {

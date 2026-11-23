@@ -68,7 +68,7 @@ class ReportPageDataTest extends TestCase
         $row = $result['events'][0];
 
         $this->assertSame('Library Day', $row['name']);
-        $this->assertSame(route('admin.events.update', ['event' => $event]), $row['url']);
+        $this->assertSame(route('admin.events.edit', ['event' => $event]), $row['url']);
         $this->assertSame('1', $row['shifts']);
         $this->assertSame('2', $row['total_trooper_count']);
         $this->assertSame('1,250.50', $row['direct']);
@@ -112,7 +112,7 @@ class ReportPageDataTest extends TestCase
         $row = collect($result['troopers'])->firstWhere('id', $trooper->id);
 
         $this->assertSame('Never', $row['last_seen']);
-        $this->assertSame(route('admin.troopers.profile', ['trooper' => $trooper]), $row['profile_url']);
+        $this->assertSame(route('admin.troopers.show', ['trooper' => $trooper]), $row['profile_url']);
     }
 
     public function test_status_change_log_names_who_marked_the_troop(): void

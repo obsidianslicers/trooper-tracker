@@ -48,7 +48,7 @@ export class UploadsViewModel extends ViewModel {
         }
 
         router.post(
-            getRoute("admin.events.upload-image", { event: this.event_id }),
+            getRoute("admin.events.uploads.store", { event: this.event_id }),
             { images: Array.from(files) },
             createPartialReloadOptions({
                 forceFormData: true,
@@ -75,7 +75,7 @@ export class UploadsViewModel extends ViewModel {
         }
 
         const route = pending.action === "delete"
-            ? "admin.events.uploads.delete"
+            ? "admin.events.uploads.destroy"
             : "admin.events.uploads.toggle-type";
 
         router.post(

@@ -35,7 +35,7 @@
         </InputContainer>
         <SubmitButtonContainer>
             <SubmitButton label={t("Update")} submitting={vm.submitting} disabled={!vm.dirty} />
-            <CancelButton href={getRoute("admin.awards.list")} />
+            <CancelButton href={getRoute("admin.awards.index")} />
         </SubmitButtonContainer>
     </form>
     <TrooperStamps trooper_stamps={vm.trooper_stamps} />

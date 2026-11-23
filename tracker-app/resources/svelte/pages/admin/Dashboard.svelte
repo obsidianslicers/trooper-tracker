@@ -17,7 +17,7 @@
         page.props.counts,
         page.props.system_check_problems,
         page.props.trooper_id,
-        getRoute("admin.troopers.permissions.approvals"),
+        getRoute("admin.troopers.permissions.approvals.index"),
     );
 
     // a plugin's card is the Blade <x-dashboard-card>, which opens its data-route when clicked

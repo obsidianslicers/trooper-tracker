@@ -66,7 +66,7 @@
                 {/if}
                 <SubmitButtonContainer>
                     <SubmitButton label={t("Update")} submitting={vm.submitting} />
-                    <CancelButton href={getRoute("admin.organizations.list")} />
+                    <CancelButton href={getRoute("admin.organizations.index")} />
                 </SubmitButtonContainer>
             </form>
         </div>

@@ -60,7 +60,7 @@ describe('ShiftViewModel stations', () => {
         station.troopers_allowed = 4;
         subject.changeStation(station);
 
-        expect(post).toHaveBeenCalledWith('/admin.events.shifts', expect.any(Object));
+        expect(post).toHaveBeenCalledWith('/admin.events.shifts.update', expect.any(Object));
         expect(lastPayload(subject).shifts[7].stations[station.key]).toEqual({
             name: 'Photo line',
             troopers_allowed: 4,

@@ -22,10 +22,10 @@ class StaffOfficerAccessTest extends TestCase
     public static function developerRoutes(): array
     {
         return [
-            'plugins' => ['admin.plugins.list'],
+            'plugins' => ['admin.plugins.index'],
             'system check' => ['admin.system-check'],
-            'merge troopers' => ['admin.troopers.merge'],
-            'merge costumes' => ['admin.costumes.merge'],
+            'merge troopers' => ['admin.troopers.merge.create'],
+            'merge costumes' => ['admin.costumes.merge.create'],
         ];
     }
 
@@ -35,10 +35,10 @@ class StaffOfficerAccessTest extends TestCase
     public static function administratorRoutes(): array
     {
         return [
-            'command staff' => ['admin.display'],
-            'permission approvals' => ['admin.troopers.permissions.approvals'],
+            'command staff' => ['admin.dashboard'],
+            'permission approvals' => ['admin.troopers.permissions.approvals.index'],
             'faq' => ['admin.faq.index'],
-            'costumes' => ['admin.costumes.list'],
+            'costumes' => ['admin.costumes.index'],
         ];
     }
 
@@ -68,7 +68,7 @@ class StaffOfficerAccessTest extends TestCase
         $source = Trooper::factory()->create();
         $target = Trooper::factory()->create();
 
-        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.merge'), [
+        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.merge.store'), [
             'source_trooper_id' => $source->id,
             'target_trooper_id' => $target->id,
         ]);
@@ -80,7 +80,7 @@ class StaffOfficerAccessTest extends TestCase
     {
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
 
-        $response = $this->actingAs($staff_officer)->get(route('admin.display'));
+        $response = $this->actingAs($staff_officer)->get(route('admin.dashboard'));
 
         $response->assertOk();
         $cards = $this->cardKeys($response);
@@ -96,7 +96,7 @@ class StaffOfficerAccessTest extends TestCase
     {
         $administrator = Trooper::factory()->asSystemOwner()->create();
 
-        $response = $this->actingAs($administrator)->get(route('admin.display'));
+        $response = $this->actingAs($administrator)->get(route('admin.dashboard'));
 
         $cards = $this->cardKeys($response);
         $this->assertContains('system-check', $cards);
@@ -117,7 +117,7 @@ class StaffOfficerAccessTest extends TestCase
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $subject = Trooper::factory()->create();
 
-        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.update-authority', $subject), [
+        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.authority.update', $subject), [
             Trooper::MEMBERSHIP_ROLE => MembershipRole::STAFF_OFFICER->value,
             'organizations' => [],
         ]);
@@ -131,7 +131,7 @@ class StaffOfficerAccessTest extends TestCase
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
         $subject = Trooper::factory()->create();
 
-        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.update-authority', $subject), [
+        $response = $this->actingAs($staff_officer)->post(route('admin.troopers.authority.update', $subject), [
             Trooper::MEMBERSHIP_ROLE => MembershipRole::SYSTEM_OWNER->value,
             'organizations' => [],
         ]);
@@ -146,11 +146,11 @@ class StaffOfficerAccessTest extends TestCase
         $administrator = Trooper::factory()->asSystemOwner()->create();
 
         $this->actingAs($staff_officer)
-            ->get(route('admin.troopers.profile', $administrator))
+            ->get(route('admin.troopers.show', $administrator))
             ->assertInertia(fn ($page) => $page->where('authority', null));
 
         $this->actingAs($staff_officer)
-            ->post(route('admin.troopers.update-authority', $administrator), [
+            ->post(route('admin.troopers.authority.update', $administrator), [
                 Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER->value,
                 'organizations' => [],
             ])
@@ -165,7 +165,7 @@ class StaffOfficerAccessTest extends TestCase
         $subject = Trooper::factory()->create();
 
         $response = $this->actingAs($staff_officer)
-            ->get(route('admin.troopers.profile', $subject));
+            ->get(route('admin.troopers.show', $subject));
 
         $response->assertOk();
         $response->assertInertia(fn ($page) => $page
@@ -184,7 +184,7 @@ class StaffOfficerAccessTest extends TestCase
         $staff_officer = Trooper::factory()->asStaffOfficer()->create();
 
         $response = $this->actingAs($staff_officer)
-            ->post(route('admin.troopers.update-authority', $staff_officer), [
+            ->post(route('admin.troopers.authority.update', $staff_officer), [
                 Trooper::MEMBERSHIP_ROLE => MembershipRole::SYSTEM_OWNER->value,
                 'organizations' => [],
             ]);
@@ -202,7 +202,7 @@ class StaffOfficerAccessTest extends TestCase
         $administrator = Trooper::factory()->asSystemOwner()->create();
 
         $response = $this->actingAs($staff_officer)
-            ->post(route('admin.troopers.update-profile', $administrator), [
+            ->post(route('admin.troopers.profile.update', $administrator), [
                 Trooper::LEGAL_NAME => 'Taken Over',
                 Trooper::DISPLAY_NAME => 'Taken Over',
                 Trooper::EMAIL => 'staff@example.com',
@@ -231,7 +231,7 @@ class StaffOfficerAccessTest extends TestCase
         $subject = Trooper::factory()->create();
 
         $response = $this->actingAs($administrator)
-            ->get(route('admin.troopers.profile', $subject));
+            ->get(route('admin.troopers.show', $subject));
 
         $response->assertInertia(fn ($page) => $page
             ->where('authority.role_options.0.value', 'member')

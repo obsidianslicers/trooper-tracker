@@ -62,7 +62,7 @@ export class MissingCreditsViewModel extends ViewModel {
     }
 
     get clear_filter_route(): string {
-        return getRoute("admin.service-records.missing-credits");
+        return getRoute("admin.service-records.missing-credits.index");
     }
 
     trooperServiceRecordRoute = (trooper_id: number): string => {
@@ -130,7 +130,7 @@ export class MissingCreditsViewModel extends ViewModel {
 
         this.loading_more = true;
 
-        const url = getRoute("admin.service-records.missing-credits");
+        const url = getRoute("admin.service-records.missing-credits.index");
         const data: Record<string, number> = { offset: this.next_offset };
 
         if (this.filtered_trooper) {

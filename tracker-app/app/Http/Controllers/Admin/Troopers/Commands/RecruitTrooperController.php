@@ -1,0 +1,79 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Admin\Troopers\Commands;
+
+use App\Enums\FlashType;
+use App\Http\Controllers\PageController;
+use App\Messages\Troopers\Commands\AddTrooperDirectly;
+use App\Models\Organization;
+use App\Models\Trooper;
+use App\Rules\Auth\UniqueOrganizationIdentifierRule;
+use App\Rules\Troopers\VisitorOrganizationRule;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+/**
+ * Handles submission of the recruit form.
+ *
+ * Validates trooper and organization, authorizes against the organization
+ * (not the trooper being added), then dispatches AddTrooperDirectly.
+ */
+class RecruitTrooperController extends PageController
+{
+    protected function initialized(): void
+    {
+        $this->crumbs->addRoute(__('admin.Command Staff'), 'admin.dashboard');
+        $this->crumbs->addRoute(__('admin.Troopers'), 'admin.troopers.index');
+    }
+
+    public function __invoke(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'trooper_id' => ['required', 'integer', Rule::exists('tt_troopers', 'id')],
+            'organization_id' => ['required', 'integer', Rule::exists('tt_organizations', 'id')],
+        ]);
+
+        /** @var Organization $organization */
+        $organization = Organization::findOrFail($request->integer('organization_id'));
+
+        $this->authorize('recruit', $organization);
+
+        /** @var Trooper $subject */
+        $subject = Trooper::findOrFail($request->integer('trooper_id'));
+
+        $request->validate([
+            'organization_id' => [new VisitorOrganizationRule($subject)],
+            'identifier' => $this->buildIdentifierRules($organization, $subject),
+        ]);
+
+        AddTrooperDirectly::call(
+            trooper: $subject,
+            organization: $organization,
+            identifier: $request->filled('identifier') ? $request->string('identifier')->toString() : null,
+        );
+
+        FlashType::success(__('admin.:trooper has been added to :organization.', [
+            'trooper' => $subject->display_name,
+            'organization' => $organization->name,
+        ]));
+
+        return redirect()->route('admin.troopers.recruit.create');
+    }
+
+    private function buildIdentifierRules(Organization $organization, Trooper $trooper): array
+    {
+        if (empty($organization->identifier_validation))
+        {
+            return ['nullable', 'string', 'max:64'];
+        }
+
+        return array_merge(
+            ['nullable'],
+            explode('|', $organization->identifier_validation),
+            [new UniqueOrganizationIdentifierRule($organization, $trooper)],
+        );
+    }
+}

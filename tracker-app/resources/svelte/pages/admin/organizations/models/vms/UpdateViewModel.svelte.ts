@@ -41,7 +41,7 @@ export class UpdateViewModel
         this.logo_errors = [];
 
         router.post(
-            getRoute("admin.organizations.update-image", { organization: this.organization.id }),
+            getRoute("admin.organizations.image.update", { organization: this.organization.id }),
             { logo: file },
             {
                 forceFormData: true,

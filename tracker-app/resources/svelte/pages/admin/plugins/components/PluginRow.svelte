@@ -55,7 +55,7 @@
     <td class="text-end text-nowrap">
         {#if plugin.has_settings}
             <a
-                href={getRoute("admin.plugins.settings", { slug: plugin.slug })}
+                href={getRoute("admin.plugins.settings.edit", { slug: plugin.slug })}
                 class="btn btn-sm btn-outline-secondary"
             >
                 <i class="fa fa-fw fa-gear"></i>

@@ -14,13 +14,13 @@
         {
             key: "update",
             label: t("Update"),
-            href: getRoute("admin.organizations.update", { organization: organization_id }),
+            href: getRoute("admin.organizations.edit", { organization: organization_id }),
         },
         ...(is_club
             ? [{
                 key: "costumes",
                 label: t("Costumes"),
-                href: getRoute("admin.organizations.costumes", { organization: organization_id }),
+                href: getRoute("admin.organizations.costumes.index", { organization: organization_id }),
             }]
             : []),
     ]);

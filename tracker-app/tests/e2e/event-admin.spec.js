@@ -16,7 +16,7 @@ function adminRow(page, name) {
 
 async function openAdmin(page, name, tab = 'overview') {
     await page.goto(`/admin/events?search_term=${encodeURIComponent(name)}`);
-    const href = await adminRow(page, name).first().locator('a[href$="/update"]').getAttribute('href');
+    const href = await adminRow(page, name).first().locator('a[href$="/edit"]').getAttribute('href');
 
     await page.goto(`${href}?tab=${tab}`);
 }
@@ -77,7 +77,7 @@ test.describe('event details', () => {
 
         await page.getByRole('button', { name: 'Create', exact: true }).click();
 
-        await expect(page).toHaveURL(/\/admin\/events\/\d+\/update$/);
+        await expect(page).toHaveURL(/\/admin\/events\/\d+\/edit$/);
         await expect(field(page, 'Name')).toHaveValue('E2E Created Troop');
 
         await page.goto(await page.getByRole('link', { name: 'View Event' }).getAttribute('href'));
@@ -110,7 +110,7 @@ test.describe('event details', () => {
         await page.getByLabel('Name', { exact: true }).fill('E2E Copied Troop');
         await page.getByRole('button', { name: /^(Copy|Create|Save)$/ }).click();
 
-        await expect(page).toHaveURL(/\/admin\/events\/\d+\/update$/);
+        await expect(page).toHaveURL(/\/admin\/events\/\d+\/edit$/);
         await expect(field(page, 'Name')).toHaveValue('E2E Copied Troop');
 
         await page.goto('/admin/events?search_term=E2E+Cop');

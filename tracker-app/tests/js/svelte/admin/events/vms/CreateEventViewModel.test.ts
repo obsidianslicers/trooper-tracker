@@ -145,7 +145,7 @@ describe('CreateEventViewModel', () => {
 
         subject.submit(new Event('submit'));
 
-        expect(post).toHaveBeenCalledWith('/admin.events.create');
+        expect(post).toHaveBeenCalledWith('/admin.events.store');
         const build = transform.mock.calls.at(-1)?.[0] as unknown as (data: unknown) => any;
         const payload = build(subject.form);
         expect(payload.organization_id).toBe(5);

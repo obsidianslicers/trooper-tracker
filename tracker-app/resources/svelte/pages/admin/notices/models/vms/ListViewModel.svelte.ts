@@ -29,7 +29,7 @@ export class ListViewModel extends ViewModel {
             query.organization_id = organization_id;
         }
 
-        return getRoute("admin.notices.list", query);
+        return getRoute("admin.notices.index", query);
     }
 
     get create_url(): string {
@@ -37,7 +37,7 @@ export class ListViewModel extends ViewModel {
     }
 
     updateUrl(notice: NoticeRow): string {
-        return getRoute("admin.notices.update", { notice: notice.id });
+        return getRoute("admin.notices.edit", { notice: notice.id });
     }
 
     copyUrl(notice: NoticeRow): string {

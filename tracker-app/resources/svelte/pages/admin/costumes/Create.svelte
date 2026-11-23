@@ -22,7 +22,7 @@
         </InputContainer>
         <SubmitButtonContainer>
             <SubmitButton label={t("Create")} submitting={vm.submitting} />
-            <CancelButton href={getRoute("admin.costumes.list")} />
+            <CancelButton href={getRoute("admin.costumes.index")} />
         </SubmitButtonContainer>
     </form>
 </SlimView>

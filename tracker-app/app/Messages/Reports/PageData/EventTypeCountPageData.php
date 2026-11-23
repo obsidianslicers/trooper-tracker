@@ -39,7 +39,7 @@ final class EventTypeCountPageData extends Message
                 ->map(fn (object $type): array => [
                     'id' => $type->event_type->id,
                     'name' => $type->event_type->name,
-                    'events_url' => route('admin.events.list', [
+                    'events_url' => route('admin.events.index', [
                         'event_type_id' => $type->event_type->id,
                     ]),
                     'count' => $this->count($type->count),

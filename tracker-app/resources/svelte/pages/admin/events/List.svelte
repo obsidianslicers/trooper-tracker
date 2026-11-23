@@ -96,11 +96,11 @@
                     <td class="text-end">
                         {#if event.can_update}
                             <ActionMenu>
-                                <ActionMenuUpdate href={getRoute("admin.events.update", { event: event.id })} />
+                                <ActionMenuUpdate href={getRoute("admin.events.edit", { event: event.id })} />
                                 <ActionMenuLink
                                     label={t("Copy")}
                                     icon="fa-copy"
-                                    href={getRoute("admin.events.copy", { event: event.id })}
+                                    href={getRoute("admin.events.copy.create", { event: event.id })}
                                 />
                             </ActionMenu>
                         {/if}

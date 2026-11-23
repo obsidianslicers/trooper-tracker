@@ -20,7 +20,7 @@ test.describe('membership applications', () => {
     test.use({ storageState: personas.moderator.storageState });
 
     test('a moderator denies an application with a reason the recruit then sees', async ({ page, browser }) => {
-        await page.goto('/admin/troopers/approvals/index');
+        await page.goto('/admin/troopers/approvals');
 
         const application = card(page, seeded.recruitToDeny.name);
         await application.getByRole('button', { name: 'Deny' }).click();
@@ -38,7 +38,7 @@ test.describe('membership applications', () => {
     });
 
     test('a moderator approves a request to join a squad', async ({ page, browser }) => {
-        await page.goto('/admin/troopers/approvals/index');
+        await page.goto('/admin/troopers/approvals');
 
         const request = card(page, seeded.clubJoiner.name);
         await expect(request.getByText('E2E Squad')).toBeVisible();
@@ -56,7 +56,7 @@ test.describe('membership applications', () => {
     });
 
     test('a moderator denies a request to join a squad', async ({ page }) => {
-        await page.goto('/admin/troopers/approvals/index');
+        await page.goto('/admin/troopers/approvals');
 
         const request = card(page, seeded.clubRefused.name);
         await request.getByRole('button', { name: 'Deny' }).click();
@@ -71,7 +71,7 @@ test.describe('membership applications', () => {
 
 test.describe('permission requests', () => {
     async function requestPromotion(page, name, role) {
-        await page.goto('/admin/troopers/permissions');
+        await page.goto('/admin/troopers/permissions/create');
 
         await page.getByLabel('Trooper').click();
         const modal = page.getByRole('dialog');

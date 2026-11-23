@@ -35,13 +35,13 @@
                 {!! $plugin_actions !!}
                 @can('update', $trooper)
                     @if($has_missing_credit)
-                        <a href="{{ route('admin.service-records.missing-credits', ['trooper_id' => $trooper->id]) }}"
+                        <a href="{{ route('admin.service-records.missing-credits.index', ['trooper_id' => $trooper->id]) }}"
                            class="btn btn-outline-danger">
                             <i class="fa fa-fw fa-triangle-exclamation"></i>
                             {{ __('service-records.Fix Missing Credit') }}
                         </a>
                     @endif
-                    <a href="{{ route('admin.troopers.profile', compact('trooper')) }}"
+                    <a href="{{ route('admin.troopers.show', compact('trooper')) }}"
                        class="btn btn-outline-warning">
                         <i class="fa fa-fw fa-edit"></i>
                         {{ __('service-records.Edit') }}

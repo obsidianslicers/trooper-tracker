@@ -23,12 +23,12 @@ export class CreateViewModel
     }
 
     get cancel_url(): string {
-        return getRoute("admin.awards.list", { organization_id: this.form.organization_id ?? undefined });
+        return getRoute("admin.awards.index", { organization_id: this.form.organization_id ?? undefined });
     }
 
     submit = (e: Event) => {
         e.preventDefault();
 
-        this.form.post(getRoute("admin.awards.create"));
+        this.form.post(getRoute("admin.awards.store"));
     };
 }

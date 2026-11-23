@@ -49,7 +49,7 @@
         {/if}
         <SubmitButtonContainer>
             <SubmitButton label={t("Add to Roster")} submitting={vm.submitting} />
-            <CancelButton href={getRoute("admin.troopers.list")} />
+            <CancelButton href={getRoute("admin.troopers.index")} />
         </SubmitButtonContainer>
     </form>
 </SlimView>

@@ -24,7 +24,7 @@
 
         if (row !== null) {
             router.post(
-                getRoute("admin.events.troopers.remove", { event: event_id, event_trooper: row.id }),
+                getRoute("admin.events.troopers.destroy", { event: event_id, event_trooper: row.id }),
                 {},
                 createPartialReloadOptions(),
             );

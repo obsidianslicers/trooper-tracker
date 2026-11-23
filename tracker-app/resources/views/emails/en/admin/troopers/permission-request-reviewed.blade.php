@@ -20,7 +20,7 @@
 
     <p>
         You can see your requests on the
-        <a href="{{ route('admin.troopers.permissions.request') }}">Request Permissions page</a>.
+        <a href="{{ route('admin.troopers.permissions.create') }}">Request Permissions page</a>.
     </p>
 
     @include(email_view('inc.signature'))
