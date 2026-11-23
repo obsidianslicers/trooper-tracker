@@ -41,8 +41,8 @@ class SystemCheckPageDataTest extends TestCase
                 'icon' => 'fa-triangle-exclamation',
             ]],
         ]], $result['groups']);
-        $this->assertSame('ERROR', $result['errors'][0]['level']);
-        $this->assertSame('Boom', $result['errors'][0]['summary']);
-        $this->assertSame("Boom\n#0 trace", $result['errors'][0]['message']);
+        $this->assertSame('ERROR', $result['log_entries'][0]['level']);
+        $this->assertSame('Boom', $result['log_entries'][0]['summary']);
+        $this->assertSame("Boom\n#0 trace", $result['log_entries'][0]['message']);
     }
 }

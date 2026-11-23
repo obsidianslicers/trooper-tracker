@@ -38,7 +38,7 @@ final class SystemCheckPageData extends Message
                 ])
                 ->values()
                 ->all(),
-            'errors' => $log_viewer->recentErrors()
+            'log_entries' => $log_viewer->recentErrors()
                 ->map(fn (LogEntry $entry): array => [
                     'level' => strtoupper($entry->level),
                     'badge' => $entry->badgeClass(),

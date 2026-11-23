@@ -41,13 +41,13 @@
 
     <div class="card mb-3">
         <div class="card-header">{t("Errors (last 30 days)")}</div>
-        {#if page.props.errors.length === 0}
+        {#if page.props.log_entries.length === 0}
             <div class="card-body text-muted">
                 {t("No error-level log entries in the last 30 days.")}
             </div>
         {:else}
             <ul class="list-group list-group-flush">
-                {#each page.props.errors as entry, i (i)}
+                {#each page.props.log_entries as entry, i (i)}
                     <li class="list-group-item">
                         <div class="d-flex justify-content-between align-items-start">
                             <span class="badge {entry.badge} me-2">{entry.level}</span>
