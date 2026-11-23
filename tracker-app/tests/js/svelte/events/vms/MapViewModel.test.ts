@@ -12,7 +12,6 @@ import { MapViewModel } from '../../../../../resources/svelte/pages/events/model
 import type { MapEvent } from '../../../../../resources/svelte/pages/events/models/types';
 
 const event = (overrides: Partial<MapEvent> = {}): MapEvent => ({
-    id: 1,
     name: 'Library Day',
     url: '/events/details/1',
     date_range: 'Sat - Nov 14, 2026 - 10:00am - 2:00pm',
@@ -49,18 +48,18 @@ describe('MapViewModel', () => {
     it('filters the pins by search and squad', () => {
         const vm = new MapViewModel({
             events: [
-                event({ id: 1, name: 'Library Day', organization_id: 3 }),
-                event({ id: 2, name: 'Parade', venue_address: 'Orlando', organization_id: 4 }),
+                event({ name: 'Library Day', organization_id: 3 }),
+                event({ name: 'Parade', venue_address: 'Orlando', organization_id: 4 }),
             ],
             hosting_organizations: hosts,
         });
 
         vm.setSearch('parade');
-        expect(vm.filtered.map((e) => e.id)).toEqual([2]);
+        expect(vm.filtered.map((e) => e.name)).toEqual(['Parade']);
 
         vm.setSearch('');
         vm.toggleHosting('3', true);
-        expect(vm.filtered.map((e) => e.id)).toEqual([1]);
+        expect(vm.filtered.map((e) => e.name)).toEqual(['Library Day']);
     });
 
     it('keeps where the user is, once they ask', () => {

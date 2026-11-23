@@ -6,15 +6,15 @@ namespace App\Messages\Events\PageData;
 
 use App\Enums\EventStatus;
 use App\Messages\Events\Resources\EventSummaryResource;
+use App\Messages\Events\Resources\PastEventsPaginationResource;
+use App\Messages\Events\Resources\PastEventTotalsResource;
 use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use App\Messages\Organizations\Resources\HostingOrganizationOptions;
 use App\Messages\Reports\Queries\GetEventSummary;
-use App\Models\Event;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 
 /**
  * The completed events history (all of it, a page at a time) or the events cancelled over the
@@ -46,46 +46,19 @@ final class ListPastEventsPageData extends Message
             page_size: $is_cancelled ? null : self::PAGE_SIZE,
         );
 
-        $rows = $events instanceof LengthAwarePaginator ? $events->getCollection() : $events;
+        $is_paged = $events instanceof LengthAwarePaginator;
+        $rows = $is_paged ? $events->getCollection() : $events;
 
         return [
             'status' => $this->status->value,
             'lookback_days' => $is_cancelled ? self::CANCELLED_LOOKBACK_DAYS : null,
             'events' => EventSummaryResource::collection($rows),
-            'totals' => $this->getTotals($rows),
-            'pagination' => $events instanceof LengthAwarePaginator ? $this->getPagination($events) : null,
+            'totals' => new PastEventTotalsResource($rows),
+            'pagination' => $is_paged ? new PastEventsPaginationResource($events) : null,
             'hosting_organizations' => new HostingOrganizationOptions(
                 GetOrganizationsForPicker::call(trooper: $this->actor, data: []),
             ),
             'has_map' => (bool) config('services.google.maps_api_key'),
-        ];
-    }
-
-    /**
-     * @param  Collection<int, Event>  $rows
-     */
-    private function getTotals(Collection $rows): array
-    {
-        return [
-            'shifts' => (int) $rows->sum('event_shifts_count'),
-            'unique_troopers' => (int) $rows->sum('unique_trooper_count'),
-            'total_troopers' => (int) $rows->sum('total_trooper_count'),
-            'direct_funds' => (float) $rows->sum('charity_direct_funds'),
-            'indirect_funds' => (float) $rows->sum('charity_indirect_funds'),
-        ];
-    }
-
-    /**
-     * @param  LengthAwarePaginator<int, Event>  $events
-     */
-    private function getPagination(LengthAwarePaginator $events): array
-    {
-        return [
-            'current_page' => $events->currentPage(),
-            'last_page' => $events->lastPage(),
-            'total' => $events->total(),
-            'prev_url' => $events->previousPageUrl(),
-            'next_url' => $events->nextPageUrl(),
         ];
     }
 }

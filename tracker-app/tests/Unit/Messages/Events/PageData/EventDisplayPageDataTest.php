@@ -52,13 +52,13 @@ class EventDisplayPageDataTest extends TestCase
         $member = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create([Event::STATUS => EventStatus::OPEN]);
 
-        $tools = $this->part($moderator, $event, 'tools');
-        $this->assertTrue($tools['can_moderate']);
+        $tools = $this->part($moderator, $event, 'tools')->resolve();
+        $this->assertArrayNotHasKey('can_moderate', $tools);
+        $this->assertSame(route('events.download-roster-csv', ['event' => $event]), $tools['roster_csv_url']);
         $this->assertSame(route('events.share-roster', ['event' => $event]), $tools['share_roster_url']);
         $this->assertSame(route('events.broadcast-message', ['event' => $event]), $tools['broadcast_url']);
 
-        $tools = $this->part($member, $event, 'tools');
-        $this->assertFalse($tools['can_moderate']);
+        $tools = $this->part($member, $event, 'tools')->resolve();
         $this->assertNull($tools['roster_csv_url']);
         $this->assertNull($tools['share_roster_url']);
         $this->assertNull($tools['broadcast_url']);
@@ -72,9 +72,10 @@ class EventDisplayPageDataTest extends TestCase
         $map = EventUpload::factory()->for($event)->create([EventUpload::IS_ADMINISTRATIVE => true]);
         $photo = EventUpload::factory()->for($event)->create([EventUpload::IS_ADMINISTRATIVE => false]);
 
-        $uploads = $this->part($trooper, $event, 'uploads');
+        $uploads = $this->part($trooper, $event, 'uploads')->resolve();
 
         $this->assertSame([$map->id], array_column($uploads['instructional'], 'id'));
+        $this->assertArrayNotHasKey('is_instructional', $uploads['instructional'][0]);
         $this->assertSame([$photo->id], array_column($uploads['mission_review'], 'id'));
         $this->assertNull($uploads['instructional'][0]['tag_url']);
         $this->assertNotNull($uploads['mission_review'][0]['tag_url']);

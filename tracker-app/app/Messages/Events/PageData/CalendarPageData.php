@@ -8,6 +8,7 @@ use App\Messages\Events\Queries\GetEventsForDisplay;
 use App\Messages\Events\Queries\GetHolidays;
 use App\Messages\Events\Queries\GetTrooperSignUpStatuses;
 use App\Messages\Events\Resources\CalendarEventResource;
+use App\Messages\Events\Resources\CalendarMonthResource;
 use App\Messages\Organizations\Queries\GetOrganizationsForPicker;
 use App\Messages\Organizations\Resources\HostingOrganizationOptions;
 use App\Models\Event;
@@ -38,7 +39,7 @@ final class CalendarPageData extends Message
             ->map(fn (int $i) => $first_month->copy()->addMonths($i));
 
         return [
-            'months' => $months->map(fn (Carbon $month) => $this->mapMonth($month))->all(),
+            'months' => $months->map(fn (Carbon $month) => new CalendarMonthResource($month))->all(),
             'weekdays' => $this->getWeekdays(),
             'today' => now()->toDateString(),
             'events' => $this->getEvents(),
@@ -70,33 +71,6 @@ final class CalendarPageData extends Message
         return $events
             ->map(fn (Event $event) => new CalendarEventResource($event, $my_statuses))
             ->values();
-    }
-
-    /**
-     * @return array{key: string, label: string, weeks: list<list<array{date: string, day: string, weekday: string, in_month: bool}>>}
-     */
-    private function mapMonth(Carbon $month): array
-    {
-        $date = $month->copy()->startOfWeek(CarbonInterface::SUNDAY);
-        $end = $month->copy()->endOfMonth()->endOfWeek(CarbonInterface::SATURDAY);
-        $weeks = [];
-
-        for (; $date <= $end; $date->addDay())
-        {
-            if ($date->isSunday())
-            {
-                $weeks[] = [];
-            }
-
-            $weeks[count($weeks) - 1][] = [
-                'date' => $date->toDateString(),
-                'day' => $date->localFormat('j'),
-                'weekday' => $date->localFormat('D'),
-                'in_month' => $date->month === $month->month,
-            ];
-        }
-
-        return ['key' => $month->format('Y-m'), 'label' => $month->localFormat('F Y'), 'weeks' => $weeks];
     }
 
     /**

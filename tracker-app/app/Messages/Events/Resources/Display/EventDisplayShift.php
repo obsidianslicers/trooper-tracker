@@ -6,7 +6,6 @@ namespace App\Messages\Events\Resources\Display;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Enums\TrooperSearchMode;
 use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
@@ -185,7 +184,6 @@ class EventDisplayShift extends JsonResource
         $mine = $this->signUpFor($viewer);
 
         return [
-            'friend_search_mode' => TrooperSearchMode::FRIENDS->value,
             'friend_form_url' => route('events.add-trooper-form', ['event_shift' => $this->resource]),
             'can_add_friend' => $may_add && $is_with_them && ($closed_moderator
                 || ($event->friends_allowed !== 0 && $this->hasRemainingFriendSlots($viewer))),

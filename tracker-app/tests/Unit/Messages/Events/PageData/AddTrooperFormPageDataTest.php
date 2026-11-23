@@ -22,7 +22,7 @@ class AddTrooperFormPageDataTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create(['display_name' => 'TK-421']);
 
         $subject = new AddTrooperFormPageData(event_shift: $event_shift, trooper_id: $trooper->id);
-        $result = $subject->handle();
+        $result = $subject->handle()->resolve();
 
         $this->assertSame(['id' => $trooper->id, 'name' => 'TK-421'], $result['trooper']);
         $this->assertSame([], $result['stations']->all());

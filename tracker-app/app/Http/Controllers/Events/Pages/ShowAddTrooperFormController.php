@@ -17,6 +17,6 @@ class ShowAddTrooperFormController
 {
     public function __invoke(Request $request): JsonResponse
     {
-        return response()->json(AddTrooperFormPageData::call($request));
+        return AddTrooperFormPageData::call($request)->response($request);
     }
 }

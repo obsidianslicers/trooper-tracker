@@ -63,7 +63,6 @@ export type Notices = {
 
 export type SupportGoal = {
     goal: number;
-    current: number;
     progress: number;
     message: string;
     url: string | null;
@@ -162,7 +161,6 @@ export type CalendarPageData = {
 };
 
 export type MapEvent = {
-    id: number;
     name: string;
     url: string;
     date_range: string;

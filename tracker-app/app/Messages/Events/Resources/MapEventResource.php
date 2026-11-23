@@ -21,7 +21,6 @@ class MapEventResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
             'name' => $this->name,
             'url' => route('events.display', ['event' => $this->resource]),
             'date_range' => $this->time_display,
