@@ -2,7 +2,7 @@
 
 [![Laravel Style](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml) [![Laravel Tests](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml)
 
-**Troop Tracker** is the Empire's official operations dashboard, engineered to impose order upon trooper assignments, moderation workflows, and hierarchical communications across organizations, regions, and units. Forged with Laravel, Inertia, Svelte, and Bootstrap, it delivers the precision, discipline, and ruthless efficiency expected of any system operating under Imperial authority. Legacy Blade, HTMX, and Alpine screens remain during the frontend migration.
+**Troop Tracker** is the Empire's official operations dashboard, engineered to impose order upon trooper assignments, moderation workflows, and hierarchical communications across organizations, regions, and units. Forged with Laravel, Inertia, Svelte, and Bootstrap, it delivers the precision, discipline, and ruthless efficiency expected of any system operating under Imperial authority. Legacy Blade, HTMX, and Alpine screens remain during the frontend migration. Each club bends it to its own doctrine through [plugins](#customizing-with-plugins): forum logins, Discord announcements, rosters read from Google Sheets and more, without touching core code.
 
 Currently Used By:
 * Florida Star Wars Clubs
@@ -22,11 +22,12 @@ Currently Used By:
 - Backend is a Laravel 12 application built around organized domain features, role-based access control, and structured event/member workflows.
 - Frontend migration is moving interactive screens from Blade/HTMX/Alpine to Inertia + Svelte 5; new interactive work should follow the Svelte architecture.
 - Backend domain operations use single-file Hyperdrive Messages in `app/Messages/` (Commands, Queries, PageData). See [Hyperdrive Message Architecture](tracker-app/packages/hyperdrive/README.md) for details.
-- Authentication supports Email, Google OAuth, and XenForo OAuth; all new accounts go through pending/admin approval.
+- Authentication supports email/password and Google, plus login providers added by plugins (XenForo); all new accounts go through pending/admin approval.
+- Optional integrations (Discord, Google Sheets, HoloNet, Sentry, XenForo) are plugins under `tracker-app/plugins/`; see [Plugins](docs/PLUGINS.md).
 - Local development basics: install with Composer/NPM, migrate and seed, then run `composer dev` from `tracker-app/`.
-- Contribution gates before PR: run tests (`php artisan test`, `npm test`), and formatting (`composer pint:format`)
-- Best docs to read first: [Architecture](docs/ARCHITECTURE.md), [Coding Conventions](docs/CODING_CONVENTIONS.md), [Project Structure](docs/PROJECT_STRUCTURE.md), and [Database](docs/DATABASE.md).
-- Collaboration workflow: open an issue first, use branch naming `<type>-<issue-number>`, and use conventional commits that include the issue number.
+- Contribution gates before PR: tests (`php artisan test --parallel`, `npm test`, and `npm run test:e2e` for page changes), formatting (`composer pint:format`) and translations (`php artisan tracker:report-translations --strict`).
+- Best docs to read first: [CLAUDE.md](CLAUDE.md) (the team's conventions, for people and AI assistants alike), [Architecture](docs/ARCHITECTURE.md), [Coding Conventions](docs/CODING_CONVENTIONS.md), [Project Structure](docs/PROJECT_STRUCTURE.md), and [Database](docs/DATABASE.md).
+- Collaboration workflow: branch from `main`, open a PR whose title follows the commit format `<type>: <short all lower case message>` (`feature`, `fix`, `style`, `refactor`, `perf`, `test`, `docs`, `chore`). PRs are squash-merged, so the title becomes the commit on `main`. See [Contributing](CONTRIBUTING.md).
 
 ---
 
@@ -83,14 +84,15 @@ Key references:
 ### Core Capabilities
 
 *   **Hierarchical Access Control**: Strict Organization → Region → Unit permissions with automatic inheritance and scoped visibility via authorization policies
-*   **Trooper Management**: Multi‑organization membership, role‑based permissions (member/moderator/administrator), notification preferences, costume tracking, and achievement badges
-*   **Event & Shift Management**: Full event lifecycle (draft/open/closed/cancelled), multi‑shift scheduling, organization-specific invitations, trooper signup tracking (going/tentative/unavailable)
+*   **Trooper Management**: Multi‑organization membership, role‑based permissions (member, handler, visitor, event coordinator, moderator, staff officer, system owner), notification preferences, costume tracking, and achievement badges
+*   **Event & Shift Management**: Full event lifecycle (draft/open/closed/cancelled, plus manual selection), multi‑shift scheduling with optional stations, organization-specific invitations and limits, and sign-up tracking (going, tentative, stand-by, pending a costume, then attended or unable to attend)
 *   **Interactive Svelte Screens**: Reactive UI for migrated workflows, with legacy HTMX interactions retained until each screen is migrated
 *   **Smart Notifications**: Configurable frequency (never/instant/daily), event creation/cancellation emails, daily digest aggregation
-*   **Awards & Recognition**: Organization-based awards with frequency controls (once/monthly/yearly), multi-recipient support
-*   **Notice System**: Organization-scoped announcements with read tracking and type-based styling (info/warning/alert)
+*   **Awards & Recognition**: Organization-based awards with frequency controls (once, random, monthly, quarterly, annually), multi-recipient support
+*   **Notice System**: Organization-scoped announcements with read tracking and type-based styling (info, success, warning, danger)
 *   **Event Photo Gallery**: Photo uploads with trooper tagging, large/thumbnail variants, administrative photo flags
 *   **Multiple Languages**: Every page, email and notification can be translated; each trooper picks their language and the site has a default ([docs/LOCALIZATION.md](docs/LOCALIZATION.md))
+*   **Customizable with Plugins**: Clubs add their own integrations and behaviour without forking the app; see [Customizing with Plugins](#customizing-with-plugins)
 
 ### Developer Experience
 
@@ -98,29 +100,56 @@ Key references:
 *   **Component-Driven Frontend**: Inertia + Svelte 5 for migrated interactive screens, with Blade retained for static and legacy pages
 *   **Incremental Migration**: Existing Blade/HTMX/Alpine pages remain operational while their workflows are progressively refactored to the Hyperdrive Message + Svelte target architecture
 *   **Auto-Generated Models**: MySQL with Reliese Laravel base model generation
-*   **Comprehensive Testing**: Feature tests (Controllers/Jobs/Commands), Unit tests (Handlers/Services)
+*   **Comprehensive Testing**: PHPUnit feature tests (controllers, form requests, jobs, console commands) and unit tests (messages, policies, rules, services), Vitest for Svelte view models and front-end modules, and Playwright for pages and user flows
 *   **Policy-Based Authorization**: Scoped access control for all resources
 *   **Audit Trail**: Polymorphic change tracking with trooper stamps
+
+---
+
+## Customizing with Plugins
+
+Troop Tracker is built so a club can fit it to how it operates without changing core code. Plugins live in `tracker-app/plugins/<slug>` (or arrive through Composer, or as a zip uploaded under Command Staff > Plugins), and every plugin stays off until an administrator enables it.
+
+A plugin can:
+
+- **Add ways to log in**, such as a forum account (XenForo)
+- **Add to the UI** through page slots and extra form fields
+- **React to what happens** through app events and hooks before or after any Hyperdrive message, for example announcing a new event in Discord
+- **Sync rosters and data** with outside systems through club synchronizers, sheet sources and webhooks
+- **Bring its own settings, pages, routes, migrations, scheduled tasks and Artisan commands**
+- **Add notification categories, donation sources, permission requests and System Check rows**
+
+Bundled plugins:
+
+| Plugin | What it adds |
+|---|---|
+| [Discord](tracker-app/plugins/discord/README.md) | Announces each new event in a Discord channel, mentioning the hosting organization's role |
+| [Google Sheets](tracker-app/plugins/google-sheets/README.md) | Lets club synchronizers and member lookups read a club's roster from a Google Sheet |
+| [HoloNet](tracker-app/plugins/holonet/README.md) | Links a trooper's accounts on other garrisons' trackers, so their service record shows every troop |
+| [Sentry](tracker-app/plugins/sentry/README.md) | Sends server and browser errors to Sentry |
+| [XenForo](tracker-app/plugins/xenforo/README.md) | Forum login, user sync, a forum thread per event with its replies, forum notifications, forum groups and forum donations |
+
+Enable, disable or uninstall them under **Command Staff > Plugins** or with `php artisan plugins:enable <slug>`. [docs/PLUGINS.md](docs/PLUGINS.md) covers managing plugins, every hook and slot, and writing your own (`php artisan make:plugin`).
 
 ---
 
 ## Tech Stack
 
 - **PHP 8.x+** with strict types and scalar type hints
-- **Laravel 12.x** with Breeze authentication
+- **Laravel 12.x**, with the app's own email/password login and Socialite for Google and plugin login providers
 - **Database**: MySQL (production), SQLite (testing)
-- **Frontend target**: Inertia + Svelte 5 + TypeScript + Bootstrap 5.2x
+- **Frontend target**: Inertia 2 + Svelte 5 + TypeScript + Bootstrap 5.2x
 - **Frontend legacy**: Blade templates + HTMX 2.x + Alpine 3.x
-- **Backend target**: Hyperdrive `Message` classes in `app/Messages`
-- **Backend current**: Hyperdrive Messages (Commands, Queries, PageData) in `app/Messages/` with single-file pattern — see [Hyperdrive Message Architecture](tracker-app/packages/hyperdrive/README.md)
+- **Backend**: Hyperdrive Messages (Commands, Queries, PageData) in `app/Messages/`, one class per operation — see [Hyperdrive Message Architecture](tracker-app/packages/hyperdrive/README.md)
 - **Queue**: Database-backed Laravel queue
 - **Mail**: Laravel mailable classes with queue support
-- **Testing**: PHPUnit with Feature/Unit test separation
+- **Testing**: PHPUnit (Feature/Unit), Vitest, Playwright
 - **Models**: Auto-generated via Reliese Laravel
+- **Plugins**: Local plugins in `tracker-app/plugins/<slug>` (Discord, Google Sheets, HoloNet, Sentry, XenForo)
 
 ### Required XenForo add-on
 
-When integrating Troop Tracker with XenForo for authentication, chat, and forum features, install the consolidated add-on into your XenForo instance:
+When using the XenForo plugin (`tracker-app/plugins/xenforo`) for authentication, chat, and forum features, install the consolidated add-on into your XenForo instance:
 
 - [Troop Tracker XenForo Addon](https://github.com/obsidianslicers/troop-tracker-xenforo-addons) — Addon ID: `ObsidianSlicers/TroopTracker`, requires XenForo 2.2.0+
 
@@ -173,25 +202,29 @@ composer dev
 
 ```bash
 # Run full test suite (Feature + Unit)
-composer test:freshdb # just once is all it takes
-php artisan test --parallel   # one process per CPU core: ~10 s instead of ~1 min
+php artisan test --parallel   # one process per CPU core: ~10 s instead of ~1 min (ParaTest comes with composer install)
 
-# Run with coverage report
+# Run with coverage report (needs PCOV or Xdebug)
 #php artisan test --coverage
 
 # Run specific test file
-#php artisan test tests/Feature/Http/Controllers/Events/EventDisplayControllerTest.php
+#php artisan test tests/Feature/Http/Controllers/Events/Pages/ShowEventControllerTest.php
 
 # Run front-end unit tests (Vitest, tests/js)
 npm test
+
+# Run browser tests (Playwright, tests/e2e) against a seeded app
+npm run build
+npm run test:e2e:parallel   # or npm run test:e2e
 ```
 
 **Before submitting PRs:**
 - New/Updated Code must be tested
-- All tests must pass: `php artisan test --parallel` and `npm test`
+- All tests must pass: `php artisan test --parallel` and `npm test`; for page or flow changes, `npm run test:e2e` too ([docs/E2E_TESTING.md](docs/E2E_TESTING.md))
 - Code must pass formatting: `composer pint:format`
-- Code must pass static analysis: `composer stan`
-- Follow conventions in `docs/CODING_CONVENTIONS.md`
+- Translations must pass: `php artisan tracker:report-translations --strict`
+- Follow the conventions in [CLAUDE.md](CLAUDE.md) and [docs/CODING_CONVENTIONS.md](docs/CODING_CONVENTIONS.md)
+- The PR title follows the commit format in [CLAUDE.md](CLAUDE.md#commit-messages)
 
 ### Common Development Commands
 
@@ -232,26 +265,27 @@ Read the documentation in this order for maximum comprehension efficiency.
 **Recommended for all contributors:**
 
 5. **[Cheat Sheet](docs/CHEAT_SHEET.md)** - Quick reference for Artisan commands and workflows
-6. **[VSCode Extensions](docs/VSCODE_EXTENSIONS.md)** - Recommended editor setup
+6. **[Browser Tests](docs/E2E_TESTING.md)** - Playwright setup, seeded personas, writing a spec
 
 ### For Feature-Specific Work
 
 Consult these when working on specific subsystems:
 
 - **[Authentication](docs/AUTHENTICATION.md)** - Multi-provider auth and registration pipeline
-- **[OAuth Auth Flow](docs/TT3_AUTH.md)** - OAuth2 authorization code flow for web and mobile clients
+- **[Plugins](docs/PLUGINS.md)** - Plugin hooks, slots, settings, and the bundled plugins
+- **[Localization](docs/LOCALIZATION.md)** - Translations and adding a language
 - **[Achievements](docs/ACHIEVEMENTS.md)** - Automatic achievement calculation, club-scoped milestones, and notifications
 - **[Club Memberships](docs/CLUB_MEMBERSHIPS.md)** - Join requests, memberships, and trooper-organization data flow
 - **[Membership Roles](docs/MEMBERSHIP_ROLES.md)** - Member, moderator, administrator, handler, visitor permissions
 - **[Events](docs/EVENTS.md)** - Event types, signup behavior, capacity, and status rules
 - **[Event Workflow](docs/EVENT_WORKFLOW.md)** - Event lifecycle, mission brief acknowledgement, and notification flow
 - **[Trooper Signup Limits](docs/TROOPER_SIGNUP_LIMITS.md)** - Code-backed signup limiting scenarios
+- **[Station Signups](docs/STATION_SIGNUPS.md)** - Splitting a shift into named stations with their own capacity
 - **[Troop Credit](docs/TROOP_CREDIT.md)** - How event attendance credit is attributed to organizations
 - **[Charity Tracking](docs/CHARITY.md)** - Charity fields, hours, funds, and report usage
 - **[Galactic Academy](docs/GALACTIC_ACADEMY.md)** - Guardian/minor account rules for child-focused organizations
 - **[FAQ](docs/FAQ.md)** - FAQ sections, admin management, and public rendering
 - **[Shared Club Tracking](docs/SHARED_CLUB_TRACKING.md)** - Multi-club operating model and shared tracking rationale
-- **[Notifications](docs/NOTIFICATIONS.md)** - Event notification system (instant/daily/cancellations)
 - **[XenForo OAuth](docs/XENFORO_OAUTH.md)** - Forum integration via OAuth2
 
 ### Deployment & Tooling
