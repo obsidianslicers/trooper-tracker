@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\ServiceRecords\Pages;
 
+use App\Enums\EventTrooperStatus;
 use App\Messages\Reports\Queries\GetLeaderboardMetrics;
 use App\Models\Costume;
+use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Tests\Concerns\BuildsTroopsToConfirm;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
 class ShowLeaderboardControllerTest extends TestCase
 {
     use FakesMessages;
+    use BuildsTroopsToConfirm;
     use RefreshDatabase;
 
     public function test_invoke_requires_authentication(): void
@@ -175,5 +179,21 @@ class ShowLeaderboardControllerTest extends TestCase
         {
             return $costume_list->contains('name', $costume->name);
         });
+    }
+
+    public function test_invoke_shows_each_troopers_real_name_next_to_their_username(): void
+    {
+        $viewer = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $named = Trooper::factory()->asActive()->create([Trooper::DISPLAY_NAME => 'TK-Zeta', Trooper::LEGAL_NAME => 'Jane Example']);
+        $same = Trooper::factory()->asActive()->create([Trooper::DISPLAY_NAME => 'Sam Same', Trooper::LEGAL_NAME => 'Sam Same']);
+        $this->troopToConfirm($named, EventTrooperStatus::ATTENDED);
+        $this->troopToConfirm($same, EventTrooperStatus::ATTENDED);
+
+        $response = $this->actingAs($viewer)->get(route('service-records.leaderboard'));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['TK-Zeta', 'Jane Example'], false);
+        //  a real name that only repeats the username isn't shown twice
+        $this->assertSame(1, substr_count($response->getContent(), 'Sam Same'));
     }
 }

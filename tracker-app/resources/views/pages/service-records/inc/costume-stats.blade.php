@@ -50,8 +50,8 @@
                             <td>
                                 <a href="{{ route('service-records.trooper', ['trooper' => $op->trooper]) }}"
                                    class="fw-bold text-uppercase text-decoration-none">
-                                    {{ $op->trooper->display_name }}
-                                </a>
+                                    {{ $op->trooper->display_name }}</a>
+                                @include('pages.service-records.inc.real-name', ['trooper' => $op->trooper])
                             </td>
                             <td class="text-end text-primary fw-bold">
                                 {{ $op->troop_count }}
