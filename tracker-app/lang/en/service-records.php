@@ -6,6 +6,7 @@ return [
     '"The Force will be with you, always."' => '"The Force will be with you, always."',
     ':costume — Costume Leaderboard' => ':costume — Costume Leaderboard',
     ':count shift needs confirmation|:count shifts need confirmation' => ':count shift needs confirmation|:count shifts need confirmation',
+    ':daysD' => ':daysD',
     ':name has become one with the Force. Their service, dedication, and the light they brought to those they served will be honored here, always.' => ':name has become one with the Force. Their service, dedication, and the light they brought to those they served will be honored here, always.',
     'Achievement' => 'Achievement',
     'Achievement Earned' => 'Achievement Earned',
