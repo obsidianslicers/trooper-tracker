@@ -8,7 +8,7 @@ use App\Messages\Troopers\Queries\GetTrooperAwards;
 use App\Models\AwardTrooper;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Collection;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
@@ -28,7 +28,7 @@ class ShowAwardsControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
-        $award_troopers = collect([AwardTrooper::factory()->make()]);
+        $award_troopers = collect([AwardTrooper::factory()->create()]);
 
         $messages = $this->fakeMessages([
             GetTrooperAwards::class => $award_troopers,
@@ -42,12 +42,12 @@ class ShowAwardsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewIs('pages.service-records.awards');
-        $response->assertViewHas('days', 30);
-        $response->assertViewHas('award_troopers', function (Collection $result): bool
-        {
-            return $result->count() === 1;
-        });
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->component('service-records/Awards')
+            ->where('days', 30)
+            ->has('awards', 1)
+            ->where('awards.0.award', $award_troopers->first()->award->name)
+            ->where('awards.0.trooper_name', $award_troopers->first()->trooper->display_name));
     }
 
     public function test_invoke_renders_awards_with_requested_days(): void
@@ -67,6 +67,6 @@ class ShowAwardsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('days', 120);
+        $response->assertInertia(fn (Assert $page): Assert => $page->where('days', 120));
     }
 }

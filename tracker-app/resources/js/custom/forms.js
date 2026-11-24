@@ -1,49 +1,13 @@
 import { t } from '../i18n.js';
-/** SCOPED BUTTON DISABLE FOR HTMX **/
-document.body.addEventListener('htmx:configRequest', function (event) {
-    const form = event.detail.elt;
-    if (!form || form.tagName !== 'FORM') return;
-
-    // Find the submit button that was clicked
-    const activeElement = document.activeElement;
-    const button = form.querySelector('button[data-action="htmx-disable"]');
-
-    // Confirm it's the one that triggered the form
-    if (button && (button === activeElement || activeElement.form === form)) {
-        button.disabled = true;
-        button.dataset.originalText = button.innerHTML;
-        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> ' + t('Transmitting ...');
-
-        const restore = () => {
-            button.disabled = false;
-            if (button.dataset.originalText) {
-                button.innerHTML = button.dataset.originalText;
-                delete button.dataset.originalText;
-            }
-        };
-
-        document.body.addEventListener('htmx:afterRequest', restore, { once: true });
-        document.body.addEventListener('htmx:responseError', restore, { once: true });
-    }
-});
-
-/** SCOPED BUTTON DISABLE FOR HTML **/
+/** SCOPED BUTTON DISABLE **/
 document.addEventListener('DOMContentLoaded', () => {  // Attach listener to every form on the page
     document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', () => {
-            // Target only the primary submit button (data-action="htmx-disable"), not
+            // Target only the primary submit button (data-action="disable-on-submit"), not
             // secondary buttons like Remove that use formaction for a different endpoint.
-            const button = form.querySelector('button[data-action="htmx-disable"]');
+            const button = form.querySelector('button[data-action="disable-on-submit"]');
 
             if (!button) return;
-
-            // If the form or button has HTMX attributes,
-            // abort this listener and let the HTMX-specific logic handle it.
-            const isHtmx = form.hasAttribute('hx-post') ||
-                form.hasAttribute('hx-put') ||
-                button.hasAttribute('hx-post');
-
-            if (isHtmx) return;
 
             button.disabled = true;
             button.dataset.originalText = button.innerHTML;
@@ -85,11 +49,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Bind for initial page load
     bindPreventEnterSubmit(document);
-
-    // Bind for any new content HTMX swaps in
-    document.body.addEventListener('htmx:afterSettle', evt => {
-        bindPreventEnterSubmit(evt.target);
-    });
 });

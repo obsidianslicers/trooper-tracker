@@ -6,7 +6,7 @@ import toastState from '$lib/states/toast-state.svelte';
  * Toasts on Blade pages: the same component and state the Svelte pages use (RootApp.svelte), so a
  * message looks and sits the same on both. The page's FlashType messages arrive as JSON in
  * #tt-flash (partials/messages.blade.php); plain JS shows one with toastState.success('Saved.')
- * and the like; an HTMX response sends one in X-Flash-Message (htmx-flash.js).
+ * and the like.
  */
 mount(ToastMessages, { target: document.body });
 

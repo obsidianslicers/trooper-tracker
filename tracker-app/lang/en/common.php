@@ -23,6 +23,7 @@ return [
     'Dismiss' => 'Dismiss',
     'Language' => 'Language',
     'Location access is turned off for this site in your browser.' => 'Location access is turned off for this site in your browser.',
+    'Mark as read' => 'Mark as read',
     'No' => 'No',
     'No costume selected' => 'No costume selected',
     'No costumes matched your search.' => 'No costumes matched your search.',
@@ -52,7 +53,6 @@ return [
     'soft deleted' => 'soft deleted',
     'Submit' => 'Submit',
     'Submitting ...' => 'Submitting ...',
-    'That upload is too large for the server. Please upload JPG, PNG, or WEBP images that are 50MB or smaller.' => 'That upload is too large for the server. Please upload JPG, PNG, or WEBP images that are 50MB or smaller.',
     'The language the Tracker and your emails use.' => 'The language the Tracker and your emails use.',
     'This cannot be undone' => 'This cannot be undone',
     'Transmitting ...' => 'Transmitting ...',
@@ -65,5 +65,4 @@ return [
     'updated' => 'updated',
     'Yes' => 'Yes',
     'You are here' => 'You are here',
-    'Your session has expired. Reloading ...' => 'Your session has expired. Reloading ...',
 ];

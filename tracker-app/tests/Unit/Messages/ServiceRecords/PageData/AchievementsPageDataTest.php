@@ -21,7 +21,8 @@ class AchievementsPageDataTest extends TestCase
         $subject = new AchievementsPageData(days: 60);
         $result = $subject->handle();
 
-        $this->assertSame(['days' => 60, 'trooper_achievements' => $achievements], $result);
+        $this->assertSame(60, $result['days']);
+        $this->assertSame(['milestone'], $result['achievements']->collection->map->resource->all());
         $fake->assertCalled(GetTrooperAchievements::class, fn (array $params): bool => $params['lookback'] === 60);
     }
 

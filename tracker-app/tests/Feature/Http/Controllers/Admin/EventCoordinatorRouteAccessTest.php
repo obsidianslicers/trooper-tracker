@@ -185,7 +185,6 @@ class EventCoordinatorRouteAccessTest extends TestCase
         $query = isset($parameters['trooper_id']) ? ['trooper_id' => $parameters['trooper_id']] : [];
 
         return $this->actingAs($this->event_coordinator)
-            ->withHeader('HX-Request', 'true')
             ->call($method, $uri, $query);
     }
 

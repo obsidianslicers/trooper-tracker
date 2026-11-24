@@ -8,7 +8,7 @@ use App\Messages\Troopers\Queries\GetTrooperAchievements;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Collection;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
@@ -49,12 +49,12 @@ class ShowAchievementsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewIs('pages.service-records.achievements');
-        $response->assertViewHas('days', 30);
-        $response->assertViewHas('trooper_achievements', function (Collection $result): bool
-        {
-            return $result->count() === 1;
-        });
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->component('service-records/Achievements')
+            ->where('days', 30)
+            ->has('achievements', 1)
+            ->where('achievements.0.trooper_name', $achievement_trooper->display_name)
+            ->where('achievements.0.trooper_url', route('service-records.trooper', ['trooper' => $achievement_trooper])));
     }
 
     public function test_invoke_renders_achievements_with_requested_days(): void
@@ -74,6 +74,6 @@ class ShowAchievementsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('days', 60);
+        $response->assertInertia(fn (Assert $page): Assert => $page->where('days', 60));
     }
 }

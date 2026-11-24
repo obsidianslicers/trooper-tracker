@@ -7,8 +7,9 @@ namespace App\Http\Controllers\Account\Commands;
 use App\Http\Controllers\Controller;
 use App\Messages\Troopers\Commands\Notifications\MarkPushNotificationAsRead;
 use App\Models\TrooperNotification;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * Mark a push notification as read and redirect to its URL.
@@ -26,14 +27,14 @@ class MarkPushNotificationAsReadController extends Controller
      *
      * @param  Request  $request  The incoming HTTP request
      * @param  TrooperNotification  $notification  The notification to mark as read
-     * @return RedirectResponse Redirect to the notification's URL
+     * @return SymfonyResponse Sends the browser to the notification's URL
      */
-    public function __invoke(Request $request, TrooperNotification $notification): RedirectResponse
+    public function __invoke(Request $request, TrooperNotification $notification): SymfonyResponse
     {
         abort_unless((int) $notification->notifiable_id === $request->user()->id, 403);
 
         MarkPushNotificationAsRead::call(notification: $notification);
 
-        return redirect($notification->url);
+        return Inertia::location($notification->url);
     }
 }

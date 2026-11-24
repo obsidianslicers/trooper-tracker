@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\Events\Commands;
 
 use App\Enums\EventTrooperStatus;
-use App\Http\Requests\HtmxValidation;
 use App\Models\Costume;
 use App\Models\EventTrooper;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -21,7 +20,7 @@ use Illuminate\Validation\Rule;
  */
 class UpdateTrooperSignUpRequest extends FormRequest
 {
-    use HtmxValidation;
+    use ValidatesInController;
 
     /**
      * Determine if the user is authorized to make this request

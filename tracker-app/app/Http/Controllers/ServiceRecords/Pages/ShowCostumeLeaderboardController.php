@@ -7,20 +7,16 @@ namespace App\Http\Controllers\ServiceRecords\Pages;
 use App\Http\Controllers\PageController;
 use App\Messages\ServiceRecords\PageData\CostumeLeaderboardPageData;
 use App\Models\Costume;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class ShowCostumeLeaderboardController extends PageController
 {
-    public function __invoke(Request $request, Costume $costume): View
+    public function __invoke(Request $request, Costume $costume): InertiaResponse
     {
         $data = CostumeLeaderboardPageData::call($request);
 
-        if ($request->isHtmx())
-        {
-            return view('pages.service-records.inc.costume-stats', $data);
-        }
-
-        return view('pages.service-records.costume', $data);
+        return Inertia::render('service-records/Costume', $data);
     }
 }

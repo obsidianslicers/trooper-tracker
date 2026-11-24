@@ -149,12 +149,10 @@ app/Http/Controllers/
 ├── Auth/                  # Login, logout, registration, OAuth (Commands/, Pages/)
 ├── Events/                # Public event pages and sign-ups (Commands/, Pages/, Concerns/)
 ├── Home/Pages/            # Home page and FAQ
-├── Pickers/Pages/         # Trooper and organization pickers
 ├── Search/Pages/          # Search
 ├── ServiceRecords/Pages/  # Service records, leaderboards, awards
 ├── Shares/Pages/          # Share pages and share images
 ├── Verifications/         # Email verification (Commands/, Pages/)
-├── Widgets/Pages/         # HTMX widgets
 ├── Controller.php         # Base controller
 └── PageController.php     # Base controller with breadcrumbs
 ```
@@ -312,8 +310,7 @@ routes/web/
 ├── admin.php              # Admin panel routes
 ├── auth.php               # Authentication routes
 ├── dashboard.php          # Dashboard routes
-├── events.php             # Event routes
-└── pickers.php            # HTMX picker routes
+└── events.php             # Event routes
 ```
 
 ## Testing Structure

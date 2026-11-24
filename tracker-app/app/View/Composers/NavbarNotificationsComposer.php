@@ -15,7 +15,7 @@ use Illuminate\View\View;
  * Everything under the bell in the navbar: the troops the trooper hasn't said whether they made
  * it to, pinned at the top, then the most recent notifications (the notifications page has the
  * rest), and the badge counting both. Runs only when the bell is drawn, so pages without the
- * navbar (HTMX fragments, JSON) don't pay for the queries.
+ * navbar (JSON, partial reloads) don't pay for the queries.
  *
  * The "did you make it?" reminders stay in the notification log, for the notifications page and
  * the mobile app, but the bell leaves them out: its pinned section already asks.

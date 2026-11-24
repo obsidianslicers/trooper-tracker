@@ -5,10 +5,6 @@ import $ from 'jquery';
 window.$ = $;
 window.jQuery = $;
 
-// HTMX
-import htmx from 'htmx.org';
-window.htmx = htmx;
-
 // Bootstrap (bundle includes Popper)
 import * as bootstrap from 'bootstrap';
 window.bootstrap = bootstrap;
@@ -47,14 +43,8 @@ Alpine.plugin(mask);
 import AccountPlugin from './account/index.js';
 Alpine.plugin(AccountPlugin);
 
-import AdminPlugin from './admin/index.js';
-Alpine.plugin(AdminPlugin);
-
 import EventPlugin from './events/index.js';
 Alpine.plugin(EventPlugin);
-
-import ServiceRecordsPlugin from './service-records/index.js';
-Alpine.plugin(ServiceRecordsPlugin);
 
 window.Alpine = Alpine;
 Alpine.start();
@@ -74,13 +64,6 @@ window.Sortable = Sortable;
 import './custom/bootstrap-events.js';
 import './custom/forms.js';
 import './custom/hash-link-collapse.js';
-import './custom/htmx-csrf.js';
-import './custom/htmx-date-picker.js';
-import './custom/htmx-easymde.js';
-import './custom/htmx-flash.js';
-import './custom/htmx-pickers.js';
-import './custom/htmx-scroll-preserve.js';
-import './custom/htmx-typeahead.js';
-import './custom/htmx-upload.js';
+import './custom/toasts.js';
 import './custom/tooltips.js';
 

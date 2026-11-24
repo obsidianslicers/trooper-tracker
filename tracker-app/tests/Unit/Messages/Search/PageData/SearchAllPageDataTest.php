@@ -21,16 +21,17 @@ class SearchAllPageDataTest extends TestCase
     public function test_handle_searches_the_chosen_type(): void
     {
         $trooper = Trooper::factory()->asActive()->create();
-        $fake = $this->fakeMessages([GlobalSearch::class => ['troopers' => []]]);
+        $found = Trooper::factory()->create();
+        $fake = $this->fakeMessages([GlobalSearch::class => ['troopers' => collect([$found]), 'events' => collect()]]);
 
         $subject = new SearchAllPageData(actor: $trooper, q: 'vader', type: SearchType::TROOPERS->value);
         $result = $subject->handle();
 
         $this->assertSame('vader', $result['term']);
         $this->assertSame(SearchType::TROOPERS->value, $result['type']);
-        $this->assertSame(['troopers' => []], $result['results']);
-        $this->assertTrue($result['show_troopers']);
-        $this->assertFalse($result['show_events']);
+        $this->assertTrue($result['searched']);
+        $this->assertSame([$found->id], $result['troopers']->collection->map->resource->pluck('id')->all());
+        $this->assertNull($result['events']);
         $fake->assertCalled(GlobalSearch::class, fn (array $params): bool => $params['term'] === 'vader');
     }
 
@@ -41,7 +42,9 @@ class SearchAllPageDataTest extends TestCase
 
         $result = (new SearchAllPageData(actor: $trooper, q: 'v', type: 'nonsense'))->handle();
 
-        $this->assertNull($result['results']);
+        $this->assertFalse($result['searched']);
+        $this->assertNull($result['troopers']);
+        $this->assertNull($result['events']);
         $this->assertSame(SearchType::ALL->value, $result['type']);
         $fake->assertNotCalled(GlobalSearch::class);
     }

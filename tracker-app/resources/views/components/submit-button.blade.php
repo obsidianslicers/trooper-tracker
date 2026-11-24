@@ -1,8 +1,7 @@
 @props(['uid' => 'button-' . uniqid()])
 
 <button data-id="{{ $uid }}"
-        data-action="htmx-disable"
-        hx-headers='{"X-Dispatch-ID": "{{ $uid }}"}'
+        data-action="disable-on-submit"
         {{$attributes->merge(['type' => 'submit', 'class' => 'btn btn-primary'])}}>
     {{ $slot }}
 </button>

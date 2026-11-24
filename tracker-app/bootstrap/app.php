@@ -4,7 +4,6 @@ use App\Jobs\SendExceptionNotificationJob;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Support\Facades\Log;
@@ -19,8 +18,6 @@ return Application::configure(basePath: dirname(__DIR__))
             __DIR__.'/../routes/web/events.php',
             __DIR__.'/../routes/web/auth.php',
             __DIR__.'/../routes/web/verification.php',
-            __DIR__.'/../routes/web/widgets.php',
-            __DIR__.'/../routes/web/pickers.php',
             __DIR__.'/../routes/web/account.php',
             __DIR__.'/../routes/web/admin.php',
             __DIR__.'/../routes/web/admin-organizations.php',
@@ -52,7 +49,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             App\Http\Middleware\SetLocaleMiddleware::class,
             App\Http\Middleware\HandleInertiaRequests::class,
-            App\Http\Middleware\HtmxDispatchHeaderMiddleware::class,
             App\Http\Middleware\UpdateLastActiveMiddleware::class,
             App\Http\Middleware\TrooperSetupRequiredMiddleware::class,
             App\Http\Middleware\CheckVisitorAccessMiddleware::class,
@@ -122,21 +118,5 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (InvalidSignatureException $e, Request $request)
         {
             return redirect()->route('verification.notice')->with('status', 'invalid');
-        });
-
-        $exceptions->render(function (PostTooLargeException $e, Request $request)
-        {
-            if (!$request->isHtmx())
-            {
-                return null;
-            }
-
-            $message = json_encode([
-                'message' => 'That upload is too large for the server. Please upload JPG, PNG, or WEBP images that are 12MB or smaller.',
-                'type' => 'danger',
-                'fadeOut' => 5000,
-            ]);
-
-            return response('', 413)->header('X-Flash-Message', $message);
         });
     })->create();

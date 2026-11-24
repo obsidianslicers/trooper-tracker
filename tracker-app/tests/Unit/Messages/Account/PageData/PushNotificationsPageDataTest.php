@@ -30,7 +30,8 @@ class PushNotificationsPageDataTest extends TestCase
         $subject = new PushNotificationsPageData($trooper);
         $result = $subject->handle();
 
-        $this->assertSame(['notifications' => $notifications, 'troops_to_confirm' => $troops], $result);
+        $this->assertSame($notifications->all(), $result['notifications']->collection->map->resource->all());
+        $this->assertSame($troops->all(), $result['troops_to_confirm']->collection->map->resource->all());
         $fake->assertCalled(
             GetTrooperNotifications::class,
             fn (array $params) => $params['trooper'] === $trooper

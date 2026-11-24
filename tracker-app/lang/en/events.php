@@ -176,7 +176,6 @@ return [
     'Logo' => 'Logo',
     'Made It' => 'Made It',
     'Map' => 'Map',
-    'Mark as read' => 'Mark as read',
     'Maximum Shifts Allowed' => 'Maximum Shifts Allowed',
     'Message' => 'Message',
     'Message sent.' => 'Message sent.',

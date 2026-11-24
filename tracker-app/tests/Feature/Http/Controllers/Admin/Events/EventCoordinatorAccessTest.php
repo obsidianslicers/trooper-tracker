@@ -17,6 +17,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Inertia\Testing\AssertableInertia as Assert;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -77,16 +78,18 @@ class EventCoordinatorAccessTest extends TestCase
 
     public function test_event_coordinator_can_host_for_organizations_they_belong_to(): void
     {
-        $response = $this->actingAs($this->event_coordinator)->get(route('pickers.organization', [
-            'property' => 'organization_id',
-            'event_host_only' => true,
-        ]));
+        $response = $this->actingAs($this->event_coordinator)->get(route('admin.events.create'));
 
-        $response->assertOk()
-            ->assertSee('Home Region')
-            ->assertSee('Club')
-            ->assertDontSee('Some Squad')
-            ->assertDontSee('Other Region');
+        $response->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('host_options', function ($options): bool
+            {
+                $labels = collect($options)->pluck('label')->map(fn (string $label): string => ltrim($label, '— '));
+
+                return $labels->contains('Home Region')
+                    && $labels->contains('Club')
+                    && ! $labels->contains('Some Squad')
+                    && ! $labels->contains('Other Region');
+            }));
     }
 
     public function test_only_current_memberships_count_for_hosting(): void

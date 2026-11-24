@@ -21,7 +21,8 @@ class AwardsPageDataTest extends TestCase
         $subject = new AwardsPageData(days: 90);
         $result = $subject->handle();
 
-        $this->assertSame(['award_troopers' => $awards, 'days' => 90], $result);
+        $this->assertSame(90, $result['days']);
+        $this->assertSame($awards->all(), $result['awards']->collection->map->resource->all());
         $fake->assertCalled(GetTrooperAwards::class, fn (array $params): bool => $params['lookback'] === 90);
     }
 }

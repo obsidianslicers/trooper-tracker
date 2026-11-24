@@ -5,6 +5,15 @@ export type Option = { value: string | number | boolean | object, label: string 
 /** A smiley a plugin offers in the markdown editors; `code` is the text inserted. */
 export type Smiley = { title: string; code: string; image_url: string };
 
+/** A notice from Command Staff, as UnreadNoticeResource sends it. */
+export type UnreadNotice = {
+    id: number;
+    type: 'info' | 'success' | 'warning' | 'danger';
+    heading: string;
+    title: string;
+    html: string;
+};
+
 export type PageLink = { url: string | null; label: string; active: boolean };
 
 export type Paginated<T> = {

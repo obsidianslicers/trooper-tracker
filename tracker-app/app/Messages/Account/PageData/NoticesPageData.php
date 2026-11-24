@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\Account\PageData;
 
 use App\Messages\Notices\Queries\GetUnreadNotices;
+use App\Messages\Notices\Resources\UnreadNoticeResource;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
@@ -22,7 +23,9 @@ final class NoticesPageData extends Message
     public function handle(): array
     {
         return [
-            'notices' => GetUnreadNotices::call(trooper: $this->actor),
+            'notices' => UnreadNoticeResource::collection(
+                GetUnreadNotices::call(trooper: $this->actor)
+            ),
         ];
     }
 }

@@ -9,19 +9,14 @@ use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForDisplay;
 use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
 use App\Messages\Troopers\Queries\GetTrooperServiceRecord;
 use App\Models\Costume;
-use App\Models\Event;
-use App\Models\EventShift;
-use App\Models\EventTrooper;
-use App\Models\EventType;
-use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperDonation;
 use App\Plugins\PluginDonations;
 use App\Services\BreadCrumbService;
 use App\Support\DonationSummary;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
+use Inertia\Testing\AssertableInertia as Assert;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\Concerns\FakesMessages;
@@ -72,11 +67,11 @@ class ShowTrooperServiceRecordControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewIs('pages.service-records.trooper');
-        $response->assertViewHas('trooper_costumes', function (Collection $result): bool
-        {
-            return $result->pluck(Costume::NAME)->values()->all() === ['TK Classic'];
-        });
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->component('service-records/Trooper')
+            ->where('trooper.display_name', $target_trooper->display_name)
+            ->has('costumes', 1)
+            ->where('costumes.0.name', 'TK Classic'));
     }
 
     public function test_invoke_adds_profile_breadcrumb_for_authenticated_trooper(): void
@@ -140,9 +135,9 @@ class ShowTrooperServiceRecordControllerTest extends TestCase
             ->get(route('service-records.trooper', ['trooper' => $target_trooper]));
 
         $response->assertOk();
-        $response->assertViewHas('is_active_donor', true);
-        $response->assertViewHas('service_summary', fn (array $summary): bool => $summary['total_donated'] === 35.0
-            && $summary['donation_months'] === 2);
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->where('summary.total_donated', '$35.00')
+            ->where('summary.donation_months', 2));
     }
 
     public function test_invoke_shows_edit_link_when_authenticated_trooper_can_update_target(): void
@@ -156,8 +151,9 @@ class ShowTrooperServiceRecordControllerTest extends TestCase
             ->get(route('service-records.trooper', ['trooper' => $target_trooper]));
 
         $response->assertOk();
-        $response->assertSee(route('admin.troopers.show', ['trooper' => $target_trooper]), false);
-        $response->assertSee('Edit');
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->where('trooper.edit_url', route('admin.troopers.show', ['trooper' => $target_trooper]))
+            ->where('trooper.missing_credit_url', null));
     }
 
     public function test_invoke_hides_edit_link_when_authenticated_trooper_cannot_update_target(): void
@@ -171,109 +167,9 @@ class ShowTrooperServiceRecordControllerTest extends TestCase
             ->get(route('service-records.trooper', ['trooper' => $target_trooper]));
 
         $response->assertOk();
-        $response->assertDontSee(route('admin.troopers.show', ['trooper' => $target_trooper]), false);
-        $response->assertDontSee('Edit');
-    }
-
-    public function test_recent_shift_partial_displays_command_staff_costume_for_handler_pool_assignment(): void
-    {
-        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
-        $event = Event::factory()->create();
-        $shift = EventShift::factory()->forEvent($event)->asClosed()->create();
-        $command_staff_costume = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
-        $event_trooper = EventTrooper::factory()
-            ->forEventShift($shift)
-            ->forTrooper($trooper)
-            ->asAttended()
-            ->state([
-                EventTrooper::COSTUME_ID => $command_staff_costume->id,
-                EventTrooper::IS_HANDLER => true,
-            ])
-            ->create();
-
-        $shift->setRelation('event', $event);
-        $event_trooper->setRelation('costume', $command_staff_costume);
-        $shift->event_trooper = $event_trooper;
-
-        $response = $this->actingAs($trooper)->view('pages.service-records.inc.trooper-recent-shifts', [
-            'trooper' => $trooper,
-            'recent_shifts' => collect([$shift]),
-            'pending_confirmation_shifts' => collect(),
-        ]);
-
-        $response->assertSee(Costume::COMMAND_STAFF);
-        $response->assertDontSee('>Handler<', false);
-    }
-
-    public function test_recent_shift_partial_marks_troops_that_do_not_count(): void
-    {
-        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
-        $uncounted = EventType::factory()->uncounted()->create([EventType::NAME => 'Armor Party Plus']);
-        $shifts = collect([
-            $this->attendedShift($trooper, Event::factory()->create([Event::NAME => 'Armor build night', Event::EVENT_TYPE_ID => $uncounted->id])),
-            $this->attendedShift($trooper, Event::factory()->create([Event::NAME => 'Hospital visit'])),
-        ]);
-
-        $response = $this->actingAs($trooper)->view('pages.service-records.inc.trooper-recent-shifts', [
-            'trooper' => $trooper,
-            'recent_shifts' => $shifts,
-            'pending_confirmation_shifts' => collect(),
-        ]);
-
-        //  once in the card view and once in the table view, only for the uncounted troop
-        $response->assertSeeInOrder(['Armor build night', 'Non-troop-credit', 'Hospital visit']);
-        $this->assertSame(2, substr_count((string) $response, 'not-counted-pill'));
-        $response->assertSee('Non-troop-credit event: Does not count toward troop totals.');
-    }
-
-    public function test_service_record_marks_a_second_shift_on_the_same_day_and_counts_the_day_once(): void
-    {
-        config(['tracker.count_as_one_troop_per_day' => true]);
-        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
-        $club = Organization::factory()->create([Organization::NAME => 'Day Count Legion']);
-        $event = Event::factory()->asClosed()->create([Event::NAME => 'Two shift convention']);
-        $day = Carbon::now()->subDays(3)->setTime(9, 0);
-
-        foreach ([$day, $day->copy()->setTime(13, 0)] as $start)
-        {
-            $shift = EventShift::factory()
-                ->forEvent($event)
-                ->asClosed()
-                ->withShiftStartsAt($start)
-                ->withShiftEndsAt($start->copy()->addHours(3))
-                ->create();
-            EventTrooper::factory()
-                ->forEventShift($shift)
-                ->forTrooper($trooper)
-                ->asAttended()
-                ->create([EventTrooper::COSTUME_ORGANIZATION_IDS => [$club->id]]);
-        }
-
-        $record = GetTrooperServiceRecord::call(trooper_id: $trooper->id);
-
-        $this->assertSame(1, $record['club_troop_counts']->firstWhere('id', $club->id)?->troop_count);
-
-        $response = $this->actingAs($trooper)->view('pages.service-records.inc.trooper-recent-shifts', [
-            'trooper' => $trooper,
-            'recent_shifts' => $record['recent_shifts'],
-            'pending_confirmation_shifts' => collect(),
-        ]);
-
-        //  the later shift only, once in the card view and once in the table view
-        $this->assertSame(2, substr_count((string) $response, 'Same day, counted once'));
-        $response->assertSee('already counted as the troop for the day');
-        $this->assertTrue($record['recent_shifts']->last()->event_trooper->is_same_day_repeat === false);
-    }
-
-    private function attendedShift(Trooper $trooper, Event $event): EventShift
-    {
-        $shift = EventShift::factory()->forEvent($event)->asClosed()->create();
-        $event_trooper = EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
-
-        $shift->setRelation('event', $event->load('event_type'));
-        $shift->event_trooper = $event_trooper;
-
-        return $shift;
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->where('trooper.edit_url', null)
+            ->where('trooper.missing_credit_url', null));
     }
 
     /**

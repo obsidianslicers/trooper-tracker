@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\ServiceRecords\PageData;
 
+use App\Messages\ServiceRecords\Resources\CommandStaffMemberResource;
 use App\Messages\Troopers\Queries\GetCommandStaff;
 use Hyperdrive\Message;
 
@@ -20,7 +21,7 @@ final class CommandStaffPageData extends Message
     public function handle(): array
     {
         return [
-            'troopers' => GetCommandStaff::call(),
+            'troopers' => CommandStaffMemberResource::collection(GetCommandStaff::call()),
         ];
     }
 }

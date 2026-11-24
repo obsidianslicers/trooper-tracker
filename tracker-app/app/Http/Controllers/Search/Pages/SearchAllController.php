@@ -7,14 +7,15 @@ namespace App\Http\Controllers\Search\Pages;
 use App\Http\Controllers\PageController;
 use App\Messages\Search\PageData\SearchAllPageData;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class SearchAllController extends PageController
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): InertiaResponse
     {
         $data = SearchAllPageData::call($request);
 
-        return view('pages.search.results', $data);
+        return Inertia::render('search/Results', $data);
     }
 }

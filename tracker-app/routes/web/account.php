@@ -7,7 +7,6 @@ use App\Http\Controllers\Account\Commands\CancelDeletionController;
 use App\Http\Controllers\Account\Commands\ClearPushNotificationsController;
 use App\Http\Controllers\Account\Commands\CreateTrooperRequestController;
 use App\Http\Controllers\Account\Commands\MarkNoticeAsReadController;
-use App\Http\Controllers\Account\Commands\MarkNoticeAsReadHtmxController;
 use App\Http\Controllers\Account\Commands\MarkPushNotificationAsReadController;
 use App\Http\Controllers\Account\Commands\RemoveCostumeController;
 use App\Http\Controllers\Account\Commands\RenewVisitorMembershipController;
@@ -64,7 +63,6 @@ Route::prefix('account')
 
         Route::get('/notices', ListNoticesController::class)->name('notices');
         Route::post('/notices/{notice}/read', MarkNoticeAsReadController::class)->name('update-notice-as-read');
-        Route::post('/notices-htmx/{notice}', MarkNoticeAsReadHtmxController::class)->name('notices-htmx');
 
         //  needed a post name to get the middleware to work properly
         Route::get('/push-notifications', ListPushNotificationsController::class)->name('push-notifications');
