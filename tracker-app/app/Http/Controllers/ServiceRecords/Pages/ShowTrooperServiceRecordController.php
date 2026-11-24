@@ -8,14 +8,15 @@ use App\Http\Controllers\PageController;
 use App\Messages\ServiceRecords\PageData\TrooperServiceRecordPageData;
 use App\Models\Trooper;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Displays a trooper's service record dashboard.
  */
 class ShowTrooperServiceRecordController extends PageController
 {
-    public function __invoke(Request $request, Trooper $trooper): View
+    public function __invoke(Request $request, Trooper $trooper): InertiaResponse
     {
         if ($trooper->id == $request->user()->id)
         {
@@ -24,6 +25,6 @@ class ShowTrooperServiceRecordController extends PageController
 
         $data = TrooperServiceRecordPageData::call($request);
 
-        return view('pages.service-records.trooper', $data);
+        return Inertia::render('service-records/Trooper', $data);
     }
 }
