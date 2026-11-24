@@ -144,13 +144,13 @@ test.describe('a denied application', () => {
         await expect(page).toHaveURL(/\/account\/denied$/);
         await expect(page.getByText('Your registration was not approved.')).toBeVisible();
 
-        const tkid = page.locator('input[name="organizations[1][identifier]"]');
-        await expect(tkid).toBeHidden();
+        const legion = page.locator('.mb-4').filter({ has: page.getByLabel('501st Legion') });
+        await expect(legion.getByLabel('TKID')).toHaveCount(0);
 
         await page.getByLabel('501st Legion').check();
-        await tkid.fill('92345');
-        await page.locator('select[name="organizations[1][region_id]"]').selectOption({ label: 'E2E Garrison' });
-        await page.locator('select[name="organizations[1][unit_id]"]').selectOption({ label: 'E2E Squad' });
+        await legion.getByLabel('TKID').fill('92345');
+        await legion.getByLabel('Region/Garrison').selectOption({ label: 'E2E Garrison' });
+        await legion.getByLabel('Unit/Squad').selectOption({ label: 'E2E Squad' });
 
         await page.getByRole('button', { name: 'Resubmit Application' }).click();
 
@@ -191,7 +191,6 @@ async function fillIdentity(page, recruit) {
     await page.getByLabel('Display Name').fill(recruit.displayName);
 }
 
-// The setup form's labels are not tied to their inputs.
 function legalName(page) {
-    return page.locator('input[name="legal_name"]');
+    return page.getByLabel('Legal Name:');
 }

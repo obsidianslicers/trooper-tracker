@@ -7,9 +7,10 @@ namespace App\Http\Controllers\Account\Pages;
 use App\Http\Controllers\PageController;
 use App\Messages\Account\PageData\DeniedPageData;
 use App\Models\Trooper;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Display the denied membership page for a denied trooper.
@@ -28,9 +29,9 @@ class ShowDeniedMembershipController extends PageController
      * Redirects to index or pending if trooper is not denied.
      *
      * @param  Request  $request  The incoming HTTP request
-     * @return View|RedirectResponse The rendered denied page or redirect
+     * @return InertiaResponse|RedirectResponse The denied page or a redirect
      */
-    public function __invoke(Request $request): View|RedirectResponse
+    public function __invoke(Request $request): InertiaResponse|RedirectResponse
     {
         $trooper = $request->user();
 
@@ -41,6 +42,6 @@ class ShowDeniedMembershipController extends PageController
 
         $data = DeniedPageData::call(trooper: $trooper);
 
-        return view('pages.account.denied', $data);
+        return Inertia::render('account/Denied', $data);
     }
 }

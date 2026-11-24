@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Messages\Account\PageData;
 
+use App\Messages\Account\Resources\SetupMembershipResource;
+use App\Messages\Account\Resources\SetupTrooperResource;
 use App\Messages\Organizations\Queries\GetOrganizations;
 use App\Messages\Troopers\Queries\GetTrooperAssignments;
 use App\Models\Trooper;
@@ -11,38 +13,30 @@ use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 
 /**
- * Retrieves application configuration including authentication provider status and feature toggles.
+ * The first-time setup form: the trooper's details so far and the clubs they already belong to.
  *
- * This query message responds with configuration data for authorization providers (Google or
- * plugin login providers, email/password authentication), application metadata, and feature/localization settings.
- * Used by frontend clients to determine available authentication methods and application capabilities.
- *
- * @method static array<string, mixed> call()
+ * @method static array<string, mixed> call(Actor $actor)
  */
 final class SetupPageData extends Message
 {
     /**
-     * Constructs the IndexPageData message.
-     *
-     * @param  Actor&Trooper  $actor  The actor representing the current user
+     * @param  Actor&Trooper  $actor
      */
     public function __construct(
         private readonly Actor $actor
     ) {}
 
     /**
-     * Retrieves application configuration as a nested associative array.
-     *
-     * @return array Configuration array with auth provider status, URLs, features, and localization settings
+     * @return array<string, mixed>
      */
     public function handle(): array
     {
-        $data = [
-            'trooper' => $this->actor,
-            'organization_memberships' => $this->getOrganizationMemberships(),
+        return [
+            'trooper' => new SetupTrooperResource($this->actor),
+            'memberships' => SetupMembershipResource::collection(
+                $this->getOrganizationMemberships()->whereNotNull('assignment')->values()
+            ),
         ];
-
-        return $data;
     }
 
     private function getOrganizationMemberships()

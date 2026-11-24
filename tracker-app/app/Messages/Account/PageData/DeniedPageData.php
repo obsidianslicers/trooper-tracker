@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Messages\Account\PageData;
 
 use App\Enums\MembershipRole;
-use App\Enums\OrganizationType;
-use App\Messages\Organizations\Queries\GetOrganizationTree;
+use App\Messages\Account\Resources\DeniedRequestResource;
+use App\Messages\Auth\Resources\RegisterOrganizationResource;
+use App\Messages\Organizations\Queries\GetOrganizationHierarchy;
 use App\Messages\Troopers\Queries\Membership\GetDeniedTrooperRequests;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -16,12 +17,10 @@ use Hyperdrive\Message;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Aggregates data needed for the Denied membership page.
+ * The denied application page: why it was denied, the clubs it asked for, and the clubs to
+ * pick from when resubmitting.
  *
- * Retrieves denied trooper requests, denial reasons, organization hierarchy,
- * and prepares form state for resubmission.
- *
- * @method static array call(Trooper $trooper)
+ * @method static array<string, mixed> call(Trooper $trooper)
  */
 final class DeniedPageData extends Message
 {
@@ -30,53 +29,34 @@ final class DeniedPageData extends Message
     ) {}
 
     /**
-     * Retrieve page data for the denied membership page.
-     *
-     * @return array<string, mixed> Page data including trooper, denied requests, organization hierarchy, etc.
+     * @return array<string, mixed>
      */
     public function handle(): array
     {
         $denied_requests = GetDeniedTrooperRequests::call(trooper: $this->trooper);
 
-        $denial_reason = $denied_requests->first()?->denial_reason
-            ?? $this->resolveDenialReasonFromNotification($this->trooper->id);
-
-        $specific_orgs = Organization::whereIn(
+        $requested = Organization::whereIn(
             Organization::ID,
             $denied_requests->pluck(TrooperRequest::ORGANIZATION_ID)->unique()
         )->get()->keyBy(Organization::ID);
 
-        $org_paths = Organization::buildPathLabels($specific_orgs);
+        $paths = Organization::buildPathLabels($requested);
 
-        $organization_hierarchy = GetOrganizationTree::call()
-            ->map(fn (array $org) => (object) $org);
-
-        $request_by_primary = $denied_requests->keyBy(TrooperRequest::PRIMARY_ORGANIZATION_ID);
-
-        foreach ($organization_hierarchy as $org)
-        {
-            $denied = $request_by_primary[$org->id] ?? null;
-            $specific = $denied ? ($specific_orgs[$denied->organization_id] ?? null) : null;
-
-            $org->selected = old("organizations.{$org->id}.selected") === '1'
-                || ($denied !== null && !old('organizations'));
-            $org->identifier = old("organizations.{$org->id}.identifier", $denied?->identifier);
-            $org->region_id = old("organizations.{$org->id}.region_id", $this->resolveRegionId($specific));
-            $org->unit_id = old("organizations.{$org->id}.unit_id", $this->resolveUnitId($specific));
-        }
-
-        $account_type = $this->trooper->membership_role?->toAccountType() ?? MembershipRole::MEMBER->toAccountType();
-        $trooper = $this->trooper;
-
-        return compact(
-            'denied_requests',
-            'denial_reason',
-            'specific_orgs',
-            'org_paths',
-            'organization_hierarchy',
-            'account_type',
-            'trooper',
-        );
+        return [
+            'denial_reason' => $denied_requests->first()?->denial_reason
+                ?? $this->resolveDenialReasonFromNotification($this->trooper->id),
+            'denied_requests' => $denied_requests
+                ->map(fn (TrooperRequest $request): array => (new DeniedRequestResource(
+                    $request,
+                    $requested[$request->organization_id] ?? null,
+                    $paths[$request->organization_id] ?? null,
+                ))->resolve())
+                ->values()
+                ->all(),
+            'organizations' => RegisterOrganizationResource::collection(GetOrganizationHierarchy::call()),
+            'account_type' => $this->trooper->membership_role?->toAccountType()
+                ?? MembershipRole::MEMBER->toAccountType(),
+        ];
     }
 
     private function resolveDenialReasonFromNotification(int $trooper_id): ?string
@@ -89,20 +69,5 @@ final class DeniedPageData extends Message
             ->first();
 
         return $notification ? json_decode($notification->data, true)['body'] ?? null : null;
-    }
-
-    private function resolveRegionId(?Organization $org): ?int
-    {
-        return match ($org?->type)
-        {
-            OrganizationType::REGION => $org->id,
-            OrganizationType::UNIT => $org->parent_id,
-            default => null,
-        };
-    }
-
-    private function resolveUnitId(?Organization $org): ?int
-    {
-        return $org?->type === OrganizationType::UNIT ? $org->id : null;
     }
 }

@@ -8,7 +8,7 @@
     import { usePage } from "@inertiajs/svelte";
     import Identity from "./components/register/Identity.svelte";
     import MembershipRole from "./components/register/MembershipRole.svelte";
-    import Organizations from "./components/register/Organizations.svelte";
+    import OrganizationSelection from "$lib/components/OrganizationSelection.svelte";
     import RequiresGuardian from "./components/register/RequiresGuardian.svelte";
     import { type RegisterPageData, RegisterViewModel } from "./models";
 
@@ -37,7 +37,7 @@
         <MembershipRole {vm} />
 
         {#if vm.form.membership_role != null && vm.form.membership_role != "handler"}
-            <Organizations {vm} />
+            <OrganizationSelection {vm} role={vm.form.membership_role} />
             <RequiresGuardian {vm} {appName} />
         {/if}
 
