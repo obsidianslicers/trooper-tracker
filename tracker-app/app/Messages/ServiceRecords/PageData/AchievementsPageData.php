@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\ServiceRecords\PageData;
 
+use App\Messages\ServiceRecords\Resources\RecentAchievementResource;
 use App\Messages\Troopers\Queries\GetTrooperAchievements;
 use Hyperdrive\Message;
 
@@ -25,7 +26,9 @@ final class AchievementsPageData extends Message
 
         return [
             'days' => $days,
-            'trooper_achievements' => GetTrooperAchievements::call(lookback: $days),
+            'achievements' => RecentAchievementResource::collection(
+                GetTrooperAchievements::call(lookback: $days)
+            ),
         ];
     }
 }

@@ -6,18 +6,19 @@ namespace App\Http\Controllers\ServiceRecords\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Messages\ServiceRecords\PageData\CommandStaffPageData;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Displays the command staff listing.
  */
 class ShowCommandStaffController extends PageController
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): InertiaResponse
     {
         $data = CommandStaffPageData::call($request);
 
-        return view('pages.service-records.command-staff', $data);
+        return Inertia::render('service-records/CommandStaff', $data);
     }
 }

@@ -20,6 +20,8 @@ class PhotoGalleryPageDataTest extends TestCase
 
         $subject = new PhotoGalleryPageData;
 
-        $this->assertSame(['uploads' => $uploads], $subject->handle());
+        $result = $subject->handle();
+
+        $this->assertSame($uploads->all(), $result['photos']->collection->map->resource->all());
     }
 }

@@ -20,6 +20,8 @@ class CommandStaffPageDataTest extends TestCase
 
         $subject = new CommandStaffPageData;
 
-        $this->assertSame(['troopers' => $troopers], $subject->handle());
+        $result = $subject->handle();
+
+        $this->assertSame($troopers->all(), $result['troopers']->collection->map->resource->all());
     }
 }

@@ -7,7 +7,7 @@ namespace Tests\Feature\Http\Controllers\ServiceRecords\Pages;
 use App\Messages\Troopers\Queries\GetCommandStaff;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Collection;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
@@ -41,13 +41,10 @@ class ShowCommandStaffControllerTest extends TestCase
         $messages->assertCalled(GetCommandStaff::class);
 
         $response->assertOk();
-        $response->assertViewIs('pages.service-records.command-staff');
-        $response->assertViewHas('troopers', function (Collection $result): bool
-        {
-            return $result->pluck(Trooper::DISPLAY_NAME)->values()->all() === [
-                'Alpha Admin',
-                'Bravo Moderator',
-            ];
-        });
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->component('service-records/CommandStaff')
+            ->where('troopers.0.display_name', 'Alpha Admin')
+            ->where('troopers.0.role', 'System Owner')
+            ->where('troopers.1.display_name', 'Bravo Moderator'));
     }
 }
