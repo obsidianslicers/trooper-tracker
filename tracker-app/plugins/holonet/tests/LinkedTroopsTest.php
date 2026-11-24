@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 use TroopTracker\Plugins\Holonet\Messages\Commands\RefreshTrackerLink;
 use TroopTracker\Plugins\Holonet\Messages\Queries\GetLinkedTroops;
@@ -108,11 +109,17 @@ class LinkedTroopsTest extends TestCase
         $this->actingAs($this->trooper)
             ->get(route('service-records.trooper', ['trooper' => $this->trooper]))
             ->assertOk()
-            ->assertSee('All-Time Troops')
-            ->assertSee('Troops from the HoloNet')
-            ->assertSee('Georgia hospital visit')
-            ->assertSee('501st Georgia Garrison')
-            ->assertSee(route('plugins.holonet.index'), false);
+            ->assertInertia(fn (Assert $page): Assert => $page->where('record_slots', function ($slots): bool
+            {
+                $summary = $slots['service-records.trooper.summary'] ?? '';
+                $history = $slots['service-records.trooper.history'] ?? '';
+
+                return str_contains($summary, 'All-Time Troops')
+                    && str_contains($history, 'Troops from the HoloNet')
+                    && str_contains($history, 'Georgia hospital visit')
+                    && str_contains($history, '501st Georgia Garrison')
+                    && str_contains($slots['service-records.trooper.actions'] ?? '', route('plugins.holonet.index'));
+            }));
     }
 
     public function test_service_record_has_no_linked_section_without_links(): void
@@ -122,8 +129,13 @@ class LinkedTroopsTest extends TestCase
         $this->actingAs($this->trooper)
             ->get(route('service-records.trooper', ['trooper' => $other]))
             ->assertOk()
-            ->assertDontSee('All-Time Troops')
-            ->assertDontSee(route('plugins.holonet.index'), false);
+            ->assertInertia(fn (Assert $page): Assert => $page->where('record_slots', function ($slots): bool
+            {
+                $html = implode('', collect($slots)->all());
+
+                return !str_contains($html, 'All-Time Troops')
+                    && !str_contains($html, route('plugins.holonet.index'));
+            }));
     }
 
     public function test_unlinking_removes_the_troops_and_tells_the_other_tracker(): void

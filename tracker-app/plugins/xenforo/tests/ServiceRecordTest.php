@@ -9,6 +9,7 @@ use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
 use App\Messages\Troopers\Queries\GetTrooperServiceRecord;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Mockery\MockInterface;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
@@ -59,19 +60,21 @@ class ServiceRecordTest extends TestCase
             ->get(route('service-records.trooper', ['trooper' => $this->target]));
 
         $response->assertOk();
-        $response->assertSeeInOrder([
-            '<span class="userBanner userBanner--primary">Primary</span>',
-            '<span class="userBanner userBanner--reserve">Reserve</span>',
-        ], false);
-        $response->assertSee('https://xf.test/members/15802/', false);
-        $response->assertSee('Xenforo Donation History');
-        $response->assertSee('Supporter');
-        $response->assertViewHas('is_active_donor', true);
-        $response->assertViewHas(
-            'service_summary',
-            fn (array $summary): bool => $summary['total_donated'] === 12.5
-                && $summary['donation_months'] === 2
-        );
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->where('record_slots', function ($slots): bool
+            {
+                $badges = $slots['service-records.trooper.badges'] ?? '';
+                $donations = $slots['service-records.trooper.donations'] ?? '';
+
+                return str_contains($badges, '<span class="userBanner userBanner--primary">Primary</span>')
+                    && str_contains($badges, '<span class="userBanner userBanner--reserve">Reserve</span>')
+                    && str_contains($slots['service-records.trooper.actions'] ?? '', 'https://xf.test/members/15802/')
+                    && str_contains($donations, 'Xenforo Donation History')
+                    && str_contains($donations, 'Supporter');
+            })
+            ->where('summary.donor_image_url', config('tracker.donor.image_url'))
+            ->where('summary.total_donated', '$12.50')
+            ->where('summary.donation_months', 2));
     }
 
     public function test_page_has_no_forum_details_while_plugin_is_disabled(): void
@@ -85,9 +88,9 @@ class ServiceRecordTest extends TestCase
             ->get(route('service-records.trooper', ['trooper' => $this->target]));
 
         $response->assertOk();
-        $response->assertDontSee('Forum Profile');
-        $response->assertDontSee('Xenforo Donation History');
-        $response->assertViewHas('is_active_donor', false);
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->where('record_slots', [])
+            ->where('summary.donor_image_url', null));
     }
 
     /**
