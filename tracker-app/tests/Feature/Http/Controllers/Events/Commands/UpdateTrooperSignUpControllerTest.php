@@ -81,7 +81,7 @@ class UpdateTrooperSignUpControllerTest extends TestCase
             ->asGoing()
             ->create();
 
-        $response = $this->actingAs($trooper)->withHeaders(['HX-Request' => 'true'])->post(
+        $response = $this->actingAs($trooper)->post(
             route('events.signup-update', ['event_trooper' => $event_trooper]),
             ['event_shift_station_id' => ''],
         );

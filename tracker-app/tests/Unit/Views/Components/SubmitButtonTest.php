@@ -19,13 +19,12 @@ class SubmitButtonTest extends TestCase
         $this->assertStringContainsString('Save', $subject);
     }
 
-    public function test_it_includes_htmx_attributes(): void
+    public function test_it_disables_itself_on_submit(): void
     {
         $subject = Blade::render('<x-submit-button>Submit</x-submit-button>');
 
-        $this->assertStringContainsString('data-action="htmx-disable"', $subject);
-        $this->assertStringContainsString('hx-headers', $subject);
-        $this->assertStringContainsString('X-Dispatch-ID', $subject);
+        $this->assertStringContainsString('data-action="disable-on-submit"', $subject);
+        $this->assertStringNotContainsString('hx-', $subject);
     }
 
     public function test_it_generates_unique_id(): void

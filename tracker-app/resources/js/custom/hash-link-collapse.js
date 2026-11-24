@@ -3,7 +3,7 @@ import { Collapse } from 'bootstrap';
 // A link to "#id" does nothing when that element sits in a collapsed accordion: it has no box to
 // scroll to. Open the sections first, then scroll. data-expand="<selector>" on the link opens
 // more sections, e.g. "Sign up" opens the shifts that take sign-ups. Delegated, so it works for
-// links HTMX swaps in.
+// links added after the page loads.
 
 function closedAncestors(target) {
     const closed = [];

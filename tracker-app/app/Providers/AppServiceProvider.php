@@ -20,7 +20,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Database\Migrations\MigrationRepositoryInterface;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Mail\MailManager;
@@ -73,7 +72,6 @@ class AppServiceProvider extends ServiceProvider
      *
      * Sets up:
      * - Bootstrap 5 pagination
-     * - HTMX request detection macro
      * - Migration repository configuration
      * - Database blueprint macros (trooperstamps)
      * - Blade directives (@role)
@@ -134,14 +132,6 @@ class AppServiceProvider extends ServiceProvider
         {
             return (new VerifyTrooperEmail($url))
                 ->to($notifiable->email);
-        });
-
-        //
-        //  HTMX REQUEST MACRO
-        //
-        Request::macro('isHtmx', function (): bool
-        {
-            return $this->headers->has('HX-Request');
         });
 
         //
