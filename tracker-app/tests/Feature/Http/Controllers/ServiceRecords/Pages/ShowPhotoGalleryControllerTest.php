@@ -8,6 +8,7 @@ use App\Messages\ServiceRecords\Queries\GetPhotoGallery;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
@@ -36,7 +37,9 @@ class ShowPhotoGalleryControllerTest extends TestCase
         $messages->assertCalled(GetPhotoGallery::class, fn (array $params): bool => true);
 
         $response->assertOk();
-        $response->assertViewIs('pages.service-records.photo-gallery');
-        $response->assertViewHas('uploads', $uploads);
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->component('service-records/PhotoGallery')
+            ->has('photos.data', 0)
+            ->has('photos.meta.links'));
     }
 }

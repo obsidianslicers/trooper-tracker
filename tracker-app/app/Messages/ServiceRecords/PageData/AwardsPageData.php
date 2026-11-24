@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\ServiceRecords\PageData;
 
+use App\Messages\ServiceRecords\Resources\RecentAwardResource;
 use App\Messages\Troopers\Queries\GetTrooperAwards;
 use Hyperdrive\Message;
 
@@ -24,7 +25,7 @@ final class AwardsPageData extends Message
         $days = (int) $this->days;
 
         return [
-            'award_troopers' => GetTrooperAwards::call(lookback: $days),
+            'awards' => RecentAwardResource::collection(GetTrooperAwards::call(lookback: $days)),
             'days' => $days,
         ];
     }

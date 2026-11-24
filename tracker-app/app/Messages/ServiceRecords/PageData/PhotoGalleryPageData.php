@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\ServiceRecords\PageData;
 
 use App\Messages\ServiceRecords\Queries\GetPhotoGallery;
+use App\Messages\ServiceRecords\Resources\GalleryPhotoResource;
 use Hyperdrive\Message;
 
 /**
@@ -20,7 +21,7 @@ final class PhotoGalleryPageData extends Message
     public function handle(): array
     {
         return [
-            'uploads' => GetPhotoGallery::call(),
+            'photos' => GalleryPhotoResource::collection(GetPhotoGallery::call()),
         ];
     }
 }

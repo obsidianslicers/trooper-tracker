@@ -1,7 +1,7 @@
 <script lang="ts">
     import { t } from "$lib/i18n";
     import type { DisplayUploads, EventDisplayViewModel } from "../../models";
-    import PhotoModal from "./PhotoModal.svelte";
+    import PhotoModal from "$lib/components/PhotoModal.svelte";
     import SectionTitle from "./SectionTitle.svelte";
     import UploadGrid from "./UploadGrid.svelte";
     import UploadZone from "./UploadZone.svelte";
@@ -35,4 +35,4 @@
 
 <UploadZone {vm} url={uploads.upload_url} {default_instructional} />
 
-<PhotoModal bind:url={viewing} />
+<PhotoModal bind:url={viewing} alt={t("Event photo")} />

@@ -7,7 +7,7 @@ namespace Tests\Feature\Http\Controllers\Search\Pages;
 use App\Messages\Search\Queries\GlobalSearch;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Collection;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
 
@@ -37,10 +37,13 @@ class SearchAllControllerTest extends TestCase
         $messages->assertNotCalled(GlobalSearch::class);
 
         $response->assertOk();
-        $response->assertViewIs('pages.search.results');
-        $response->assertViewHas('term', 'a');
-        $response->assertViewHas('type', 'all');
-        $response->assertViewHas('results', null);
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->component('search/Results')
+            ->where('term', 'a')
+            ->where('type', 'all')
+            ->where('searched', false)
+            ->where('troopers', null)
+            ->where('events', null));
     }
 
     public function test_invoke_dispatches_global_search_for_valid_trooper_type(): void
@@ -62,15 +65,13 @@ class SearchAllControllerTest extends TestCase
         $messages->assertCalled(GlobalSearch::class, fn (array $params): bool => $params['term'] === 'Vader' && $params['type'] === 'troopers');
 
         $response->assertOk();
-        $response->assertViewIs('pages.search.results');
-        $response->assertViewHas('term', 'Vader');
-        $response->assertViewHas('type', 'troopers');
-        $response->assertViewHas('results', function (array $results): bool
-        {
-            return $results['troopers'] instanceof Collection
-                && $results['events'] instanceof Collection
-                && $results['troopers']->pluck(Trooper::DISPLAY_NAME)->all() === ['Matched Trooper'];
-        });
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->component('search/Results')
+            ->where('term', 'Vader')
+            ->where('type', 'troopers')
+            ->has('troopers', 1)
+            ->where('troopers.0.display_name', 'Matched Trooper')
+            ->where('events', null));
     }
 
     public function test_invoke_dispatches_global_search_with_all_type_when_type_is_invalid(): void
@@ -92,6 +93,9 @@ class SearchAllControllerTest extends TestCase
         $messages->assertCalled(GlobalSearch::class, fn (array $params): bool => $params['term'] === 'Legion' && $params['type'] === 'all');
 
         $response->assertOk();
-        $response->assertViewHas('type', 'all');
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->where('type', 'all')
+            ->has('troopers', 0)
+            ->has('events', 0));
     }
 }

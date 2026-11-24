@@ -6,18 +6,19 @@ namespace App\Http\Controllers\ServiceRecords\Pages;
 
 use App\Http\Controllers\PageController;
 use App\Messages\ServiceRecords\PageData\PhotoGalleryPageData;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Displays the community photo gallery of recent event uploads.
  */
 class ShowPhotoGalleryController extends PageController
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): InertiaResponse
     {
         $data = PhotoGalleryPageData::call($request);
 
-        return view('pages.service-records.photo-gallery', $data);
+        return Inertia::render('service-records/PhotoGallery', $data);
     }
 }
