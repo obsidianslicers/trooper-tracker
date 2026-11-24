@@ -56,6 +56,24 @@ class PushNotificationReadControllerTest extends TestCase
         $messages->assertCalled(MarkPushNotificationAsRead::class);
     }
 
+    public function test_push_notification_read_controller_sends_the_svelte_page_to_the_url(): void
+    {
+        $this->fakeMessages([MarkPushNotificationAsRead::class => null]);
+        $trooper = Trooper::factory()->asActive()->create();
+        $notification = TrooperNotification::factory()
+            ->forTrooper($trooper)
+            ->withData(['url' => '/events/upcoming'])
+            ->create();
+
+        $response = $this->actingAs($trooper)
+            ->withHeader('X-Inertia', 'true')
+            ->post(route('account.push-notifications.read', $notification));
+
+        //  a full visit, so the notification can lead to a Blade page or another site
+        $response->assertStatus(409);
+        $response->assertHeader('X-Inertia-Location', '/events/upcoming');
+    }
+
     public function test_push_notification_read_controller_denies_access_to_other_trooper_notification(): void
     {
         $messages = $this->fakeMessages([

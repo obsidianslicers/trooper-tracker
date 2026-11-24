@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { personas } from './support/personas.js';
+import { tinker } from './support/artisan.js';
 
 test.use({ storageState: personas.member.storageState });
 
@@ -41,4 +42,18 @@ test('the bell opens the notifications in place, and they work on both kinds of 
     await menu(page).getByRole('link', { name: 'See all notifications' }).click();
     await expect(page).toHaveURL(/\/account\/push-notifications$/);
     await expect(page.locator('main, .main-content').getByText('No notifications yet.')).toBeVisible();
+});
+
+test('the inbox page opens a notification at its link', async ({ page }) => {
+    tinker(`
+        $trooper = App\\Models\\Trooper::where('email', 'member@e2e.test')->firstOrFail();
+        App\\Models\\TrooperNotification::factory()->forTrooper($trooper)
+            ->withData(['title' => 'E2E inbox notice', 'body' => 'Read the FAQ', 'url' => '/faq'])
+            ->create();
+    `);
+
+    await page.goto('/account/push-notifications');
+    await page.locator('#app').getByRole('button', { name: /E2E inbox notice/ }).click();
+
+    await expect(page).toHaveURL(/\/faq$/);
 });

@@ -9,6 +9,7 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ListNoticesControllerTest extends TestCase
@@ -33,8 +34,11 @@ class ListNoticesControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('account.notices'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.account.notices');
-        $response->assertViewHas('notices');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('account/Notices')
+            ->has('notices', 1)
+            ->where('notices.0.id', $notice->id)
+            ->where('notices.0.title', $notice->title));
     }
 
     public function test_invoke_requires_authentication(): void
