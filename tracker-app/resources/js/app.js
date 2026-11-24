@@ -47,9 +47,6 @@ Alpine.plugin(mask);
 import AccountPlugin from './account/index.js';
 Alpine.plugin(AccountPlugin);
 
-import AdminPlugin from './admin/index.js';
-Alpine.plugin(AdminPlugin);
-
 import EventPlugin from './events/index.js';
 Alpine.plugin(EventPlugin);
 
@@ -78,7 +75,6 @@ import './custom/htmx-csrf.js';
 import './custom/htmx-date-picker.js';
 import './custom/htmx-easymde.js';
 import './custom/htmx-flash.js';
-import './custom/htmx-pickers.js';
 import './custom/htmx-scroll-preserve.js';
 import './custom/htmx-typeahead.js';
 import './custom/htmx-upload.js';

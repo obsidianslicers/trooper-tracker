@@ -13,17 +13,6 @@ function form(page) {
     return page.locator('main form, .main-content form').last();
 }
 
-// Blade's organization and trooper pickers open a modal list to pick from.
-async function pick(page, property, name, search = false) {
-    await page.locator(`[name="picker-${property}"]`).click();
-    const picker = page.getByRole('dialog');
-    if (search) {
-        await picker.getByRole('textbox').fill(name);
-    }
-    await picker.getByRole('listitem').filter({ hasText: name }).first().click();
-}
-
-// Markdown fields use an editor in place of the textarea.
 // The Svelte organization picker opens a searchable list of organizations.
 async function pickOrganization(page, name) {
     await page.getByLabel('Organization', { exact: true }).click();
