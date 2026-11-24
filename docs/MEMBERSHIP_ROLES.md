@@ -309,7 +309,7 @@ Rules:
 | Approve handler | `app/Messages/Troopers/Commands/Membership/ApproveTrooperMembership.php` |
 | Role change handler | `app/Messages/Troopers/Commands/UpdateTrooperAuthority.php` |
 | Visitor expiry command | `app/Console/Commands/ExpireVisitorAccessCommand.php` |
-| Visitor renewal controller | `app/Http/Controllers/Account/VisitorRenewSubmitController.php` |
+| Visitor renewal controllers | `app/Http/Controllers/Account/Pages/ShowRenewVisitorFormController.php` (form), `app/Http/Controllers/Account/Commands/RenewVisitorMembershipController.php` (submit) |
 | Permission request messages | `app/Messages/Troopers/Commands/Permissions/` |
 | Permission request controllers | `app/Http/Controllers/Admin/Troopers/{Commands,Pages}/*Permission*Controller.php` |
 | Permission request pages | `resources/svelte/pages/admin/troopers/RequestPermissions.svelte`, `PermissionApprovals.svelte` |

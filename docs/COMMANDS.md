@@ -14,14 +14,22 @@ These commands run automatically via the scheduler defined in `routes/console.ph
 
 | Command | Schedule |
 |---|---|
+| `tracker:dispatch-queue-heartbeat` | Every minute |
+| `tracker:check-supervisor-health` | Every 5 minutes |
+| `auth:clear-resets` (Laravel) | Every 15 minutes |
 | `xenforo:sync-users` (XenForo plugin, while enabled) | Every hour |
 | `tracker:close-event-shifts` | Every hour |
+| `tracker:expire-visitor-access` | Daily at 12:30 AM |
 | `tracker:close-events` | Daily at 1:00 AM |
 | `tracker:calculate-trooper-achievements` | Daily at 2:00 AM |
-| `tracker:expire-visitor-access` | Daily at 12:30 AM |
-| `tracker:send-daily-event-notifications` | Daily at 8:00 AM |
 | `tracker:process-account-deletions` | Daily at 3:30 AM |
 | `holonet:refresh-links --spread` (HoloNet plugin, while enabled) | Daily, starting at a random time between 4:00 and 5:00 AM |
+| `tracker:send-daily-event-notifications` | Daily at 8:00 AM |
+| `tracker:send-daily-milestone-notifications` | Daily at 8:00 AM |
+| `tracker:send-tentative-reminders` | Daily at 8:00 AM |
+| `tracker:remind-closed-event-shifts` | Daily at 9:00 AM |
+| `tracker:synchronize-organizations` | Weekly, Sunday at 3:00 AM |
+| `tracker:remind-stale-verifications` | Weekly, Monday at 9:00 AM |
 
 ---
 
@@ -85,25 +93,9 @@ php artisan tracker:fix-trooper-assignment-hierarchy
 
 ---
 
-### `tracker:merge-troopers`
+### Merging troopers (no command)
 
-Merges two trooper accounts, reassigning the source trooper's organizations, assignments, costumes, donations, friends, awards, event sign-ups/uploads/watches/mission-acks/notifications/shares, and achievements onto the target trooper. Account-level fields (phone, date of birth, membership status/role, notification settings, etc.) are reconciled onto the target, and the source trooper's `membership_status` is set to `MERGED`. Runs inside a database transaction; notifies all administrators when complete.
-
-```bash
-php artisan tracker:merge-troopers {source_trooper_id} {target_trooper_id}
-```
-
-| Argument | Required | Description |
-|---|---|---|
-| `source_trooper_id` | Yes | ID of the trooper whose account will be merged from (marked `MERGED` afterward) |
-| `target_trooper_id` | Yes | ID of the trooper whose account will be merged into |
-
-**Example:**
-```bash
-php artisan tracker:merge-troopers 42 1
-```
-
-> **Note:** This runs the same merge logic synchronously as the admin "Merge Troopers" UI, which instead queues it via `MergeTroopersJob`.
+There is no Artisan command for merging troopers. A system owner merges two accounts on the admin **Merge Troopers** page (`/admin/troopers/merge`, `ShowMergeTroopersFormController` → `MergeTroopersController`), which queues `MergeTroopersJob`. The job calls the `MergeTroopers` message: it moves the source trooper's organizations, assignments, costumes, donations, friends, awards, event sign-ups, uploads, watches, mission acknowledgements, notifications, shares and achievements onto the target, reconciles account-level fields, sets the source's `membership_status` to `MERGED`, and notifies the administrators when done.
 
 ---
 
@@ -257,6 +249,57 @@ php artisan tracker:send-daily-event-notifications
 
 ---
 
+### `tracker:send-daily-milestone-notifications`
+
+Sends the daily roundup of trooper milestones to the administrators and moderators in scope who opted in to them, by queueing `SendTrooperMilestoneNotificationsJob`.
+
+```bash
+php artisan tracker:send-daily-milestone-notifications
+```
+
+---
+
+### `tracker:send-tentative-reminders`
+
+Reminds troopers whose sign-up is still **Tentative** to confirm or cancel. Finds them with `GetTentativeEventTroopers` and sends each a `SendTentativeReminder`.
+
+```bash
+php artisan tracker:send-tentative-reminders
+```
+
+---
+
+### `tracker:remind-closed-event-shifts`
+
+After a shift closes, asks every trooper who meant to go whether they made it. Finds the shifts with `GetEventShiftsToRemind`, records when each was last reminded, and sends `EventShiftCompletedNotification` to each trooper who intended to go.
+
+```bash
+php artisan tracker:remind-closed-event-shifts
+```
+
+---
+
+### `tracker:remind-stale-verifications`
+
+Notifies system owners when troop verifications have been waiting more than 30 days (`StaleVerificationsNotification`, with the count). Does nothing when none are waiting that long.
+
+```bash
+php artisan tracker:remind-stale-verifications
+```
+
+---
+
+### `tracker:dispatch-queue-heartbeat` / `tracker:check-supervisor-health`
+
+Together they watch the queue worker. `tracker:dispatch-queue-heartbeat` queues `QueueWorkerHeartbeatJob` every minute; when a worker runs it, it records a heartbeat. `tracker:check-supervisor-health` checks every five minutes whether that heartbeat has gone stale and emails the administrators when the worker goes down and again when it recovers. The check only runs when `tracker.supervisor_check.email_enabled` is on and the queue isn't `sync`.
+
+```bash
+php artisan tracker:dispatch-queue-heartbeat
+php artisan tracker:check-supervisor-health
+```
+
+---
+
 ### `tracker:send-test-push`
 
 Sends a test push notification to a specific trooper. Picks a random notification from a predefined test set.
@@ -370,12 +413,12 @@ php artisan tracker:synchronize-organizations
 Syncs a single trooper's data to XenForo. Replaces `tracker:synchronize-xenforo-user`. Available while the XenForo plugin is enabled.
 
 ```bash
-php artisan xenforo:sync-user {trooper_id} [--dry-run]
+php artisan xenforo:sync-user {trooper} [--dry-run]
 ```
 
 | Argument / option | Required | Description |
 |---|---|---|
-| `trooper_id` | Yes | ID of the trooper to sync |
+| `trooper` | Yes | ID of the trooper to sync |
 | `--dry-run` | No | Show the group changes without writing to XenForo |
 
 **Example:**
@@ -418,28 +461,17 @@ php artisan xenforo:sync-users --chunk=50
 
 ---
 
-### `xenforo:test-thread`
+### `xenforo:import-env` (XenForo plugin)
 
-Creates a test thread in a XenForo forum node and outputs the raw JSON response. Useful for verifying XenForo API connectivity and thread creation.
+Copies the `XENFORO_*` and `TRACKER_REQUIRE_XENFORO` values from `.env` onto the plugin's settings page (Command Staff > Plugins > XenForo > Settings). Settings that are already saved are kept unless `--force` is given.
 
 ```bash
-php artisan xenforo:test-thread {node_id} {title} {message} [--user_id=] [--prefix_id=] [--extra=*]
+php artisan xenforo:import-env [--force]
 ```
 
-| Argument/Option | Required | Description |
+| Option | Required | Description |
 |---|---|---|
-| `node_id` | Yes | XenForo forum/node ID to post in |
-| `title` | Yes | Thread title |
-| `message` | Yes | Thread body |
-| `--user_id` | No | XenForo user ID for the thread creator |
-| `--prefix_id` | No | XenForo thread prefix ID |
-| `--extra` | No | Extra fields as `key:value` pairs (repeatable) |
-
-**Example:**
-```bash
-php artisan xenforo:test-thread 5 "Test Thread" "Hello world" --user_id=1 --prefix_id=3
-php artisan xenforo:test-thread 5 "Test" "Body" --extra=field1:val1 --extra=field2:val2
-```
+| `--force` | No | Replace settings that are already saved |
 
 ---
 

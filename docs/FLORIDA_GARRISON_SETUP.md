@@ -549,8 +549,8 @@ Use this order when standing up the Florida Garrison instance:
 
    ```bash
    cd /home/admin/trooper-tracker/tracker-app
-   php artisan queue:table
-   php artisan queue:failed-table
+   php artisan make:queue-table
+   php artisan make:queue-failed-table
    php artisan migrate --force
    ```
 

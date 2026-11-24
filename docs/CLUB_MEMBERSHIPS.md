@@ -147,7 +147,7 @@ The individual `->save()` call here **does** fire `TrooperAssignmentObserver.sav
 
 ## Denial
 
-`DenyTrooperRequest` sets `status = DENIED`, records `denial_reason`, and sends `JoinRequestDeniedNotification` to the trooper. No `TrooperOrganization` or `TrooperAssignment` records are created or modified.
+`DenyTrooperRequest` sets `status = DENIED`, records `denial_reason`, and sends `TrooperRequestDeniedNotification` to the trooper. No `TrooperOrganization` or `TrooperAssignment` records are created or modified.
 
 ---
 
@@ -261,7 +261,7 @@ Visitors can only be members of primary clubs. The check applies only to `is_mem
 | Direct admin add | `app/Messages/Troopers/Commands/AddTrooperDirectly.php` |
 | Membership page query | `app/Messages/Troopers/Queries/Membership/GetTrooperOrganizationMemberships.php` |
 | Assignment observer | `app/Models/Observers/TrooperAssignmentObserver.php` |
-| Membership page view | `resources/views/pages/admin/troopers/membership.blade.php` |
+| Membership page view | `resources/svelte/pages/admin/troopers/components/profile/ProfileMemberships.svelte`, `resources/svelte/pages/admin/troopers/components/membership/MembershipLookup.svelte` |
 | TrooperRequest model | `app/Models/TrooperRequest.php` |
 | Organization model | `app/Models/Organization.php` |
 | TrooperAssignment model | `app/Models/TrooperAssignment.php` |

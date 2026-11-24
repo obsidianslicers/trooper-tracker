@@ -157,7 +157,7 @@ If a shift has no stations, all station behavior is bypassed and legacy signup l
 | Models | `app/Models/EventShiftStation.php`, `app/Models/EventShift.php`, `app/Models/EventTrooper.php` |
 | Capacity decisions | `app/Services/EventRosterCapacityService.php` |
 | Domain commands | `app/Messages/Events/Commands/SignUpEventTrooper.php`, `app/Messages/Events/Commands/ChangeEventTrooperStation.php`, `app/Messages/Events/Commands/PromoteNextInLineEventTrooper.php`, `app/Messages/Events/Commands/ReconcileEventRoster.php`, `app/Messages/Events/Commands/UpdateEventShiftStations.php`, `app/Messages/Events/Commands/RemoveEventShiftStation.php`, `app/Messages/Events/Commands/ReorderEventShiftStations.php` |
-| Admin shift editor | `resources/views/pages/admin/events/shifts.blade.php`, `app/Http/Controllers/Admin/Events/UpdateShiftsSubmitController.php` |
-| Admin roster editor | `resources/views/pages/admin/events/troopers.blade.php`, `app/Http/Controllers/Admin/Events/UpdateTroopersSubmitController.php` |
+| Admin shift editor | `resources/svelte/pages/admin/events/components/ShiftsTab.svelte` (`ShiftRow`, `NewShiftRow`), `app/Http/Controllers/Admin/Events/Commands/UpdateEventShiftsController.php` |
+| Admin roster editor | `resources/svelte/pages/admin/events/components/RosterTab.svelte` (`RosterTrooperRow`, `RosterAddTrooper`), `app/Http/Controllers/Admin/Events/Commands/UpdateEventTroopersController.php` |
 | Public signup/update | `app/Http/Controllers/Events/Commands/SignUpTrooperController.php`, `app/Http/Controllers/Events/Commands/UpdateTrooperSignUpController.php` |
 | Event display | `resources/svelte/pages/events/components/display/ShiftHeader.svelte`, `resources/svelte/pages/events/components/display/RosterRow.svelte` |

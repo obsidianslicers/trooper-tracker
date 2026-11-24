@@ -72,7 +72,7 @@ The picked coordinator can edit and run that event even when someone else create
 
 Picking a coordinator doesn't change who created the event, so the forum thread stays under the creator's name.
 
-**Source:** `app/Models/Event.php` (`eventCoordinator()`, `coordinatorCandidates()`), `app/Models/Scopes/HasEventScopes.php` (`scopeManagedBy()`), `routes/web/admin-events.php`, `resources/svelte/pages/events/components/display/ContactSection.svelte`, `resources/views/pages/admin/events/inc/coordinator.blade.php`
+**Source:** `app/Models/Event.php` (`eventCoordinator()`, `coordinatorCandidates()`), `app/Models/Scopes/HasEventScopes.php` (`scopeManagedBy()`), `routes/web/admin-events.php`, `resources/svelte/pages/events/components/display/ContactSection.svelte`, `resources/svelte/pages/admin/events/components/EventFields.svelte`, `resources/svelte/pages/admin/events/components/OverviewTab.svelte`
 
 ---
 
@@ -84,7 +84,7 @@ Events → Calendar shows holidays in their day cells, under the date and above 
 
 **On phones** (below 768px) the calendar isn't a grid: seven columns leave about 45px a day, too narrow to read an event name, so each month lists only the days that have an event or holiday showing, as "Thu 26" followed by its holidays and events. Days from the neighbouring months are left out (that month lists them), and so are days whose events the search or filters hide. It's CSS only (`.event-calendar` in `resources/css/app.scss`); the page and its filters are the same at every width.
 
-**Source:** `app/Messages/Events/Queries/GetHolidays.php`, `resources/views/pages/events/calendar.blade.php`
+**Source:** `app/Messages/Events/Queries/GetHolidays.php`, `resources/svelte/pages/events/Calendar.svelte`
 
 ---
 

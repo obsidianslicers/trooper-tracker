@@ -91,7 +91,7 @@ class LoginTrooperController extends Controller
     }
 }
 
-// routes/web.php
+// routes/web/auth.php
 Route::post('/login', LoginTrooperController::class);
 ```
 
@@ -507,14 +507,14 @@ All enums are backed by strings and use the `HasEnumHelpers` trait.
 
 **Available Enums:**
 - **AchievementType:** Achievement categories
-- **AwardFrequency:** `once`, `monthly`, `yearly`
-- **EventStatus:** `draft`, `open`, `closed`, `cancelled`
-- **EventTrooperStatus:** `none`, `going`, `tentative`, `unavailable`
+- **AwardFrequency:** `once`, `random`, `monthly`, `quarterly`, `annually`
+- **EventStatus:** `draft`, `open`, `closed`, `cancelled`, `locked`, `manualselection`
+- **EventTrooperStatus:** `none`, `going`, `standby`, `tentative`, `attended`, `cancelled`, `pending`, `notpicked`, `noshow`, `unabletoattend`, `awaiting_verification`
 - **MembershipRole:** `member`, `handler`, `visitor`, `event_coordinator`, `moderator`, `staff_officer`, `system_owner`
-- **MembershipStatus:** `pending`, `active`, `retired`
-- **NoticeType:** `info`, `warning`, `alert`
+- **MembershipStatus:** `none`, `pending`, `denied`, `active`, `inactive`, `invalid`, `reserve`, `retired`, `merged`, `departed`
+- **NoticeType:** `info`, `success`, `warning`, `danger`
 - **NotificationFrequency:** `never`, `instant`, `daily`
-- **OrganizationType:** `club`, `garrison`, `squad`
+- **OrganizationType:** `organization`, `region`, `unit`
 - **TrooperTheme:** UI theme preferences
 
 **Enum Helper Methods (from HasEnumHelpers):**

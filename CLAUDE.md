@@ -10,10 +10,11 @@ TroopTracker is a Laravel application for managing costuming club activities —
 |-------|-----------|
 | Backend | PHP 8.2+, Laravel |
 | Database | MySQL 8.0+ (SQLite in-memory for tests) |
-| Frontend | Blade templates, Alpine 3.x, HTMX 2.x, Bootstrap 5.2x |
+| Frontend | Inertia 2 + Svelte 5 + TypeScript (target); Blade, Alpine 3.x, HTMX 2.x (legacy); Bootstrap 5.2x |
 | Build | Vite, npm |
-| Testing | PHPUnit |
-| Code quality | Pint (formatting), PHPStan (static analysis) |
+| Testing | PHPUnit, Vitest, Playwright |
+| Code quality | Pint (formatting) |
+| Plugins | `tracker-app/plugins/<slug>` (see `docs/PLUGINS.md`) |
 
 The Laravel app root is `tracker-app/`. All commands below assume you're running from there.
 
@@ -447,8 +448,8 @@ npm run test:e2e:parallel                 # Same, split over several app servers
 php artisan tracker:report-translations --strict  # Missing English lines / untranslated per language
 
 # Code quality
-./vendor/bin/pint                         # Format code
-./vendor/bin/phpstan                      # Static analysis
+composer pint:format                      # Format code (the folders CI checks; not tests/)
+composer pint:test                        # What CI runs: fails on unformatted code
 
 # Schema changes (after running migrations)
 php artisan code:models                   # Regenerate base models
@@ -501,10 +502,11 @@ style: support the garrison button is full width on phones
 ## Enums
 
 All enums are backed strings using `HasEnumHelpers`:
-- `AchievementType`, `AwardFrequency`, `EventStatus`, `EventTrooperStatus`, `EventType`
+- `AchievementType`, `AwardFrequency`, `EventStatus`, `EventTrooperStatus`, `EventGuestStatus`
 - `MembershipRole` (`member`, `handler`, `visitor`, `event_coordinator`, `moderator`, `staff_officer`, `system_owner`); `staff_officer` is like a System Owner without Plugins, System Check, or Merge (`is_administrator` vs `has_system_owner`)
-- `MembershipStatus` (`pending`, `active`, `retired`)
-- `NoticeType`, `NotificationFrequency`, `OrganizationType`, `TrooperTheme`
+- `MembershipStatus` (`none`, `pending`, `denied`, `active`, `inactive`, `invalid`, `reserve`, `retired`, `merged`, `departed`)
+- `NoticeType`, `NotificationFrequency`, `OrganizationType` (`organization`, `region`, `unit`), `TrooperTheme`
+- Event types are records (the `EventType` model, managed under Command Staff), not an enum
 
 ```php
 MembershipRole::toArray();     // ['member' => 'Member', ...]
