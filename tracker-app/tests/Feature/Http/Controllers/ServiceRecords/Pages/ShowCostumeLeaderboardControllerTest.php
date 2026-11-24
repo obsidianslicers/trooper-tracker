@@ -12,6 +12,7 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\BuildsTroopsToConfirm;
 use Tests\Concerns\FakesMessages;
 use Tests\TestCase;
@@ -44,24 +45,7 @@ class ShowCostumeLeaderboardControllerTest extends TestCase
         $messages->assertCalled(GetCostumeTrooperLeaderboard::class);
 
         $response->assertOk();
-        $response->assertViewIs('pages.service-records.costume');
-    }
-
-    public function test_invoke_renders_partial_view_for_htmx_request(): void
-    {
-        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
-        $costume = Costume::factory()->create();
-
-        $messages = $this->fakeMessages([GetCostumeTrooperLeaderboard::class => $this->handlerResult()]);
-
-        $response = $this->actingAs($trooper)
-            ->withHeader('HX-Request', 'true')
-            ->get(route('service-records.costume', $costume));
-
-        $messages->assertCalled(GetCostumeTrooperLeaderboard::class);
-
-        $response->assertOk();
-        $response->assertViewIs('pages.service-records.inc.costume-stats');
+        $response->assertInertia(fn (Assert $page) => $page->component('service-records/Costume'));
     }
 
     public function test_invoke_resolves_days_from_query_string(): void
@@ -77,7 +61,7 @@ class ShowCostumeLeaderboardControllerTest extends TestCase
         $messages->assertCalled(GetCostumeTrooperLeaderboard::class, fn (array $params): bool => $params['costume']->id === $costume->id && $params['lookback'] === 90 && $params['organization'] === null && $params['limit'] === 30);
 
         $response->assertOk();
-        $response->assertViewHas('days', 90);
+        $response->assertInertia(fn (Assert $page) => $page->where('filters.days', 90));
     }
 
     public function test_invoke_defaults_to_all_time_when_days_absent(): void
@@ -93,7 +77,7 @@ class ShowCostumeLeaderboardControllerTest extends TestCase
         $messages->assertCalled(GetCostumeTrooperLeaderboard::class, fn (array $params): bool => $params['lookback'] === null);
 
         $response->assertOk();
-        $response->assertViewHas('days', null);
+        $response->assertInertia(fn (Assert $page) => $page->where('filters.days', null));
     }
 
     public function test_invoke_ignores_invalid_days_value(): void
@@ -109,7 +93,7 @@ class ShowCostumeLeaderboardControllerTest extends TestCase
         $messages->assertCalled(GetCostumeTrooperLeaderboard::class, fn (array $params): bool => $params['lookback'] === null);
 
         $response->assertOk();
-        $response->assertViewHas('days', null);
+        $response->assertInertia(fn (Assert $page) => $page->where('filters.days', null));
     }
 
     public function test_invoke_resolves_organization_from_query_string(): void
@@ -129,7 +113,7 @@ class ShowCostumeLeaderboardControllerTest extends TestCase
         $messages->assertCalled(GetCostumeTrooperLeaderboard::class, fn (array $params): bool => $params['organization']?->id === $organization->id);
 
         $response->assertOk();
-        $response->assertViewHas('organization_id', $organization->id);
+        $response->assertInertia(fn (Assert $page) => $page->where('filters.organization_id', $organization->id));
     }
 
     public function test_invoke_passes_costume_to_view(): void
@@ -145,10 +129,9 @@ class ShowCostumeLeaderboardControllerTest extends TestCase
         $messages->assertCalled(GetCostumeTrooperLeaderboard::class);
 
         $response->assertOk();
-        $response->assertViewHas('costume', function (Costume $view_costume) use ($costume): bool
-        {
-            return $view_costume->id === $costume->id;
-        });
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('costume.id', $costume->id)
+            ->where('costume.name', $costume->name));
     }
 
     public function test_invoke_passes_stats_and_top_troopers_to_view(): void
@@ -164,16 +147,11 @@ class ShowCostumeLeaderboardControllerTest extends TestCase
         $messages->assertCalled(GetCostumeTrooperLeaderboard::class);
 
         $response->assertOk();
-        $response->assertViewHas('top_troopers', function (Collection $top_troopers): bool
-        {
-            return $top_troopers->isEmpty();
-        });
-        $response->assertViewHas('stats', function (array $stats): bool
-        {
-            return array_key_exists('total_deployments', $stats)
-                && array_key_exists('unique_troopers', $stats)
-                && array_key_exists('last_deployed_at', $stats);
-        });
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('costume.top_troopers', [])
+            ->where('costume.total_deployments', '0')
+            ->where('costume.unique_troopers', '0')
+            ->where('costume.last_deployed', null));
     }
 
     /**
@@ -202,6 +180,8 @@ class ShowCostumeLeaderboardControllerTest extends TestCase
         $response = $this->actingAs($viewer)->get(route('service-records.costume', $costume));
 
         $response->assertOk();
-        $response->assertSeeInOrder(['TK-Zeta', 'Jane Example'], false);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('costume.top_troopers.0.display_name', 'TK-Zeta')
+            ->where('costume.top_troopers.0.legal_name', 'Jane Example'));
     }
 }

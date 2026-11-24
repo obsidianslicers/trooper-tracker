@@ -6,12 +6,15 @@ namespace App\Messages\ServiceRecords\PageData;
 
 use App\Messages\Concerns\ResolvesLeaderboardFilters;
 use App\Messages\Reports\Queries\GetCostumeTrooperLeaderboard;
+use App\Messages\ServiceRecords\Resources\CostumeStatsResource;
+use App\Messages\ServiceRecords\Resources\LeaderboardFiltersResource;
 use App\Models\Costume;
 use App\Models\Organization;
 use Hyperdrive\Message;
 
 /**
- * One costume's leaderboard: who trooped in it most, over a period and in a club.
+ * A costume's own leaderboard page (service-records/Costume): its numbers and top troopers,
+ * over a period and in a club.
  *
  * @method static array<string, mixed> call(Costume $costume, ?string $days = null, ?int $organization_id = null)
  */
@@ -46,13 +49,13 @@ final class CostumeLeaderboardPageData extends Message
         );
 
         return [
-            'costume' => $this->costume,
-            'top_troopers' => $result['top_troopers'],
-            'stats' => $result['stats'],
-            'days' => $days,
-            'organizations' => $organizations,
-            'organization_id' => $organization?->id,
-            'organization' => $organization,
+            'filters' => new LeaderboardFiltersResource(
+                $organizations,
+                $days,
+                $this->leaderboardDayOptions(),
+                $organization,
+            ),
+            'costume' => new CostumeStatsResource($this->costume, $result['top_troopers'], $result['stats']),
         ];
     }
 }
