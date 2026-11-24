@@ -15,6 +15,9 @@ use Illuminate\Support\Collection;
  */
 final class GlobalSearch extends Message
 {
+    /** The most troopers, and the most events, one search returns. */
+    public const LIMIT = 25;
+
     public function __construct(
         private readonly string $term,
         private readonly string $type = SearchType::ALL->value,
@@ -43,7 +46,7 @@ final class GlobalSearch extends Message
                 ->with('organization:id,name')
                 ->where(Event::NAME, 'like', '%'.$term.'%')
                 ->orderByDesc(Event::EVENT_START)
-                ->limit(25)
+                ->limit(self::LIMIT)
                 ->get();
         }
 
@@ -85,7 +88,7 @@ final class GlobalSearch extends Message
         return $query
             ->with('organizations')
             ->orderByRelevance($term)
-            ->limit(25)
+            ->limit(self::LIMIT)
             ->get();
     }
 }

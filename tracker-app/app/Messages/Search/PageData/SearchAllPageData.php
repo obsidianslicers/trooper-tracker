@@ -7,6 +7,8 @@ namespace App\Messages\Search\PageData;
 use App\Enums\SearchType;
 use App\Enums\TrooperTheme;
 use App\Messages\Search\Queries\GlobalSearch;
+use App\Messages\Search\Resources\SearchEventResource;
+use App\Messages\Search\Resources\SearchTrooperResource;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
@@ -35,17 +37,22 @@ final class SearchAllPageData extends Message
     {
         $term = (string) $this->q;
         $type = SearchType::tryFrom($this->type ?? SearchType::ALL->value) ?? SearchType::ALL;
+        $searched = strlen(trim($term)) >= self::MIN_TERM_LENGTH;
+        $results = $searched ? GlobalSearch::call(term: $term, type: $type->value) : [];
 
         return [
             'term' => $term,
             'type' => $type->value,
-            'results' => strlen(trim($term)) >= self::MIN_TERM_LENGTH
-                ? GlobalSearch::call(term: $term, type: $type->value)
+            'searched' => $searched,
+            'troopers' => $searched && in_array($type, [SearchType::ALL, SearchType::TROOPERS], true)
+                ? SearchTrooperResource::collection($results['troopers'] ?? collect())
                 : null,
+            'events' => $searched && in_array($type, [SearchType::ALL, SearchType::EVENTS], true)
+                ? SearchEventResource::collection($results['events'] ?? collect())
+                : null,
+            'limit' => GlobalSearch::LIMIT,
             'search_title' => $this->searchTitle(),
             'search_types' => SearchType::toArray(),
-            'show_troopers' => in_array($type, [SearchType::ALL, SearchType::TROOPERS], true),
-            'show_events' => in_array($type, [SearchType::ALL, SearchType::EVENTS], true),
         ];
     }
 
