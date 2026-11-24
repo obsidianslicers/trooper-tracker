@@ -20,16 +20,20 @@ class CostumeLeaderboardPageDataTest extends TestCase
     {
         $costume = Costume::factory()->create();
         $fake = $this->fakeMessages([
-            GetCostumeTrooperLeaderboard::class => ['top_troopers' => ['TK-1'], 'stats' => ['troops' => 3]],
+            GetCostumeTrooperLeaderboard::class => [
+                'top_troopers' => collect(),
+                'stats' => ['total_deployments' => 3, 'unique_troopers' => 1, 'last_deployed_at' => null],
+            ],
         ]);
 
         $subject = new CostumeLeaderboardPageData(costume: $costume, days: 'all');
         $result = $subject->handle();
 
-        $this->assertSame($costume, $result['costume']);
-        $this->assertSame(['TK-1'], $result['top_troopers']);
-        $this->assertSame(['troops' => 3], $result['stats']);
-        $this->assertNull($result['days']);
+        $stats = $result['costume']->resolve();
+        $this->assertSame($costume->id, $stats['id']);
+        $this->assertSame('3', $stats['total_deployments']);
+        $this->assertSame([], $stats['top_troopers']);
+        $this->assertNull($result['filters']->resolve()['days']);
         $fake->assertCalled(
             GetCostumeTrooperLeaderboard::class,
             fn (array $params): bool => $params['costume'] === $costume && $params['lookback'] === null

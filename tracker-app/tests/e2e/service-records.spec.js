@@ -37,7 +37,7 @@ test.describe('as a member', () => {
 
     test('the leaderboard ranks troopers and links to the costumes they troop in', async ({ page }) => {
         await page.goto('/service-records/leaderboard');
-        await expect(page.getByRole('link', { name: seeded.veteran })).toBeVisible();
+        await expect(page.getByRole('link', { name: seeded.veteran, exact: true })).toBeVisible();
 
         // Clicking a top costume loads its rankings into the panel beside it.
         await page.getByText(seeded.veteranCostume, { exact: true }).first().click();
@@ -113,7 +113,7 @@ test.describe('reports that need MySQL', () => {
         await page.goto('/service-records/leaderboard');
         await page.locator('#organization_id').selectOption({ label: '501st Legion' });
         await expect(page).toHaveURL(/organization_id=/);
-        await expect(page.getByRole('link', { name: seeded.veteran })).toBeVisible();
+        await expect(page.getByRole('link', { name: seeded.veteran, exact: true })).toBeVisible();
 
         await page.locator('#organization_id').selectOption({ label: 'Mandalorian Mercs' });
         await expect(page.getByText('No troopers found for the selected leaderboard filters.')).toBeVisible();
