@@ -1,3 +1,5 @@
+import type { UnreadNotice } from "$lib/domains/types.svelte";
+
 export type EventView = "list" | "calendar" | "map" | "closed" | "cancelled";
 
 export type EventShift = {
@@ -48,13 +50,7 @@ export type HostingOrganization = {
     depth: number;
 };
 
-export type UnreadNotice = {
-    id: number;
-    type: 'info' | 'success' | 'warning' | 'danger';
-    heading: string;
-    title: string;
-    html: string;
-};
+export type { UnreadNotice };
 
 export type Notices = {
     count: number;

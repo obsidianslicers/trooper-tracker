@@ -9,6 +9,9 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
+use Illuminate\Testing\TestResponse;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class NoticesControllerTest extends TestCase
@@ -22,7 +25,7 @@ class NoticesControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('account.notices'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.account.notices');
+        $response->assertInertia(fn (Assert $page) => $page->component('account/Notices'));
     }
 
     public function test_notices_controller_passes_unread_notices(): void
@@ -43,8 +46,7 @@ class NoticesControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->get(route('account.notices'));
 
-        $response->assertViewHas('notices');
-        $this->assertCount(1, $response->viewData('notices'));
+        $this->assertCount(1, $this->noticeIds($response));
     }
 
     public function test_notices_controller_only_shows_visible_notices(): void
@@ -71,7 +73,7 @@ class NoticesControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->get(route('account.notices'));
 
-        $this->assertCount(1, $response->viewData('notices'));
+        $this->assertCount(1, $this->noticeIds($response));
     }
 
     public function test_notices_controller_includes_global_notices(): void
@@ -82,7 +84,7 @@ class NoticesControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->get(route('account.notices'));
 
-        $this->assertCount(1, $response->viewData('notices'));
+        $this->assertCount(1, $this->noticeIds($response));
     }
 
     public function test_notices_controller_excludes_past_notices(): void
@@ -94,9 +96,9 @@ class NoticesControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->get(route('account.notices'));
 
-        $notices = $response->viewData('notices');
-        $this->assertTrue($notices->contains($past));
-        $this->assertTrue($notices->contains($active));
+        $notices = $this->noticeIds($response);
+        $this->assertTrue($notices->contains($past->id));
+        $this->assertTrue($notices->contains($active->id));
     }
 
     public function test_notices_controller_excludes_future_notices(): void
@@ -108,8 +110,16 @@ class NoticesControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->get(route('account.notices'));
 
-        $notices = $response->viewData('notices');
-        $this->assertTrue($notices->contains($future));
-        $this->assertTrue($notices->contains($active));
+        $notices = $this->noticeIds($response);
+        $this->assertTrue($notices->contains($future->id));
+        $this->assertTrue($notices->contains($active->id));
+    }
+
+    /**
+     * @return Collection<int, int>
+     */
+    private function noticeIds(TestResponse $response): Collection
+    {
+        return collect($response->viewData('page')['props']['notices'])->pluck('id');
     }
 }

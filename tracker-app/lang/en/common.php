@@ -23,6 +23,7 @@ return [
     'Dismiss' => 'Dismiss',
     'Language' => 'Language',
     'Location access is turned off for this site in your browser.' => 'Location access is turned off for this site in your browser.',
+    'Mark as read' => 'Mark as read',
     'No' => 'No',
     'No costume selected' => 'No costume selected',
     'No costumes matched your search.' => 'No costumes matched your search.',
