@@ -19,8 +19,6 @@ return Application::configure(basePath: dirname(__DIR__))
             __DIR__.'/../routes/web/events.php',
             __DIR__.'/../routes/web/auth.php',
             __DIR__.'/../routes/web/verification.php',
-            __DIR__.'/../routes/web/widgets.php',
-            __DIR__.'/../routes/web/pickers.php',
             __DIR__.'/../routes/web/account.php',
             __DIR__.'/../routes/web/admin.php',
             __DIR__.'/../routes/web/admin-organizations.php',
