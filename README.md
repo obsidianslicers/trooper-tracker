@@ -2,7 +2,7 @@
 
 [![Laravel Style](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml) [![Laravel Tests](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml)
 
-**Troop Tracker** is the Empire's official operations dashboard, engineered to impose order upon trooper assignments, moderation workflows, and hierarchical communications across organizations, regions, and units. Forged with Laravel, Inertia, Svelte, and Bootstrap, it delivers the precision, discipline, and ruthless efficiency expected of any system operating under Imperial authority. Legacy Blade and Alpine screens remain during the frontend migration. Each club bends it to its own doctrine through [plugins](#customizing-with-plugins): forum logins, Discord announcements, rosters read from Google Sheets and more, without touching core code.
+**Troop Tracker** is the Empire's official operations dashboard, engineered to impose order upon trooper assignments, moderation workflows, and hierarchical communications across organizations, regions, and units. Forged with Laravel, Inertia, Svelte, and Bootstrap, it delivers the precision, discipline, and ruthless efficiency expected of any system operating under Imperial authority. Each club bends it to its own doctrine through [plugins](#customizing-with-plugins): forum logins, Discord announcements, rosters read from Google Sheets and more, without touching core code.
 
 Currently Used By:
 * Florida Star Wars Clubs
@@ -20,7 +20,7 @@ Currently Used By:
 
 - Troop Tracker is a Laravel 12 application platform for Star Wars costuming clubs, focused on trooper profiles, event/troop coordination, organization hierarchy, notices, and approvals.
 - Backend is a Laravel 12 application built around organized domain features, role-based access control, and structured event/member workflows.
-- Frontend migration has moved interactive screens from Blade/HTMX/Alpine to Inertia + Svelte 5; new interactive work should follow the Svelte architecture.
+- Frontend migration has moved every interactive screen from Blade/HTMX/Alpine to Inertia + Svelte 5; new interactive work should follow the Svelte architecture.
 - Backend domain operations use single-file Hyperdrive Messages in `app/Messages/` (Commands, Queries, PageData). See [Hyperdrive Message Architecture](tracker-app/packages/hyperdrive/README.md) for details.
 - Authentication supports email/password and Google, plus login providers added by plugins (XenForo); all new accounts go through pending/admin approval.
 - Optional integrations (Discord, Google Sheets, HoloNet, Sentry, XenForo) are plugins under `tracker-app/plugins/`; see [Plugins](docs/PLUGINS.md).
@@ -62,7 +62,7 @@ Troop Tracker is live, the Empire ascends, we will now act like this was the pla
 
 ## Architecture
 
-Troop Tracker follows the ADR pattern: controllers remain thin orchestrators, domain operations are implemented as Hyperdrive Messages, and Inertia + Svelte provides the target interactive frontend. Blade and Alpine screens remain during the frontend/backend migration. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the [Hyperdrive Message Architecture](tracker-app/packages/hyperdrive/README.md) for details.
+Troop Tracker follows the ADR pattern: controllers remain thin orchestrators, domain operations are implemented as Hyperdrive Messages, and Inertia + Svelte provides the target interactive frontend. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the [Hyperdrive Message Architecture](tracker-app/packages/hyperdrive/README.md) for details.
 
 Key references:
 - [docs/CODING_CONVENTIONS.md](docs/CODING_CONVENTIONS.md) for standards and conventions
@@ -97,8 +97,7 @@ Key references:
 ### Developer Experience
 
 *   **Message-Organized Code**: Domain operations grouped by business area under `app/Messages`, with Hyperdrive handling dispatch and hydration
-*   **Component-Driven Frontend**: Inertia + Svelte 5 for migrated interactive screens, with Blade retained for static and legacy pages
-*   **Incremental Migration**: Remaining Blade/Alpine pages stay operational while their workflows are progressively refactored to the Hyperdrive Message + Svelte target architecture
+*   **Component-Driven Frontend**: Inertia + Svelte 5 for interactive screens, with Blade for static pages
 *   **Auto-Generated Models**: MySQL with Reliese Laravel base model generation
 *   **Comprehensive Testing**: PHPUnit feature tests (controllers, form requests, jobs, console commands) and unit tests (messages, policies, rules, services), Vitest for Svelte view models and front-end modules, and Playwright for pages and user flows
 *   **Policy-Based Authorization**: Scoped access control for all resources
@@ -139,7 +138,7 @@ Enable, disable or uninstall them under **Command Staff > Plugins** or with `php
 - **Laravel 12.x**, with the app's own email/password login and Socialite for Google and plugin login providers
 - **Database**: MySQL (production), SQLite (testing)
 - **Frontend target**: Inertia 2 + Svelte 5 + TypeScript + Bootstrap 5.2x
-- **Frontend legacy**: Blade templates + Alpine 3.x
+- **Static pages**: Blade templates
 - **Backend**: Hyperdrive Messages (Commands, Queries, PageData) in `app/Messages/`, one class per operation — see [Hyperdrive Message Architecture](tracker-app/packages/hyperdrive/README.md)
 - **Queue**: Database-backed Laravel queue
 - **Mail**: Laravel mailable classes with queue support

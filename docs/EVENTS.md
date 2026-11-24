@@ -20,7 +20,7 @@ The `2026_11_08_000001_create_event_types_table` migration seeds the twelve form
 
 A type with `is_counted = false` is left out of everything that counts a trooper's troops: the shift count, rank and troop milestones (`RecalculateTrooperRank`, overall and per club), the service record's per-club troop counts, the leaderboard's top troopers and costume leaderboards, the trooper event summary report, the public API's trooper history (`troopCount`), and the troop history the HoloNet plugin shares. Volunteer hours and charity totals still include these events, and they still appear in a trooper's history.
 
-Members are told the same way everywhere, so nobody finds out after the fact. `Event::notCountedNotice()` is the one sentence ("Non-troop-credit event: Does not count toward troop totals.") and `<x-not-counted>` draws it:
+Members are told the same way everywhere, so nobody finds out after the fact. `Event::notCountedNotice()` is the one sentence ("Non-troop-credit event: Does not count toward troop totals.") and the event resources send it to the Svelte pages that show it:
 
 | Where | What shows |
 |---|---|
