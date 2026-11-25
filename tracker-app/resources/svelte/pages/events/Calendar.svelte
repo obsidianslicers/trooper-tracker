@@ -4,6 +4,7 @@
     import { usePage } from "@inertiajs/svelte";
     import CalendarDay from "./components/CalendarDay.svelte";
     import FilterBar from "./components/FilterBar.svelte";
+    import ScrollHint from "$lib/components/ui/ScrollHint.svelte";
     import { CalendarViewModel, type CalendarPageData } from "./models";
 
     const page = usePage<CalendarPageData>();
@@ -15,15 +16,17 @@
 
 <FilterBar {vm} active="calendar" count={vm.filtered.length} />
 
-<nav class="d-flex flex-nowrap flex-md-wrap overflow-auto gap-1 mb-2 pb-1 calendar-months" aria-label={t("Jump to month")}>
-    {#each vm.months as month (month.key)}
-        {@const count = vm.countIn(month)}
-        <a href="#month-{month.key}" class={["btn btn-sm text-nowrap", count > 0 ? "btn-outline-light" : "btn-outline-secondary"]}>
-            {month.label}
-            {#if count > 0}<span class="badge rounded-pill text-bg-primary ms-1">{count}</span>{/if}
-        </a>
-    {/each}
-</nav>
+<ScrollHint class="mb-2">
+    <nav class="d-flex flex-nowrap flex-md-wrap gap-1 pb-1 calendar-months" aria-label={t("Jump to month")}>
+        {#each vm.months as month (month.key)}
+            {@const count = vm.countIn(month)}
+            <a href="#month-{month.key}" class={["btn btn-sm text-nowrap", count > 0 ? "btn-outline-light" : "btn-outline-secondary"]}>
+                {month.label}
+                {#if count > 0}<span class="badge rounded-pill text-bg-primary ms-1">{count}</span>{/if}
+            </a>
+        {/each}
+    </nav>
+</ScrollHint>
 
 <div class="d-flex flex-wrap gap-3 small text-muted mb-3">
     <span><span class="badge border border-success text-success">&nbsp;</span> {t("You're signed up")}</span>
