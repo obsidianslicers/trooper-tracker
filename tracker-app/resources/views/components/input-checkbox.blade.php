@@ -1,4 +1,4 @@
-@props(['property', 'label' => null, 'disabled' => false, 'value' => '1', 'checked' => false, 'spinner' => null])
+@props(['property', 'label' => null, 'disabled' => false, 'value' => '1', 'checked' => false])
 @php
     $haserror = $errors->has($property);
     $bracketed = to_bracket_name($property);
@@ -15,9 +15,6 @@
         <label class="form-check-label"
                for="{{ $property }}">
             {{ $label }}
-            @if(!empty($spinner))
-                <x-spinner :id="$spinner" />
-            @endif
         </label>
     @endif
 </div>

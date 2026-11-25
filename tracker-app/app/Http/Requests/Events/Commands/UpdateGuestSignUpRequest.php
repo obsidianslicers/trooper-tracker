@@ -6,7 +6,6 @@ namespace App\Http\Requests\Events\Commands;
 
 use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
-use App\Http\Requests\HtmxValidation;
 use App\Models\EventGuest;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
@@ -20,7 +19,7 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class UpdateGuestSignUpRequest extends FormRequest
 {
-    use HtmxValidation;
+    use ValidatesInController;
 
     /**
      * Determine if the user is authorized to make this request

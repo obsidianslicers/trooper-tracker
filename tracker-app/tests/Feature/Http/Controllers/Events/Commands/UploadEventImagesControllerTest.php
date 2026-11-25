@@ -32,7 +32,6 @@ class UploadEventImagesControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)
             ->withSession(['_token' => 'test-token'])
-            ->withHeader('HX-Request', 'true')
             ->withHeader('X-CSRF-TOKEN', 'test-token')
             ->post(route('events.upload-image', $event), [
                 'images' => [$file],
@@ -99,7 +98,6 @@ class UploadEventImagesControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)
             ->withSession(['_token' => 'test-token'])
-            ->withHeader('HX-Request', 'true')
             ->withHeader('X-CSRF-TOKEN', 'test-token')
             ->post(route('events.upload-image', $event), [
                 'images' => [$file],
@@ -108,26 +106,6 @@ class UploadEventImagesControllerTest extends TestCase
         $response->assertRedirect();
         $this->assertSame('danger', $this->toastType());
         $this->assertStringContainsString('50MB', (string) $this->toast());
-        $this->assertSame(0, EventUpload::query()->count());
-    }
-
-    public function test_post_too_large_request_returns_visible_htmx_error(): void
-    {
-        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
-        $event = Event::factory()->create();
-
-        $response = $this->actingAs($trooper)
-            ->withSession(['_token' => 'test-token'])
-            ->withHeader('HX-Request', 'true')
-            ->withHeader('X-CSRF-TOKEN', 'test-token')
-            ->withServerVariables([
-                'CONTENT_LENGTH' => (string) (13 * 1024 * 1024),
-            ])
-            ->post(route('events.upload-image', $event));
-
-        $response->assertStatus(413);
-        $response->assertHeader('X-Flash-Message');
-        $this->assertStringContainsString('too large for the server', (string) $response->headers->get('X-Flash-Message'));
         $this->assertSame(0, EventUpload::query()->count());
     }
 
@@ -150,7 +128,6 @@ class UploadEventImagesControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)
             ->withSession(['_token' => 'test-token'])
-            ->withHeader('HX-Request', 'true')
             ->withHeader('X-CSRF-TOKEN', 'test-token')
             ->post(route('events.upload-image', $event), [
                 'images' => [$file],
@@ -173,7 +150,6 @@ class UploadEventImagesControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)
             ->withSession(['_token' => 'test-token'])
-            ->withHeader('HX-Request', 'true')
             ->withHeader('X-CSRF-TOKEN', 'test-token')
             ->post(route('events.upload-image', $event), [
                 'images' => [$file],
@@ -206,7 +182,6 @@ class UploadEventImagesControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)
             ->withSession(['_token' => 'test-token'])
-            ->withHeader('HX-Request', 'true')
             ->withHeader('X-CSRF-TOKEN', 'test-token')
             ->post(route('events.upload-image', $event), [
                 'images' => $files,
@@ -241,7 +216,6 @@ class UploadEventImagesControllerTest extends TestCase
     {
         return $this->actingAs($trooper)
             ->withSession(['_token' => 'test-token'])
-            ->withHeader('HX-Request', 'true')
             ->withHeader('X-CSRF-TOKEN', 'test-token')
             ->post(route('events.upload-image', $event), $fields + [
                 'images' => [UploadedFile::fake()->image('map.png', 400, 300)],

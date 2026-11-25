@@ -116,14 +116,4 @@ class SignUpGuestControllerTest extends TestCase
             EventGuest::NAME => 'Lando Calrissian',
         ]);
     }
-
-    public function test_invoke_does_not_emit_trigger_when_trooper_not_going(): void
-    {
-        $response = $this->actingAs($this->trooper)->post(
-            route('events.guest-signup', ['event_shift' => $this->event_shift->id]),
-            ['guest_names' => 'Lando Calrissian']
-        );
-
-        $response->assertHeaderMissing('HX-Trigger');
-    }
 }

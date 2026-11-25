@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Events\Commands;
 
-use App\Http\Requests\HtmxValidation;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -16,8 +15,6 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class BroadcastEventMessageRequest extends FormRequest
 {
-    use HtmxValidation;
-
     /**
      * Determine if the user is authorized to make this request.
      *

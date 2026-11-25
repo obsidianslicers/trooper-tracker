@@ -9,6 +9,5 @@ export function bindTooltips(root = document, tooltip = Tooltip) {
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', () => {
         bindTooltips();
-        document.body.addEventListener('htmx:afterSettle', () => bindTooltips());
     });
 }

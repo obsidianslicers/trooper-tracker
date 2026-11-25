@@ -38,7 +38,6 @@
         "alpinejs": "^3.15.3",
         "bootstrap": "^5.2.3",
         "easymde": "^2.20.0",
-        "htmx.org": "^2.0.8",
         "jquery": "^3.7.1",
         "sortablejs": "^1.15.7",
         "svelte": "^5.56.7",

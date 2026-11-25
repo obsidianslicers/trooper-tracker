@@ -14,9 +14,7 @@ use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
- * Submits a club join request for the authenticated trooper via HTMX.
- *
- * Returns an updated row partial showing the pending state.
+ * Submits a club join request for the authenticated trooper.
  */
 class CreateTrooperRequestController extends Controller
 {
