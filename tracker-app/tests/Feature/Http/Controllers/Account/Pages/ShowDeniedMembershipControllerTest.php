@@ -8,6 +8,7 @@ use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ShowDeniedMembershipControllerTest extends TestCase
@@ -21,8 +22,11 @@ class ShowDeniedMembershipControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('account.denied'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.account.denied');
-        $response->assertViewHas('trooper', $trooper);
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->component('account/Denied')
+            ->where('account_type', 'member')
+            ->has('organizations')
+            ->missing('trooper'));
     }
 
     public function test_invoke_displays_denial_reason_from_trooper_request(): void
@@ -37,7 +41,9 @@ class ShowDeniedMembershipControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('account.denied'));
 
         $response->assertOk();
-        $response->assertViewHas('denial_reason', 'Costume does not meet standards.');
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->where('denial_reason', 'Costume does not meet standards.')
+            ->has('denied_requests', 1));
     }
 
     public function test_invoke_redirects_active_trooper_to_profile(): void

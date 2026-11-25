@@ -8,6 +8,7 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ShowSetupFormControllerTest extends TestCase
@@ -28,8 +29,11 @@ class ShowSetupFormControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('account.setup'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.account.setup');
-        $response->assertViewHas('organization_memberships');
+        $response->assertInertia(fn (Assert $page): Assert => $page
+            ->component('account/Setup')
+            ->where('trooper.email', $trooper->email)
+            ->where('memberships.0.name', $organization->name)
+            ->where('memberships.0.assignment', $organization->name));
     }
 
     public function test_invoke_requires_authentication(): void

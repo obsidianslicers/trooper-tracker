@@ -6,8 +6,9 @@ namespace App\Http\Controllers\Account\Pages;
 
 use App\Http\Controllers\Controller;
 use App\Messages\Account\PageData\SetupPageData;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * Displays the trooper organization membership setup page.
@@ -22,12 +23,12 @@ class ShowSetupFormController extends Controller
      * Handle the incoming request to display the organization setup page.
      *
      * @param  Request  $request  The incoming HTTP request
-     * @return View The rendered organization setup page
+     * @return InertiaResponse The setup page
      */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): InertiaResponse
     {
         $data = SetupPageData::call($request);
 
-        return view('pages.account.setup', $data);
+        return Inertia::render('account/Setup', $data);
     }
 }

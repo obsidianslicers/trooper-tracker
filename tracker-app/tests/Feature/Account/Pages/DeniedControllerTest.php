@@ -6,6 +6,7 @@ namespace Tests\Feature\Account\Pages;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class DeniedControllerTest extends TestCase
@@ -19,7 +20,7 @@ class DeniedControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('account.denied'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.account.denied');
+        $response->assertInertia(fn (Assert $page): Assert => $page->component('account/Denied'));
     }
 
     public function test_denied_controller_redirects_active_trooper(): void

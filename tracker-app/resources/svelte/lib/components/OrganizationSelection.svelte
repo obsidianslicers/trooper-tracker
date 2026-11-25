@@ -1,3 +1,7 @@
+<!--
+    Pick clubs, then an ID, region and unit in each: registration and the denied application's
+    resubmit form.
+-->
 <script lang="ts">
     import { t } from "$lib/i18n";
     import InputCheckbox from "$lib/components/form/InputCheckbox.svelte";
@@ -5,18 +9,22 @@
     import InputError from "$lib/components/form/InputError.svelte";
     import InputSelect from "$lib/components/form/InputSelect.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
-    import type { RegisterViewModel } from "../../models";
+    import type {
+        OrganizationSelectionForm,
+        OrganizationSelectionViewModel,
+    } from "./models/OrganizationSelectionViewModel.svelte";
 
-    interface PageProps {
-        vm: RegisterViewModel;
+    interface Props {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vm: OrganizationSelectionViewModel<any, OrganizationSelectionForm>;
+        /** The account type: visitors pick no region or unit, handlers give no ID. */
+        role: string | null;
     }
 
-    let { vm }: PageProps = $props();
+    let { vm, role }: Props = $props();
 
-    // Derived visibility states driven by the viewmodel data
-    const isVisitor = $derived(vm.form.membership_role === "visitor");
-    const isHandler = $derived(vm.form.membership_role === "handler");
-    const isMember = $derived(vm.form.membership_role === "member");
+    const isVisitor = $derived(role === "visitor");
+    const isMember = $derived(role === "member");
 </script>
 
 <p>{t("Select your associated organizations below.")}</p>

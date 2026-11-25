@@ -92,8 +92,6 @@ return [
     'See Upcoming Events' => 'See Upcoming Events',
     'Select an organization in which you are already a member of. A moderator will verify your membership before it is added to your profile.' => 'Select an organization in which you are already a member of. A moderator will verify your membership before it is added to your profile.',
     'Select Approved Organizations' => 'Select Approved Organizations',
-    'Select your Region/Garrison' => 'Select your Region/Garrison',
-    'Select your Unit/Squad' => 'Select your Unit/Squad',
     'Switching to the \'scrappy underdog\' aesthetic. I\'ve calculated our odds of success. You\'re not going to like them.' => 'Switching to the \'scrappy underdog\' aesthetic. I\'ve calculated our odds of success. You\'re not going to like them.',
     'The following club requests were part of your original application.' => 'The following club requests were part of your original application.',
     'The name that will be shown publicly (anonymous viewers).' => 'The name that will be shown publicly (anonymous viewers).',
