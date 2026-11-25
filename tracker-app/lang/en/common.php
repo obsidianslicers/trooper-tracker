@@ -52,7 +52,6 @@ return [
     'Smilies' => 'Smilies',
     'soft deleted' => 'soft deleted',
     'Submit' => 'Submit',
-    'Submitting ...' => 'Submitting ...',
     'The language the Tracker and your emails use.' => 'The language the Tracker and your emails use.',
     'This cannot be undone' => 'This cannot be undone',
     'Transmitting ...' => 'Transmitting ...',

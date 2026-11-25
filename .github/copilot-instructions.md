@@ -68,7 +68,7 @@ All domain language, models, factories, and tests must reflect this Star Wars co
 - **Laravel:** 12.x (latest features enabled)
 - **PHP:** 8+ (strict types, scalar type hints required)
 - **Database:** MySQL with auto-generated base models
-- **Frontend:** Blade templates, Bootstrap 5.2x, HTMX 2.x, Alpine.js 3.x
+- **Frontend:** Inertia 2 + Svelte 5 + TypeScript, Blade for static pages, Bootstrap 5.2x
 - **Testing:** PHPUnit (SQLite in-memory for tests)
 
 ## Architecture Patterns
@@ -89,7 +89,7 @@ All new and refactored code follows the ADR pattern:
 
 - **Responder:** Blade views, JSON responses, or redirects
   - Located in `resources/views/`
-  - Uses Bootstrap 5 + HTMX for dynamic interactions
+  - Uses Bootstrap 5; interactive pages are Svelte
 
 ### Orchestration Pattern for Jobs & Commands
 
@@ -349,7 +349,7 @@ tracker-app/
 ├── database/
 │   ├── factories/           # Model factories with domain states
 │   └── migrations/          # Schema migrations
-├── resources/views/         # Blade templates (Bootstrap + HTMX)
+├── resources/views/         # Blade templates (static pages, emails)
 ├── routes/web/              # Organized route files by feature
 └── tests/
     ├── Feature/             # HTTP, Job, Command tests

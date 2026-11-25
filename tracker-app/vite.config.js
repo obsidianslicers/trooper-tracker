@@ -56,41 +56,21 @@ export default defineConfig({
                         if (id.includes('svelte') || id.includes('@inertiajs')) {
                             return 'vendor-frameworks';
                         }
-                        // 2. Alpine.js ecosystem
-                        if (id.includes('alpinejs')) {
-                            return 'vendor-alpine';
-                        }
-                        // 3. Heavy Markdown Editor
-                        if (id.includes('easymde') || id.includes('codemirror')) {
+                        // 2. Heavy Markdown Editor, with its own dependencies so the chunks don't loop
+                        if (/node_modules\/(easymde|codemirror|codemirror-spell-checker|marked|typo-js)\//.test(id)) {
                             return 'vendor-editor';
                         }
-                        // 4. Standalone Utilities (No jQuery/Bootstrap dependencies)
+                        // 3. Standalone Utilities (No Bootstrap dependencies)
                         if (id.includes('axios') || id.includes('ziggy-js')) {
                             return 'vendor-core-utils';
                         }
                         if (id.includes('vanilla-calendar-pro') || id.includes('sortablejs')) {
                             return 'vendor-ui-helpers';
                         }
-                        // 5. jQuery, Bootstrap, Typeahead & HTMX stay together to prevent loops
+                        // 4. Bootstrap and everything else
                         return 'vendor';
                     }
                 },
-            },
-            onwarn(warning, warn) {
-                const warning_id = warning.id ?? '';
-                const warning_message = warning.message ?? '';
-
-                if (
-                    warning.code === 'EVAL' &&
-                    (
-                        warning_id.includes('htmx.org/dist/htmx.esm.js') ||
-                        warning_message.includes('htmx.org/dist/htmx.esm.js')
-                    )
-                ) {
-                    return;
-                }
-
-                warn(warning);
             },
         },
     },

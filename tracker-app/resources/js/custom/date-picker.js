@@ -106,7 +106,7 @@ export function toNativeValue(parsed, withTime) {
 
 /**
  * A value in the format this device's picker field takes. For code that writes into a picker
- * field directly (e.g. through Alpine's x-model), since a native field drops values it can't read.
+ * field directly (e.g. from Svelte), since a native field drops values it can't read.
  */
 export function formatForPicker(value, { withTime = false } = {}) {
     const parsed = parsePickerValue(value);
@@ -247,7 +247,7 @@ function attachCalendar(input, withTime, onChange) {
     };
 
     input.addEventListener('change', typed);
-    // other code may have changed the value without an event (Alpine's x-model, the paste parser)
+    // other code may have changed the value without an event (Svelte bindings, the paste parser)
     input.addEventListener('focus', sync);
 
     return {

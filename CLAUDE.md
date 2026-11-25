@@ -10,7 +10,7 @@ TroopTracker is a Laravel application for managing costuming club activities —
 |-------|-----------|
 | Backend | PHP 8.2+, Laravel |
 | Database | MySQL 8.0+ (SQLite in-memory for tests) |
-| Frontend | Inertia 2 + Svelte 5 + TypeScript (target); Blade, Alpine 3.x (legacy); Bootstrap 5.2x |
+| Frontend | Inertia 2 + Svelte 5 + TypeScript; Blade for static pages; Bootstrap 5.2x |
 | Build | Vite, npm |
 | Testing | PHPUnit, Vitest, Playwright |
 | Code quality | Pint (formatting) |

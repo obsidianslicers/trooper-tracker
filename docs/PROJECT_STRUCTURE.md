@@ -143,7 +143,7 @@ The `app/Http/Controllers/` directory is organized by feature area:
 app/Http/Controllers/
 ├── Account/               # User account management
 │   ├── Commands/         # Changes something (database, login), whatever the HTTP verb
-│   └── Pages/            # Changes nothing (pages, downloads, JSON, HTMX)
+│   └── Pages/            # Changes nothing (pages, downloads, JSON)
 ├── Admin/                 # Command Staff, each area split into Commands/ and Pages/
 ├── Api/Pages/             # Public JSON API
 ├── Auth/                  # Login, logout, registration, OAuth (Commands/, Pages/)

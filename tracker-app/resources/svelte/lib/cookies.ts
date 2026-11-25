@@ -1,7 +1,7 @@
 /**
  * Small cookie helpers for remembering a trooper's choices (such as event filters) across
- * pages. Blade pages read the same cookies through resources/js/custom/utils.js, so values
- * are stored as-is (ids and commas) rather than URL-encoded.
+ * pages. Values are stored as-is (ids and commas) rather than URL-encoded, as they always
+ * have been, so cookies saved before stay readable.
  */
 export function getCookie(name: string): string | null {
     if (typeof document === 'undefined') {

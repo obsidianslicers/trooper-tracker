@@ -48,7 +48,7 @@ export function mandalorianMercsParser(message) {
     }
 
     // -----------------------------
-    // Return event object for Alpine → Laravel POST
+    // Return event object for the Laravel POST
     // -----------------------------
     return {
         contact_name: parsed['Name'] ?? null,
