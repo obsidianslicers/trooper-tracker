@@ -49,6 +49,29 @@ class SupportStatusServiceTest extends TestCase
         $this->assertSame(40.0, $status['progress']);
     }
 
+    public function test_calculate_keeps_counting_past_the_goal(): void
+    {
+        $this->addSource(112.0);
+
+        $status = app(SupportStatusService::class)->calculate();
+
+        $this->assertSame(112.0, $status['current']);
+        $this->assertEqualsWithDelta(112.0, $status['progress'], 0.001);
+    }
+
+    public function test_calculate_keeps_counting_local_donations_past_the_goal(): void
+    {
+        TrooperDonation::factory()->create([
+            TrooperDonation::AMOUNT => 137.5,
+            TrooperDonation::CREATED_AT => now()->startOfMonth()->addDays(4),
+        ]);
+
+        $status = app(SupportStatusService::class)->calculate();
+
+        $this->assertSame(150.0, $status['current']);
+        $this->assertSame(150.0, $status['progress']);
+    }
+
     public function test_calculate_does_not_cache_when_a_source_fails(): void
     {
         $this->addSource(null);

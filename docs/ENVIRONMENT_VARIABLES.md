@@ -77,7 +77,7 @@ Configuration reference for all `.env` variables in Troop Tracker.
 ## Troop Tracker Settings
 
 ### TRACKER_SUPPORT_GOAL
-- **Purpose**: Annual support goal (displayed in UI)
+- **Purpose**: Monthly support goal shown on Upcoming Events; the card turns to "Goal reached!" once the month's donations reach it
 - **Required**: No
 - **Default**: None
 - **Example**: `300`
