@@ -149,6 +149,49 @@ test.describe('event details', () => {
     });
 });
 
+test.describe('tabs on a phone', () => {
+    // The chevrons are hidden from screen readers (every tab is reachable already), so find them by class.
+    const chevron = (page, side) => page.locator(`.scroll-hint-chevron.${side}`);
+
+    // Opens the event on a tab, with the tab bar scrolled into view down the page.
+    async function openTabs(page, tab) {
+        await openAdmin(page, seeded.charityWalk, tab);
+        await page.locator('.scroll-hint').scrollIntoViewIfNeeded();
+    }
+
+    test('a chevron shows there are more tabs, and tapping it scrolls to them', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await openTabs(page);
+        const missionReview = page.getByRole('button', { name: 'Mission Review' });
+
+        await expect(chevron(page, 'before')).toHaveCount(0);
+        await expect(missionReview).not.toBeInViewport({ ratio: 1 });
+
+        while (await chevron(page, 'after').count() > 0) {
+            await chevron(page, 'after').click();
+            await page.waitForTimeout(400);
+        }
+
+        await expect(missionReview).toBeInViewport({ ratio: 1 });
+        await expect(chevron(page, 'before')).toBeVisible();
+    });
+
+    test('a link to a later tab opens with that tab in view', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await openTabs(page, 'mission-review');
+
+        await expect(page.getByRole('button', { name: 'Mission Review' })).toBeInViewport({ ratio: 1 });
+        await expect(chevron(page, 'before')).toBeVisible();
+    });
+
+    test('wide screens show every tab and no chevrons', async ({ page }) => {
+        await openTabs(page);
+
+        await expect(page.getByRole('button', { name: 'Mission Review' })).toBeInViewport({ ratio: 1 });
+        await expect(page.locator('.scroll-hint-chevron')).toHaveCount(0);
+    });
+});
+
 test.describe('shifts and charity', () => {
     test('a moderator adds a shift, which saves once its times are in', async ({ page }) => {
         await openAdmin(page, seeded.commandEvent, 'shifts');

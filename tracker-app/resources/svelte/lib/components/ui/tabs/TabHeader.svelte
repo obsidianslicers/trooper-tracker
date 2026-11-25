@@ -1,28 +1,31 @@
 <script lang="ts">
+    import ScrollHint from '../ScrollHint.svelte';
+
     let { children } = $props();
 </script>
 
-<div class="overflow-auto tabs-scroll-mobile">
+<ScrollHint class="tabs-scroll-mobile">
     <ul class="nav nav-tabs flex-nowrap flex-md-wrap w-max-content w-md-auto">
         {@render children()}
     </ul>
-</div>
+</ScrollHint>
 
 <style>
     .w-max-content {
         width: max-content;
     }
 
-    .tabs-scroll-mobile :global(.nav-tabs) {
+    :global(.tabs-scroll-mobile) .nav-tabs {
         min-width: 100%;
     }
 
-    .tabs-scroll-mobile :global(.nav-link) {
+    :global(.tabs-scroll-mobile) :global(.nav-link) {
         white-space: nowrap;
     }
 
     @media (min-width: 768px) {
-        .tabs-scroll-mobile {
+        /* Wide screens wrap the tabs instead, and must not clip the active tab's border. */
+        :global(.scroll-hint > .scroll-hint-row.tabs-scroll-mobile) {
             overflow-x: visible;
         }
 
