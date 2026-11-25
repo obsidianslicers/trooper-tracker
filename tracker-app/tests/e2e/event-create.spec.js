@@ -62,3 +62,14 @@ Can troopers carry blasters: No`);
     await openSection(page, /^Venue Permissions/);
     await expect(chosen(page, 'Allow Blasters')).toHaveText('No');
 });
+
+test('on a phone, the events list shows its Create button without scrolling the table', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/admin/events');
+
+    const create = page.locator('a.btn[href*="/admin/events/create"]');
+    await expect(create).toBeInViewport({ ratio: 1 });
+
+    await create.click();
+    await expect(page).toHaveURL(/\/admin\/events\/create/);
+});
