@@ -221,6 +221,20 @@ php artisan tracker:mimic-trooper-permissions 42 1 --force
 
 ---
 
+### `tracker:stamp-deployment`
+
+Records the deployed commit and the time into `storage/app/deploy.json`, which the public `/status` page returns as JSON (`{"commit": "...", "deployed_at": "..."}`; both are `null` until a deploy has run this). `deploy.sh` runs it as its last step; run it yourself after a manual deploy.
+
+```bash
+php artisan tracker:stamp-deployment <commit>
+```
+
+| Argument | Description |
+|---|---|
+| `commit` | The git hash that is now deployed |
+
+---
+
 ### `tracker:reopen-future-shifts`
 
 Finds all event shifts that are marked CLOSED but have not yet occurred (`shift_ends_at` is in the future) and reopens them. Any trooper attendance records incorrectly confirmed (ATTENDED or UNABLE_TO_ATTEND) are reset back to GOING.

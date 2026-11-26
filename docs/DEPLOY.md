@@ -496,6 +496,7 @@ The script runs with `set -euo pipefail`, so any failing step aborts the deploy.
 9. Rebuilds the `config`, `route`, and `view` caches
 10. Exits maintenance mode: `php artisan up`
 11. Signals queue workers to restart: `php artisan queue:restart`
+12. Records the release for the `/status` page: `php artisan tracker:stamp-deployment <hash>`
 
 Dependencies and assets are built *before* entering maintenance mode, so the app is only offline
 for the cache, migration, and versioning steps.
