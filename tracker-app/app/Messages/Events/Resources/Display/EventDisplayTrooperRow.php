@@ -156,24 +156,24 @@ class EventDisplayTrooperRow extends JsonResource
     }
 
     /**
-     * Made It / Missed It: where the answer goes, and the answer already given (shown filled),
-     * which can still be changed during the grace period.
+     * Made It / Missed It, until it's answered: then the row shows the answer as its status.
      *
-     * @return array{url: string, answer: string|null}|null
+     * @return array{url: string}|null
      */
     private function attendance(): ?array
     {
-        if (!$this->canMarkAttendance($this->context->viewer, $this->context->can_moderate))
+        $answered = in_array(
+            $this->status,
+            [EventTrooperStatus::ATTENDED, EventTrooperStatus::UNABLE_TO_ATTEND],
+            true,
+        );
+
+        if ($answered || !$this->canMarkAttendance($this->context->viewer, $this->context->can_moderate))
         {
             return null;
         }
 
-        $answered = in_array($this->status, [EventTrooperStatus::ATTENDED, EventTrooperStatus::UNABLE_TO_ATTEND], true);
-
-        return [
-            'url' => route('events.confirm-attendance', ['event_trooper' => $this->resource]),
-            'answer' => $answered ? $this->status->value : null,
-        ];
+        return ['url' => route('events.confirm-attendance', ['event_trooper' => $this->resource])];
     }
 
     /**

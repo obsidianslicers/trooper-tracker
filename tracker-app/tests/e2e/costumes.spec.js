@@ -155,9 +155,10 @@ test.describe('troop verification', () => {
 
         await trooper.goto('/events/closed');
         await trooper.getByRole('link', { name: seeded.verifiedParade }).first().click();
-        //  approved: the row shows the answer as a filled Made It, while the grace period lasts
-        await expect(trooper.locator('[id^="shift-container-"] .roster-row--mine').first()
-            .getByRole('button', { name: 'Made It' })).toHaveAttribute('aria-pressed', 'true');
+        //  approved: the row shows Attended, with no Made It / Missed It left to press
+        const approved = trooper.locator('[id^="shift-container-"] .roster-row--mine').first();
+        await expect(approved.getByText('Attended', { exact: true })).toBeVisible();
+        await expect(approved.getByRole('button', { name: 'Made It' })).toHaveCount(0);
 
         await trooper_context.close();
         await moderator_context.close();

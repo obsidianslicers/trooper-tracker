@@ -662,17 +662,20 @@ class ShowEventControllerTest extends TestCase
         $troop = $this->troopToConfirm($trooper, EventTrooperStatus::TENTATIVE);
 
         $this->assertSame(
-            ['url' => route('events.confirm-attendance', ['event_trooper' => $troop->id]), 'answer' => null],
+            ['url' => route('events.confirm-attendance', ['event_trooper' => $troop->id])],
             $this->attendanceOn($troop, $trooper),
         );
     }
 
-    public function test_invoke_keeps_the_answer_on_your_row_so_it_shows_filled(): void
+    public function test_invoke_hides_made_it_and_missed_it_once_answered(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
-        $troop = $this->troopToConfirm($trooper, EventTrooperStatus::UNABLE_TO_ATTEND);
+        $made_it = $this->troopToConfirm($trooper, EventTrooperStatus::ATTENDED);
+        $missed_it = $this->troopToConfirm($trooper, EventTrooperStatus::UNABLE_TO_ATTEND);
 
-        $this->assertSame(EventTrooperStatus::UNABLE_TO_ATTEND->value, $this->attendanceOn($troop, $trooper)['answer']);
+        $this->assertNull($this->attendanceOn($made_it, $trooper));
+        $this->assertNull($this->attendanceOn($missed_it, $trooper));
+        $this->assertNull($this->attendanceOn($made_it, $this->moderatorOf($made_it)));
     }
 
     public function test_invoke_gives_attendance_buttons_to_moderators_but_not_other_members(): void
