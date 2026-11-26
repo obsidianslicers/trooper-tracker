@@ -23,6 +23,8 @@ class SupportStatusService
      * as forum upgrades. Without one, or when they total nothing, it falls back
      * to local TrooperDonation records.
      *
+     * Progress keeps counting past 100 once the goal is reached.
+     *
      * Results are cached for 15 minutes, except when a source fails to fetch -
      * a transient outage should not pin the local fallback total.
      *
@@ -97,7 +99,7 @@ class SupportStatusService
             return [
                 'goal' => $goal,
                 'current' => $source_total,
-                'progress' => min(100.0, ($source_total / $goal) * 100.0),
+                'progress' => ($source_total / $goal) * 100.0,
                 'uses_donation_sources' => true,
             ];
         }
@@ -107,7 +109,7 @@ class SupportStatusService
 
         if ($goal > 0.0)
         {
-            $progress = min(100.0, ($donations / $goal) * 100.0);
+            $progress = ($donations / $goal) * 100.0;
         }
 
         return [

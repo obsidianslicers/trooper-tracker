@@ -8,8 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * This month's support goal, as the events list shows it: the goal, how far along it is, the
- * message and where to give.
+ * This month's support goal, as the events list shows it: the goal, how much is in, how far
+ * along it is (past 100 once reached), the message and where to give.
  *
  * Wraps the array GetSupportGoal returns.
  *
@@ -18,12 +18,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class SupportGoalResource extends JsonResource
 {
     /**
-     * @return array{goal: float, progress: float, message: string, url: string|null}
+     * @return array{goal: float, current: float, progress: float, message: string, url: string|null}
      */
     public function toArray(Request $request): array
     {
         return [
             'goal' => $this->resource['goal'],
+            'current' => $this->resource['current'],
             'progress' => $this->resource['progress'],
             'message' => $this->resource['message'],
             'url' => $this->resource['url'],

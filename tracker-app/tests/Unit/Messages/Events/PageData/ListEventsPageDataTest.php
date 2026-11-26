@@ -131,7 +131,13 @@ class ListEventsPageDataTest extends TestCase
 
         $this->assertInstanceOf(Closure::class, $result['support']);
         $this->assertSame(
-            ['goal' => 500.0, 'progress' => 25.0, 'message' => 'Support the garrison.', 'url' => null],
+            [
+                'goal' => 500.0,
+                'current' => 125.0,
+                'progress' => 25.0,
+                'message' => 'Support the garrison.',
+                'url' => null,
+            ],
             ($result['support'])()->resolve(),
         );
     }
