@@ -573,6 +573,7 @@ return [
     'Shifts' => 'Shifts',
     'Shifts can only be changed while the event is active.' => 'Shifts can only be changed while the event is active.',
     'Show notices' => 'Show notices',
+    'Show older errors' => 'Show older errors',
     'Showing :shown of :total' => 'Showing :shown of :total',
     'Showing missing-credit shifts for' => 'Showing missing-credit shifts for',
     'Shown on the event page, and they can edit this event. It\'s whoever created the event unless you pick an event coordinator or command staff member who is going or attended. If their status changes to anything else, it goes back to the creator. The forum thread stays under the creator\'s name.' => 'Shown on the event page, and they can edit this event. It\'s whoever created the event unless you pick an event coordinator or command staff member who is going or attended. If their status changes to anything else, it goes back to the creator. The forum thread stays under the creator\'s name.',

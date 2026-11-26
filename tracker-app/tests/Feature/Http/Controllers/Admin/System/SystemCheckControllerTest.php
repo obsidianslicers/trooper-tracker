@@ -30,6 +30,18 @@ class SystemCheckControllerTest extends TestCase
         $response->assertInertia(fn (AssertableInertia $page) => $page
             ->component('admin/SystemCheck')
             ->where('log_entries.0.summary', 'Boom')
+            ->where('has_more_errors', false)
             ->where('errors', []));
+    }
+
+    public function test_invoke_shows_more_errors_when_asked(): void
+    {
+        $system_owner = Trooper::factory()->asSystemOwner()->create();
+        $this->mock(SystemCheckService::class)->shouldReceive('run')->andReturn(collect());
+        $this->mock(LogViewerService::class)->shouldReceive('recentErrors')->once()->with(51)->andReturn(collect());
+
+        $response = $this->actingAs($system_owner)->get(route('admin.system-check', ['errors' => 50]));
+
+        $response->assertOk();
     }
 }
