@@ -61,6 +61,27 @@ class CompleteShiftControllerTest extends TestCase
         $response->assertViewIs('pages.events.shift-complete');
     }
 
+    public function test_invoke_forbids_another_trooper_using_the_link(): void
+    {
+        $owner = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $other = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($owner)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $event_trooper = EventTrooper::factory()->forEventShift($event_shift)->forTrooper($owner)->asGoing()->create();
+
+        $response = $this->actingAs($other)->get(route('events.shift-complete', [
+            'event_trooper' => $event_trooper->id,
+            'status' => Crypt::encryptString(EventTrooperStatus::ATTENDED->value),
+        ]));
+
+        $response->assertForbidden();
+        $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
+    }
+
     public function test_invoke_shows_club_select_when_costume_has_multiple_eligible_clubs(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();

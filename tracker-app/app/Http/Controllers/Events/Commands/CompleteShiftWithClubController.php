@@ -47,6 +47,11 @@ class CompleteShiftWithClubController extends PageController
             abort(404);
         }
 
+        $actor = $request->user();
+        $moderates_event = $actor->isModeratorForOrganization($event_trooper->event_shift->event->organization);
+
+        abort_unless($event_trooper->isAttendanceLinkUsableBy($actor, $moderates_event), 403);
+
         $submitted_ids = array_map('intval', (array) $request->input('organization_ids', []));
 
         if (empty($submitted_ids))
