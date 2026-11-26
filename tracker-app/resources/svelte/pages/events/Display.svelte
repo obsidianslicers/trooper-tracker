@@ -118,9 +118,6 @@
                               default_instructional={event.uploads_default_to_instructional} />
 
                 <PluginSlot name="events.display.discussion" html={slots["events.display.discussion"] ?? ""} />
-
-                <!-- room for the phones' sign-up bar -->
-                <div class="my-signup-bar-spacer d-md-none"></div>
             </div>
         </div>
     </div>

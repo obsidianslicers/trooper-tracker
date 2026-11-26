@@ -292,6 +292,29 @@ test.describe('around the event page', () => {
 
         await expect(page.locator('#admin-event-uploads img')).not.toHaveCount(0);
     });
+
+    test('on a phone, the upload choices sit side by side', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await openEvent(page, seeded.signupEvent);
+
+        const instructional = await page.locator('label[for="upload-type-instructional"]').boundingBox();
+        const troop = await page.locator('label[for="upload-type-troop"]').boundingBox();
+
+        expect(Math.abs(troop.y - instructional.y)).toBeLessThan(2);
+        expect(Math.abs(troop.height - instructional.height)).toBeLessThan(2);
+        expect(Math.abs(troop.width - instructional.width)).toBeLessThan(2);
+    });
+
+    test("on a phone, the sign-up bar leaves the footer readable at the end of the page", async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await openEvent(page, seeded.signupEvent);
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+        const footer = await page.getByText('Logged in as:').boundingBox();
+        const bar = await page.locator('.my-signup-bar').boundingBox();
+
+        expect(footer.y + footer.height).toBeLessThanOrEqual(bar.y);
+    });
 });
 
 test.describe('after the troop', () => {

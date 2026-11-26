@@ -63,6 +63,11 @@
     </div>
 </div>
 
+<!-- above the table, which scrolls sideways on phones and would hide it -->
+<div class="text-end mb-2">
+    <CreateButton label={t("Event")} href={vm.create_url} small={true} />
+</div>
+
 <div class="table-responsive">
     <table class="table table-striped align-middle">
         <thead>
@@ -72,9 +77,7 @@
                 <th>{t("Shifts")}</th>
                 <th>{t("Organization")}</th>
                 <th>{t("Status")}</th>
-                <th class="text-end">
-                    <CreateButton label={t("Event")} href={vm.create_url} small={true} />
-                </th>
+                <th></th>
             </tr>
         </thead>
         <tbody>

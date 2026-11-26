@@ -52,18 +52,19 @@
 
     <fieldset class="mb-2">
         <legend class="form-label fs-6 mb-1">{t("Upload as")}</legend>
-        <div class="btn-group flex-wrap" role="group">
+        <div class="btn-group upload-type-switch" role="group" aria-describedby="upload-type-help">
             <input type="radio" class="btn-check" name="upload_type" id="upload-type-instructional"
                    value="instructional" autocomplete="off" bind:group={upload_type} />
             <label class="btn btn-outline-primary" for="upload-type-instructional">
-                <i class="fa fa-fw fa-map me-1"></i>{t("Instructional (maps, parking, directions)")}
+                <i class="fa fa-fw fa-map upload-type-icon"></i>{t("Instructional")}
             </label>
             <input type="radio" class="btn-check" name="upload_type" id="upload-type-troop"
                    value="troop" autocomplete="off" bind:group={upload_type} />
             <label class="btn btn-outline-primary" for="upload-type-troop">
-                <i class="fa fa-fw fa-camera me-1"></i>{t("Troop photo")}
+                <i class="fa fa-fw fa-camera upload-type-icon"></i>{t("Troop photo")}
             </label>
         </div>
+        <div id="upload-type-help" class="form-text">{t("Instructional: maps, parking and directions.")}</div>
     </fieldset>
 
     <button type="button"
@@ -95,3 +96,26 @@
                e.currentTarget.value = "";
            }} />
 </div>
+
+<style>
+    .upload-type-icon {
+        margin-right: 0.25rem;
+    }
+
+    /* phones: the two choices side by side, half the width each, rather than wrapping */
+    @media (max-width: 575.98px) {
+        .upload-type-switch {
+            display: flex;
+        }
+
+        .upload-type-switch > .btn {
+            flex: 1 1 0;
+        }
+
+        /* the icon over the word, so both choices are the same shape */
+        .upload-type-icon {
+            display: block;
+            margin: 0 auto 0.25rem;
+        }
+    }
+</style>

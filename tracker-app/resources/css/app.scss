@@ -777,8 +777,11 @@ html body .btn.btn-secondary-action {
     z-index: 1030;
 }
 
-.my-signup-bar-spacer {
-    height: 4rem;
+//  room under the page for the bar, so it never covers the footer at the end of the page
+@media (max-width: 767.98px) {
+    body:has(.my-signup-bar) {
+        padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+    }
 }
 
 //  toasts (ToastMessages.svelte) float over the page: Bootstrap's see-through toast background let
