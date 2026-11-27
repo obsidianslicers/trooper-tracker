@@ -194,6 +194,16 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
+     * Check whether the actor may use an attendance link for this assignment: the trooper, whoever
+     * added them, their guardian, or a moderator of the event. Unlike canMarkAttendance(), this
+     * says nothing about the shift's state; ConfirmShiftAttendance reports that to the person.
+     */
+    public function isAttendanceLinkUsableBy(Trooper $actor, bool $moderates_event = false): bool
+    {
+        return $moderates_event || $this->hasOwnership($actor);
+    }
+
+    /**
      * Check if the status for this event trooper assignment can be updated.
      *
      * Status can be updated if the shift is open and the trooper has ownership.
