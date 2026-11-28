@@ -21,6 +21,8 @@ class UpdateFaqAnswersTest extends TestCase
         $this->seed(FaqBefore20261125Seeder::class);
 
         $this->migration()->up();
+        //  the videos changed after this migration, in one of their own
+        (require database_path('migrations/2026_11_28_000001_update_faq_videos.php'))->up();
         $migrated = $this->snapshot();
 
         Faq::withTrashed()->forceDelete();
