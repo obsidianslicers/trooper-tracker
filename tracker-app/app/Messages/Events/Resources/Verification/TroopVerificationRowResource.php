@@ -31,6 +31,9 @@ class TroopVerificationRowResource extends JsonResource
             'starts_at' => $this->event_shift?->shift_starts_at?->localFormat('M j, Y'),
             'costume' => $this->costumeLabel(),
             'has_costume' => $this->costume !== null,
+            'correction' => $this->pending_troop_correction
+                ? new TroopCorrectionSummaryResource($this->pending_troop_correction)
+                : null,
             'clubs' => $this->reviewable_organizations
                 ->map(fn (Organization $organization) => [
                     'id' => $organization->id,

@@ -5,6 +5,8 @@ export * from './EventFiltersViewModel.svelte';
 export * from './ListEventsViewModel.svelte';
 export * from './MapViewModel.svelte';
 export * from './PastEventsViewModel.svelte';
+export * from './RequestCreditViewModel.svelte';
 export * from './SignUpFormViewModel.svelte';
 export * from './SignUpTourViewModel.svelte';
 export * from './SupportGoalViewModel.svelte';
+export * from './TroopCorrectionViewModel.svelte';

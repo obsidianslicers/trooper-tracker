@@ -191,6 +191,8 @@ export type MySignUps = {
     has_open_shift: boolean;
     open_shift_ids: number[];
     sign_ups: MySignUp[];
+    /** Set on a completed event the viewer has no credit or open request for. */
+    request_credit_url: string | null;
 };
 
 export type DisplayUpload = {

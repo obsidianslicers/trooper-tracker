@@ -43,6 +43,22 @@
                             {/if}
                             <br />
                             <span class="text-muted small">{row.starts_at}</span>
+                            {#if row.correction}
+                                <div class="correction small mt-2">
+                                    <strong>{t("Didn't sign up. Their details:")}</strong>
+                                    <span class="correction-details">{row.correction.details}</span>
+                                    {#if row.correction.proof_url}
+                                        <br />
+                                        <a href={row.correction.proof_url} target="_blank" rel="noopener noreferrer">
+                                            {t("Proof link")}
+                                        </a>
+                                    {/if}
+                                    {#if row.correction.coordinator_denied}
+                                        <br />
+                                        <span class="text-danger">{t("The event coordinator said they weren't there.")}</span>
+                                    {/if}
+                                </div>
+                            {/if}
                         </td>
                         <td class={[!row.has_costume && "text-muted"]}>{row.costume}</td>
                         <td class="text-nowrap">
@@ -79,3 +95,14 @@
         </table>
     </div>
 </SlimView>
+
+<style>
+    /* keeps the Troop column readable on phones; the table scrolls sideways instead */
+    .correction {
+        min-width: 14rem;
+    }
+
+    .correction-details {
+        white-space: pre-line;
+    }
+</style>

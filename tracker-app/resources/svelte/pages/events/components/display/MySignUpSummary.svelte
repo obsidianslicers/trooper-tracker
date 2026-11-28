@@ -95,3 +95,14 @@
         {/if}
     </div>
 {/if}
+
+{#if summary.request_credit_url}
+    <div class="card mb-3">
+        <div class="card-body py-2 d-flex flex-wrap align-items-center gap-2">
+            <span>{t("Trooped this event but never signed up?")}</span>
+            <a href={summary.request_credit_url} class="btn btn-sm btn-outline-primary ms-auto">
+                {t("I was here, request credit")}
+            </a>
+        </div>
+    </div>
+{/if}

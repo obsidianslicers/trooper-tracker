@@ -6,6 +6,7 @@ use App\Console\Commands\CloseEventsCommand;
 use App\Console\Commands\CloseEventShiftsCommand;
 use App\Console\Commands\DispatchQueueHeartbeatCommand;
 use App\Console\Commands\ExpireVisitorAccessCommand;
+use App\Console\Commands\FollowUpTroopCorrectionsCommand;
 use App\Console\Commands\ProcessAccountDeletionsCommand;
 use App\Console\Commands\RemindClosedEventShiftsCommand;
 use App\Console\Commands\RemindStaleVerificationsCommand;
@@ -58,6 +59,10 @@ Schedule::command(RemindClosedEventShiftsCommand::class)
 
 Schedule::command(RemindStaleVerificationsCommand::class)
     ->weeklyOn(1, '09:00')
+    ->timezone($timezone);
+
+Schedule::command(FollowUpTroopCorrectionsCommand::class)
+    ->dailyAt('09:15')
     ->timezone($timezone);
 
 Schedule::command(SendTentativeReminders::class)
