@@ -7,9 +7,10 @@
         current: RecordTab;
         showUpcoming: boolean;
         showSupport: boolean;
+        showCreditRequests: boolean;
         onselect: (tab: RecordTab) => void;
     }
-    let { current, showUpcoming, showSupport, onselect }: Props = $props();
+    let { current, showUpcoming, showSupport, showCreditRequests, onselect }: Props = $props();
 
     const tabs = $derived(
         [
@@ -18,12 +19,13 @@
             { id: "awards" as RecordTab, label: t("Awards") },
             { id: "costumes" as RecordTab, label: t("Costumes") },
             { id: "photos" as RecordTab, label: t("Photos") },
+            showCreditRequests && { id: "credit-requests" as RecordTab, label: t("Credit Requests") },
             showSupport && { id: "support" as RecordTab, label: t("Support") },
         ].filter((tab) => tab !== false),
     );
 </script>
 
-<ul class="nav nav-pills p-3 border-bottom" role="tablist">
+<ul class="record-tabs nav nav-pills flex-xl-nowrap p-3 border-bottom" role="tablist">
     {#each tabs as tab (tab.id)}
         <li class="nav-item" role="presentation">
             <button
@@ -39,3 +41,12 @@
         </li>
     {/each}
 </ul>
+
+<style>
+    /* tighter tabs so all of them fit one row on desktop (flex-xl-nowrap); phones keep the wrapped grid */
+    @media (min-width: 992px) {
+        .record-tabs :global(.nav-link) {
+            padding-inline: 0.75rem;
+        }
+    }
+</style>

@@ -7,12 +7,14 @@ namespace App\Messages\Events\Resources\Display;
 use App\Enums\EventTrooperStatus;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\TroopCorrection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * "Your sign-up" near the top of the event page: where the viewer stands on each shift, and
- * whether there's a shift left to sign up for.
+ * whether there's a shift left to sign up for, and, on a completed event they have no credit
+ * for, where to ask for it.
  */
 class EventDisplayMySignUps extends JsonResource
 {
@@ -52,6 +54,9 @@ class EventDisplayMySignUps extends JsonResource
                 ])
                 ->values()
                 ->all(),
+            'request_credit_url' => TroopCorrection::canBeRequestedFor($event, $this->context->viewer)
+                ? route('events.troop-correction-form', ['event_id' => $event->id])
+                : null,
         ];
     }
 }

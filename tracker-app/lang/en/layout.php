@@ -42,6 +42,7 @@ return [
     'Please check the form below for errors' => 'Please check the form below for errors',
     'Profile' => 'Profile',
     'Report Issues' => 'Report Issues',
+    'Request Troop Credit' => 'Request Troop Credit',
     'Search' => 'Search',
     'Search troopers, events, IDs...' => 'Search troopers, events, IDs...',
     'See all :count troops to confirm' => 'See all :count troops to confirm',

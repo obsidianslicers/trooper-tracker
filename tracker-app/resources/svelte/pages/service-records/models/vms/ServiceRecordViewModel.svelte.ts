@@ -1,6 +1,6 @@
 import type { RecordTrooper } from "../record-types";
 
-export type RecordTab = "upcoming" | "history" | "awards" | "costumes" | "photos" | "support";
+export type RecordTab = "upcoming" | "history" | "awards" | "costumes" | "photos" | "support" | "credit-requests";
 
 export type ShiftsLayout = "cards" | "table";
 

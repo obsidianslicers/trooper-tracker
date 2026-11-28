@@ -20,11 +20,13 @@ use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Concerns\BuildsTroopCorrections;
 use Tests\Concerns\BuildsTroopsToConfirm;
 use Tests\TestCase;
 
 class ShowEventControllerTest extends TestCase
 {
+    use BuildsTroopCorrections;
     use BuildsTroopsToConfirm;
     use RefreshDatabase;
 
@@ -689,5 +691,29 @@ class ShowEventControllerTest extends TestCase
 
         $this->assertNull($this->attendanceOn($this->troopToConfirm($trooper, ended_at: now()->subDays(40)), $trooper));
         $this->assertNull($this->attendanceOn($this->troopToConfirm($trooper, EventTrooperStatus::AWAITING_VERIFICATION), $trooper));
+    }
+
+    public function test_invoke_offers_request_credit_on_a_completed_event_without_credit(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = $this->completedShift()->event;
+
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('my_sign_ups.request_credit_url', route('events.troop-correction-form', ['event_id' => $event->id])));
+    }
+
+    public function test_invoke_does_not_offer_request_credit_with_credit_or_on_an_open_event(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $shift = $this->completedShift();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
+        $open = Event::factory()->create();
+
+        $this->actingAs($trooper)->get(route('events.display', ['event' => $shift->event_id]))
+            ->assertInertia(fn (Assert $page) => $page->where('my_sign_ups.request_credit_url', null));
+        $this->actingAs($trooper)->get(route('events.display', ['event' => $open->id]))
+            ->assertInertia(fn (Assert $page) => $page->where('my_sign_ups.request_credit_url', null));
     }
 }

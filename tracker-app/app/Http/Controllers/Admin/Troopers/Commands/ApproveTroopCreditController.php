@@ -19,7 +19,7 @@ class ApproveTroopCreditController extends Controller
         EventTrooper $event_trooper,
         Organization $organization,
     ): RedirectResponse {
-        ApproveTroopCredit::call(event_trooper: $event_trooper, organization_id: $organization->id);
+        ApproveTroopCredit::call(event_trooper: $event_trooper, organization_id: $organization->id, moderator: $request->user());
 
         FlashType::success(__('admin.Approved :organization credit.', ['organization' => $organization->name]));
 

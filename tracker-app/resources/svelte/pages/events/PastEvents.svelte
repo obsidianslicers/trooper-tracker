@@ -1,6 +1,7 @@
 <script lang="ts">
     import { locale, t } from "$lib/i18n";
     import pageState from "$lib/states/page-state.svelte";
+    import { getRoute } from "$lib/utils";
     import { usePage } from "@inertiajs/svelte";
     import FilterBar from "./components/FilterBar.svelte";
     import { PastEventsViewModel, type PastEventsPageData } from "./models";
@@ -25,6 +26,7 @@
         {t("Summary of Cancelled Events over the last :days days.", { days: vm.lookback_days ?? 0 })}
     {:else}
         {t("Closed event history, newest first.")}
+        <a href={getRoute("events.troop-correction-form")} class="ms-1">{t("Missing a troop? Request credit")}</a>
     {/if}
 </p>
 

@@ -40,4 +40,10 @@ enum TrooperNotifications: string
      * Sent to troopers watching an event when someone signs up, re-signs up, or cancels.
      */
     case EVENT_ROSTER_ACTIVITY = 'event_roster_activity';
+
+    /**
+     * Sent to an event coordinator asked to confirm a trooper's request for troop credit, and
+     * to the trooper once it is decided.
+     */
+    case TROOP_CREDIT_REQUESTS = 'troop_credit_requests';
 }

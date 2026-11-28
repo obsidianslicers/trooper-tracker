@@ -1,6 +1,7 @@
 <script lang="ts">
     import { t } from "$lib/i18n";
     import SlimView from "$lib/components/ui/SlimView.svelte";
+    import LinkedText from "$lib/components/LinkedText.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { getRoute } from "$lib/utils";
     import { usePage } from "@inertiajs/svelte";
@@ -43,6 +44,16 @@
                             {/if}
                             <br />
                             <span class="text-muted small">{row.starts_at}</span>
+                            {#if row.correction}
+                                <div class="correction small mt-2">
+                                    <strong>{t("Didn't sign up. Their details:")}</strong>
+                                    <span class="correction-details text-break"><LinkedText text={row.correction.details} /></span>
+                                    {#if row.correction.coordinator_denied}
+                                        <br />
+                                        <span class="text-danger">{t("The event coordinator said they weren't there.")}</span>
+                                    {/if}
+                                </div>
+                            {/if}
                         </td>
                         <td class={[!row.has_costume && "text-muted"]}>{row.costume}</td>
                         <td class="text-nowrap">
@@ -79,3 +90,14 @@
         </table>
     </div>
 </SlimView>
+
+<style>
+    /* keeps the Troop column readable on phones; the table scrolls sideways instead */
+    .correction {
+        min-width: 14rem;
+    }
+
+    .correction-details {
+        white-space: pre-line;
+    }
+</style>

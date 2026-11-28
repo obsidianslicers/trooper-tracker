@@ -7,6 +7,9 @@ use App\Http\Controllers\Events\Commands\BroadcastEventMessageController;
 use App\Http\Controllers\Events\Commands\CompleteShiftController;
 use App\Http\Controllers\Events\Commands\CompleteShiftWithClubController;
 use App\Http\Controllers\Events\Commands\ConfirmShiftAttendanceController;
+use App\Http\Controllers\Events\Commands\ConfirmTroopCorrectionController;
+use App\Http\Controllers\Events\Commands\DenyTroopCorrectionController;
+use App\Http\Controllers\Events\Commands\RequestTroopCorrectionController;
 use App\Http\Controllers\Events\Commands\ShareEventRosterController;
 use App\Http\Controllers\Events\Commands\SignUpGuestController;
 use App\Http\Controllers\Events\Commands\SignUpTrooperController;
@@ -26,6 +29,8 @@ use App\Http\Controllers\Events\Pages\ShowAddTrooperFormController;
 use App\Http\Controllers\Events\Pages\ShowEventCalendarController;
 use App\Http\Controllers\Events\Pages\ShowEventController;
 use App\Http\Controllers\Events\Pages\ShowEventMapController;
+use App\Http\Controllers\Events\Pages\ShowTroopCorrectionController;
+use App\Http\Controllers\Events\Pages\ShowTroopCorrectionFormController;
 use Illuminate\Support\Facades\Route;
 
 //  DASHBOARD
@@ -60,4 +65,9 @@ Route::prefix('events')
         Route::get('/complete/{event_trooper}/{status}', CompleteShiftController::class)->name('shift-complete');
         Route::post('/complete/{event_trooper}/club-select', CompleteShiftWithClubController::class)->name('shift-complete-club-select');
         Route::post('/confirm/{event_trooper}', ConfirmShiftAttendanceController::class)->name('confirm-attendance');
+        Route::get('/request-credit', ShowTroopCorrectionFormController::class)->name('troop-correction-form');
+        Route::post('/request-credit', RequestTroopCorrectionController::class)->name('request-troop-correction');
+        Route::get('/troop-corrections/{troop_correction}', ShowTroopCorrectionController::class)->name('troop-correction');
+        Route::post('/troop-corrections/{troop_correction}/confirm', ConfirmTroopCorrectionController::class)->name('confirm-troop-correction');
+        Route::post('/troop-corrections/{troop_correction}/deny', DenyTroopCorrectionController::class)->name('deny-troop-correction');
     });

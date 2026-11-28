@@ -343,7 +343,13 @@ MD,
             [
                 'section_id'  => $sigup,
                 'title'       => 'I am missing troop data / My troop data is incorrect.',
-                'description' => 'Please refer to your unit leader to get this corrected.',
+                'description' => <<<'MD'
+Trooped an event but never signed up for it? Go to **Service Records → Request Troop Credit**, find the event by its date or title, and tell us what proves you were there. You can also press **I was here, request credit** on the page of any completed event.
+
+The event coordinator or a moderator checks your request, and you'll get a notification when it's decided.
+
+If something else in your troop history is wrong, contact your unit leader.
+MD,
                 'sort_order'  => 6,
             ],
 

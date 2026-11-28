@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Messages\ServiceRecords\PageData;
 
+use App\Messages\Events\Queries\Corrections\GetTroopCorrectionsForTrooper;
+use App\Messages\ServiceRecords\Resources\Record\CreditRequestResource;
 use App\Messages\ServiceRecords\Resources\Record\DonationRowResource;
 use App\Messages\ServiceRecords\Resources\Record\ServiceRecordShiftResource;
 use App\Messages\ServiceRecords\Resources\Record\ServiceRecordTrooperResource;
@@ -17,6 +19,7 @@ use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
 use App\Messages\Troopers\Queries\GetTrooperServiceRecord;
 use App\Models\Costume;
 use App\Models\EventShift;
+use App\Models\TroopCorrection;
 use App\Models\Trooper;
 use App\Plugins\PluginDonations;
 use App\Plugins\PluginGuard;
@@ -105,8 +108,36 @@ final class TrooperServiceRecordPageData extends Message
             'donations_total' => $support_enabled && $data['all_donations']->isNotEmpty()
                 ? format_number($data['all_donations']->sum('amount'), 2)
                 : null,
+            'credit_requests' => $this->creditRequests($is_self),
             'record_slots' => $this->pluginSlots($data),
         ];
+    }
+
+    /**
+     * The trooper's requests for troop credit: always on their own record, so they can see how
+     * each went, and for command staff when there are any. Hidden from other members, as
+     * the requests hold what the trooper wrote.
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    private function creditRequests(bool $is_self): ?array
+    {
+        if (!$is_self && !$this->actor->can('update', $this->trooper))
+        {
+            return null;
+        }
+
+        $requests = GetTroopCorrectionsForTrooper::call(trooper_id: $this->trooper->id);
+
+        if (!$is_self && $requests->isEmpty())
+        {
+            return null;
+        }
+
+        return $requests
+            ->map(fn (TroopCorrection $correction): array => (new CreditRequestResource($correction))->resolve())
+            ->values()
+            ->all();
     }
 
     /**

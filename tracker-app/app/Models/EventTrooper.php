@@ -15,6 +15,7 @@ use App\Models\Scopes\HasEventTrooperScopes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
 
@@ -91,6 +92,15 @@ class EventTrooper extends BaseEventTrooper
     public function added_by_trooper(): BelongsTo
     {
         return $this->belongsTo(Trooper::class, self::ADDED_BY_TROOPER_ID);
+    }
+
+    /**
+     * The open request for credit this sign-up holds, when the trooper asked for credit for a
+     * troop they never signed up for. A sign-up holds at most one at a time.
+     */
+    public function pending_troop_correction(): HasOne
+    {
+        return $this->hasOne(TroopCorrection::class)->pending();
     }
 
     /**

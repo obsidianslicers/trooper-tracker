@@ -17,6 +17,8 @@ export type TroopVerificationRow = {
     starts_at: string | null;
     costume: string;
     has_costume: boolean;
+    /** Set when the trooper never signed up and asked for credit afterwards. */
+    correction: { details: string; coordinator_denied: boolean } | null;
     clubs: { id: number; name: string }[];
 };
 
