@@ -21,6 +21,32 @@ class CompleteShiftWithClubControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_another_trooper_cannot_submit_the_club_choice(): void
+    {
+        $owner = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $other = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($owner)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($owner)->forOrganization($org2)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($org1)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $event_trooper = EventTrooper::factory()->forEventShift($event_shift)->forTrooper($owner)->asGoing()
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
+
+        $response = $this->actingAs($other)->post(route('events.shift-complete-club-select', [
+            'event_trooper' => $event_trooper->id,
+        ]), [
+            'encrypted_status' => Crypt::encryptString(EventTrooperStatus::ATTENDED->value),
+            'organization_ids' => [$org1->id],
+        ]);
+
+        $response->assertForbidden();
+        $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
+    }
+
     public function test_selecting_all_clubs_confirms_attendance_and_credits_all(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();

@@ -49,6 +49,11 @@ class CompleteShiftController extends PageController
             abort(404);
         }
 
+        $actor = $request->user();
+        $moderates_event = $actor->isModeratorForOrganization($event_trooper->event_shift->event->organization);
+
+        abort_unless($event_trooper->isAttendanceLinkUsableBy($actor, $moderates_event), 403);
+
         $outcome = ConfirmShiftAttendance::call(event_trooper: $event_trooper, status: $trooper_status);
 
         if ($outcome === ShiftAttendanceOutcome::CHOOSE_CLUB)

@@ -228,6 +228,9 @@ MAINTENANCE_STARTED=false
 echo "✅ Restarting queues..."
 "$PHP" artisan queue:restart
 
+# What /status reports
+"$PHP" artisan tracker:stamp-deployment "$RELEASE"
+
 # Not needed right now
 # echo "💰 Recalculating trooper achievements and donation totals..."
 # "$PHP" artisan tracker:calculate-trooper-achievements

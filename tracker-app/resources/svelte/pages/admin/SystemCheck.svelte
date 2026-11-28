@@ -3,12 +3,13 @@
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
     import type { SystemCheckPageData } from "./models/dashboard";
+    import { SystemCheckViewModel } from "./models/vms/SystemCheckViewModel.svelte";
 
     const page = usePage<SystemCheckPageData>();
 
     pageState.title = t("System Check");
 
-    let open: Record<number, boolean> = $state({});
+    const vm = new SystemCheckViewModel();
 </script>
 
 <div class="mt-2">
@@ -57,17 +58,37 @@
                         <button
                             type="button"
                             class="btn btn-sm btn-outline-secondary btn-secondary-action mt-1"
-                            aria-expanded={open[i] ?? false}
-                            onclick={() => (open[i] = !open[i])}
+                            aria-expanded={vm.open[i] ?? false}
+                            onclick={() => vm.toggle(i)}
                         >
                             {t("View full error")}
                         </button>
-                        {#if open[i]}
-                            <pre class="bg-dark text-light p-2 rounded small mb-0 mt-2" style="white-space: pre-wrap;">{entry.message}</pre>
+                        {#if vm.open[i]}
+                            <pre class="bg-dark text-light p-2 rounded small mb-0 mt-2 log-message">{entry.message}</pre>
                         {/if}
                     </li>
                 {/each}
             </ul>
+            {#if page.props.has_more_errors}
+                <div class="card-footer">
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-secondary-action"
+                        disabled={vm.loading}
+                        onclick={() => vm.showMore(page.props.log_entries.length)}
+                    >
+                        {t("Show older errors")}
+                    </button>
+                </div>
+            {/if}
         {/if}
     </div>
 </div>
+
+<style>
+    .log-message {
+        white-space: pre-wrap;
+        max-height: 30rem;
+        overflow-y: auto;
+    }
+</style>
