@@ -97,13 +97,14 @@ class TroopCorrection extends BaseTroopCorrection
 
     /**
      * Who may look at the request: the trooper who asked, the coordinator asked to verify it,
-     * and command staff.
+     * and whoever may edit the trooper (command staff, their moderators), the same people
+     * who see it on the trooper's service record.
      */
     public function isVisibleTo(Trooper $trooper): bool
     {
         return $trooper->id === $this->trooper_id
             || $trooper->id === $this->coordinator_trooper_id
-            || $trooper->is_administrator;
+            || $trooper->can('update', $this->trooper);
     }
 
     /**

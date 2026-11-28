@@ -10,6 +10,7 @@
     import { ServiceRecordViewModel } from "./models/vms/ServiceRecordViewModel.svelte";
     import AwardsTab from "./components/record/AwardsTab.svelte";
     import CostumesTab from "./components/record/CostumesTab.svelte";
+    import CreditRequestsTab from "./components/record/CreditRequestsTab.svelte";
     import DonationsTab from "./components/record/DonationsTab.svelte";
     import InMemoriam from "./components/record/InMemoriam.svelte";
     import PendingConfirmations from "./components/record/PendingConfirmations.svelte";
@@ -47,6 +48,7 @@
                     current={vm.tab}
                     showUpcoming={!props.trooper.is_departed}
                     showSupport={props.donations !== null}
+                    showCreditRequests={props.credit_requests !== null}
                     onselect={(tab) => (vm.tab = tab)}
                 />
             </div>
@@ -76,6 +78,10 @@
                 {:else if vm.tab === "photos"}
                     <div id="photos" role="tabpanel">
                         <PhotosTab uploads={props.tagged_uploads} isSelf={props.trooper.is_self} />
+                    </div>
+                {:else if vm.tab === "credit-requests" && props.credit_requests}
+                    <div id="credit-requests" role="tabpanel">
+                        <CreditRequestsTab requests={props.credit_requests} isSelf={props.trooper.is_self} />
                     </div>
                 {:else if vm.tab === "support" && props.donations}
                     <div id="donations" role="tabpanel">

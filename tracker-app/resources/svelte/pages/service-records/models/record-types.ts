@@ -82,5 +82,18 @@ export type ServiceRecordPageData = {
     tagged_uploads: TaggedUpload[];
     donations: DonationRow[] | null;
     donations_total: string | null;
+    /** Null when the viewer may not see them (another member's record). */
+    credit_requests: CreditRequest[] | null;
     record_slots: Record<string, string>;
+};
+
+/** A request for troop credit on the Credit Requests tab (CreditRequestResource). */
+export type CreditRequest = {
+    id: number;
+    event_name: string;
+    troop_date: string | null;
+    requested_on: string | null;
+    status: "awaiting_coordinator" | "awaiting_moderator" | "approved" | "denied";
+    decided_on: string | null;
+    url: string;
 };

@@ -42,7 +42,7 @@ class TroopCorrectionDecidedNotification extends BaseNotification
             'body' => $approved
                 ? __('notifications.Your troop at :event now counts.', ['event' => $event->name])
                 : __('notifications.Your request for credit for :event was denied.', ['event' => $event->name]),
-            'url' => route('events.display', $event, absolute: false),
+            'url' => route('events.troop-correction', $this->troop_correction, absolute: false),
         ];
     }
 

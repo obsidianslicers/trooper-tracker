@@ -8,7 +8,10 @@ use App\Messages\ServiceRecords\PageData\TrooperServiceRecordPageData;
 use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumesForDisplay;
 use App\Messages\Troopers\Queries\GetEventTroopersMissingCredit;
 use App\Messages\Troopers\Queries\GetTrooperServiceRecord;
+use App\Enums\TroopCorrectionStatus;
 use App\Models\Costume;
+use App\Models\EventTrooper;
+use App\Models\TroopCorrection;
 use App\Models\Trooper;
 use App\Models\TrooperDonation;
 use App\Plugins\PluginDonations;
@@ -68,6 +71,46 @@ class TrooperServiceRecordPageDataTest extends TestCase
         );
         $this->assertFalse($result['trooper']['is_self']);
         $this->assertSame([], $result['pending_shifts']);
+    }
+
+
+    public function test_handle_lists_a_troopers_own_credit_requests_even_when_there_are_none(): void
+    {
+        $trooper = Trooper::factory()->asActive()->create();
+        $this->fakeRecord($trooper, missing_credit: 0);
+
+        $result = $this->resolve(new TrooperServiceRecordPageData(trooper: $trooper, actor: $trooper));
+
+        $this->assertSame([], $result['credit_requests']);
+    }
+
+    public function test_handle_shows_credit_requests_with_their_outcome(): void
+    {
+        $trooper = Trooper::factory()->asActive()->create();
+        $correction = TroopCorrection::factory()
+            ->forEventTrooper(EventTrooper::factory()->forTrooper($trooper)->create())
+            ->create([TroopCorrection::STATUS => TroopCorrectionStatus::DENIED, TroopCorrection::DECIDED_AT => now()]);
+        $this->fakeRecord($trooper, missing_credit: 0);
+
+        $result = $this->resolve(new TrooperServiceRecordPageData(trooper: $trooper, actor: $trooper));
+
+        $this->assertCount(1, $result['credit_requests']);
+        $this->assertSame('denied', $result['credit_requests'][0]['status']);
+        $this->assertNotNull($result['credit_requests'][0]['decided_on']);
+        $this->assertSame(route('events.troop-correction', $correction), $result['credit_requests'][0]['url']);
+    }
+
+    public function test_handle_hides_credit_requests_from_other_members(): void
+    {
+        $trooper = Trooper::factory()->asActive()->create();
+        TroopCorrection::factory()->forEventTrooper(EventTrooper::factory()->forTrooper($trooper)->create())->create();
+        $this->fakeRecord($trooper, missing_credit: 0);
+
+        $member = $this->resolve(new TrooperServiceRecordPageData(trooper: $trooper, actor: Trooper::factory()->asActive()->create()));
+        $admin = $this->resolve(new TrooperServiceRecordPageData(trooper: $trooper, actor: Trooper::factory()->asSystemOwner()->create()));
+
+        $this->assertNull($member['credit_requests']);
+        $this->assertCount(1, $admin['credit_requests']);
     }
 
     /**

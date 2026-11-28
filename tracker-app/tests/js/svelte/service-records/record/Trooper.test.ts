@@ -65,6 +65,7 @@ const props = (overrides: Partial<ServiceRecordPageData> = {}): ServiceRecordPag
     tagged_uploads: [],
     donations: null,
     donations_total: null,
+    credit_requests: null,
     record_slots: {},
     ...overrides,
 });
@@ -148,6 +149,25 @@ describe('Trooper service record', () => {
         await fireEvent.click(tab('Support'));
 
         expect(screen.getAllByText('$ 10.00')).toHaveLength(2);
+    });
+
+    it('has a Credit Requests tab with each request and its outcome only when the page sends them', async () => {
+        const { unmount } = render(Trooper, props());
+        expect(screen.queryByRole('tab', { name: 'Credit Requests' })).toBeNull();
+        unmount();
+
+        render(Trooper, props({
+            credit_requests: [
+                { id: 2, event_name: 'Parade of Lights', troop_date: 'Sep 29, 2026', requested_on: 'Nov 27, 2026', status: 'denied', decided_on: 'Nov 28, 2026', url: '/events/troop-corrections/2' },
+                { id: 1, event_name: 'Library Day', troop_date: 'Sep 1, 2026', requested_on: 'Nov 20, 2026', status: 'awaiting_coordinator', decided_on: null, url: '/events/troop-corrections/1' },
+            ],
+        }));
+        await fireEvent.click(tab('Credit Requests'));
+
+        expect(screen.getByText('Parade of Lights').getAttribute('href')).toBe('/events/troop-corrections/2');
+        expect(screen.getByText('Denied')).toBeTruthy();
+        expect(screen.getByText('Waiting for the event coordinator')).toBeTruthy();
+        expect(screen.getByText('Request Troop Credit').getAttribute('href')).toBe('/events.troop-correction-form');
     });
 
     it('shows a handler note instead of costumes', async () => {
