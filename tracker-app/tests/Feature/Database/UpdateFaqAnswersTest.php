@@ -21,6 +21,8 @@ class UpdateFaqAnswersTest extends TestCase
         $this->seed(FaqBefore20261125Seeder::class);
 
         $this->migration()->up();
+        //  and the FAQ migrations that came after it
+        (require database_path('migrations/2026_11_27_000002_point_faq_to_troop_credit_requests.php'))->up();
         $migrated = $this->snapshot();
 
         Faq::withTrashed()->forceDelete();

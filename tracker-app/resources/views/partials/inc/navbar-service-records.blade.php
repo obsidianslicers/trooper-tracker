@@ -13,6 +13,11 @@
                         :active="request()->routeIs('service-records.trooper')">
                 {{ __('layout.My Service') }}
             </x-nav-link>
+            <x-nav-link class="text-nowrap"
+                        :url="route('events.troop-correction-form')"
+                        :active="request()->routeIs('events.troop-correction-form')">
+                {{ __('layout.Request Troop Credit') }}
+            </x-nav-link>
             <x-nav-link :url="route('service-records.leaderboard')"
                         :active="request()->routeIs('service-records.leaderboard')">
                 {{ __('layout.Leaderboard') }}
