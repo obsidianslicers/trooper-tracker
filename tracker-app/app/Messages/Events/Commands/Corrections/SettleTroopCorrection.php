@@ -7,6 +7,7 @@ namespace App\Messages\Events\Commands\Corrections;
 use App\Enums\EventTrooperStatus;
 use App\Enums\TroopCorrectionStatus;
 use App\Models\EventTrooper;
+use App\Models\TroopCorrection;
 use App\Models\Trooper;
 use App\Notifications\Events\TroopCorrectionDecidedNotification;
 use Hyperdrive\Message;
@@ -17,7 +18,10 @@ use Hyperdrive\Message;
  * Denied otherwise, and the sign-up goes back to how it was before the request (or away,
  * when the request made it), so a turned-down request never reads as a No Show.
  *
- * @method static void call(EventTrooper $event_trooper, ?Trooper $moderator = null)
+ * Returns the request it decided, or null when there was none to decide yet, so plugins
+ * can act on the outcome with afterMessage().
+ *
+ * @method static TroopCorrection|null call(EventTrooper $event_trooper, ?Trooper $moderator = null)
  */
 final class SettleTroopCorrection extends Message
 {
@@ -26,14 +30,14 @@ final class SettleTroopCorrection extends Message
         private readonly ?Trooper $moderator = null,
     ) {}
 
-    public function handle(): void
+    public function handle(): ?TroopCorrection
     {
         $event_trooper = $this->event_trooper;
         $correction = $event_trooper->pending_troop_correction()->first();
 
         if ($correction === null || $event_trooper->isAwaitingVerification())
         {
-            return;
+            return null;
         }
 
         $approved = !empty($event_trooper->costume_organization_ids);
@@ -49,6 +53,8 @@ final class SettleTroopCorrection extends Message
         $correction->save();
 
         $correction->trooper->notify(new TroopCorrectionDecidedNotification($correction));
+
+        return $correction;
     }
 
     private function restoreSignUp(EventTrooper $event_trooper, ?EventTrooperStatus $previous_status): void

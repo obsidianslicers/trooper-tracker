@@ -12,6 +12,7 @@ use App\Messages\Events\Commands\Corrections\ConfirmTroopCorrection;
 use App\Messages\Events\Commands\Corrections\DenyTroopCorrection;
 use App\Messages\Events\Commands\Corrections\FollowUpTroopCorrections;
 use App\Messages\Events\Commands\Corrections\RequestTroopCorrection;
+use App\Messages\Events\Commands\Corrections\SettleTroopCorrection;
 use App\Messages\Events\Commands\Verification\ApproveTroopCredit;
 use App\Messages\Events\Commands\Verification\RejectTroopCredit;
 use App\Messages\Events\Queries\Verification\GetTroopsAwaitingVerification;
@@ -218,6 +219,36 @@ class TroopCorrectionTest extends TestCase
         $correction->refresh();
         $this->assertSame(TroopCorrectionStatus::DENIED, $correction->status);
         $this->assertTrue($correction->event_trooper->trashed());
+    }
+
+    public function test_settling_returns_the_request_it_decided_for_plugins(): void
+    {
+        Notification::fake();
+        Queue::fake();
+        $shift = $this->closedShift(null);
+        $correction = $this->request(Trooper::factory()->create(), $shift->event);
+        $event_trooper = $correction->event_trooper;
+
+        $this->assertNull(SettleTroopCorrection::call(event_trooper: $event_trooper));
+
+        $event_trooper->rejectRequestedOrganization($this->organization->id);
+        $event_trooper->save();
+        $settled = SettleTroopCorrection::call(event_trooper: $event_trooper);
+
+        $this->assertSame($correction->id, $settled?->id);
+        $this->assertSame(TroopCorrectionStatus::DENIED, $settled->status);
+    }
+
+    public function test_a_request_still_names_its_event_after_the_event_is_deleted(): void
+    {
+        Notification::fake();
+        Queue::fake();
+        $shift = $this->closedShift(null);
+        $correction = $this->request(Trooper::factory()->create(), $shift->event);
+
+        $shift->event->delete();
+
+        $this->assertSame($shift->event->name, $correction->fresh()->event->name);
     }
 
     public function test_moderator_rejection_puts_back_a_cancelled_sign_up(): void

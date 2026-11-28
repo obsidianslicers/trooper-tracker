@@ -39,6 +39,15 @@ class TroopCorrection extends BaseTroopCorrection
     }
 
     /**
+     * The event asked about, even after it was deleted, so the trooper's list of requests
+     * still names it.
+     */
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class)->withTrashed();
+    }
+
+    /**
      * The sign-up holding the claimed credit, even after a denial removed it.
      */
     public function event_trooper(): BelongsTo
