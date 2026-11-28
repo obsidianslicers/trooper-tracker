@@ -32,3 +32,4 @@ google-credentials.json
 /tests/e2e/.auth
 /playwright-report
 /test-results
+/storage/how-to-videos
