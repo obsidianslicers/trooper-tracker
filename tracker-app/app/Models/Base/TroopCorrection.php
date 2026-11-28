@@ -23,7 +23,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $event_trooper_id
  * @property string|null $previous_status
  * @property string $details
- * @property string|null $proof_url
  * @property int|null $coordinator_trooper_id
  * @property string $status
  * @property int|null $decided_by_trooper_id
@@ -53,7 +52,6 @@ class TroopCorrection extends Model
     const EVENT_TROOPER_ID = 'event_trooper_id';
     const PREVIOUS_STATUS = 'previous_status';
     const DETAILS = 'details';
-    const PROOF_URL = 'proof_url';
     const COORDINATOR_TROOPER_ID = 'coordinator_trooper_id';
     const STATUS = 'status';
     const DECIDED_BY_TROOPER_ID = 'decided_by_trooper_id';
@@ -93,7 +91,6 @@ class TroopCorrection extends Model
         self::EVENT_TROOPER_ID,
         self::PREVIOUS_STATUS,
         self::DETAILS,
-        self::PROOF_URL,
         self::COORDINATOR_TROOPER_ID,
         self::STATUS,
         self::DECIDED_BY_TROOPER_ID,

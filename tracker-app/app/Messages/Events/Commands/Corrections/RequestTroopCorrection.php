@@ -28,7 +28,7 @@ use RuntimeException;
  * Independent of the HTTP request, so plugins can call it too. The caller checks the
  * trooper may ask (see `TroopCorrection::canBeRequestedFor`).
  *
- * @method static TroopCorrection call(Trooper $trooper, Event $event, string $details, array $organization_ids = [], ?EventShift $event_shift = null, ?int $costume_id = null, ?string $proof_url = null)
+ * @method static TroopCorrection call(Trooper $trooper, Event $event, string $details, array $organization_ids = [], ?EventShift $event_shift = null, ?int $costume_id = null)
  */
 final class RequestTroopCorrection extends Message
 {
@@ -46,7 +46,6 @@ final class RequestTroopCorrection extends Message
         private readonly array $organization_ids = [],
         private readonly ?EventShift $event_shift = null,
         private readonly ?int $costume_id = null,
-        private readonly ?string $proof_url = null,
     ) {}
 
     public function handle(): TroopCorrection
@@ -75,7 +74,6 @@ final class RequestTroopCorrection extends Message
             TroopCorrection::EVENT_TROOPER_ID => $event_trooper->id,
             TroopCorrection::PREVIOUS_STATUS => $previous_status,
             TroopCorrection::DETAILS => trim($this->details),
-            TroopCorrection::PROOF_URL => $this->proof_url ?: null,
             TroopCorrection::STATUS => TroopCorrectionStatus::AWAITING_COORDINATOR,
         ]);
 

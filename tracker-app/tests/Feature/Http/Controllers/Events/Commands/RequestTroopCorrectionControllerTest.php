@@ -29,7 +29,6 @@ class RequestTroopCorrectionControllerTest extends TestCase
         $response = $this->actingAs($trooper)->post(route('events.request-troop-correction'), [
             'event_id' => $shift->event_id,
             'details' => 'I was the Vader at the front of the parade.',
-            'proof_url' => 'https://example.com/photos/parade',
         ]);
 
         $response->assertRedirect(route('events.display', $shift->event_id));
@@ -37,7 +36,6 @@ class RequestTroopCorrectionControllerTest extends TestCase
         $correction = TroopCorrection::sole();
         $this->assertSame($trooper->id, $correction->trooper_id);
         $this->assertSame(TroopCorrectionStatus::AWAITING_COORDINATOR, $correction->status);
-        $this->assertSame('https://example.com/photos/parade', $correction->proof_url);
         $this->assertSame(EventTrooperStatus::AWAITING_VERIFICATION, $correction->event_trooper->status);
     }
 

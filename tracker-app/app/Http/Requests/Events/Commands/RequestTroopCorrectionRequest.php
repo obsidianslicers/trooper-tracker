@@ -45,7 +45,6 @@ class RequestTroopCorrectionRequest extends FormRequest
             'organization_ids' => ['nullable', 'array'],
             'organization_ids.*' => ['integer', $this->eligibleClub(...)],
             'details' => ['required', 'string', 'min:10', 'max:'.self::DETAILS_MAX],
-            'proof_url' => ['nullable', 'url:http,https', 'max:500'],
         ];
     }
 

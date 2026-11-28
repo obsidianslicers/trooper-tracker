@@ -1,6 +1,7 @@
 <script lang="ts">
     import { t } from "$lib/i18n";
     import SlimView from "$lib/components/ui/SlimView.svelte";
+    import LinkedText from "$lib/components/LinkedText.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { getRoute } from "$lib/utils";
     import { usePage } from "@inertiajs/svelte";
@@ -46,13 +47,7 @@
                             {#if row.correction}
                                 <div class="correction small mt-2">
                                     <strong>{t("Didn't sign up. Their details:")}</strong>
-                                    <span class="correction-details">{row.correction.details}</span>
-                                    {#if row.correction.proof_url}
-                                        <br />
-                                        <a href={row.correction.proof_url} target="_blank" rel="noopener noreferrer">
-                                            {t("Proof link")}
-                                        </a>
-                                    {/if}
+                                    <span class="correction-details text-break"><LinkedText text={row.correction.details} /></span>
                                     {#if row.correction.coordinator_denied}
                                         <br />
                                         <span class="text-danger">{t("The event coordinator said they weren't there.")}</span>

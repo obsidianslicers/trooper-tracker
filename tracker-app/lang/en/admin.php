@@ -493,7 +493,6 @@ return [
     'Primary Hosting Organization.' => 'Primary Hosting Organization.',
     'Primary Organization:' => 'Primary Organization:',
     'Profile' => 'Profile',
-    'Proof link' => 'Proof link',
     'Quarterly awards must use the first day of the quarter.' => 'Quarterly awards must use the first day of the quarter.',
     'Ranked by Funds Raised' => 'Ranked by Funds Raised',
     'Re-Order' => 'Re-Order',

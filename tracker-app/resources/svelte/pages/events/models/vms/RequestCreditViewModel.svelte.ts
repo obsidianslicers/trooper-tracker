@@ -107,7 +107,6 @@ export class RequestCreditViewModel extends SubmitableViewModel<RequestCreditVie
             costume_id: null,
             organization_ids: event ? this.clubIdsFor(null) : [],
             details: "",
-            proof_url: "",
         };
     }
 }

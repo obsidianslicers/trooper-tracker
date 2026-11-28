@@ -23,7 +23,6 @@ class TroopCorrectionSummaryResource extends JsonResource
     {
         return [
             TroopCorrection::DETAILS => $this->details,
-            TroopCorrection::PROOF_URL => $this->proof_url,
             'coordinator_denied' => $this->coordinator_denied_at !== null,
         ];
     }

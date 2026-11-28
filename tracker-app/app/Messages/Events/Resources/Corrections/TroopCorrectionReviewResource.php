@@ -38,7 +38,6 @@ class TroopCorrectionReviewResource extends JsonResource
             'costume' => $event_trooper->costume?->name,
             'clubs' => $this->clubNames(),
             TroopCorrection::DETAILS => $this->details,
-            TroopCorrection::PROOF_URL => $this->proof_url,
             TroopCorrection::STATUS => $this->status->value,
             'can_answer' => $this->isAwaitingCoordinatorFrom($this->viewer),
         ];

@@ -37,7 +37,6 @@ return new class extends Migration {
 
             $table->string('previous_status', 32)->nullable();
             $table->text('details');
-            $table->string('proof_url', 500)->nullable();
 
             $table->foreignId('coordinator_trooper_id')
                 ->nullable()

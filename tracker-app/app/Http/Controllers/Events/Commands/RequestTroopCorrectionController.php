@@ -28,7 +28,6 @@ class RequestTroopCorrectionController extends Controller
             organization_ids: array_map('intval', $request->validated('organization_ids') ?? []),
             event_shift: $request->eventShift(),
             costume_id: $request->validated('costume_id') ? (int) $request->validated('costume_id') : null,
-            proof_url: $request->validated('proof_url'),
         );
 
         FlashType::success($correction->status === TroopCorrectionStatus::AWAITING_COORDINATOR

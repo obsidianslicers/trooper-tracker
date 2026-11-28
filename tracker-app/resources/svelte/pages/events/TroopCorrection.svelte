@@ -5,6 +5,7 @@
 <script lang="ts">
     import { t } from "$lib/i18n";
     import SlimView from "$lib/components/ui/SlimView.svelte";
+    import LinkedText from "$lib/components/LinkedText.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { getRoute } from "$lib/utils";
     import { usePage } from "@inertiajs/svelte";
@@ -49,14 +50,7 @@
         {/if}
 
         <dt class="col-sm-3">{t("Their details")}</dt>
-        <dd class="col-sm-9 correction-details">{correction.details}</dd>
-
-        {#if correction.proof_url}
-            <dt class="col-sm-3">{t("Proof link")}</dt>
-            <dd class="col-sm-9 text-break">
-                <a href={correction.proof_url} target="_blank" rel="noopener noreferrer">{correction.proof_url}</a>
-            </dd>
-        {/if}
+        <dd class="col-sm-9 correction-details text-break"><LinkedText text={correction.details} /></dd>
     </dl>
 
     {#if correction.can_answer}

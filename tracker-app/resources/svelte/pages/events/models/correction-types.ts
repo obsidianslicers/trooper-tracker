@@ -31,7 +31,6 @@ export type RequestCreditForm = {
     costume_id: number | null;
     organization_ids: number[];
     details: string;
-    proof_url: string;
 };
 
 /** One request for troop credit as its coordinator sees it (TroopCorrectionReviewResource). */
@@ -43,7 +42,6 @@ export type TroopCorrectionReview = {
     costume: string | null;
     clubs: string[];
     details: string;
-    proof_url: string | null;
     status: "awaiting_coordinator" | "awaiting_moderator" | "approved" | "denied";
     can_answer: boolean;
 };

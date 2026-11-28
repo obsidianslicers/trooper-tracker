@@ -139,15 +139,10 @@
                         id="correction-details"
                         class={["form-control", vm.errors.details && "is-invalid"]}
                         rows="5"
-                        placeholder={t("For example: who else trooped, what you wore, something that happened.")}
+                        placeholder={t("For example: who else trooped, what you wore, something that happened, or a link to photos.")}
                         bind:value={vm.form.details}
                     ></textarea>
                     <InputError errors={vm.errors.details} />
-                </div>
-
-                <div class="mb-3">
-                    <InputText label={t("Link to photos or a post (optional)")} bind:value={vm.form.proof_url}
-                               errors={vm.errors.proof_url} />
                 </div>
 
                 <SubmitButtonContainer>
